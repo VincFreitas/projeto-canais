@@ -1,4 +1,4 @@
-# Cria (ou remove, com -Remover) o atalho na pasta Inicializar do Windows que liga o n8n
+﻿# Cria (ou remove, com -Remover) o atalho na pasta Inicializar do Windows que liga o n8n
 # escondido no logon, para o workflow do Pulga do Saber postar nos horários marcados.
 # Rode você mesmo:  powershell -ExecutionPolicy Bypass -File .\n8n\iniciar-com-windows.ps1
 param([switch]$Remover)
