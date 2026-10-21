@@ -67,6 +67,30 @@ def cmd_vozes(a):
         print(v)
 
 
+def cmd_autorizar_youtube(_):
+    from .publicar import autorizar_youtube, canal
+    arquivo = autorizar_youtube()
+    print(f"token salvo em {arquivo}")
+    c = canal()
+    print(f"canal autorizado: {c['nome']} ({c['id']})")
+
+
+def cmd_publicar_youtube(a):
+    from .producao import carregar
+    from .publicar import enviar_youtube, metadados_youtube
+    caminho = Path(a.roteiro).resolve()
+    roteiro = carregar(caminho)
+    slug = roteiro.get("slug") or caminho.stem
+    video = config.SAIDA / f"{slug}-{roteiro.get('formato', 'longo')}.mp4"
+    if not video.exists():
+        sys.exit(f"vídeo não encontrado: {video} (rode produzir antes)")
+    meta = metadados_youtube(roteiro)
+    print(f"publicando '{meta['titulo']}' ({a.privacidade})")
+    video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
+                              a.privacidade, bool(roteiro.get("sintetico")))
+    print(f"pronto: https://youtu.be/{video_id}")
+
+
 def cmd_nichos(_):
     for nome, n in config.nichos().items():
         print(f"{nome:<22} [{n['idioma']}] {n['descricao']}")
@@ -111,6 +135,14 @@ def main():
     s = sub.add_parser("vozes", help="lista vozes do edge-tts")
     s.add_argument("prefixo", nargs="?", default="pt-BR")
     s.set_defaults(fn=cmd_vozes)
+
+    s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
+    s.set_defaults(fn=cmd_autorizar_youtube)
+
+    s = sub.add_parser("publicar-youtube", help="envia o vídeo produzido de um roteiro ao YouTube")
+    s.add_argument("roteiro")
+    s.add_argument("--privacidade", default="private", choices=["private", "unlisted", "public"])
+    s.set_defaults(fn=cmd_publicar_youtube)
 
     a = p.parse_args()
     a.fn(a)
