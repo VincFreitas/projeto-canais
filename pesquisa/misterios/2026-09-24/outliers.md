@@ -1,0 +1,32 @@
+| # | score | views | mediana canal | inscritos | views/dia | formato | título | canal |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 5343.26x | 50,761 | 9 | 1610 | 228 | longo | [13 Casos Inexplicáveis que Desafiam Toda a Lógica da Ciência](https://www.youtube.com/watch?v=YfsuGqmn4Bc) | Sussurros do Tempo |
+| 2 | 3309.69x | 1,011,110 | 305 | 15100 | 1589 | longo | [100 Mistérios Inexplicáveis Que Ninguém Consegue Explicar / Compilação](https://www.youtube.com/watch?v=HeFGNV5Jj5k) | History X |
+| 3 | 1125.87x | 1,182,163 | 1,050 | 23300 | 1637 | longo | [🚨 TERROR NA AMAZÔNIA: 6 Relatos Macabros Que Vão Te Deixar Sem Dormir! 🚨](https://www.youtube.com/watch?v=58xGVqfsRZc) | Assombrações Narradas |
+| 4 | 1017.38x | 1,526,064 | 1,500 | 41000 | 2509 | longo | [AMAZÔNIA SELVAGEM / Os Segredos Incríveis da Maior Floresta do Mundo / Documentário Completo](https://www.youtube.com/watch?v=Qcj-l5l-aIQ) | PVL docs |
+| 5 | 978.5x | 3,522,602 | 3,600 | 177000 | 4779 | longo | [AMAZÔNIA SELVAGEM: A Vida na Maior Floresta Tropical do Mundo / Documentário Completo](https://www.youtube.com/watch?v=q_VhGh-ZA0k) | Conexão Terra |
+| 6 | 670.78x | 235,780 | 351 | 2530 | 860 | longo | [20 Mistérios Reais Que Ainda Assombram a Humanidade](https://www.youtube.com/watch?v=8zsFgH42X1c) | Pequeno Contexto |
+| 7 | 513.09x | 4,284,342 | 8,350 | 5400000 | 6888 | longo | [🪐 O universo e seus perigos ocultos 🌍🌌 INEXPLICÁVEL MISTÉRIOS DO UNIVERSO](https://www.youtube.com/watch?v=V6cV0i3Fh7M) | Canal History Brasil |
+| 8 | 333.04x | 2,114,832 | 6,350 | 115000 | 4795 | longo | [10 descubrimientos antiguos que la ciencia no puede explicar](https://www.youtube.com/watch?v=dedmOk-sfhM) | #Manía Viral |
+| 9 | 240.57x | 119,561 | 497 | 973 | 261 | longo | [OS 10 MISTÉRIOS REAIS QUE A CIÊNCIA NÃO CONSEGUE EXPLICAR!!!!!](https://www.youtube.com/watch?v=vHHsEQv5VgY) | Nextage Facts |
+| 10 | 184.9x | 1,044,674 | 5,650 | 136000 | 1400 | longo | [Uma nova descoberta aterrorizante escondida na floresta amazônica](https://www.youtube.com/watch?v=wnJfTrxJ8Vo) | Fatos Pouco Conhecidos |
+| 11 | 167.7x | 285,086 | 1,700 | 5690 | 190 | short | [RICHARD RASMUSSEN FALA SOBRE RATANABÁ, A CIDADE PERDIDA DA AMAZÔNIA](https://www.youtube.com/watch?v=R8EAsYkhvpk) | Estúdio96 |
+| 12 | 156.73x | 1,308,678 | 8,350 | 5400000 | 7789 | longo | [O que esconde o lado oculto da LUA? 🌒 / INEXPLICÁVEL: MISTÉRIOS DO UNIVERSO / EP COMPLETO](https://www.youtube.com/watch?v=uf0K7pmrqAc) | Canal History Brasil |
+| 13 | 123.61x | 21,447 | 173 | 2230 | 53 | longo | [📜 30 SEGREDOS ANTIGOS QUE A CIÊNCIA NÃO CONSEGUE EXPLICAR — Uma história para dormir](https://www.youtube.com/watch?v=purnPtNjXDQ) | História Sombria |
+| 14 | 97.33x | 1,314,013 | 13,500 | 295000 | 2862 | longo | [50 Mistérios Inexplicáveis ​​que os Cientistas Não Conseguem Explicar](https://www.youtube.com/watch?v=mG39JhNltw4) | Fatos Sensacionais |
+| 15 | 85.91x | 502,570 | 5,850 | 31400 | 10256 | longo | [33 Mistérios da História que a Ciência NÃO Consegue Explicar](https://www.youtube.com/watch?v=KUCE_hYe_JU) | Historia Pasada |
+| 16 | 71.11x | 593,771 | 8,350 | 5400000 |  | longo | [📖 Livros macabros, cidade perdida / 2 HORAS DE EPISÓDIOS COMPLETOS DE GRANDES MISTÉRIOS DA HISTÓRIA](https://www.youtube.com/watch?v=ZqXYFhD9yDc) | Canal History Brasil |
+| 17 | 64.76x | 110,093 | 1,700 | 28000 |  | longo | [Os 25 Lugares Mais Misteriosos do Mundo Que Você Não Vai Acreditar Que Existem / 4K](https://www.youtube.com/watch?v=kqBmWaWwuvY) | Belo Mundo TV |
+| 18 | 61.36x | 61,204 | 997 | 2900 |  | longo | [10 acontecimentos misteriosos que continuam sem explicação em 2025](https://www.youtube.com/watch?v=ylnug2OLgR8) | Top 5 Unknowns em Português |
+| 19 | 47.66x | 278,809 | 5,850 | 31400 |  | longo | [33 Mistérios da História que a Ciência NÃO conseguiu Explicar](https://www.youtube.com/watch?v=UzZq-9t46MY) | Historia Pasada |
+| 20 | 36.13x | 559,977 | 15,500 | 70800 |  | longo | [A Prova de que a Nossa História Está Errada? 8 Lugares Misteriosos Que Você Precisa Ver](https://www.youtube.com/watch?v=mbK-9Yh7f9I) | Refúgio Tv |
+| 21 | 35.84x | 358,379 | 10,000 | 299000 |  | longo | [20 Mistérios Inexplicáveis Que Vão Explodir Sua Mente](https://www.youtube.com/watch?v=FhXkjSdRJQE) | El Brillante |
+| 22 | 34.38x | 5,810,964 | 169,000 | 10000000 |  | longo | [10 EVENTOS BÍBLICOS COMPROVADOS PELA CIÊNCIA](https://www.youtube.com/watch?v=jAAIDEUj8kQ) | Canal Top10 |
+| 23 | 29.57x | 724,571 | 24,500 | 219000 |  | longo | [O Enigma da Consciência: Quem Fala Na Sua Cabeça? / Krishnamurti.](https://www.youtube.com/watch?v=ayHl2oxXjwA) | A Odisseia Interior |
+| 24 | 29.22x | 292,160 | 10,000 | 225000 |  | longo | [A HIPÓTESE DE RIEMANN: O Problema Mais Famoso da Matemática](https://www.youtube.com/watch?v=Zx_PvQSqdLY) | Tem Ciência |
+| 25 | 28.84x | 248,067 | 8,600 | 63700 |  | longo | [LENDAS QUE O POVO CONTA NA AMAZONIA - RELATOS REAIS DE TERROR](https://www.youtube.com/watch?v=K7CbNPnQAM4) | Pesadelos de uma Pessoa Qualquer |
+| 26 | 26.23x | 219,027 | 8,350 | 5400000 |  | longo | [OS CLIMAS EXTREMOS MAIS ESTRANHOS DO MUNDO / Inexplicável com William Shatner / Episódio Completo](https://www.youtube.com/watch?v=JjupW50IQw0) | Canal History Brasil |
+| 27 | 25.7x | 411,120 | 16,000 | 30400 |  | longo | [Os 10 Lugares Mais Misteriosos do Mundo](https://www.youtube.com/watch?v=8J5LMUI_zsg) | Datos Paralelos |
+| 28 | 24.27x | 202,643 | 8,350 | 5400000 |  | longo | [Uma civilização esquecida da Amazônia / INEXPLICÁVEL COM DANTON MELLO / HISTORY](https://www.youtube.com/watch?v=pq7v-jgwbw8) | Canal History Brasil |
+| 29 | 23.02x | 1,335,321 | 58,000 | 2600000 |  | longo | [ALIENÍGENAS da AMAZÔNIA: RICHARD DETALHA sobre EXPERIÊNCIAS "SOBRENATURAIS"](https://www.youtube.com/watch?v=L3gmlXww06g) | Talk Flow |
+| 30 | 22.06x | 463,162 | 21,000 | 15600 |  | longo | [5 Mistérios reais da Amazônia que assustaram até os moradores.](https://www.youtube.com/watch?v=zsXqQhj-KgE) | Terror Urbano |

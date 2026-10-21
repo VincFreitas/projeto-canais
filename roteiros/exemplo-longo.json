@@ -1,0 +1,37 @@
+{
+  "slug": "exemplo-zona-do-silencio",
+  "titulo": "A Zona do Silêncio: o deserto onde o rádio (dizem) morre",
+  "idioma": "pt",
+  "formato": "longo",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+6%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "legenda": true,
+  "thumbnail": { "texto": "O deserto onde o rádio morre" },
+  "cenas": [
+    {
+      "capitulo": "O lugar",
+      "texto": "No norte do México existe um pedaço de deserto que ganhou um apelido estranho: a Zona do Silêncio. Dizem que ali o rádio não funciona, a bússola enlouquece e coisas caem do céu.",
+      "visual": "mexico desert night"
+    },
+    {
+      "capitulo": "O foguete",
+      "texto": "Em 1970, um foguete de testes lançado dos Estados Unidos saiu da rota e caiu exatamente nessa região. Os militares passaram semanas no deserto para recuperar os destroços.",
+      "visual": "rocket launch"
+    },
+    {
+      "capitulo": "O que é verdade",
+      "texto": "Mas quem mediu o local com equipamentos de verdade encontrou rádios funcionando normalmente. O mistério real é outro: por que tanta gente quer acreditar que ali existe algo diferente?",
+      "visual": "old radio"
+    }
+  ],
+  "metadados": {
+    "youtube": {
+      "titulo": "A Zona do Silêncio: o deserto onde o rádio (dizem) morre",
+      "descricao": "Vídeo de exemplo do pipeline canais-dark.",
+      "tags": ["zona do silêncio", "mistérios", "méxico"]
+    },
+    "tiktok": { "legenda": "O deserto onde o rádio morre?", "hashtags": ["#misterio", "#curiosidades"] }
+  }
+}

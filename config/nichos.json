@@ -1,0 +1,42 @@
+{
+  "misterios": {
+    "idioma": "pt",
+    "descricao": "Mistérios, lugares inexplicáveis, enigmas históricos",
+    "buscas": ["mistérios inexplicáveis", "lugares mais misteriosos do mundo", "mistérios da amazônia", "enigmas que a ciência não explica"]
+  },
+  "terror": {
+    "idioma": "pt",
+    "descricao": "Casos assombrados, lendas urbanas, relatos sobrenaturais",
+    "buscas": ["casos assombrados reais", "lendas urbanas brasileiras", "relatos sobrenaturais", "lugares assombrados do brasil"]
+  },
+  "curiosidades": {
+    "idioma": "pt",
+    "descricao": "Curiosidades gerais, fatos surpreendentes",
+    "buscas": ["curiosidades que você não sabia", "fatos surpreendentes", "coisas que ninguém te conta", "curiosidades sobre o corpo humano"]
+  },
+  "animais": {
+    "idioma": "pt",
+    "descricao": "Animais perigosos, estranhos ou fascinantes",
+    "buscas": ["animais mais perigosos do mundo", "animais estranhos", "curiosidades sobre animais", "o que seu cachorro sente"]
+  },
+  "geopolitica": {
+    "idioma": "pt",
+    "descricao": "Países, conflitos, poder e economia explicados",
+    "buscas": ["geopolítica explicada", "por que esse país", "países mais poderosos", "o que está acontecendo na"]
+  },
+  "historias-bizarras": {
+    "idioma": "pt",
+    "descricao": "Histórias reais bizarras, casos absurdos",
+    "buscas": ["histórias reais bizarras", "casos mais bizarros", "a história mais estranha", "aconteceu de verdade"]
+  },
+  "mysteries-en": {
+    "idioma": "en",
+    "descricao": "Mistérios em inglês (CPM maior)",
+    "buscas": ["unsolved mysteries", "most mysterious places on earth", "things science can't explain", "creepy discoveries"]
+  },
+  "history-en": {
+    "idioma": "en",
+    "descricao": "História em inglês, fatos pouco conhecidos",
+    "buscas": ["dark history", "history facts you didn't know", "worst jobs in history", "what life was like in"]
+  }
+}

@@ -1,0 +1,18 @@
+.venv/
+.env
+obra/
+dados/cache/
+assets/vozes/*.onnx
+assets/vozes/*.onnx.json
+__pycache__/
+*.pyc
+tmp/
+
+# credenciais (nunca versionar)
+credenciais/
+*client_secret*.json
+token*.json
+
+# repo público: sem vídeos gerados nem transcrições de terceiros
+saida/*.mp4
+pesquisa/*/*/transcricoes/

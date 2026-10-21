@@ -1,0 +1,17 @@
+{
+  "slug": "exemplo-zona-do-silencio",
+  "titulo": "O deserto onde o rádio morre",
+  "idioma": "pt",
+  "formato": "vertical",
+  "velocidade": "+10%",
+  "cenas": [
+    { "texto": "Existe um deserto no México onde, dizem, o rádio simplesmente para de funcionar.", "visual": "desert" },
+    { "texto": "Em 1970, um foguete americano saiu da rota e caiu bem ali. Coincidência?", "visual": "rocket" },
+    { "texto": "Os cientistas foram medir. E o resultado surpreendeu quem acreditava na lenda.", "visual": "radio antenna" }
+  ],
+  "metadados": {
+    "tiktok": { "legenda": "O deserto onde o rádio morre", "hashtags": ["#misterio", "#curiosidades", "#mexico"] },
+    "instagram": { "legenda": "Você acreditaria?", "hashtags": ["#misterio", "#reels"] },
+    "youtube_shorts": { "titulo": "O deserto onde o rádio morre #shorts" }
+  }
+}

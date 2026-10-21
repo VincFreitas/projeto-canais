@@ -1,0 +1,3 @@
+Coloque aqui musicas livres de direitos (mp3, wav, m4a, ogg).
+Fonte recomendada: YouTube Studio > Biblioteca de audio (filtre por "Atribuicao nao obrigatoria").
+Com "musica": "auto" no roteiro, uma delas e sorteada. Pasta vazia = trilha ambiente sintetizada.
