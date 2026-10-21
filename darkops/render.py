@@ -80,6 +80,71 @@ def ambiente(duracao_s: float, destino: Path) -> Path:
     return destino
 
 
+def animada(duracao_s: float, destino: Path, semente: str = "") -> Path:
+    """Trilha alegre sintetizada (bumbo, palmas, chimbal, baixo e arpejo em I-V-vi-IV): livre de direitos.
+
+    A semente (slug do vídeo) varia tom e andamento, para os vídeos não soarem todos iguais.
+    """
+    import wave
+    import zlib
+
+    import numpy as np
+
+    taxa = 48000
+    rng = np.random.default_rng(zlib.crc32(semente.encode("utf-8")))
+    bpm = float(rng.choice([104, 108, 112, 116]))
+    tom = int(rng.integers(-3, 4))                    # semitons a partir de Dó
+    batida = 60 / bpm
+    n = int((duracao_s + 1) * taxa)
+    t = np.arange(n) / taxa
+    esq, dir_ = np.zeros(n), np.zeros(n)
+
+    def nota(semitom: int) -> float:                  # 0 = Dó4
+        return 261.63 * 2 ** ((semitom + tom) / 12)
+
+    def soar(inicio: float, duracao: float, onda, ganho: float, pan: float = 0.0) -> None:
+        i0, i1 = int(inicio * taxa), min(int((inicio + duracao) * taxa), n)
+        if i0 >= n:
+            return
+        trecho = onda(t[: i1 - i0]) * ganho
+        esq[i0:i1] += trecho * (1 - pan)
+        dir_[i0:i1] += trecho * (1 + pan)
+
+    # acordes de 1 compasso cada: C, G, Am, F (fundamental + terça + quinta)
+    acordes = [(0, 4, 7), (7, 11, 14), (9, 12, 16), (5, 9, 12)]
+    compasso = 4 * batida
+    for c in range(int(duracao_s / compasso) + 1):
+        base = c * compasso
+        raiz, terca, quinta = acordes[c % 4]
+        for b in range(4):
+            tb = base + b * batida
+            if b in (0, 2):   # bumbo: senoide que desce de 120 para 45 Hz
+                soar(tb, 0.25, lambda x: np.sin(2 * np.pi * (45 * x + 75 * (1 - np.exp(-x * 30)) / 30))
+                     * np.exp(-x * 14), 0.55)
+            else:             # palma: ruído curto filtrado
+                soar(tb, 0.12, lambda x: rng.standard_normal(len(x)) * np.exp(-x * 40), 0.12)
+            for meio in (0, 0.5):  # chimbal em colcheias
+                soar(tb + meio * batida, 0.04, lambda x: np.diff(rng.standard_normal(len(x) + 1)) * np.exp(-x * 120),
+                     0.05, 0.4)
+            for meio in (0, 0.5):  # baixo em colcheias
+                f = nota(raiz - 24)
+                soar(tb + meio * batida, batida * 0.45, lambda x, f=f: (np.sin(2 * np.pi * f * x)
+                     + 0.3 * np.sin(4 * np.pi * f * x)) * np.exp(-x * 6), 0.22)
+            for k, grau in enumerate((raiz, terca, quinta, terca + 12)):  # arpejo em semicolcheias
+                f = nota(grau + 12)
+                soar(tb + k * batida / 4, batida / 2, lambda x, f=f: (np.sin(2 * np.pi * f * x)
+                     + 0.25 * np.sin(6 * np.pi * f * x)) * np.exp(-x * 9), 0.07, -0.3 if k % 2 else 0.3)
+
+    mix = np.stack([esq, dir_], axis=1)[: int(duracao_s * taxa)]
+    mix = mix / (np.abs(mix).max() or 1) * 0.8
+    with wave.open(str(destino), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(taxa)
+        w.writeframes((mix * 32767).astype("<i2").tobytes())
+    return destino
+
+
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12) -> None:
     """Concatena sem reencodar o vídeo; normaliza o volume para -14 LUFS (padrão das plataformas)."""
     pasta = cenas[0].parent
@@ -91,6 +156,8 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     total = duracao(junta)
     if musica == "ambiente":
         musica = ambiente(total, pasta / "ambiente.wav")
+    elif musica == "animada":
+        musica = animada(total, pasta / "animada.wav", saida.stem)
     normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
     if musica:
         fim = max(total - 3, 0)

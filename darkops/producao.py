@@ -27,9 +27,10 @@ def carregar(caminho: Path) -> dict:
 
 
 def _musica(roteiro: dict, pasta_roteiro: Path) -> Path | str | None:
-    """null = sem música; 'ambiente' = trilha sintetizada; 'auto' = sorteia de assets/musica; ou um caminho."""
+    """null = sem música; 'ambiente' (suspense) ou 'animada' (alegre) = trilha sintetizada;
+    'auto' = sorteia de assets/musica; ou um caminho."""
     escolha = roteiro.get("musica")
-    if not escolha or escolha == "ambiente":
+    if not escolha or escolha in ("ambiente", "animada"):
         return escolha or None
     if escolha == "auto":
         opcoes = sorted(p for p in config.MUSICA.glob("*") if p.suffix.lower() in {".mp3", ".wav", ".m4a", ".ogg"})
