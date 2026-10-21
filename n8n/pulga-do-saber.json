@@ -1,0 +1,345 @@
+{
+  "name": "Pulga do Saber - postagem automática",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 12,19 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000001",
+      "name": "Todo dia 12h e 19h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a1f0c001-0000-4000-8000-00000000000c",
+      "name": "Executar agora (teste)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-proximo"
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000002",
+      "name": "Próximo da fila",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lê a última linha RESULTADO {...} impressa pelo darkops\nconst linhas = String($json.stdout || '').split(/\\r?\\n/).reverse();\nconst linha = linhas.find(l => l.startsWith('RESULTADO '));\nif (!linha) throw new Error('saída sem RESULTADO: ' + String($json.stdout).slice(-300));\nreturn [{ json: JSON.parse(linha.slice('RESULTADO '.length)) }];"
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000003",
+      "name": "Ler fila",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c0nd-0001",
+              "leftValue": "={{ $json.vazia }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000004",
+      "name": "Fila vazia?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        280
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a1f0c001-0000-4000-8000-000000000005",
+      "name": "Nada para postar",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-produzir \"{{ $('Ler fila').first().json.roteiro }}\""
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000006",
+      "name": "Produzir vídeo",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        880,
+        320
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops publicar-youtube \"{{ $('Ler fila').first().json.roteiro }}\" --privacidade public"
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000007",
+      "name": "Publicar no YouTube",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops publicar-instagram \"{{ $('Ler fila').first().json.roteiro }}\""
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000008",
+      "name": "Publicar no Instagram",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        280
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-concluir \"{{ $('Ler fila').first().json.roteiro }}\""
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000009",
+      "name": "Registrar publicação",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        260
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
+      },
+      "id": "a1f0c001-0000-4000-8000-00000000000a",
+      "name": "Registrar falha",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1320,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "Falha registrada em controle/falhas.log (canais-dark)"
+      },
+      "id": "a1f0c001-0000-4000-8000-00000000000b",
+      "name": "Marcar execução com erro",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        560
+      ]
+    }
+  ],
+  "connections": {
+    "Todo dia 12h e 19h": {
+      "main": [
+        [
+          {
+            "node": "Próximo da fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Próximo da fila": {
+      "main": [
+        [
+          {
+            "node": "Ler fila",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler fila": {
+      "main": [
+        [
+          {
+            "node": "Fila vazia?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fila vazia?": {
+      "main": [
+        [
+          {
+            "node": "Nada para postar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Produzir vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Produzir vídeo": {
+      "main": [
+        [
+          {
+            "node": "Publicar no YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publicar no YouTube": {
+      "main": [
+        [
+          {
+            "node": "Publicar no Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publicar no Instagram": {
+      "main": [
+        [
+          {
+            "node": "Registrar publicação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Registrar falha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar publicação": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Registrar falha",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar falha": {
+      "main": [
+        [
+          {
+            "node": "Marcar execução com erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar agora (teste)": {
+      "main": [
+        [
+          {
+            "node": "Próximo da fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Sao_Paulo"
+  },
+  "pinData": {},
+  "active": false,
+  "id": "516k0cfwhvZqU0cp"
+}
