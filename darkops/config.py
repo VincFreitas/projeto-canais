@@ -16,6 +16,7 @@ CACHE = RAIZ / "dados" / "cache"
 MUSICA = RAIZ / "assets" / "musica"
 
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "").strip()
+PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "").strip()
 MOTOR_VOZ = os.getenv("MOTOR_VOZ", "auto").strip()
 ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "").strip()
 ELEVENLABS_VOZ = os.getenv("ELEVENLABS_VOZ", "").strip()

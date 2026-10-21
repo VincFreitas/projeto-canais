@@ -1,4 +1,4 @@
-"""Visuais das cenas (arquivo próprio, Pexels ou fundo gerado) e thumbnail."""
+"""Visuais das cenas (arquivo próprio, Pexels, Pixabay ou fundo gerado) e thumbnail."""
 import random
 from pathlib import Path
 
@@ -63,6 +63,41 @@ def buscar_pexels(consulta: str, largura: int, altura: int, tipo: str, destino: 
     return None
 
 
+# ---------- Pixabay (licença livre, sem atribuição obrigatória) ----------
+
+def _pixabay(caminho: str, params: dict) -> dict:
+    r = requests.get(f"https://pixabay.com/api/{caminho}", timeout=30,
+                     params={"key": config.PIXABAY_API_KEY, "safesearch": "true", "per_page": 20, **params})
+    r.raise_for_status()
+    return r.json()
+
+
+def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set) -> Path | None:
+    """Mesmo contrato de buscar_pexels. Vídeo: prefere a orientação do formato e a menor resolução suficiente."""
+    vertical = altura > largura
+    consulta = consulta[:100]
+    if tipo == "video":
+        hits = [h for h in _pixabay("videos/", {"q": consulta}).get("hits", []) if f"pb{h['id']}" not in usados]
+        hits.sort(key=lambda h: (h["videos"]["large"].get("height", 0) > h["videos"]["large"].get("width", 0)) != vertical)
+        for h in hits:
+            opcoes = [v for v in h["videos"].values() if v.get("url") and v.get("width")]
+            bons = sorted([v for v in opcoes if min(v["width"], v["height"]) >= min(largura, altura)],
+                          key=lambda v: v["width"])
+            escolhido = bons[0] if bons else max(opcoes, key=lambda v: v["width"], default=None)
+            if escolhido:
+                usados.add(f"pb{h['id']}")
+                return _baixar(escolhido["url"], destino.with_suffix(".mp4"))
+    else:
+        dados = _pixabay("", {"q": consulta, "image_type": "photo",
+                              "orientation": "vertical" if vertical else "horizontal"})
+        for h in dados.get("hits", []):
+            if f"pb{h['id']}" in usados:
+                continue
+            usados.add(f"pb{h['id']}")
+            return _baixar(h["largeImageURL"], destino.with_suffix(".jpg"))
+    return None
+
+
 # ---------- fundo gerado (sem chave) ----------
 
 def fundo_gerado(largura: int, altura: int, semente: int, destino: Path) -> Path:
@@ -87,7 +122,7 @@ def fundo_gerado(largura: int, altura: int, semente: int, destino: Path) -> Path
 
 def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: Path,
                    largura: int, altura: int, tipo: str, usados: set) -> Path:
-    """Ordem: arquivo indicado em 'arquivo' > cache já baixado > Pexels > fundo gerado."""
+    """Ordem: arquivo indicado em 'arquivo' > cache já baixado > Pexels > Pixabay > fundo gerado."""
     if cena.get("arquivo"):
         caminho = Path(cena["arquivo"])
         if not caminho.is_absolute():
@@ -102,14 +137,17 @@ def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: 
             return existente
 
     consulta = cena.get("visual", "").strip()
-    if consulta and config.PEXELS_API_KEY:
+    bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
+    for nome, chave, buscar in bancos:
+        if not (consulta and chave):
+            continue
         try:
-            achado = buscar_pexels(consulta, largura, altura, cena.get("tipo_visual", tipo), base, usados)
+            achado = buscar(consulta, largura, altura, cena.get("tipo_visual", tipo), base, usados)
             if achado:
                 return achado
-            print(f"  cena {indice}: Pexels sem resultado para '{consulta}'")
+            print(f"  cena {indice}: {nome} sem resultado para '{consulta}'")
         except requests.RequestException as erro:
-            print(f"  cena {indice}: Pexels falhou ({erro})")
+            print(f"  cena {indice}: {nome} falhou ({erro})")
     return fundo_gerado(largura, altura, indice, base)
 
 

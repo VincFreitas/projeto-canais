@@ -26,7 +26,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - **Originalidade**: o YouTube desmonetiza conteúdo "inautêntico" (produção em massa, repetitivo, IA sem valor próprio). Todo roteiro precisa de pesquisa própria, estrutura própria e um ângulo que o outlier não cobriu. Nunca reescreva a transcrição de outro canal.
 - **Fatos checados**: mistério e curiosidade não autorizam inventar coisas. Confirme cada afirmação com fonte (WebSearch) e guarde os links em `fontes`. Lenda é tratada como lenda ("dizem que", "segundo relatos").
 - **Promessa cumprida**: título e thumbnail precisam ser entregues no vídeo; clickbait sem entrega derruba a retenção e pode ser tratado como conteúdo enganoso.
-- **Licenças**: só Pexels, arquivos próprios ou gerados, e música livre (YouTube Audio Library ou a trilha `ambiente`).
+- **Licenças**: só Pexels ou Pixabay (licenças livres), arquivos próprios ou gerados, e música livre (YouTube Audio Library ou a trilha `ambiente`).
 - **Divulgação de IA**: imagem ou vídeo realista gerado por IA exige marcar "conteúdo alterado ou sintético" no YouTube Studio.
 - **Publicação**: upload automático é permitido só nos canais oficiais do projeto (Pulga do Saber: YouTube e Instagram @pulgadosaber), pelas APIs oficiais (YouTube Data API, Instagram Graph API), com tokens em segredos e nunca no código. A criação de contas, os logins e as autorizações OAuth continuam com o usuário. Não use contas compradas ("aquecidas").
 

@@ -56,6 +56,6 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `legenda` | não | `true` (padrão). O vertical usa legenda grande palavra a palavra |
 | `fontes` | não | Links usados na pesquisa. Não entram no vídeo; servem para checar os fatos |
 
-Ordem de escolha do visual de cada cena: `arquivo` > o que já foi baixado em `obra/` > Pexels (precisa de `PEXELS_API_KEY`) > fundo escuro gerado.
+Ordem de escolha do visual de cada cena: `arquivo` > o que já foi baixado em `obra/` > Pexels (precisa de `PEXELS_API_KEY`) > Pixabay (precisa de `PIXABAY_API_KEY`) > fundo escuro gerado.
 
 Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/visuais/NN.*` e rode de novo. Só as cenas alteradas são refeitas.
