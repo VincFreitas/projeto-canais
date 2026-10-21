@@ -75,20 +75,40 @@ def cmd_autorizar_youtube(_):
     print(f"canal autorizado: {c['nome']} ({c['id']})")
 
 
-def cmd_publicar_youtube(a):
+def _resultado(dados: dict) -> None:
+    """Última linha da saída, lida pelo workflow do n8n."""
+    print("RESULTADO " + json.dumps(dados, ensure_ascii=False), flush=True)
+
+
+def _roteiro_e_video(arquivo: str, formato_exigido: str | None = None):
     from .producao import carregar
-    from .publicar import enviar_youtube, metadados_youtube
-    caminho = Path(a.roteiro).resolve()
+    caminho = Path(arquivo).resolve()
     roteiro = carregar(caminho)
+    formato = roteiro.get("formato", "longo")
+    if formato_exigido and formato != formato_exigido:
+        sys.exit(f"precisa de roteiro {formato_exigido}, este é {formato}")
     slug = roteiro.get("slug") or caminho.stem
-    video = config.SAIDA / f"{slug}-{roteiro.get('formato', 'longo')}.mp4"
+    video = config.SAIDA / f"{slug}-{formato}.mp4"
     if not video.exists():
         sys.exit(f"vídeo não encontrado: {video} (rode produzir antes)")
-    meta = metadados_youtube(roteiro)
-    print(f"publicando '{meta['titulo']}' ({a.privacidade})")
-    video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
-                              a.privacidade, bool(roteiro.get("sintetico")))
-    print(f"pronto: https://youtu.be/{video_id}")
+    return caminho, roteiro, slug, video
+
+
+def cmd_publicar_youtube(a):
+    from .fila import ja_publicado, marcar
+    from .publicar import enviar_youtube, metadados_youtube
+    _, roteiro, slug, video = _roteiro_e_video(a.roteiro)
+    video_id = ja_publicado(slug, "youtube")
+    if video_id:
+        print(f"já publicado antes: https://youtu.be/{video_id}")
+    else:
+        meta = metadados_youtube(roteiro)
+        print(f"publicando '{meta['titulo']}' ({a.privacidade})")
+        video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
+                                  a.privacidade, bool(roteiro.get("sintetico")))
+        marcar(slug, "youtube", video_id)
+        print(f"pronto: https://youtu.be/{video_id}")
+    _resultado({"slug": slug, "youtube": video_id, "url": f"https://youtu.be/{video_id}"})
 
 
 def cmd_conta_instagram(_):
@@ -98,18 +118,47 @@ def cmd_conta_instagram(_):
 
 
 def cmd_publicar_instagram(a):
+    from .fila import ja_publicado, marcar
     from .instagram import legenda_instagram, publicar_reel
-    from .producao import carregar
-    caminho = Path(a.roteiro).resolve()
-    roteiro = carregar(caminho)
-    if roteiro.get("formato") != "vertical":
-        sys.exit("Reels precisam de roteiro vertical")
-    slug = roteiro.get("slug") or caminho.stem
-    video = config.SAIDA / f"{slug}-vertical.mp4"
-    if not video.exists():
-        sys.exit(f"vídeo não encontrado: {video} (rode produzir antes)")
-    print(f"publicando Reel de {video.name}")
-    print(f"pronto: mídia {publicar_reel(video, legenda_instagram(roteiro))}")
+    _, roteiro, slug, video = _roteiro_e_video(a.roteiro, "vertical")
+    midia_id = ja_publicado(slug, "instagram")
+    if midia_id:
+        print(f"já publicado antes: mídia {midia_id}")
+    else:
+        print(f"publicando Reel de {video.name}")
+        midia_id = publicar_reel(video, legenda_instagram(roteiro))
+        marcar(slug, "instagram", midia_id)
+        print(f"pronto: mídia {midia_id}")
+    _resultado({"slug": slug, "instagram": midia_id})
+
+
+def cmd_fila_proximo(_):
+    from .fila import proximo, restantes
+    caminho = proximo()
+    if not caminho:
+        _resultado({"vazia": True, "restantes": 0})
+        return
+    _resultado({"vazia": False, "roteiro": str(caminho), "restantes": restantes()})
+
+
+def cmd_fila_produzir(a):
+    from .producao import produzir
+    video = produzir(Path(a.roteiro))
+    from .render import duracao
+    _resultado({"video": str(video), "duracao_s": round(duracao(video), 1)})
+
+
+def cmd_fila_concluir(a):
+    from .fila import concluir
+    from .render import duracao
+    caminho, roteiro, _, video = _roteiro_e_video(a.roteiro)
+    _resultado(concluir(caminho, roteiro, duracao(video)))
+
+
+def cmd_registrar_falha(a):
+    from .fila import registrar_falha
+    registrar_falha(a.etapa, a.mensagem)
+    _resultado({"registrado": True})
 
 
 def cmd_nichos(_):
@@ -171,6 +220,22 @@ def main():
     s = sub.add_parser("publicar-instagram", help="publica o vídeo vertical de um roteiro como Reel")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_publicar_instagram)
+
+    s = sub.add_parser("fila-proximo", help="próximo roteiro de roteiros/fila (saída JSON para o n8n)")
+    s.set_defaults(fn=cmd_fila_proximo)
+
+    s = sub.add_parser("fila-produzir", help="produz um roteiro e devolve o vídeo em JSON")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_fila_produzir)
+
+    s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota em controle/testes.csv")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_fila_concluir)
+
+    s = sub.add_parser("registrar-falha", help="anota um erro do workflow em controle/falhas.log")
+    s.add_argument("--etapa", required=True)
+    s.add_argument("--mensagem", required=True)
+    s.set_defaults(fn=cmd_registrar_falha)
 
     a = p.parse_args()
     a.fn(a)
