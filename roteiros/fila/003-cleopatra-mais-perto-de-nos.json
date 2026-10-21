@@ -1,0 +1,75 @@
+{
+  "slug": "cleopatra-mais-perto-de-nos",
+  "titulo": "Cleópatra está mais perto de nós que das pirâmides",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.worldatlas.com/articles/so-cleopatra-lived-closer-in-time-to-the-first-lunar-landing-than-the-great-pyramids.html",
+    "https://velvetshark.com/til/cleopatra-lived-closer-to-the-moon-landing-than-to-the-great-pyramid-of-giza",
+    "https://lenz.io/c/cleopatra-moon-landing-great-pyramid-timeline-3a1e5240"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Cleópatra viveu mais perto da chegada do homem à Lua do que da construção da Grande Pirâmide.",
+      "visual": "egypt pyramids giza",
+      "pausa": 0.25
+    },
+    {
+      "texto": "A Grande Pirâmide de Gizé ficou pronta por volta de 2560 antes de Cristo.",
+      "visual": "great pyramid desert",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Cleópatra morreu em 30 antes de Cristo. Entre ela e a pirâmide, são uns 2.530 anos.",
+      "visual": "ancient egypt statue",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Já entre a morte dela e o pouso da Apollo 11, em 1969, são quase 2 mil anos.",
+      "visual": "moon surface astronaut",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Então, para a própria Cleópatra, a pirâmide já era uma antiguidade. Mais antiga para ela do que ela é para nós.",
+      "visual": "pyramid sunset silhouette",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Cleópatra viveu mais perto da ida à Lua que das pirâmides #shorts",
+      "descricao": "Cleópatra está mais perto de nós que das pirâmides. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#historia",
+        "#egito",
+        "#cleopatra"
+      ]
+    },
+    "instagram": {
+      "legenda": "Cleópatra viveu mais perto da ida à Lua do que da Grande Pirâmide. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#historia",
+        "#egito",
+        "#cleopatra",
+        "#piramides"
+      ]
+    }
+  }
+}

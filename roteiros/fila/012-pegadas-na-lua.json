@@ -1,0 +1,75 @@
+{
+  "slug": "pegadas-na-lua",
+  "titulo": "As pegadas na Lua ainda estão lá",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://starchild.gsfc.nasa.gov/docs/StarChild/space_level1/apollo11.html",
+    "https://scienceblog.com/m-no-wind-stirs-the-moon-and-no-rain-falls-there-and-that-stillness-has-a-strange-consequence-the-bootprints-apollo-astronauts-pressed-into-the-grey-dust-over-fifty-years-ago-will-likely-stay-crisp-an/",
+    "https://ground.news/article/no-wind-stirs-the-moon-and-no-rain-falls-there-and-that-stillness-has-a-strange-consequence-the-bootprints-apollo-astronauts-pressed-into-the"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: as pegadas dos astronautas da Apollo provavelmente continuam na Lua.",
+      "visual": "moon surface",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Aqui na Terra, vento e chuva apagam uma pegada rapidinho. Na Lua não tem vento nem chuva.",
+      "visual": "footprints sand beach",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Segundo a NASA, as pegadas e as marcas das rodas do jipe lunar vão ficar lá por milhões de anos.",
+      "visual": "astronaut moon",
+      "pausa": 0.25
+    },
+    {
+      "texto": "A sonda Lunar Reconnaissance Orbiter já fotografou os locais de pouso, com equipamentos e as trilhas de solo pisado.",
+      "visual": "satellite orbit earth",
+      "pausa": 0.25
+    },
+    {
+      "texto": "O cientista responsável pela câmera da sonda estimou que os rastros podem durar de 10 a 100 milhões de anos. Um passeio que virou monumento.",
+      "visual": "full moon night",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "As pegadas da Apollo continuam na Lua #shorts",
+      "descricao": "As pegadas na Lua ainda estão lá. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#espaco",
+        "#lua",
+        "#apollo"
+      ]
+    },
+    "instagram": {
+      "legenda": "As pegadas da Apollo continuam na Lua. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#espaco",
+        "#lua",
+        "#apollo",
+        "#nasa"
+      ]
+    }
+  }
+}

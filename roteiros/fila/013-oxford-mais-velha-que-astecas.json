@@ -1,0 +1,75 @@
+{
+  "slug": "oxford-mais-velha-que-astecas",
+  "titulo": "Oxford é mais velha que os astecas",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.smithsonianmag.com/smart-news/oxford-university-is-older-than-the-aztecs-1529607/",
+    "https://factmyth.com/factoids/oxford-university-is-older-than-aztec-civilization/",
+    "https://lenz.io/c/aztec-empire-age-vs-oldest-existing-universities-580ba550"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a Universidade de Oxford é mais antiga que a capital dos astecas.",
+      "visual": "oxford university building",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Oxford não tem data oficial de fundação, mas já havia ensino por lá em 1096.",
+      "visual": "old library books",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ela cresceu rápido depois de 1167, quando o rei Henrique II proibiu estudantes ingleses de estudar em Paris.",
+      "visual": "medieval castle england",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Já Tenochtitlán, a capital asteca onde hoje fica a Cidade do México, foi fundada em 1325.",
+      "visual": "mexico city aerial",
+      "pausa": 0.25
+    },
+    {
+      "texto": "São 229 anos de diferença. Quando os astecas começaram a erguer sua cidade, Oxford já dava aula havia mais de dois séculos.",
+      "visual": "university students campus",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Uma universidade mais antiga que a capital asteca #shorts",
+      "descricao": "Oxford é mais velha que os astecas. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#historia",
+        "#oxford",
+        "#astecas"
+      ]
+    },
+    "instagram": {
+      "legenda": "Uma universidade mais antiga que a capital asteca. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#historia",
+        "#oxford",
+        "#astecas",
+        "#educacao"
+      ]
+    }
+  }
+}

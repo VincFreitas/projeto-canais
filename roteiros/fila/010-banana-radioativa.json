@@ -1,0 +1,74 @@
+{
+  "slug": "banana-radioativa",
+  "titulo": "A banana é radioativa",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://en.wikipedia.org/wiki/Banana_equivalent_dose",
+    "https://en.wikipedia.org/wiki/Potassium-40",
+    "https://ionactive.co.uk/resource-hub/guidance/radioactive-bananas-banana-equivalent-dose"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a banana é levemente radioativa.",
+      "visual": "banana bunch",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ela tem bastante potássio, e uma fração minúscula do potássio natural é o potássio-40, que é radioativo.",
+      "visual": "banana yellow close up",
+      "pausa": 0.25
+    },
+    {
+      "texto": "A dose de uma banana é tão pequena que virou uma unidade de brincadeira: a dose equivalente de banana, cerca de 0,1 microsievert.",
+      "visual": "geiger counter",
+      "pausa": 0.25
+    },
+    {
+      "texto": "E não acumula: o corpo mantém o nível de potássio estável e elimina o que sobra.",
+      "visual": "fruit market",
+      "pausa": 0.25
+    },
+    {
+      "texto": "A curiosidade brasileira: a castanha-do-pará tem muito mais potássio-40 por grama que a banana. A campeã da radioatividade natural na fruteira é ela.",
+      "visual": "brazil nuts",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Sua banana é radioativa (e a castanha também) #shorts",
+      "descricao": "A banana é radioativa. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#banana",
+        "#ciencia",
+        "#fisica"
+      ]
+    },
+    "instagram": {
+      "legenda": "Sua banana é radioativa (e a castanha também). Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#banana",
+        "#ciencia",
+        "#fisica"
+      ]
+    }
+  }
+}

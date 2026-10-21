@@ -1,0 +1,75 @@
+{
+  "slug": "primeiro-bug-mariposa",
+  "titulo": "O primeiro bug era uma mariposa",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.si.edu/object/log-book-computer-bug:nmah_334663",
+    "https://daily.jstor.org/the-bug-in-the-computer-bug-story/",
+    "https://computinghistory.org.uk/det/5927/First%20computer%20%22bug%22%20is%20found"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o primeiro bug de computador registrado era um inseto de verdade.",
+      "visual": "moth insect close up",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Em 9 de setembro de 1947, na Universidade Harvard, engenheiros acharam uma mariposa presa dentro do computador Mark II.",
+      "visual": "vintage computer machine",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Eles colaram o bicho no caderno de registros com a frase: primeiro caso real de bug encontrado.",
+      "visual": "old notebook handwriting",
+      "pausa": 0.25
+    },
+    {
+      "texto": "A graça da piada é que a palavra bug já era usada para defeito. Thomas Edison escreveu isso numa carta de 1878.",
+      "visual": "light bulb vintage",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ou seja, a mariposa não inventou o termo, só deu a prova literal. E essa página do caderno hoje está num museu Smithsonian.",
+      "visual": "museum display",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "O primeiro bug de computador era um inseto de verdade #shorts",
+      "descricao": "O primeiro bug era uma mariposa. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#tecnologia",
+        "#historia",
+        "#computacao"
+      ]
+    },
+    "instagram": {
+      "legenda": "O primeiro bug de computador era um inseto de verdade. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#tecnologia",
+        "#historia",
+        "#computacao",
+        "#programacao"
+      ]
+    }
+  }
+}

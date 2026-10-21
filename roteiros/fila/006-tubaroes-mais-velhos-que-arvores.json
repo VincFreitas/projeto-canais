@@ -1,0 +1,75 @@
+{
+  "slug": "tubaroes-mais-velhos-que-arvores",
+  "titulo": "Tubarões são mais antigos que as árvores",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.discoverwildlife.com/prehistoric-life/are-sharks-older-than-trees",
+    "https://www.nhm.ac.uk/discover/shark-evolution-a-450-million-year-timeline",
+    "https://scienceblog.com/d-sharks-have-existed-for-roughly-450-million-years-and-for-the-first-60-million-of-them-there-wasnt-a-single-tree-anywhere-on-the-planet-just-mosses-and-liverworts-a-few-centimetres-tall/"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: os tubarões existem há mais tempo que as árvores.",
+      "visual": "shark swimming ocean",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Os fósseis mais antigos ligados aos tubarões são escamas minúsculas, de cerca de 450 milhões de anos.",
+      "visual": "fossil rock close up",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Já a árvore mais antiga conhecida, a Archaeopteris, e as primeiras florestas apareceram por volta de 385 milhões de anos atrás.",
+      "visual": "ancient forest ferns",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ou seja, por uns 60 milhões de anos teve tubarão no mar e nenhuma árvore em terra. Só plantas baixinhas, como musgos.",
+      "visual": "moss close up",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Os cientistas ainda debatem se aquelas escamas eram de tubarões de verdade ou de parentes muito próximos. Mesmo assim, é uma família antiga demais.",
+      "visual": "shark underwater blue",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Os tubarões são mais velhos que as árvores #shorts",
+      "descricao": "Tubarões são mais antigos que as árvores. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#animais",
+        "#tubarao",
+        "#evolucao"
+      ]
+    },
+    "instagram": {
+      "legenda": "Os tubarões são mais velhos que as árvores. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#animais",
+        "#tubarao",
+        "#evolucao",
+        "#ciencia"
+      ]
+    }
+  }
+}

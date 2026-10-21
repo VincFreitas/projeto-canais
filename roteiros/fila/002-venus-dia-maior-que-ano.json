@@ -1,0 +1,75 @@
+{
+  "slug": "venus-dia-maior-que-ano",
+  "titulo": "Em Vênus, o dia é maior que o ano",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.nasa.gov/sites/default/files/files/Venus_Lithograph.pdf",
+    "https://www.snopes.com/fact-check/one-day-on-venus-is-longer-than-a-year-on-venus/",
+    "https://www.theweathernetwork.com/en/news/science/space/how-long-is-the-solar-systems-longest-day-venus-has-the-answer"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: existe um planeta onde o dia dura mais que o ano.",
+      "visual": "venus planet space",
+      "pausa": 0.25
+    },
+    {
+      "texto": "É Vênus. Para dar uma volta completa em torno de si mesmo, ele leva cerca de 243 dias da Terra.",
+      "visual": "planet rotating space",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Mas para dar a volta no Sol, leva só uns 225 dias. Ou seja, o ano termina antes do giro.",
+      "visual": "sun solar system",
+      "pausa": 0.25
+    },
+    {
+      "texto": "E tem mais: Vênus gira ao contrário da Terra. Lá, o Sol nasce no oeste e se põe no leste.",
+      "visual": "sunrise clouds orange",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Por causa dessa combinação, de um nascer do Sol até o próximo passam uns 117 dias terrestres. Imagina esperar tudo isso pelo café da manhã.",
+      "visual": "starry night sky",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "O planeta onde o dia dura mais que o ano #shorts",
+      "descricao": "Em Vênus, o dia é maior que o ano. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#espaco",
+        "#astronomia",
+        "#venus"
+      ]
+    },
+    "instagram": {
+      "legenda": "O planeta onde o dia dura mais que o ano. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#espaco",
+        "#astronomia",
+        "#venus",
+        "#ciencia"
+      ]
+    }
+  }
+}

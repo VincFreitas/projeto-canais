@@ -1,0 +1,76 @@
+{
+  "slug": "polvo-tres-coracoes",
+  "titulo": "O polvo tem três corações",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.sciencefocus.com/nature/why-does-an-octopus-have-more-than-one-heart",
+    "https://www.livescience.com/how-many-hearts-does-an-octopus-have",
+    "https://www.scienceabc.com/nature/animals/why-do-octopuses-have-three-hearts.html",
+    "https://scienceblog.com/t-octopus-three-hearts-jet-swimming-systemic-heart-stops/"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o polvo tem três corações.",
+      "visual": "octopus underwater",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Dois deles bombeiam o sangue só pelas brânquias. O terceiro manda o sangue para o resto do corpo.",
+      "visual": "octopus tentacles close up",
+      "pausa": 0.25
+    },
+    {
+      "texto": "E esse sangue é azul. Em vez de ferro, como o nosso, ele usa uma proteína com cobre, a hemocianina.",
+      "visual": "blue water abstract",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Essa proteína carrega oxigênio pior que a nossa hemoglobina, e os corações extras ajudam a compensar.",
+      "visual": "octopus swimming ocean",
+      "pausa": 0.25
+    },
+    {
+      "texto": "O mais estranho: segundo um estudo de 1987, quando o polvo nada a jato, o fluxo do coração principal para por instantes. Três corações, e às vezes um dá uma pausa.",
+      "visual": "deep sea dark water",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "O animal com três corações e sangue azul #shorts",
+      "descricao": "O polvo tem três corações. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#animais",
+        "#polvo",
+        "#oceano"
+      ]
+    },
+    "instagram": {
+      "legenda": "O animal com três corações e sangue azul. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#animais",
+        "#polvo",
+        "#oceano",
+        "#ciencia"
+      ]
+    }
+  }
+}

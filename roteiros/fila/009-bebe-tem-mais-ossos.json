@@ -1,0 +1,74 @@
+{
+  "slug": "bebe-tem-mais-ossos",
+  "titulo": "O bebê tem mais ossos que você",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.scienceabc.com/humans/why-do-babies-have-more-bones-than-adults",
+    "https://www.popsci.com/story/health/bones-human-skeleton/",
+    "https://case.edu/news/anatomys-darin-croft-explains-why-adults-have-nearly-100-fewer-bones-when-they-are-born"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: quando você nasceu, tinha quase 100 ossos a mais do que tem hoje.",
+      "visual": "newborn baby feet",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Um recém-nascido tem perto de 300 ossos. Um adulto tem 206.",
+      "visual": "skeleton model anatomy",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Os ossos não somem. Muitos começam como cartilagem, que é flexível, e com o tempo endurecem e se juntam.",
+      "visual": "x ray bones",
+      "pausa": 0.25
+    },
+    {
+      "texto": "O crânio é o melhor exemplo: ele nasce em placas separadas, e é por isso que o bebê tem a moleira.",
+      "visual": "baby head sleeping",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Essa fusão começa nos primeiros meses e pode seguir até depois dos 20 anos. Você literalmente foi se montando.",
+      "visual": "family children growing up",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Você já teve quase 100 ossos a mais #shorts",
+      "descricao": "O bebê tem mais ossos que você. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#corpohumano",
+        "#ossos",
+        "#ciencia"
+      ]
+    },
+    "instagram": {
+      "legenda": "Você já teve quase 100 ossos a mais. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#corpohumano",
+        "#ossos",
+        "#ciencia"
+      ]
+    }
+  }
+}

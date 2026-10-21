@@ -1,0 +1,75 @@
+{
+  "slug": "saturno-flutuaria-na-agua",
+  "titulo": "Saturno flutuaria na água",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://science.gsfc.nasa.gov/attic/huygensgcms/Saturn.htm",
+    "https://starchild.gsfc.nasa.gov/docs/StarChild/teachers/densities.html",
+    "https://www.skyatnightmagazine.com/space-science/saturn-could-float-on-water"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Saturno, um planeta gigante, boiaria na água.",
+      "visual": "saturn planet rings",
+      "pausa": 0.25
+    },
+    {
+      "texto": "O motivo é a densidade. A da água é de 1 grama por centímetro cúbico. A de Saturno é só 0,687.",
+      "visual": "water surface ripples",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ele é feito principalmente de hidrogênio e hélio, gases muito leves. É o único planeta do Sistema Solar menos denso que a água.",
+      "visual": "gas clouds space",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Claro que não existe banheira para isso. E, na prática, a gravidade de Saturno puxaria essa água para ele.",
+      "visual": "bathtub water",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Mas, na conta, ele ficaria por cima. Um gigante com a alma de uma boia.",
+      "visual": "saturn space stars",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "O planeta gigante que boiaria na água #shorts",
+      "descricao": "Saturno flutuaria na água. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#espaco",
+        "#saturno",
+        "#astronomia"
+      ]
+    },
+    "instagram": {
+      "legenda": "O planeta gigante que boiaria na água. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#espaco",
+        "#saturno",
+        "#astronomia",
+        "#ciencia"
+      ]
+    }
+  }
+}

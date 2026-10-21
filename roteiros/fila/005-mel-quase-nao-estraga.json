@@ -1,0 +1,74 @@
+{
+  "slug": "mel-quase-nao-estraga",
+  "titulo": "Por que o mel quase não estraga",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/",
+    "https://scienceblog.com/honey-recovered-from-egyptian-tombs-sealed-more-than-3000-years-ago-can-remain-edible-because-honeys-low-water-content-acidic-ph-and-bee-made-peroxide-chemistry-make-it-almost-impossible-for-bact/",
+    "https://indiandefencereview.com/ancient-egyptian-honey-still-edible/"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o mel é um dos poucos alimentos que podem durar praticamente para sempre.",
+      "visual": "honey jar dripping",
+      "pausa": 0.25
+    },
+    {
+      "texto": "O segredo é que ele é quase só açúcar e tem pouca água livre. Um micróbio que cai ali perde água e não consegue crescer.",
+      "visual": "honey close up macro",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ele também é ácido, com pH entre 3 e 4,5. E as abelhas colocam uma enzima que gera um pouco de água oxigenada.",
+      "visual": "bees honeycomb",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Arqueólogos já acharam potes de mel conservados em tumbas do Egito. Mas a famosa história de quem provou mel de 3 mil anos não tem fonte arqueológica firme.",
+      "visual": "ancient egypt tomb",
+      "pausa": 0.25
+    },
+    {
+      "texto": "E tem um porém: aberto e com umidade, o mel absorve água e pode fermentar. Então, tampa bem fechada.",
+      "visual": "honey jar kitchen",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "O mel quase não estraga. Mas a lenda do mel de 3 mil anos... #shorts",
+      "descricao": "Por que o mel quase não estraga. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#mel",
+        "#ciencia",
+        "#cozinha"
+      ]
+    },
+    "instagram": {
+      "legenda": "O mel quase não estraga. Mas a lenda do mel de 3 mil anos... Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#mel",
+        "#ciencia",
+        "#cozinha"
+      ]
+    }
+  }
+}

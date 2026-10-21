@@ -1,0 +1,75 @@
+{
+  "slug": "torre-eiffel-se-mexe",
+  "titulo": "A Torre Eiffel se mexe com o Sol",
+  "idioma": "pt",
+  "formato": "vertical",
+  "motor_voz": "auto",
+  "voz": "pt-BR-AntonioNeural",
+  "velocidade": "+10%",
+  "tipo_visual": "foto",
+  "musica": "auto",
+  "volume_musica": 0.1,
+  "legenda": true,
+  "sintetico": false,
+  "fontes": [
+    "https://www.toureiffel.paris/en/news/history-and-culture/why-does-eiffel-tower-change-size",
+    "https://www.snexplores.org/article/fun-facts-about-eiffel-tower",
+    "https://www.yahoo.com/news/fact-check-eiffel-tower-grows-120000751.html"
+  ],
+  "cenas": [
+    {
+      "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a Torre Eiffel se mexe sozinha em dias de sol.",
+      "visual": "eiffel tower paris",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Ela é feita de ferro, e o ferro dilata com o calor. O lado virado para o Sol esquenta mais que o lado da sombra.",
+      "visual": "iron metal structure",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Esse lado se estica um pouquinho mais, e o topo se inclina para longe do Sol.",
+      "visual": "eiffel tower sunny day",
+      "pausa": 0.25
+    },
+    {
+      "texto": "Como o Sol anda pelo céu, o topo vai acompanhando. Segundo o site oficial, ele desenha uma curva de uns 15 centímetros de diâmetro num dia de céu limpo.",
+      "visual": "sun moving sky timelapse",
+      "pausa": 0.25
+    },
+    {
+      "texto": "E o vento também balança: o topo pode oscilar uns 7 centímetros para os lados. Tudo previsto no projeto.",
+      "visual": "eiffel tower night",
+      "pausa": 0.25
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "A Torre Eiffel se mexe sozinha todo dia #shorts",
+      "descricao": "A Torre Eiffel se mexe com o Sol. Você sabia? Curiosidades rápidas com fonte, todo dia no Pulga do Saber.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#paris",
+        "#torreeiffel",
+        "#engenharia"
+      ]
+    },
+    "instagram": {
+      "legenda": "A Torre Eiffel se mexe sozinha todo dia. Você sabia? Segue a @pulgadosaber para mais curiosidades.",
+      "hashtags": [
+        "#curiosidades",
+        "#vocesabia",
+        "#pulgadosaber",
+        "#fatos",
+        "#reels",
+        "#paris",
+        "#torreeiffel",
+        "#engenharia",
+        "#ciencia"
+      ]
+    }
+  }
+}
