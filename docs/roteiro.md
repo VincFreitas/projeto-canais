@@ -52,7 +52,7 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `voz` | não | edge/azure: `pt-BR-AntonioNeural`, `pt-BR-FranciscaNeural`... (`.\dark.ps1 vozes pt-BR`); piper: `pt_BR-faber-medium`; elevenlabs: voice_id |
 | `velocidade` | não | `+0%` a `+15%` é o comum em canais dark |
 | `tipo_visual` | não | `foto` (padrão, com zoom lento) ou `video` (clipes do Pexels) |
-| `musica` | não | `null` = sem música; `ambiente` = trilha sintetizada; `auto` = sorteia de `assets/musica/`; ou um caminho |
+| `musica` | não | `null` = sem música; `ambiente` = trilha de suspense sintetizada; `animada` = trilha alegre sintetizada (tom e andamento variam pelo vídeo); `auto` = sorteia de `assets/musica/`; ou um caminho |
 | `legenda` | não | `true` (padrão). O vertical usa legenda grande palavra a palavra |
 | `fontes` | não | Links usados na pesquisa. Não entram no vídeo; servem para checar os fatos |
 
