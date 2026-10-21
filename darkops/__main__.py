@@ -91,6 +91,27 @@ def cmd_publicar_youtube(a):
     print(f"pronto: https://youtu.be/{video_id}")
 
 
+def cmd_conta_instagram(_):
+    from .instagram import conta
+    c = conta()
+    print(f"token válido: @{c['username']} ({c['user_id']})")
+
+
+def cmd_publicar_instagram(a):
+    from .instagram import legenda_instagram, publicar_reel
+    from .producao import carregar
+    caminho = Path(a.roteiro).resolve()
+    roteiro = carregar(caminho)
+    if roteiro.get("formato") != "vertical":
+        sys.exit("Reels precisam de roteiro vertical")
+    slug = roteiro.get("slug") or caminho.stem
+    video = config.SAIDA / f"{slug}-vertical.mp4"
+    if not video.exists():
+        sys.exit(f"vídeo não encontrado: {video} (rode produzir antes)")
+    print(f"publicando Reel de {video.name}")
+    print(f"pronto: mídia {publicar_reel(video, legenda_instagram(roteiro))}")
+
+
 def cmd_nichos(_):
     for nome, n in config.nichos().items():
         print(f"{nome:<22} [{n['idioma']}] {n['descricao']}")
@@ -143,6 +164,13 @@ def main():
     s.add_argument("roteiro")
     s.add_argument("--privacidade", default="private", choices=["private", "unlisted", "public"])
     s.set_defaults(fn=cmd_publicar_youtube)
+
+    s = sub.add_parser("conta-instagram", help="confere o token do Instagram")
+    s.set_defaults(fn=cmd_conta_instagram)
+
+    s = sub.add_parser("publicar-instagram", help="publica o vídeo vertical de um roteiro como Reel")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_publicar_instagram)
 
     a = p.parse_args()
     a.fn(a)
