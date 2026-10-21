@@ -21,7 +21,7 @@ def token() -> str:
     """Token da variável INSTAGRAM_TOKEN (GitHub Actions) ou do arquivo local."""
     valor = os.getenv("INSTAGRAM_TOKEN", "").strip()
     if not valor and TOKEN_ARQUIVO.exists():
-        valor = TOKEN_ARQUIVO.read_text(encoding="utf-8").strip()
+        valor = TOKEN_ARQUIVO.read_text(encoding="utf-8-sig").strip()
     if not valor:
         raise SystemExit(f"sem token do Instagram: salve em {TOKEN_ARQUIVO} ou defina INSTAGRAM_TOKEN")
     return valor
