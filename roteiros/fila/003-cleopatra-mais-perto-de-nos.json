@@ -19,27 +19,27 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Cleópatra viveu mais perto da chegada do homem à Lua do que da construção da Grande Pirâmide.",
-      "visual": "egypt pyramids giza",
+      "visual": "pyramids giza",
       "pausa": 0.25
     },
     {
       "texto": "A Grande Pirâmide de Gizé ficou pronta por volta de 2560 antes de Cristo.",
-      "visual": "great pyramid desert",
+      "visual": "great pyramid",
       "pausa": 0.25
     },
     {
       "texto": "Cleópatra morreu em 30 antes de Cristo. Entre ela e a pirâmide, são uns 2.530 anos.",
-      "visual": "ancient egypt statue",
+      "visual": "cleopatra",
       "pausa": 0.25
     },
     {
       "texto": "Já entre a morte dela e o pouso da Apollo 11, em 1969, são quase 2 mil anos.",
-      "visual": "moon surface astronaut",
+      "visual": "astronaut moon",
       "pausa": 0.25
     },
     {
       "texto": "Então, para a própria Cleópatra, a pirâmide já era uma antiguidade. Mais antiga para ela do que ela é para nós.",
-      "visual": "pyramid sunset silhouette",
+      "visual": "pyramid sunset",
       "pausa": 0.25
     }
   ],

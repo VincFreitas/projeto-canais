@@ -19,27 +19,27 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: os tubarões existem há mais tempo que as árvores.",
-      "visual": "shark swimming ocean",
+      "visual": "shark",
       "pausa": 0.25
     },
     {
       "texto": "Os fósseis mais antigos ligados aos tubarões são escamas minúsculas, de cerca de 450 milhões de anos.",
-      "visual": "fossil rock close up",
+      "visual": "fossil",
       "pausa": 0.25
     },
     {
       "texto": "Já a árvore mais antiga conhecida, a Archaeopteris, e as primeiras florestas apareceram por volta de 385 milhões de anos atrás.",
-      "visual": "ancient forest ferns",
+      "visual": "ferns forest",
       "pausa": 0.25
     },
     {
       "texto": "Ou seja, por uns 60 milhões de anos teve tubarão no mar e nenhuma árvore em terra. Só plantas baixinhas, como musgos.",
-      "visual": "moss close up",
+      "visual": "moss",
       "pausa": 0.25
     },
     {
       "texto": "Os cientistas ainda debatem se aquelas escamas eram de tubarões de verdade ou de parentes muito próximos. Mesmo assim, é uma família antiga demais.",
-      "visual": "shark underwater blue",
+      "visual": "shark underwater",
       "pausa": 0.25
     }
   ],

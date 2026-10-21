@@ -19,27 +19,27 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: você acordou hoje mais alto do que vai dormir.",
-      "visual": "person waking up morning bed",
+      "visual": "waking up morning",
       "pausa": 0.25
     },
     {
       "texto": "Entre as vértebras da coluna existem discos macios, cheios de água, que funcionam como amortecedores.",
-      "visual": "spine anatomy model",
+      "visual": "spine",
       "pausa": 0.25
     },
     {
       "texto": "Durante o dia, de pé ou sentado, o peso do corpo vai espremendo esses discos, e eles perdem um pouco de água.",
-      "visual": "people walking city street",
+      "visual": "people walking",
       "pausa": 0.25
     },
     {
       "texto": "A diferença costuma ficar entre 1 e 2 centímetros. Num estudo com 90 adultos em Gana, a média foi de 1,6 centímetro.",
-      "visual": "measuring tape height",
+      "visual": "measuring tape",
       "pausa": 0.25
     },
     {
       "texto": "À noite, deitado, os discos se reidratam e você recupera tudo. Quer parecer mais alto? Meça logo de manhã.",
-      "visual": "sleeping night bedroom",
+      "visual": "sleeping",
       "pausa": 0.25
     }
   ],

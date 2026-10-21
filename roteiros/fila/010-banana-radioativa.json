@@ -19,17 +19,17 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a banana é levemente radioativa.",
-      "visual": "banana bunch",
+      "visual": "banana",
       "pausa": 0.25
     },
     {
       "texto": "Ela tem bastante potássio, e uma fração minúscula do potássio natural é o potássio-40, que é radioativo.",
-      "visual": "banana yellow close up",
+      "visual": "bananas",
       "pausa": 0.25
     },
     {
       "texto": "A dose de uma banana é tão pequena que virou uma unidade de brincadeira: a dose equivalente de banana, cerca de 0,1 microsievert.",
-      "visual": "geiger counter",
+      "visual": "radiation",
       "pausa": 0.25
     },
     {

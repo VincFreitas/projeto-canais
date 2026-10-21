@@ -19,22 +19,22 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a Torre Eiffel se mexe sozinha em dias de sol.",
-      "visual": "eiffel tower paris",
+      "visual": "eiffel tower",
       "pausa": 0.25
     },
     {
       "texto": "Ela é feita de ferro, e o ferro dilata com o calor. O lado virado para o Sol esquenta mais que o lado da sombra.",
-      "visual": "iron metal structure",
+      "visual": "eiffel tower structure",
       "pausa": 0.25
     },
     {
       "texto": "Esse lado se estica um pouquinho mais, e o topo se inclina para longe do Sol.",
-      "visual": "eiffel tower sunny day",
+      "visual": "eiffel tower sun",
       "pausa": 0.25
     },
     {
       "texto": "Como o Sol anda pelo céu, o topo vai acompanhando. Segundo o site oficial, ele desenha uma curva de uns 15 centímetros de diâmetro num dia de céu limpo.",
-      "visual": "sun moving sky timelapse",
+      "visual": "sun sky",
       "pausa": 0.25
     },
     {

@@ -20,27 +20,27 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o polvo tem três corações.",
-      "visual": "octopus underwater",
+      "visual": "octopus",
       "pausa": 0.25
     },
     {
       "texto": "Dois deles bombeiam o sangue só pelas brânquias. O terceiro manda o sangue para o resto do corpo.",
-      "visual": "octopus tentacles close up",
+      "visual": "octopus tentacles",
       "pausa": 0.25
     },
     {
       "texto": "E esse sangue é azul. Em vez de ferro, como o nosso, ele usa uma proteína com cobre, a hemocianina.",
-      "visual": "blue water abstract",
+      "visual": "octopus blue",
       "pausa": 0.25
     },
     {
       "texto": "Essa proteína carrega oxigênio pior que a nossa hemoglobina, e os corações extras ajudam a compensar.",
-      "visual": "octopus swimming ocean",
+      "visual": "octopus swimming",
       "pausa": 0.25
     },
     {
       "texto": "O mais estranho: segundo um estudo de 1987, quando o polvo nada a jato, o fluxo do coração principal para por instantes. Três corações, e às vezes um dá uma pausa.",
-      "visual": "deep sea dark water",
+      "visual": "octopus ocean",
       "pausa": 0.25
     }
   ],

@@ -175,28 +175,35 @@ def narrar(texto: str, motor: str, voz: str | None, velocidade: str, idioma: str
            base: Path) -> tuple[Path, list[dict]]:
     """Gera o áudio da cena e os tempos de cada palavra. Reaproveita se nada mudou.
 
-    motor 'auto' = edge; se o serviço recusar, Piper offline.
+    motor 'auto' = Azure se houver chave no .env, senão edge; se o serviço falhar, Piper offline.
     """
+    if motor == "auto":
+        escolhido = "azure" if config.AZURE_SPEECH_KEY and config.AZURE_SPEECH_REGION else "edge"
+    else:
+        escolhido = motor
     marcas = base.with_suffix(".json")
     assinatura = {"texto": texto, "motor": motor, "voz": voz, "velocidade": velocidade}
     if marcas.exists():
         salvo = json.loads(marcas.read_text(encoding="utf-8"))
         audio = base.with_name(salvo.get("arquivo") or "_")
-        if salvo.get("assinatura") == assinatura and audio.is_file():
+        # áudio do Piper feito como reserva é refeito quando o motor preferido voltar
+        reserva = salvo.get("motor_usado") != escolhido
+        if salvo.get("assinatura") == assinatura and audio.is_file() and not reserva:
             return audio, salvo["palavras"]
 
-    escolhido = "edge" if motor == "auto" else motor
     if escolhido not in MOTORES:
         raise SystemExit(f"motor de voz '{motor}' inválido. Opções: auto, {', '.join(MOTORES)}")
     try:
         audio, palavras = MOTORES[escolhido](texto, voz or voz_padrao(escolhido, idioma), velocidade, base)
-    except ConnectionError as erro:
+    except (ConnectionError, requests.RequestException) as erro:
         if motor != "auto":
             raise
         print(f"  {str(erro)[:120]}\n  usando Piper (offline)")
         voz_piper = voz if voz and voz in VOZES_PIPER.values() else voz_padrao("piper", idioma)
         audio, palavras = _piper(texto, voz_piper, velocidade, base)
-    marcas.write_text(json.dumps({"assinatura": assinatura, "arquivo": audio.name, "palavras": palavras},
+        escolhido = "piper"
+    marcas.write_text(json.dumps({"assinatura": assinatura, "arquivo": audio.name, "palavras": palavras,
+                                  "motor_usado": escolhido},
                                  ensure_ascii=False), encoding="utf-8")
     return audio, palavras
 

@@ -1,4 +1,5 @@
 """Visuais das cenas (arquivo próprio, Pexels, Pixabay ou fundo gerado) e thumbnail."""
+import json
 import random
 from pathlib import Path
 
@@ -132,17 +133,26 @@ def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: 
         return caminho
 
     base = pasta_visuais / f"{indice:02d}"
-    for existente in pasta_visuais.glob(f"{indice:02d}.*"):
-        if existente.suffix.lower() in EXT_VIDEO | EXT_IMAGEM:
-            return existente
-
     consulta = cena.get("visual", "").strip()
+    # o cache só vale para a mesma busca: trocar 'visual' no roteiro baixa outra imagem
+    marca = pasta_visuais / f"{indice:02d}.visual.json"
+    if marca.exists():
+        anterior = json.loads(marca.read_text(encoding="utf-8"))
+        if anterior.get("consulta") == consulta and Path(anterior.get("arquivo", "")).exists():
+            return Path(anterior["arquivo"])
+    achado = _buscar_em_bancos(consulta, indice, largura, altura, cena.get("tipo_visual", tipo), base, usados)
+    marca.write_text(json.dumps({"consulta": consulta, "arquivo": str(achado)}), encoding="utf-8")
+    return achado
+
+
+def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tipo: str,
+                      base: Path, usados: set) -> Path:
     bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
     for nome, chave, buscar in bancos:
         if not (consulta and chave):
             continue
         try:
-            achado = buscar(consulta, largura, altura, cena.get("tipo_visual", tipo), base, usados)
+            achado = buscar(consulta, largura, altura, tipo, base, usados)
             if achado:
                 return achado
             print(f"  cena {indice}: {nome} sem resultado para '{consulta}'")

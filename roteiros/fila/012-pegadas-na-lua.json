@@ -24,22 +24,22 @@
     },
     {
       "texto": "Aqui na Terra, vento e chuva apagam uma pegada rapidinho. Na Lua não tem vento nem chuva.",
-      "visual": "footprints sand beach",
+      "visual": "footprints",
       "pausa": 0.25
     },
     {
       "texto": "Segundo a NASA, as pegadas e as marcas das rodas do jipe lunar vão ficar lá por milhões de anos.",
-      "visual": "astronaut moon",
+      "visual": "astronaut",
       "pausa": 0.25
     },
     {
       "texto": "A sonda Lunar Reconnaissance Orbiter já fotografou os locais de pouso, com equipamentos e as trilhas de solo pisado.",
-      "visual": "satellite orbit earth",
+      "visual": "satellite",
       "pausa": 0.25
     },
     {
       "texto": "O cientista responsável pela câmera da sonda estimou que os rastros podem durar de 10 a 100 milhões de anos. Um passeio que virou monumento.",
-      "visual": "full moon night",
+      "visual": "full moon",
       "pausa": 0.25
     }
   ],

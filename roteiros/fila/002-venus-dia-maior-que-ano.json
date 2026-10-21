@@ -19,27 +19,27 @@
   "cenas": [
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: existe um planeta onde o dia dura mais que o ano.",
-      "visual": "venus planet space",
+      "visual": "venus planet",
       "pausa": 0.25
     },
     {
       "texto": "É Vênus. Para dar uma volta completa em torno de si mesmo, ele leva cerca de 243 dias da Terra.",
-      "visual": "planet rotating space",
+      "visual": "planet space",
       "pausa": 0.25
     },
     {
       "texto": "Mas para dar a volta no Sol, leva só uns 225 dias. Ou seja, o ano termina antes do giro.",
-      "visual": "sun solar system",
+      "visual": "solar system",
       "pausa": 0.25
     },
     {
       "texto": "E tem mais: Vênus gira ao contrário da Terra. Lá, o Sol nasce no oeste e se põe no leste.",
-      "visual": "sunrise clouds orange",
+      "visual": "sunrise",
       "pausa": 0.25
     },
     {
       "texto": "Por causa dessa combinação, de um nascer do Sol até o próximo passam uns 117 dias terrestres. Imagina esperar tudo isso pelo café da manhã.",
-      "visual": "starry night sky",
+      "visual": "starry sky",
       "pausa": 0.25
     }
   ],
