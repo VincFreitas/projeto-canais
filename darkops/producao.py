@@ -138,6 +138,13 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                           gatilhos), *posicao(largura, altura))
             efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,
                                                                       dur_cena, gatilhos)]
+        narrador = None
+        if roteiro.get("narrador"):  # pulga cartoon que fala junto com a voz, no canto esquerdo de baixo
+            from .narrador import gerar as gerar_narrador
+            lado = int(largura * (0.19 if altura < largura else 0.26))
+            y = altura - lado - int(altura * (0.02 if altura < largura else 0.2))
+            narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov"),
+                        int(largura * 0.01), y)
         destaque = None
         if c.get("destaque") and not c.get("animacao"):  # palavra-herói no segundo em que é falada
             from .sincronia import momento
@@ -153,16 +160,20 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if usar_legenda:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
             narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
-                                 baixo=bool(c.get("animacao")), destaque=destaque, grande=post)
+                                 # no cartoon a legenda fica embaixo para não cobrir o personagem
+                                 baixo=bool(c.get("animacao")) or roteiro.get("estilo") == "cartoon",
+                                 destaque=destaque, grande=post)
         # a cena só é refeita se áudio, visual ou legenda mudarem
-        assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
+        assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
+                      "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
                       "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
         marca = saida_cena.with_suffix(".json")
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
         else:
-            duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card))
+            duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
+                                        narrador))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 

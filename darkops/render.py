@@ -47,7 +47,7 @@ def _movimento(indice: int, quadros: int) -> str:
 
 def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
          largura: int, altura: int, indice: int, pausa: float,
-         card: tuple[Path, int, int] | None = None) -> float:
+         card: tuple[Path, int, int] | None = None, narrador: tuple[Path, int, int] | None = None) -> float:
     """Renderiza uma cena com a duração da narração + pausa. Devolve a duração.
 
     card = (vídeo com transparência, x, y): infográfico por cima do clipe, que fica desfocado e
@@ -72,6 +72,12 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
         extra = ["-i", str(arquivo)]
         video += (f",boxblur=7:1,eq=brightness=-0.07[base];[2:v]format=rgba[card];"
                   f"[base][card]overlay=x={x}:y={y}:eof_action=pass:format=auto")
+    if narrador:  # a pulga que fala, num canto da cena
+        arquivo_n, xn, yn = narrador
+        indice = 2 + (1 if card else 0)
+        extra += ["-i", str(arquivo_n)]
+        video += (f"[pre];[{indice}:v]format=rgba[nar];"
+                  f"[pre][nar]overlay=x={xn}:y={yn}:eof_action=pass:format=auto")
     filtro = f"{video}{entrada_suave}{legendas},format=yuv420p[v];[1:a]aresample=48000,apad[a]"
     rodar([*entrada, "-i", str(audio), *extra, "-filter_complex", filtro, "-map", "[v]", "-map", "[a]",
            "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(FPS),
@@ -233,9 +239,10 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
         mascara = Image.new("L", (lado, lado), 0)
         ImageDraw.Draw(mascara).ellipse([0, 0, lado - 1, lado - 1], fill=255)
         img.paste(foto, (ax, ay), mascara)
-    else:
-        pulga = Image.open(_mascote(int(lado / 0.12 * 0.62), destino.with_name("pulga-avatar.png")))
-        img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 6), pulga)
+    else:  # a mesma pulga cartoon que narra os vídeos
+        from .narrador import _desenhar
+        pulga = _desenhar(0.4, 0.15, int(lado * 0.92))
+        img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 4), pulga)
     # nome e @
     tx = ax + lado + 36
     d.text((tx, ay + 32), nome, font=fonte("segoeuib.ttf", 64), fill=(17, 17, 17))

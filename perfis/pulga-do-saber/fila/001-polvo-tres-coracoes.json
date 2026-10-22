@@ -23,7 +23,8 @@
       "visual": "octopus",
       "pausa": 0.25,
       "destaque": "3 corações",
-      "destaque_em": "três"
+      "destaque_em": "três",
+      "arquivo": "../midia/polvo-tres-coracoes/cena1.png"
     },
     {
       "texto": "Dois deles bombeiam o sangue só pelas brânquias. O terceiro manda o sangue para o resto do corpo.",
@@ -39,27 +40,31 @@
           "dois",
           "terceiro"
         ]
-      }
+      },
+      "arquivo": "../midia/polvo-tres-coracoes/cena2.png"
     },
     {
       "texto": "E esse sangue é azul. Em vez de ferro, como o nosso, ele usa uma proteína com cobre, a hemocianina.",
       "visual": "octopus blue",
       "pausa": 0.25,
       "destaque": "sangue azul",
-      "destaque_em": "azul"
+      "destaque_em": "azul",
+      "arquivo": "../midia/polvo-tres-coracoes/cena3.png"
     },
     {
       "texto": "Essa proteína carrega oxigênio pior que a nossa hemoglobina, e os corações extras ajudam a compensar.",
       "visual": "octopus swimming",
       "pausa": 0.25,
-      "destaque": "compensar"
+      "destaque": "compensar",
+      "arquivo": "../midia/polvo-tres-coracoes/cena4.png"
     },
     {
       "texto": "O mais estranho: segundo um estudo de 1987, quando o polvo nada a jato, o fluxo do coração principal para por instantes. Três corações, e às vezes um dá uma pausa.",
       "visual": "octopus ocean",
       "pausa": 0.25,
       "destaque": "uma pausa",
-      "destaque_em": "pausa"
+      "destaque_em": "pausa",
+      "arquivo": "../midia/polvo-tres-coracoes/cena5.png"
     }
   ],
   "metadados": {
@@ -93,5 +98,7 @@
   },
   "layout": "post",
   "manchete": "O polvo tem três corações e o sangue dele é azul",
-  "aprovado": false
+  "aprovado": false,
+  "narrador": true,
+  "estilo": "cartoon"
 }

@@ -85,3 +85,10 @@ Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/vi
 - `"layout": "post"`: o vídeo final continua 1080x1920, mas fica num **fundo branco** com o avatar do canal (a pulga num círculo amarelo), o nome, o @ e a `manchete` em texto, e as cenas passam numa **janela** de 1080x780 no meio (`config.JANELA_POST`), com a barra de progresso embaixo dela.
 - `"manchete"`: frase completa de 8 a 14 palavras, que resume o vídeo (as linhas se equilibram sozinhas). Sem ela, usa o `titulo`.
 - Nas cenas da janela, a legenda e a palavra-herói usam o estilo grande de Shorts e o card das animações ocupa a janela. O mascote do canto e o selo do topo não aparecem: o avatar faz esse papel.
+
+## Estilo cartoon
+
+- `"estilo": "cartoon"`: a legenda vai para baixo da imagem, para não cobrir o personagem.
+- `"narrador": true`: a pulga mascote (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca e balança as antenas.
+- Ilustração de cada cena em `cenas[].arquivo` (ex.: `../midia/<slug>/cena1.png`, relativo à pasta da fila). Para manter o mesmo estilo e personagem, gere a 1ª imagem e use-a como **referência** nas outras, com o mesmo trecho de estilo no prompt: *"Flat 2D cartoon illustration in a clean vector explainer style (Kurzgesagt-inspired): bold simple shapes, soft gradients, vibrant saturated colors, rounded forms, NO text, NO letters, NO watermark"*. Proporção 4:3 para a janela do layout post.
+- Cartoon gerado por IA não é "realista", então não precisa da marcação de conteúdo sintético; mesmo assim, cite no roteiro (`"ilustracoes": "IA"`) para controle.

@@ -27,7 +27,7 @@ a { color: inherit; }
 .perfis, .menu { display: flex; flex-direction: column; gap: 4px; }
 .perfil { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; text-decoration: none; }
 .perfil:hover, .perfil.ativo { background: #2d2a26; }
-.perfil img { width: 36px; height: 36px; border-radius: 50%; background: var(--amarelo); object-fit: cover; image-rendering: pixelated; }
+.perfil img { width: 36px; height: 36px; border-radius: 50%; background: var(--amarelo); object-fit: cover; }
 .perfil span { flex: 1; display: flex; flex-direction: column; font-weight: 600; line-height: 1.2; }
 .perfil small { color: #9b958c; font-weight: 400; }
 .bolinha { width: 9px; height: 9px; border-radius: 50%; background: #5b5650; }

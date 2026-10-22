@@ -279,10 +279,12 @@ def avatar(pid):
     p = _perfil(pid)
     if p.avatar:
         return send_file(p.avatar)
-    from ..render import _mascote
+    from ..narrador import _desenhar
     destino = p.controle / "pulga-avatar.png"
     p.controle.mkdir(parents=True, exist_ok=True)
-    return send_file(_mascote(500, destino))
+    if not destino.exists():
+        _desenhar(0.4, 0.15, 400).save(destino)
+    return send_file(destino)
 
 
 @app.post("/p/<pid>/ativar")
