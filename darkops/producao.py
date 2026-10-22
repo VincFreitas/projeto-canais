@@ -107,13 +107,13 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
                                           obra / "audio" / f"{i:02d}")
         pausa = float(c.get("pausa", PAUSA_PADRAO))
-        if c.get("animacao"):  # motion graphics com a duração exata da cena
-            from .animacoes import gerar
-            visual = gerar(c["animacao"], render.duracao(audio) + pausa, largura, altura,
-                           obra / "visuais" / f"{i:02d}-animacao.mp4")
-        else:
-            visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
-                                            roteiro.get("tipo_visual", "foto"), usados)
+        visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
+                                        roteiro.get("tipo_visual", "foto"), usados)
+        card = None
+        if c.get("animacao"):  # infográfico em card de vidro por cima do clipe, com a duração da cena
+            from .animacoes import gerar, posicao
+            card = (gerar(c["animacao"], render.duracao(audio) + pausa, largura, altura,
+                          obra / "visuais" / f"{i:02d}-animacao.mov"), *posicao(largura, altura))
         visuais_usados.append(visual)
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
@@ -123,14 +123,14 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             narracao.legenda_ass(palavras, largura, altura, render.duracao(audio) + pausa, ass,
                                  baixo=bool(c.get("animacao")))
         # a cena só é refeita se áudio, visual ou legenda mudarem
-        assinatura = {"render": render.VERSAO, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
+        assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
                       "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
         marca = saida_cena.with_suffix(".json")
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
         else:
-            duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa))
+            duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 

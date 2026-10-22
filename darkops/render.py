@@ -11,7 +11,7 @@ FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 FPS = 30
 ZOOM = 0.12  # quanto a imagem aproxima/afasta ao longo da cena
 TRANSICAO = 0.15  # segundos de entrada (do preto) em cada cena, marca o corte sem dessincronizar o áudio
-VERSAO = 2  # mude para refazer as cenas em cache quando o visual do render mudar
+VERSAO = 3  # mude para refazer as cenas em cache quando o visual do render mudar
 
 
 def rodar(args: list[str], cwd: Path | None = None) -> None:
@@ -46,8 +46,12 @@ def _movimento(indice: int, quadros: int) -> str:
 
 
 def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
-         largura: int, altura: int, indice: int, pausa: float) -> float:
-    """Renderiza uma cena com a duração da narração + pausa. Devolve a duração."""
+         largura: int, altura: int, indice: int, pausa: float,
+         card: tuple[Path, int, int] | None = None) -> float:
+    """Renderiza uma cena com a duração da narração + pausa. Devolve a duração.
+
+    card = (vídeo com transparência, x, y): infográfico por cima do clipe, que fica desfocado e
+    um pouco mais escuro para o card se destacar."""
     dur = duracao(audio) + pausa
     quadros = max(int(dur * FPS), 1)
     legendas = f",ass={legenda.name}" if legenda else ""  # caminho relativo evita escapar 'C:' no filtro
@@ -62,8 +66,14 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
                  f"crop={largura * 2}:{altura * 2},{_movimento(indice, quadros)}:s={largura}x{altura}:fps={FPS},"
                  f"setsar=1")
     entrada_suave = f",fade=t=in:st=0:d={TRANSICAO}"
+    extra = []
+    if card:
+        arquivo, x, y = card
+        extra = ["-i", str(arquivo)]
+        video += (f",boxblur=7:1,eq=brightness=-0.07[base];[2:v]format=rgba[card];"
+                  f"[base][card]overlay=x={x}:y={y}:eof_action=pass:format=auto")
     filtro = f"{video}{entrada_suave}{legendas},format=yuv420p[v];[1:a]aresample=48000,apad[a]"
-    rodar([*entrada, "-i", str(audio), "-filter_complex", filtro, "-map", "[v]", "-map", "[a]",
+    rodar([*entrada, "-i", str(audio), *extra, "-filter_complex", filtro, "-map", "[v]", "-map", "[a]",
            "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(FPS),
            "-pix_fmt", "yuv420p", "-color_range", "tv",
            "-c:a", "aac", "-b:a", "192k", "-ac", "2", saida.name], cwd=saida.parent)

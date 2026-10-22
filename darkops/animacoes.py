@@ -1,4 +1,4 @@
-"""Animações programadas (motion graphics) desenhadas quadro a quadro com Pillow.
+"""Infográficos animados (motion graphics) num card de vidro sobre o clipe da cena.
 
 Uma cena do roteiro ganha uma animação com o campo "animacao":
 
@@ -8,8 +8,9 @@ Uma cena do roteiro ganha uma animação com o campo "animacao":
   {"tipo": "linha_do_tempo", "marcos": [{"valor": -2560, "texto": "2560 a.C.", "rotulo": "Pirâmide"}, ...]}
   {"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}
 
-O conteúdo fica entre 12% e 62% da altura; a legenda da cena vai para baixo.
-O vídeo sai com fundo próprio (gradiente escuro com partículas), sem banco de imagens.
+O resultado é um vídeo com transparência (.mov, qtrle/argb) do tamanho do card. O render põe esse
+vídeo por cima do clipe real da cena (desfocado e escurecido), então o ritmo do vídeo não quebra.
+Tudo fica vivo: o card entra com mola, o conteúdo pulsa e flutua, brilhos sobem, e o card sai no fim.
 """
 import json
 import math
@@ -17,216 +18,416 @@ import random
 import subprocess
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 from .render import FFMPEG, FPS
 
 AMARELO = (255, 212, 0)
-BRANCO = (245, 245, 245)
-CINZA = (150, 150, 165)
-CORES = [(255, 212, 0), (0, 200, 255), (255, 95, 120), (120, 230, 140)]
+BRANCO = (248, 248, 252)
+CORES = [(255, 206, 40), (40, 200, 255), (255, 90, 125), (110, 230, 140)]
 FONTE_FORTE = "C:/Windows/Fonts/ariblk.ttf"
 FONTE = "C:/Windows/Fonts/arialbd.ttf"
-VERSAO = 3  # mude para refazer as animações em cache
+VERSAO = 4  # mude para refazer as animações em cache
+SAIDA_S = 0.3  # o card some nos últimos 0,3 s
 
+# card em proporção da tela (a legenda da cena fica embaixo, fora dele)
+CARD_X, CARD_Y, CARD_L, CARD_A = 0.07, 0.13, 0.86, 0.47
+MARGEM = 60  # espaço em volta do card para sombra e brilhos
+
+
+# ---------- utilidades ----------
 
 def _fonte(caminho: str, tamanho: int):
     try:
-        return ImageFont.truetype(caminho, tamanho)
+        return ImageFont.truetype(caminho, max(tamanho, 8))
     except OSError:
         return ImageFont.load_default()
 
 
 def _suave(x: float) -> float:
-    """Ease-out cúbico de 0 a 1."""
     x = min(max(x, 0.0), 1.0)
     return 1 - (1 - x) ** 3
 
 
 def _mola(x: float) -> float:
-    """Entrada com leve exagero (passa de 1 e volta), para os elementos 'pularem'."""
+    """0 a 1 passando de 1 e voltando (efeito de pulo)."""
     x = min(max(x, 0.0), 1.0)
     return 1 + 2.7 * (x - 1) ** 3 + 1.7 * (x - 1) ** 2
 
 
+def _batimento(t: float) -> float:
+    """Pulso duplo de coração (tum-tum) a cada 0,9 s, entre 0 e 1."""
+    f = (t % 0.9) / 0.9
+    return max(math.exp(-((f - 0.08) / 0.05) ** 2), 0.7 * math.exp(-((f - 0.28) / 0.05) ** 2))
+
+
 def _numero(v: float, casas: int = 0) -> str:
-    texto = f"{v:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
-    return texto
+    return f"{v:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def _centralizar(d: ImageDraw.ImageDraw, texto: str, fonte, cx: float, y: float, cor, sombra=True,
-                 max_largura: float | None = None) -> None:
-    """Texto centrado em cx; encolhe a fonte até caber (padrão: 90% da tela) e não sai pela borda."""
-    largura_tela = d._image.size[0]
-    limite = max_largura or largura_tela * 0.9
-    caixa = d.textbbox((0, 0), texto, font=fonte)
-    while caixa[2] - caixa[0] > limite and getattr(fonte, "size", 0) > 12:
-        fonte = _fonte(fonte.path, int(fonte.size * 0.92))
-        caixa = d.textbbox((0, 0), texto, font=fonte)
-    largura = caixa[2] - caixa[0]
-    margem = largura_tela * 0.05  # só a tela limita a posição; max_largura limita o tamanho
-    x = min(max(cx - largura / 2, margem), largura_tela - margem - largura)
-    if sombra:
-        d.text((x + 4, y + 5), texto, font=fonte, fill=(0, 0, 0))
-    d.text((x, y), texto, font=fonte, fill=cor)
+def _texto(camada: Image.Image, texto: str, caminho: str, tamanho: int, cx: float, y: float, cor,
+           max_largura: float, brilho: bool = False) -> None:
+    """Texto centrado com sombra suave (e brilho opcional); encolhe até caber em max_largura."""
+    fonte = _fonte(caminho, tamanho)
+    medir = ImageDraw.Draw(camada)
+    caixa = medir.textbbox((0, 0), texto, font=fonte)
+    while caixa[2] - caixa[0] > max_largura and fonte.size > 12:
+        fonte = _fonte(caminho, int(fonte.size * 0.92))
+        caixa = medir.textbbox((0, 0), texto, font=fonte)
+    lw, lh = caixa[2] - caixa[0], caixa[3] - caixa[1]
+    pad = 30
+    sprite = Image.new("RGBA", (lw + 2 * pad, lh + 2 * pad), (0, 0, 0, 0))
+    ImageDraw.Draw(sprite).text((pad - caixa[0], pad - caixa[1]), texto, font=fonte, fill=cor + (255,))
+    sombra = Image.new("RGBA", sprite.size, (0, 0, 0, 0))
+    sombra.putalpha(sprite.getchannel("A").point(lambda a: int(a * 0.75)))
+    sombra = sombra.filter(ImageFilter.GaussianBlur(6))
+    x, yy = int(cx - sprite.width / 2), int(y - pad)
+    camada.alpha_composite(sombra, (x + 3, yy + 6))
+    if brilho:
+        halo = Image.new("RGBA", sprite.size, cor + (0,))
+        halo.putalpha(sprite.getchannel("A").point(lambda a: int(a * 0.55)))
+        camada.alpha_composite(halo.filter(ImageFilter.GaussianBlur(14)), (x, yy))
+    camada.alpha_composite(sprite, (x, yy))
 
 
-class _Fundo:
-    """Gradiente escuro azulado + partículas que sobem devagar (pré-calculado)."""
+def _sprite_brilhante(desenhar, tamanho: int, cor, glow: int = 18) -> Image.Image:
+    """Forma desenhada em 2x (bordas lisas), com gradiente de luz, reflexo e brilho em volta."""
+    lado = tamanho * 2
+    mascara = Image.new("L", (lado, lado), 0)
+    desenhar(ImageDraw.Draw(mascara), lado)
+    mascara = mascara.resize((tamanho, tamanho), Image.LANCZOS)
+    grad = Image.new("RGBA", (tamanho, tamanho))
+    gd = ImageDraw.Draw(grad)
+    for y in range(tamanho):  # mais claro em cima, mais escuro embaixo
+        k = y / tamanho
+        claro = tuple(min(255, int(c + (255 - c) * 0.35 * (1 - k) - c * 0.25 * k)) for c in cor)
+        gd.line([(0, y), (tamanho, y)], fill=claro + (255,))
+    forma = Image.new("RGBA", (tamanho, tamanho), (0, 0, 0, 0))
+    forma.paste(grad, (0, 0), mascara)
+    reflexo = Image.new("L", (tamanho, tamanho), 0)
+    ImageDraw.Draw(reflexo).ellipse([tamanho * 0.22, tamanho * 0.12, tamanho * 0.55, tamanho * 0.38], fill=150)
+    reflexo = ImageChops.multiply(reflexo.filter(ImageFilter.GaussianBlur(tamanho * 0.04)), mascara)
+    branco = Image.new("L", forma.size, 255)
+    forma.alpha_composite(Image.merge("RGBA", (branco, branco, branco, reflexo)))
+    total = tamanho + 2 * glow
+    saida = Image.new("RGBA", (total, total), (0, 0, 0, 0))
+    halo = Image.new("RGBA", (total, total), cor + (0,))
+    a = Image.new("L", (total, total), 0)
+    a.paste(mascara.point(lambda v: int(v * 0.8)), (glow, glow))
+    halo.putalpha(a.filter(ImageFilter.GaussianBlur(glow * 0.6)))
+    saida.alpha_composite(halo)
+    saida.alpha_composite(forma, (glow, glow))
+    return saida
 
-    def __init__(self, largura: int, altura: int, semente: int):
-        self.base = Image.new("RGB", (largura, altura))
-        d = ImageDraw.Draw(self.base)
-        for y in range(altura):
-            k = y / altura
-            d.line([(0, y), (largura, y)], fill=(int(14 + 18 * k), int(16 + 10 * k), int(38 + 22 * (1 - k))))
+
+def _coracao(d: ImageDraw.ImageDraw, lado: int) -> None:
+    pts = []
+    for i in range(200):
+        a = 2 * math.pi * i / 200
+        x = 16 * math.sin(a) ** 3
+        y = 13 * math.cos(a) - 5 * math.cos(2 * a) - 2 * math.cos(3 * a) - math.cos(4 * a)
+        pts.append((lado / 2 + x * lado / 36, lado * 0.46 - y * lado / 36))
+    d.polygon(pts, fill=255)
+
+
+def _estrela(d: ImageDraw.ImageDraw, lado: int) -> None:
+    c, r = lado / 2, lado * 0.48
+    d.polygon([(c + (r if i % 2 == 0 else r * 0.45) * math.cos(-math.pi / 2 + i * math.pi / 5),
+                c + (r if i % 2 == 0 else r * 0.45) * math.sin(-math.pi / 2 + i * math.pi / 5))
+               for i in range(10)], fill=255)
+
+
+def _cubo(d: ImageDraw.ImageDraw, lado: int) -> None:
+    d.rounded_rectangle([lado * 0.1, lado * 0.1, lado * 0.9, lado * 0.9], radius=lado * 0.14, fill=255)
+
+
+def _circulo(d: ImageDraw.ImageDraw, lado: int) -> None:
+    d.ellipse([lado * 0.06, lado * 0.06, lado * 0.94, lado * 0.94], fill=255)
+
+
+FORMAS = {"coracao": _coracao, "estrela": _estrela, "cubo": _cubo, "circulo": _circulo}
+
+
+def _colar(camada: Image.Image, sprite: Image.Image, cx: float, cy: float, escala: float = 1.0,
+           opacidade: float = 1.0) -> None:
+    if escala <= 0.02 or opacidade <= 0.01:
+        return
+    if abs(escala - 1) > 0.01:
+        sprite = sprite.resize((max(int(sprite.width * escala), 1), max(int(sprite.height * escala), 1)),
+                               Image.BILINEAR)
+    if opacidade < 0.99:
+        sprite = sprite.copy()
+        sprite.putalpha(sprite.getchannel("A").point(lambda a: int(a * opacidade)))
+    camada.alpha_composite(sprite, (int(cx - sprite.width / 2), int(cy - sprite.height / 2)))
+
+
+# ---------- card e brilhos ----------
+
+def _card(largura: int, altura: int) -> Image.Image:
+    """Card de vidro escuro com borda clara, gradiente e sombra, já com a margem em volta."""
+    total = (largura + 2 * MARGEM, altura + 2 * MARGEM)
+    saida = Image.new("RGBA", total, (0, 0, 0, 0))
+    sombra = Image.new("L", total, 0)
+    ImageDraw.Draw(sombra).rounded_rectangle([MARGEM, MARGEM + 18, MARGEM + largura, MARGEM + altura + 18],
+                                             radius=48, fill=170)
+    saida.putalpha(sombra.filter(ImageFilter.GaussianBlur(26)))
+    corpo = Image.new("RGBA", (largura, altura))
+    cd = ImageDraw.Draw(corpo)
+    for y in range(altura):
+        k = y / altura
+        cd.line([(0, y), (largura, y)], fill=(int(24 + 10 * k), int(22 + 6 * k), int(52 - 14 * k), 205))
+    mascara = Image.new("L", (largura, altura), 0)
+    ImageDraw.Draw(mascara).rounded_rectangle([0, 0, largura - 1, altura - 1], radius=48, fill=255)
+    vidro = Image.new("RGBA", (largura, altura), (0, 0, 0, 0))
+    vidro.paste(corpo, (0, 0), mascara)
+    luz = Image.new("RGBA", (largura, altura), (0, 0, 0, 0))
+    ld = ImageDraw.Draw(luz)
+    ld.rounded_rectangle([0, 0, largura - 1, altura * 0.35], radius=48, fill=(255, 255, 255, 18))
+    ld.rounded_rectangle([1, 1, largura - 2, altura - 2], radius=48, outline=(255, 255, 255, 70), width=3)
+    vidro.alpha_composite(Image.composite(luz, Image.new("RGBA", luz.size, (0, 0, 0, 0)), mascara))
+    saida.alpha_composite(vidro, (MARGEM, MARGEM))
+    return saida
+
+
+class _Brilhos:
+    """Pontinhos de luz de 4 pontas que sobem e piscam dentro do card."""
+
+    def __init__(self, largura: int, altura: int, semente: int, cor):
         rng = random.Random(semente)
-        self.particulas = [(rng.uniform(0, largura), rng.uniform(0, altura), rng.uniform(2, 6),
-                            rng.uniform(15, 45)) for _ in range(40)]
-        self.altura = altura
+        self.itens = [(rng.uniform(0.05, 0.95) * largura, rng.uniform(0, 1) * altura, rng.uniform(5, 11),
+                       rng.uniform(25, 60), rng.uniform(0, math.tau)) for _ in range(16)]
+        self.altura, self.cor = altura, cor
 
-    def quadro(self, t: float) -> Image.Image:
-        img = self.base.copy()
-        d = ImageDraw.Draw(img, "RGBA")
-        for x, y, r, vel in self.particulas:
+    def desenhar(self, camada: Image.Image, t: float) -> None:
+        d = ImageDraw.Draw(camada)
+        for x, y, r, vel, fase in self.itens:
             yy = (y - vel * t) % self.altura
-            d.ellipse([x - r, yy - r, x + r, yy + r], fill=(255, 255, 255, 40))
+            a = int(110 * (0.5 + 0.5 * math.sin(t * 3 + fase)))
+            if a < 8:
+                continue
+            cor = self.cor + (a,)
+            d.polygon([(x, yy - r), (x + r * 0.25, yy), (x, yy + r), (x - r * 0.25, yy)], fill=cor)
+            d.polygon([(x - r, yy), (x, yy - r * 0.25), (x + r, yy), (x, yy + r * 0.25)], fill=cor)
+
+
+# ---------- conteúdos (desenham dentro do card, em coordenadas do card) ----------
+
+class _Contador:
+    def __init__(self, w, h, a):
+        self.w, self.h, self.a = w, h, a
+
+    def quadro(self, c: Image.Image, t: float, dur: float) -> None:
+        a, w, h = self.a, self.w, self.h
+        ate, de, casas = float(a.get("ate", 100)), float(a.get("de", 0)), int(a.get("casas", 0))
+        p = _suave((t - 0.25) / max(dur * 0.5, 0.7))
+        valor = de + (ate - de) * p
+        pulo = 1 + 0.06 * math.sin(min(max(t - 0.25 - dur * 0.5, 0) / 0.3, 1) * math.pi)  # pulo ao chegar
+        flutua = math.sin(t * 2.2) * 6
+        _texto(c, a.get("prefixo", "") + _numero(valor, casas) + a.get("sufixo", ""), FONTE_FORTE,
+               int(w * 0.2 * pulo), w / 2, h * 0.28 + flutua, AMARELO, w * 0.88, brilho=True)
+        if a.get("rotulo"):
+            entrada = _suave((t - 0.45) / 0.4)
+            if entrada > 0.02:
+                _texto(c, a["rotulo"], FONTE, int(w * 0.068), w / 2, h * 0.68 + (1 - entrada) * 30,
+                       BRANCO, w * 0.88)
+
+
+class _Comparacao:
+    def __init__(self, w, h, a):
+        self.w, self.h, self.a = w, h, a
+        self.itens = a.get("itens", [])[:3]
+        n = max(len(self.itens), 1)
+        self.larg_barra = int(w * 0.6 / n)
+        self.espaco = (w - self.larg_barra * n) / (n + 1)
+
+    def _barra(self, altura: int, cor) -> Image.Image:
+        lb, altura = self.larg_barra, max(altura, 2)
+        img = Image.new("RGBA", (lb, altura), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        for x in range(lb):  # luz vindo da esquerda, como um cilindro
+            luz = 1 - abs(x / lb - 0.35) * 1.4
+            d.line([(x, 0), (x, altura)], fill=tuple(min(255, int(c * (0.75 + 0.35 * luz))) for c in cor) + (255,))
+        mascara = Image.new("L", img.size, 0)
+        ImageDraw.Draw(mascara).rounded_rectangle([0, 0, lb - 1, altura - 1], radius=22, fill=255)
+        img.putalpha(mascara)
         return img
 
-
-def _contador(d, w, h, t, dur, a):
-    ate, de = float(a.get("ate", 100)), float(a.get("de", 0))
-    casas = int(a.get("casas", 0))
-    p = _suave(t / max(dur * 0.55, 0.6))
-    valor = de + (ate - de) * p
-    escala = 1 + 0.06 * math.sin(min(t / 0.25, 1) * math.pi)
-    _centralizar(d, a.get("prefixo", "") + _numero(valor, casas) + a.get("sufixo", ""),
-                 _fonte(FONTE_FORTE, int(w * 0.19 * escala)), w / 2, h * 0.27, AMARELO)
-    if a.get("rotulo"):
-        _centralizar(d, a["rotulo"], _fonte(FONTE, int(w * 0.065)), w / 2, h * 0.43, BRANCO)
-
-
-def _comparacao(d, w, h, t, dur, a):
-    itens = a.get("itens", [])[:3]
-    if not itens:
-        return
-    maior = max(float(i["valor"]) for i in itens) or 1
-    if a.get("titulo"):
-        _centralizar(d, a["titulo"], _fonte(FONTE_FORTE, int(w * 0.075)), w / 2, h * 0.12, BRANCO)
-    base_y, topo_max = h * 0.56, h * 0.30
-    largura_barra = w * 0.62 / len(itens)
-    espaco = (w - largura_barra * len(itens)) / (len(itens) + 1)
-    for k, item in enumerate(itens):
-        p = _suave((t - 0.25 * k) / max(dur * 0.45, 0.6))
-        alto = (base_y - topo_max) * float(item["valor"]) / maior * p
-        x0 = espaco + k * (largura_barra + espaco)
-        cor = CORES[k % len(CORES)]
-        d.rounded_rectangle([x0, base_y - alto, x0 + largura_barra, base_y], radius=18, fill=cor)
-        cx = x0 + largura_barra / 2
-        rotulo_valor = (_numero(float(item["valor"]) * p, int(a.get("casas", 0)))
-                        + (f" {a['unidade']}" if a.get("unidade") else ""))
-        coluna = largura_barra + espaco * 0.8
-        _centralizar(d, rotulo_valor, _fonte(FONTE_FORTE, int(w * 0.052)), cx, base_y - alto - w * 0.08, BRANCO,
-                     max_largura=coluna)
-        _centralizar(d, item["rotulo"], _fonte(FONTE, int(w * 0.06)), cx, base_y + h * 0.015, cor,
-                     max_largura=coluna)
-
-
-def _linha_do_tempo(d, w, h, t, dur, a):
-    marcos = a.get("marcos", [])[:5]
-    if len(marcos) < 2:
-        return
-    valores = [float(m["valor"]) for m in marcos]
-    vmin, vmax = min(valores), max(valores)
-    x0, x1, y = w * 0.14, w * 0.86, h * 0.38
-    revelar = max(dur * 0.7, 0.8)
-    p = min(t / revelar, 1.0)
-    d.line([(x0, y), (x0 + (x1 - x0) * p, y)], fill=CINZA, width=10)
-    fonte_texto = _fonte(FONTE_FORTE, int(w * 0.05))
-    fonte_rotulo = _fonte(FONTE, int(w * 0.042))
-    for k, m in enumerate(marcos):
-        pos = (float(m["valor"]) - vmin) / ((vmax - vmin) or 1)
-        if pos > p + 1e-6:
-            continue
-        cx = x0 + (x1 - x0) * pos
-        e = _mola((t - pos * revelar) / 0.3)
-        r = w * 0.028 * e
-        cor = CORES[k % len(CORES)]
-        d.ellipse([cx - r, y - r, cx + r, y + r], fill=cor)
-        acima = k % 2 == 0
-        ty = y - h * 0.11 if acima else y + h * 0.04
-        cx_texto = min(max(cx, w * 0.18), w * 0.82)  # texto nunca sai da tela
-        _centralizar(d, m.get("texto", ""), fonte_texto, cx_texto, ty, cor)
-        _centralizar(d, m.get("rotulo", ""), fonte_rotulo, cx_texto, ty + w * 0.065, BRANCO)
+    def quadro(self, c: Image.Image, t: float, dur: float) -> None:
+        a, w, h = self.a, self.w, self.h
+        if not self.itens:
+            return
+        if a.get("titulo"):
+            _texto(c, a["titulo"], FONTE_FORTE, int(w * 0.075), w / 2, h * 0.07, BRANCO, w * 0.88)
+        maior = max(float(i["valor"]) for i in self.itens) or 1
+        base, topo = h * 0.80, h * 0.33
+        for k, item in enumerate(self.itens):
+            p = _mola((t - 0.3 - 0.22 * k) / max(dur * 0.4, 0.6))
+            alto = int((base - topo) * float(item["valor"]) / maior * p * (1 + 0.012 * math.sin(t * 3 + k)))
+            x0 = int(self.espaco + k * (self.larg_barra + self.espaco))
+            cor = CORES[k % len(CORES)]
+            if alto > 4:
+                barra = self._barra(alto, cor)
+                topo_barra = int(base - alto)
+                halo = Image.new("RGBA", (barra.width + 40, barra.height + 40), cor + (0,))
+                ah = Image.new("L", halo.size, 0)
+                ah.paste(barra.getchannel("A").point(lambda v: int(v * 0.5)), (20, 20))
+                halo.putalpha(ah.filter(ImageFilter.GaussianBlur(14)))
+                c.alpha_composite(halo, (x0 - 20, topo_barra - 20))
+                c.alpha_composite(barra, (x0, topo_barra))
+                fx = ((t * 0.6 + k * 0.3) % 1.6) - 0.3  # faixa de brilho que atravessa a barra
+                if 0 <= fx <= 1:
+                    faixa = Image.new("RGBA", barra.size, (0, 0, 0, 0))
+                    px = int(fx * barra.width)
+                    ImageDraw.Draw(faixa).polygon([(px - 18, barra.height), (px + 6, barra.height),
+                                                   (px + 36, 0), (px + 12, 0)], fill=(255, 255, 255, 70))
+                    vazio = Image.new("RGBA", faixa.size, (0, 0, 0, 0))
+                    c.alpha_composite(Image.composite(faixa, vazio, barra.getchannel("A")), (x0, topo_barra))
+            cx = x0 + self.larg_barra / 2
+            coluna = self.larg_barra + self.espaco * 0.8
+            valor = (_numero(float(item["valor"]) * min(p, 1), int(a.get("casas", 0)))
+                     + (f" {a['unidade']}" if a.get("unidade") else ""))
+            if p > 0.02:
+                _texto(c, valor, FONTE_FORTE, int(w * 0.058), cx, base - alto - w * 0.085, BRANCO, coluna)
+            _texto(c, item["rotulo"], FONTE_FORTE, int(w * 0.058), cx, base + h * 0.035, cor, coluna)
 
 
-def _forma(d, simbolo: str, cx: float, cy: float, r: float, cor) -> None:
-    if simbolo == "coracao":
-        d.ellipse([cx - r, cy - r * 0.75, cx, cy + r * 0.25], fill=cor)
-        d.ellipse([cx, cy - r * 0.75, cx + r, cy + r * 0.25], fill=cor)
-        d.polygon([(cx - r * 0.97, cy - r * 0.1), (cx + r * 0.97, cy - r * 0.1), (cx, cy + r)], fill=cor)
-    elif simbolo == "estrela":
-        pontos = []
-        for i in range(10):
-            ang = -math.pi / 2 + i * math.pi / 5
-            raio = r if i % 2 == 0 else r * 0.45
-            pontos.append((cx + raio * math.cos(ang), cy + raio * math.sin(ang)))
-        d.polygon(pontos, fill=cor)
-    elif simbolo == "cubo":
-        d.rounded_rectangle([cx - r * 0.8, cy - r * 0.8, cx + r * 0.8, cy + r * 0.8], radius=r * 0.15, fill=cor)
-    else:
-        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=cor)
+class _LinhaDoTempo:
+    def __init__(self, w, h, a):
+        self.w, self.h, self.a = w, h, a
+        self.marcos = a.get("marcos", [])[:5]
+        self.pontos: dict[int, Image.Image] = {}
+
+    def quadro(self, c: Image.Image, t: float, dur: float) -> None:
+        w, h = self.w, self.h
+        if len(self.marcos) < 2:
+            return
+        valores = [float(m["valor"]) for m in self.marcos]
+        vmin, vmax = min(valores), max(valores)
+        x0, x1, y = w * 0.12, w * 0.88, h * 0.52
+        revelar = max(dur * 0.65, 0.9)
+        p = min(max(t - 0.2, 0) / revelar, 1.0)
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle([x0, y - 5, x1, y + 5], radius=5, fill=(255, 255, 255, 45))
+        fim = x0 + (x1 - x0) * p
+        if fim > x0 + 2:  # parte acesa com brilho
+            linha = Image.new("RGBA", c.size, (0, 0, 0, 0))
+            ImageDraw.Draw(linha).rounded_rectangle([x0, y - 6, fim, y + 6], radius=6, fill=AMARELO + (255,))
+            c.alpha_composite(linha.filter(ImageFilter.GaussianBlur(10)))
+            c.alpha_composite(linha)
+        for k, m in enumerate(self.marcos):
+            pos = (float(m["valor"]) - vmin) / ((vmax - vmin) or 1)
+            chegou = t - 0.2 - pos * revelar
+            if chegou < 0:
+                continue
+            cor = CORES[k % len(CORES)]
+            if k not in self.pontos:
+                self.pontos[k] = _sprite_brilhante(_circulo, int(w * 0.07), cor, glow=16)
+            cx = x0 + (x1 - x0) * pos
+            _colar(c, self.pontos[k], cx, y, _mola(chegou / 0.35) * (1 + 0.06 * math.sin(t * 4 + k)))
+            onda = (chegou % 1.4) / 1.4  # anel que se expande do ponto
+            r = w * 0.035 + onda * w * 0.06
+            d.ellipse([cx - r, y - r, cx + r, y + r], outline=cor + (int(160 * (1 - onda)),), width=4)
+            acima = k % 2 == 0
+            ty = y - h * 0.36 if acima else y + h * 0.10
+            cx_texto = min(max(cx, w * 0.2), w * 0.8)
+            entrada = _suave(chegou / 0.35)
+            desloc = (1 - entrada) * (20 if acima else -20)
+            if entrada > 0.05:
+                _texto(c, m.get("texto", ""), FONTE_FORTE, int(w * 0.062), cx_texto, ty + desloc, cor, w * 0.34)
+                _texto(c, m.get("rotulo", ""), FONTE, int(w * 0.05), cx_texto, ty + w * 0.08 + desloc,
+                       BRANCO, w * 0.34)
 
 
-def _icones(d, w, h, t, dur, a):
-    n = max(1, min(int(a.get("quantidade", 3)), 12))
-    simbolo = a.get("simbolo", "circulo")
-    cor = tuple(a["cor"]) if a.get("cor") else (235, 60, 80) if simbolo == "coracao" else AMARELO
-    colunas = min(n, 4)
-    linhas = math.ceil(n / colunas)
-    r = w * (0.11 if n <= 4 else 0.075)
-    for k in range(n):
-        lin, col = divmod(k, colunas)
-        nesta = min(colunas, n - lin * colunas)
-        cx = w / 2 + (col - (nesta - 1) / 2) * r * 2.6
-        cy = h * 0.32 + (lin - (linhas - 1) / 2) * r * 2.5
-        entrada = _mola((t - 0.18 * k) / 0.35)
-        if entrada <= 0:
-            continue
-        batida = 1 + 0.08 * max(0.0, math.sin((t - 0.18 * k) * 2 * math.pi * 1.2)) ** 6
-        _forma(d, simbolo, cx, cy, r * entrada * batida, cor)
-    if a.get("rotulo"):
-        _centralizar(d, a["rotulo"], _fonte(FONTE_FORTE, int(w * 0.075)), w / 2, h * 0.52, BRANCO)
+class _Icones:
+    def __init__(self, w, h, a):
+        self.w, self.h, self.a = w, h, a
+        self.n = max(1, min(int(a.get("quantidade", 3)), 12))
+        simbolo = a.get("simbolo", "circulo")
+        cor = tuple(a["cor"]) if a.get("cor") else (240, 55, 85) if simbolo == "coracao" else AMARELO
+        self.colunas = min(self.n, 4)
+        self.linhas = math.ceil(self.n / self.colunas)
+        self.tam = int(w * (0.22 if self.n <= 4 else 0.15))
+        self.sprite = _sprite_brilhante(FORMAS.get(simbolo, _circulo), self.tam, cor, glow=22)
+        self.coracao = simbolo == "coracao"
+
+    def quadro(self, c: Image.Image, t: float, dur: float) -> None:
+        w, h = self.w, self.h
+        passo = self.tam * 1.25
+        for k in range(self.n):
+            lin, col = divmod(k, self.colunas)
+            nesta = min(self.colunas, self.n - lin * self.colunas)
+            cx = w / 2 + (col - (nesta - 1) / 2) * passo
+            cy = h * 0.40 + (lin - (self.linhas - 1) / 2) * passo * 0.95 + math.sin(t * 2 + k * 1.3) * 7
+            entrada = _mola((t - 0.3 - 0.2 * k) / 0.4)
+            if entrada <= 0:
+                continue
+            vivo = 1 + (0.12 * _batimento(t + k * 0.15) if self.coracao else 0.04 * math.sin(t * 3 + k))
+            _colar(c, self.sprite, cx, cy, entrada * vivo)
+        if self.a.get("rotulo"):
+            entrada = _suave((t - 0.3 - 0.2 * self.n) / 0.4)
+            if entrada > 0.02:
+                _texto(c, self.a["rotulo"], FONTE_FORTE, int(w * 0.085), w / 2, h * 0.74 + (1 - entrada) * 30,
+                       BRANCO, w * 0.88)
 
 
-TIPOS = {"contador": _contador, "comparacao": _comparacao, "linha_do_tempo": _linha_do_tempo,
-         "icones": _icones}
+TIPOS = {"contador": _Contador, "comparacao": _Comparacao, "linha_do_tempo": _LinhaDoTempo,
+         "icones": _Icones}
+
+
+class _Animador:
+    def __init__(self, animacao: dict, largura: int, altura: int, duracao: float):
+        tipo = animacao.get("tipo")
+        if tipo not in TIPOS:
+            raise SystemExit(f"animação '{tipo}' não existe. Opções: {', '.join(TIPOS)}")
+        self.cw, self.ch = int(largura * CARD_L), int(altura * CARD_A)
+        self.base = _card(self.cw, self.ch)
+        self.conteudo = TIPOS[tipo](self.cw, self.ch, animacao)
+        self.brilhos = _Brilhos(self.cw, self.ch, len(json.dumps(animacao)), (255, 235, 160))
+        self.duracao = duracao
+
+    def quadro(self, t: float) -> Image.Image:
+        conteudo = Image.new("RGBA", (self.cw, self.ch), (0, 0, 0, 0))
+        self.brilhos.desenhar(conteudo, t)
+        self.conteudo.quadro(conteudo, t, self.duracao)
+        card = self.base.copy()
+        card.alpha_composite(conteudo, (MARGEM, MARGEM))
+        entrada = _mola(t / 0.45)
+        saida = _suave((self.duracao - t) / SAIDA_S)
+        escala = (0.82 + 0.18 * entrada) * (0.9 + 0.1 * saida)
+        tela = Image.new("RGBA", card.size, (0, 0, 0, 0))
+        _colar(tela, card, card.width / 2, card.height / 2 + (1 - entrada) * 40, escala,
+               min(_suave(t / 0.25), saida))
+        return tela
+
+
+def posicao(largura: int, altura: int) -> tuple[int, int]:
+    """Canto superior esquerdo do vídeo do card na tela (já descontando a margem)."""
+    return int(largura * CARD_X) - MARGEM, int(altura * CARD_Y) - MARGEM
+
+
+def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: float) -> Image.Image:
+    """Um quadro avulso (RGBA, tamanho do card) para conferir o visual sem gerar o vídeo."""
+    return _Animador(animacao, largura, altura, duracao).quadro(t)
 
 
 def gerar(animacao: dict, duracao: float, largura: int, altura: int, destino: Path) -> Path:
-    """Desenha a animação e grava um mp4 sem áudio. Reaproveita se nada mudou."""
-    tipo = animacao.get("tipo")
-    if tipo not in TIPOS:
-        raise SystemExit(f"animação '{tipo}' não existe. Opções: {', '.join(TIPOS)}")
+    """Grava o card animado como .mov com transparência. Reaproveita se nada mudou."""
+    destino = destino.with_suffix(".mov")
     assinatura = {"animacao": animacao, "duracao": round(duracao, 2), "tamanho": [largura, altura],
                   "versao": VERSAO}
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
 
-    fundo = _Fundo(largura, altura, hash(json.dumps(animacao, sort_keys=True)) & 0xFFFF)
-    quadros = max(int(duracao * FPS), 1)
+    animador = _Animador(animacao, largura, altura, duracao)
+    cw, ch = animador.base.size
     proc = subprocess.Popen([FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
-                             "-pix_fmt", "rgb24", "-s", f"{largura}x{altura}", "-r", str(FPS), "-i", "-",
-                             "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p",
-                             str(destino)], stdin=subprocess.PIPE)
+                             "-pix_fmt", "rgba", "-s", f"{cw}x{ch}", "-r", str(FPS), "-i", "-",
+                             "-c:v", "qtrle", "-pix_fmt", "argb", str(destino)], stdin=subprocess.PIPE)
     assert proc.stdin is not None
     try:
-        for q in range(quadros):
-            t = q / FPS
-            img = fundo.quadro(t)
-            TIPOS[tipo](ImageDraw.Draw(img, "RGBA"), largura, altura, t, duracao, animacao)
-            proc.stdin.write(img.tobytes())
+        for q in range(max(int(duracao * FPS), 1)):
+            proc.stdin.write(animador.quadro(q / FPS).tobytes())
     finally:
         proc.stdin.close()
         proc.wait()
