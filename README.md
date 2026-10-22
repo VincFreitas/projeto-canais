@@ -1,55 +1,67 @@
-# canais-dark
+# Estúdio de Canais (canais-dark)
 
-Pesquisa e produção de vídeos para canais dark (sem rosto): YouTube longo, Shorts, TikTok, Reels e Kwai.
+Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
-Método: **oferta e demanda**. Entrar onde já existe demanda comprovada, achar os outliers (vídeos muito acima da média do próprio canal), entender o mecanismo, trazer um ângulo novo, testar e multiplicar o que funcionar.
+Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico.
 
-## Instalar
+## Começar em 3 passos (com o Claude Code)
+
+1. Instale o [Claude Code](https://claude.com/claude-code) e o [Python 3.11+](https://www.python.org/downloads/) (marque "Add to PATH").
+2. Clone e abra a pasta no Claude Code:
+   ```
+   git clone https://github.com/VincFreitas/pulga-do-saber.git canais-dark
+   cd canais-dark
+   claude
+   ```
+3. Cole este prompt:
+   > **Configure este projeto para mim do zero com a skill /configurar. Vá passo a passo, me explique cada conta que eu preciso criar e confira tudo com o diagnóstico no final.**
+
+O Claude instala as dependências, abre o Estúdio e te guia pelas contas (Azure, Pixabay, Google Cloud, Meta e n8n). Logins, senhas e aceites de termos ficam sempre com você.
+
+## Sem o Claude (manual)
+
 ```powershell
-cd C:\Users\Vinic\canais-dark
-.\instalar.ps1
+powershell -ExecutionPolicy Bypass -File instalar.ps1     # dependências, voz offline e .env
+.\.venv\Scripts\python.exe -m darkops estudio            # abre o painel em http://127.0.0.1:8765
+.\.venv\Scripts\python.exe -m darkops diagnostico        # o que falta configurar
 ```
-Depois preencha o `.env` (pelo menos a `PEXELS_API_KEY`, que é grátis, para ter imagens de verdade).
+O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL.md](.claude/skills/configurar/SKILL.md).
 
-## Usar com o Claude Code (recomendado)
-Abra a pasta no Claude Code e use:
+## Como funciona
 
-| Comando | O que faz |
+| Etapa | Onde |
 |---|---|
-| `/pesquisar-nicho misterios` | demanda + outliers + transcrições, mecanismos e 20 ideias com ângulo novo |
-| `/escrever-roteiro <ideia>` | pesquisa os fatos e escreve o roteiro longo + 2 ou 3 verticais |
-| `/produzir-video roteiros\x.json` | narração, visuais, legendas, trilha, thumbnail e metadados |
-| `/revisar-desempenho` | lê `controle/testes.csv` e decide entre manter, ajustar, dobrar ou abandonar |
+| Achar temas que bombaram no nicho | `/pesquisar-nicho <nicho>` (Claude Code) |
+| Escrever o roteiro com fontes, ganchos e animações | `/escrever-roteiro <ideia>`, banco de ganchos em [docs/ganchos.md](docs/ganchos.md) |
+| Gerar a prévia, assistir e aprovar | Estúdio > Fila |
+| Postar às 12h e às 19h | n8n (workflow gerado por `python -m darkops n8n-workflow --importar`) |
+| Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
+| Medir e decidir | `/revisar-desempenho` |
 
-## Usar direto pelo terminal
-```powershell
-.\dark.ps1 nichos                                   # presets em config\nichos.json
-.\dark.ps1 demanda --nicho misterios                # autocomplete do YouTube = o que as pessoas buscam
-.\dark.ps1 outliers --nicho misterios               # ranking de outliers (score = views / mediana do canal)
-.\dark.ps1 outliers --busca "dark history" --idioma en
-.\dark.ps1 transcrever pesquisa\misterios\2026-09-24\outliers.json --top 5
-.\dark.ps1 produzir roteiros\exemplo-longo.json roteiros\exemplo-vertical.json
-.\dark.ps1 vozes pt-BR
-```
-A saída fica em `pesquisa\` (CSV abre no Excel) e em `saida\` (vídeo, thumbnail e metadados).
+## Conectores
 
-## O que precisa de chave
-
-| Recurso | Sem chave | Com chave |
+| Função | Conectores | Custo |
 |---|---|---|
-| Pesquisa (outliers, demanda, transcrição) | funciona (yt-dlp) | não precisa |
-| Voz | edge-tts (grátis, não oficial, às vezes recusa) e Piper offline como reserva | Azure Speech (grátis até 500 mil caracteres/mês) ou ElevenLabs (pago) |
-| Imagens e clipes | fundo escuro gerado (não serve para publicar) ou arquivos próprios | Pexels (grátis) |
-| Música | trilha ambiente sintetizada | músicas da YouTube Audio Library em `assets\musica\` |
+| Publicação | YouTube Shorts (OAuth), Instagram Reels (token) · TikTok e Facebook em breve | Grátis |
+| Voz | Azure Speech (principal), Edge, Piper offline, ElevenLabs | Grátis no F0 do Azure |
+| Imagens e vídeos | Pixabay, Pexels, arquivos próprios (sem mídia de IA, desenho ou 3D) | Grátis |
+| Música | Trilhas geradas pelo código, biblioteca própria com licença registrada | Grátis |
+| Roteiros e pesquisa | Claude Code, yt-dlp | Conforme o seu plano |
+| Automação | n8n local | Grátis |
 
-## Formato do roteiro
-Veja [docs/roteiro.md](docs/roteiro.md).
+## Estrutura
 
-## Regras que evitam desmonetização
-- O YouTube corta a monetização de conteúdo **inautêntico ou repetitivo** (produção em massa sem valor próprio). Cada vídeo precisa de pesquisa, estrutura e ângulo próprios.
-- Fatos checados e com fonte. Lenda é apresentada como lenda.
-- Título e thumbnail precisam ser entregues no vídeo.
-- Imagem ou vídeo realista gerado por IA: marque "conteúdo alterado ou sintético" no YouTube Studio.
-- Só mídia licenciada (Pexels, própria, gerada, Audio Library).
-- Use contas próprias. Conta comprada ("aquecida") viola os termos das plataformas.
-- O upload é manual: revise cada vídeo antes de publicar.
+- `darkops/`: o código (CLI `python -m darkops`, com `--perfil <id>` em qualquer comando)
+- `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
+- `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git)
+- `n8n/`: modelo do workflow e lançadores
+- `site/`: páginas de privacidade e termos exigidas pelo Google e pela Meta (GitHub Pages)
+- `docs/`: formato do roteiro e banco de ganchos
+
+## Regras que mantêm o canal vivo
+
+- Conteúdo com pesquisa e ângulo próprios: o YouTube desmonetiza produção em massa sem valor ("inautêntico").
+- Fatos com fonte; lenda tratada como lenda; título e manchete entregues no vídeo.
+- Só mídia e música com licença livre; mídia realista gerada por IA exige marcar "conteúdo sintético".
+- Contas próprias (nada de contas compradas) e postagem só do que foi aprovado.
+- Sem a auditoria do Google, o YouTube deixa os vídeos enviados pela API como privados.

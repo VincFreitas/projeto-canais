@@ -34,7 +34,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-proximo"
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-proximo"
       },
       "id": "a1f0c001-0000-4000-8000-000000000002",
       "name": "Próximo da fila",
@@ -107,7 +107,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-produzir \"{{ $('Ler fila').item.json.roteiro }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-produzir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000006",
       "name": "Produzir vídeo",
@@ -121,7 +121,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-youtube \"{{ $('Ler fila').item.json.roteiro }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-youtube \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000007",
       "name": "Publicar no YouTube",
@@ -135,7 +135,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-instagram \"{{ $('Ler fila').item.json.roteiro }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-instagram \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000008",
       "name": "Publicar no Instagram",
@@ -149,7 +149,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-concluir \"{{ $('Ler fila').item.json.roteiro }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-concluir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000009",
       "name": "Registrar publicação",
@@ -163,7 +163,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
       },
       "id": "a1f0c001-0000-4000-8000-00000000000a",
       "name": "Registrar falha",
@@ -189,7 +189,7 @@
     },
     {
       "parameters": {
-        "command": "cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops perfis-ativos"
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops perfis-ativos"
       },
       "id": "a1f0c001-0000-4000-8000-00000000000d",
       "name": "Perfis ativos",

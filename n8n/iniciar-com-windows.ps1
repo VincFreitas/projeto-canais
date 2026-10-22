@@ -14,8 +14,9 @@ if ($Remover) {
 $shell = New-Object -ComObject WScript.Shell
 $s = $shell.CreateShortcut($atalho)
 $s.TargetPath = "$env:WINDIR\System32\WindowsPowerShell\v1.0\powershell.exe"
-$s.Arguments = '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\Users\Vinic\n8n\n8n.ps1" -NoOpen'
-$s.WorkingDirectory = 'C:\Users\Vinic\n8n'
+$lancador = Join-Path $PSScriptRoot 'n8n.ps1'
+$s.Arguments = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$lancador`" -NoOpen"
+$s.WorkingDirectory = $PSScriptRoot
 $s.WindowStyle = 7
 $s.Description = 'Inicia o n8n no logon para a postagem automática do Pulga do Saber'
 $s.Save()

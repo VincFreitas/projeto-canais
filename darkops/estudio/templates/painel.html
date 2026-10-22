@@ -19,20 +19,14 @@
     {% endif %}
   </section>
   <section class="cartao">
-    <p class="suave">Conexões</p>
+    <p class="suave">Conexões por função</p>
     <ul class="lista">
-      <li><span>YouTube</span>
-        {% if conexoes.youtube %}<span class="ok-x {{ 'sim' if conexoes.youtube.ok else 'nao' }}">{{ '✓ ' ~ conexoes.youtube.texto if conexoes.youtube.ok else '✗ erro' }}</span>
-        {% elif p.token_youtube.exists() %}<span class="suave">conectado (não testado)</span>
-        {% else %}<span class="ok-x nao">✗ não conectado</span>{% endif %}</li>
-      <li><span>Instagram</span>
-        {% if conexoes.instagram %}<span class="ok-x {{ 'sim' if conexoes.instagram.ok else 'nao' }}">{{ '✓ conectado' if conexoes.instagram.ok else '✗ erro' }}</span>
-        {% elif p.token_instagram.exists() %}<span class="suave">conectado (não testado)</span>
-        {% else %}<span class="ok-x nao">✗ não conectado</span>{% endif %}</li>
-      <li><span>Voz (Azure)</span><span class="ok-x {{ 'sim' if env.AZURE_SPEECH_KEY else 'nao' }}">{{ '✓' if env.AZURE_SPEECH_KEY else '✗' }}</span></li>
-      <li><span>Imagens (Pixabay)</span><span class="ok-x {{ 'sim' if env.PIXABAY_API_KEY or env.PEXELS_API_KEY else 'nao' }}">{{ '✓' if env.PIXABAY_API_KEY or env.PEXELS_API_KEY else '✗' }}</span></li>
-      <li><span>Automação (n8n)</span><span class="ok-x {{ 'sim' if n8n else 'nao' }}">{{ '✓ rodando' if n8n else '✗ desligado' }}</span></li>
+      {% for r in resumo %}
+      <li><a href="{{ url_for('conexoes', pid=p.id) }}#{{ r.grupo.id }}">{{ r.grupo.nome }}</a>
+        <span class="ok-x {{ 'sim' if r.nivel == 'ok' else 'nao' }}">{{ '✓' if r.nivel == 'ok' else '✗' }} {{ r.prontos }}/{{ r.total }}</span></li>
+      {% endfor %}
     </ul>
+    <a class="botao pequeno secundario" href="{{ url_for('conexoes', pid=p.id) }}">Ver conexões</a>
   </section>
   <section class="cartao largo">
     <h2>Últimos publicados</h2>

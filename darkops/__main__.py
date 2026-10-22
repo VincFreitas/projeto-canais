@@ -167,6 +167,20 @@ def cmd_perfis(_):
         print(f"{p.id:<24} {d['nome']:<24} {d['arroba']:<20} {'ativo' if d.get('ativo') else 'pausado'}")
 
 
+def cmd_diagnostico(_):
+    from .instalacao import diagnostico
+    faltando = 0
+    for item, pronto, fazer in diagnostico():
+        print(f"{'OK ' if pronto else 'FALTA'}  {item}" + ("" if pronto else f"\n        -> {fazer}"))
+        faltando += not pronto
+    print(f"\n{'Tudo pronto.' if not faltando else f'{faltando} item(ns) para configurar.'}")
+
+
+def cmd_n8n_workflow(a):
+    from .instalacao import gerar_workflow
+    gerar_workflow(importar=a.importar)
+
+
 def cmd_estudio(a):
     from .estudio import rodar
     rodar(porta=a.porta, abrir=not a.sem_navegador)
@@ -207,6 +221,13 @@ def main():
 
     s = sub.add_parser("perfis-ativos", help="perfis com postagem ligada (saída JSON para o n8n)")
     s.set_defaults(fn=cmd_perfis_ativos)
+
+    s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
+    s.set_defaults(fn=cmd_diagnostico)
+
+    s = sub.add_parser("n8n-workflow", help="gera n8n/workflow.json para esta pasta (e importa com --importar)")
+    s.add_argument("--importar", action="store_true")
+    s.set_defaults(fn=cmd_n8n_workflow)
 
     s = sub.add_parser("estudio", help="abre o Estúdio (painel local no navegador)")
     s.add_argument("--porta", type=int, default=8765)

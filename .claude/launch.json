@@ -3,8 +3,13 @@
   "configurations": [
     {
       "name": "estudio",
-      "runtimeExecutable": "C:/Users/Vinic/canais-dark/.venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "darkops", "estudio", "--sem-navegador"],
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "darkops",
+        "estudio",
+        "--sem-navegador"
+      ],
       "port": 8765
     }
   ]

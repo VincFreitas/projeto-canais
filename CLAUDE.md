@@ -12,7 +12,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 6. `/planejar-semana`: agenda das 14 postagens (12h e 19h), equilíbrio de temas e ganchos, roteiros que faltam
 7. `/responder-comentarios`: lê comentários e rascunha respostas para o usuário aprovar (nunca publica)
 - **Estúdio** (`python -m darkops estudio`): perfis, conexões (YouTube por OAuth, token do Instagram), chaves, fila com prévia e aprovação, novo vídeo e histórico. Comandos da CLI aceitam `--perfil <id>` (padrão `pulga-do-saber`).
-- Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: workflow do n8n em `n8n/pulga-do-saber.json`.
+- Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: modelo do workflow em `n8n/workflow.modelo.json` (gere com `python -m darkops n8n-workflow --importar`). Instalação do zero: skill `/configurar` e `python -m darkops diagnostico`.
 
 ## Comandos (sempre pelo PowerShell, na raiz do projeto)
 ```

@@ -106,3 +106,26 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
   .dupla { grid-template-columns: 1fr; }
   .cena .linha { grid-template-columns: 1fr; }
 }
+
+/* conexões por função */
+.grupo { margin-bottom: 28px; }
+.grupo-topo h2 { margin: 0; font-size: 19px; }
+.grupo-topo p { margin: 4px 0 12px; color: var(--suave); max-width: 760px; }
+.conectores { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.conector { background: var(--cartao); border: 1px solid var(--linha); border-left: 4px solid var(--linha); border-radius: var(--raio); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.conector.ok, .conector.sempre { border-left-color: var(--verde); }
+.conector.falta { border-left-color: var(--vermelho); }
+.conector.opcional { border-left-color: var(--amarelo); }
+.conector.em-breve { opacity: .7; border-style: dashed; border-left-style: solid; }
+.conector header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.conector h3 { margin: 0; font-size: 16px; }
+.conector .funcao { margin: 0; font-size: 14px; }
+.estado { font-size: 12.5px; font-weight: 700; white-space: nowrap; padding: 2px 9px; border-radius: 99px; background: #efe9df; color: var(--suave); }
+.estado.ok, .estado.sempre { background: #e6f6ec; color: var(--verde); }
+.estado.falta { background: #fbe9e7; color: var(--vermelho); }
+.estado.opcional { background: #fff3cd; color: #8a6400; }
+.escopo { display: inline-block; margin-top: 3px; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: #efe9df; color: var(--suave); }
+.escopo.perfil { background: #e3edfd; color: var(--azul); }
+.linha-form, .campos-chave { display: flex; flex-direction: column; gap: 6px; }
+.conector .passos { margin: 4px 0; font-size: 13.5px; }
+.conector .link { font-size: 13px; color: var(--azul); text-decoration: none; margin-top: auto; }

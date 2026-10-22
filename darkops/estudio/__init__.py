@@ -240,8 +240,11 @@ def chaves():
 def painel(pid):
     p = _perfil(pid)
     itens = [_situacao(c) for c in fila_mod.roteiros(p)]
+    from .conectores import resumo
+    online = _n8n_online()
     return render_template("painel.html", p=p, d=p.dados, itens=itens, conexoes=_conexoes(p),
-                           aprovados=sum(1 for i in itens if i["aprovado"]), n8n=_n8n_online(),
+                           resumo=resumo(p, _conexoes(p), online),
+                           aprovados=sum(1 for i in itens if i["aprovado"]), n8n=online,
                            horarios=_proximos_horarios(p), historico=fila_mod.historico(p)[-6:][::-1],
                            falhas=fila_mod.falhas(p, 5)[::-1], env=_env())
 
@@ -294,10 +297,26 @@ def ativar(pid):
 
 @app.get("/p/<pid>/conexoes")
 def conexoes(pid):
+    from .conectores import GRUPOS, estado
     p = _perfil(pid)
-    return render_template("conexoes.html", p=p, d=p.dados, conexoes=_conexoes(p),
-                           tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists(),
-                           tem_youtube=p.token_youtube.exists(), tem_instagram=p.token_instagram.exists())
+    con, online, env = _conexoes(p), _n8n_online(), _env()
+    grupos = [{"g": g, "itens": [{"c": c, "estado": estado(c, p, con, online),
+                                  "valores": {k: ("" if segredo else env.get(k, "")) for k, _, segredo in c.chaves},
+                                  "salvas": {k: bool(env.get(k)) for k, _, _ in c.chaves}}
+                                 for c in g.conectores]} for g in GRUPOS]
+    return render_template("conexoes.html", p=p, d=p.dados, conexoes=con, grupos=grupos,
+                           tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists())
+
+
+@app.post("/p/<pid>/conexoes/chaves")
+def salvar_chaves_conector(pid):
+    _perfil(pid)
+    permitidas = {k for k, _, _ in CHAVES} | {"ELEVENLABS_VOZ"}
+    novos = {k: v.strip() for k, v in request.form.items() if k in permitidas and v.strip()}
+    if novos:
+        _salvar_env(novos)
+        flash(f"Salvo: {', '.join(novos)}. Vale para todos os perfis.", "ok")
+    return redirect(url_for("conexoes", pid=pid) + "#" + request.form.get("ancora", ""))
 
 
 @app.post("/p/<pid>/conexoes/youtube")
@@ -543,7 +562,16 @@ def historico(pid):
 
 
 def rodar(porta: int = 8765, abrir: bool = True) -> None:
+    import socket
+    porta = int(os.environ.get("PORT", porta))  # o preview do Claude Code pode escolher a porta
     url = f"http://127.0.0.1:{porta}"
+    # no Windows dois servidores conseguem ocupar a mesma porta e responder misturado: não abre outro
+    with socket.socket() as teste:
+        if teste.connect_ex(("127.0.0.1", porta)) == 0:
+            print(f"O Estúdio já está aberto em {url}")
+            if abrir:
+                webbrowser.open(url)
+            return
     print(f"Estúdio em {url} (Ctrl+C para fechar)")
     if abrir:
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
