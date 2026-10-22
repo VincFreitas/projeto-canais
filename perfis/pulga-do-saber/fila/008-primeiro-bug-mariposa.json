@@ -22,21 +22,24 @@
       "visual": "moth",
       "pausa": 0.25,
       "destaque": "inseto de verdade",
-      "destaque_em": "inseto"
+      "destaque_em": "inseto",
+      "ilustracao": "a cute moth peeking out from inside a giant old computer with blinking lights"
     },
     {
       "texto": "Em 9 de setembro de 1947, na Universidade Harvard, engenheiros acharam uma mariposa presa dentro do computador Mark II.",
       "visual": "vintage computer",
       "pausa": 0.25,
       "destaque": "Mark II",
-      "destaque_em": "Mark"
+      "destaque_em": "Mark",
+      "ilustracao": "two engineers in 1940s clothes opening a panel of the huge Mark II computer and finding a moth stuck in a relay"
     },
     {
       "texto": "Eles colaram o bicho no caderno de registros com a frase: primeiro caso real de bug encontrado.",
       "visual": "old notebook",
       "pausa": 0.25,
       "destaque": "primeiro bug",
-      "destaque_em": "primeiro"
+      "destaque_em": "primeiro",
+      "ilustracao": "an open logbook notebook on a desk with a moth taped to the page, a pen beside it"
     },
     {
       "texto": "A graça da piada é que a palavra bug já era usada para defeito. Thomas Edison escreveu isso numa carta de 1878.",
@@ -56,13 +59,15 @@
             "rotulo": "a mariposa"
           }
         ]
-      }
+      },
+      "ilustracao": "an old inventor workshop with light bulbs and a letter on the desk, 1870s style"
     },
     {
       "texto": "Ou seja, a mariposa não inventou o termo, só deu a prova literal. E essa página do caderno hoje está num museu Smithsonian.",
       "visual": "museum",
       "pausa": 0.25,
-      "destaque": "Smithsonian"
+      "destaque": "Smithsonian",
+      "ilustracao": "a museum display case with the old logbook page and the moth, visitors looking"
     }
   ],
   "metadados": {
@@ -95,5 +100,6 @@
     }
   },
   "layout": "post",
-  "manchete": "O primeiro bug de computador era um inseto de verdade"
+  "manchete": "O primeiro bug de computador era um inseto de verdade",
+  "personagem": "A 1940s computer laboratory with huge old machines full of switches and blinking lights."
 }

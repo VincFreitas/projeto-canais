@@ -93,9 +93,10 @@ Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/vi
 - Ilustração de cada cena em `cenas[].arquivo` (ex.: `../midia/<slug>/cena1.png`, relativo à pasta da fila). Para manter o mesmo estilo e personagem, gere a 1ª imagem e use-a como **referência** nas outras, com o mesmo trecho de estilo no prompt: *"Flat 2D cartoon illustration in a clean vector explainer style (Kurzgesagt-inspired): bold simple shapes, soft gradients, vibrant saturated colors, rounded forms, NO text, NO letters, NO watermark"*. Proporção 4:3 para a janela do layout post.
 - Cartoon gerado por IA não é "realista", então não precisa da marcação de conteúdo sintético; mesmo assim, cite no roteiro (`"ilustracoes": "IA"`) para controle.
 
-## Estilo pixel art (teste)
-- `"estilo": "pixel"` liga o visual de videogame 16 bits; `"pixel": 5` é o tamanho de cada pixel na tela.
-- As cenas devem ser imagens pequenas já pixeladas (por exemplo 232x174 com 32 cores, para a janela do layout post). O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom.
-- Com `"narrador": true`, a pulga também sai pixelada. A legenda fica embaixo, como no cartoon.
-- `"musica": "chiptune"` usa a trilha sintetizada com onda quadrada (som de 8 bits).
-- Exemplo: `roteiros/teste-pixel-polvo.json`; as cenas foram geradas no PC com `perfis/pulga-do-saber/midia/polvo-tres-coracoes-pixel/gerar.py` e reduzidas depois.
+## Estilo pixel art (padrão do Pulga do Saber)
+- `"estilo": "pixel"` liga o visual de videogame 16 bits; `"pixel": 5` é o tamanho de cada pixel na tela. O perfil já traz esses valores, então o roteiro não precisa repetir.
+- `"personagem"` (no roteiro) e `"ilustracao"` (em cada cena), em inglês: o pipeline desenha a cena no PC com stable-diffusion.cpp + Z-Image-Turbo (de 2 a 5 min por cena, grátis), reduz à grade de pixels e guarda em `obra/`. A mesma semente (o slug) e o mesmo `personagem` mantêm o visual entre as cenas.
+- Sem `ilustracao`, ou sem os modelos em `modelos/`, a cena usa a busca normal e o clipe também é pixelado. Com `arquivo`, vale a imagem indicada.
+- O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom. A pulga narradora, o card dos infográficos (com poucas cores) e o avatar da moldura também saem pixelados. A legenda fica embaixo.
+- `"musica": "chiptune"` usa a trilha sintetizada com onda quadrada (som de 8 bits); a música licenciada por tema também funciona.
+- Instalar o desenho local: baixe para `modelos/` o `sd-cli` Vulkan (github.com/leejet/stable-diffusion.cpp, releases), `z_image_turbo-Q4_K.gguf` (huggingface.co/leejet/Z-Image-Turbo-GGUF), `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) e `ae.safetensors` (huggingface.co/Comfy-Org/z_image_turbo). São cerca de 6,7 GB e rodam numa placa de 4 GB.

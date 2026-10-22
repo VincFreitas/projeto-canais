@@ -22,20 +22,23 @@
       "visual": "wombat",
       "pausa": 0.25,
       "destaque": "cocô em cubo",
-      "destaque_em": "cubo"
+      "destaque_em": "cubo",
+      "ilustracao": "the wombat proudly next to a small pile of cube-shaped poop, flowers around"
     },
     {
       "texto": "É o vombate, um marsupial da Austrália. E o mistério de como ele faz isso levou anos para ser resolvido.",
       "visual": "wombat australia",
       "pausa": 0.25,
-      "destaque": "vombate"
+      "destaque": "vombate",
+      "ilustracao": "the wombat in the Australian outback with eucalyptus trees and a question mark above it"
     },
     {
       "texto": "Pesquisadores da Universidade da Tasmânia dissecaram o intestino e acharam o segredo: a parede tem faixas mais duras e faixas mais flexíveis.",
       "visual": "laboratory",
       "pausa": 0.25,
       "destaque": "faixas duras",
-      "destaque_em": "faixas"
+      "destaque_em": "faixas",
+      "ilustracao": "scientists in a lab looking at a long tube diagram with hard and soft stripes under a magnifying glass"
     },
     {
       "texto": "Com as contrações, as partes duras e moles moldam os cantos. O cubo se forma lá dentro, na parte final do intestino, enquanto o cocô seca.",
@@ -51,14 +54,16 @@
           50
         ],
         "rotulo": "cocô em cubo"
-      }
+      },
+      "ilustracao": "a cute simple diagram of a tube squeezing a soft shape into a cube with motion lines"
     },
     {
       "texto": "A pesquisa ganhou o Ig Nobel de Física em 2019, o prêmio para estudos que fazem rir e depois pensar.",
       "visual": "wombat walking",
       "pausa": 0.25,
       "destaque": "Ig Nobel",
-      "destaque_em": "Ig"
+      "destaque_em": "Ig",
+      "ilustracao": "the wombat on a stage receiving a shiny golden trophy, spotlight and confetti"
     }
   ],
   "metadados": {
@@ -91,5 +96,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Existe um animal que faz cocô em forma de cubo"
+  "manchete": "Existe um animal que faz cocô em forma de cubo",
+  "personagem": "A cute brown wombat character with round ears and a chubby body, Australian bush setting."
 }

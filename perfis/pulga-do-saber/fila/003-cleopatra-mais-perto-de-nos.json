@@ -21,7 +21,8 @@
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Cleópatra viveu mais perto da chegada do homem à Lua do que da construção da Grande Pirâmide.",
       "visual": "pyramids giza",
       "pausa": 0.25,
-      "destaque": "Cleópatra"
+      "destaque": "Cleópatra",
+      "ilustracao": "cute Cleopatra standing between the Great Pyramid on the left and a rocket launching to the Moon on the right"
     },
     {
       "texto": "A Grande Pirâmide de Gizé ficou pronta por volta de 2560 antes de Cristo.",
@@ -29,7 +30,8 @@
       "pausa": 0.25,
       "destaque": "2560 a.C.",
       "destaque_em": "2560",
-      "tipo_visual": "foto"
+      "tipo_visual": "foto",
+      "ilustracao": "the Great Pyramid of Giza being built by tiny workers with stone blocks under a hot sun"
     },
     {
       "texto": "Cleópatra morreu em 30 antes de Cristo. Entre ela e a pirâmide, são uns 2.530 anos.",
@@ -41,7 +43,8 @@
         "sufixo": " anos",
         "rotulo": "da pirâmide até Cleópatra"
       },
-      "tipo_visual": "foto"
+      "tipo_visual": "foto",
+      "ilustracao": "cute Cleopatra in her palace looking at a very long road stretching back to a tiny pyramid on the horizon"
     },
     {
       "texto": "Já entre a morte dela e o pouso da Apollo 11, em 1969, são quase 2 mil anos.",
@@ -66,13 +69,15 @@
             "rotulo": "Lua"
           }
         ]
-      }
+      },
+      "ilustracao": "the Moon in a night sky with a small lunar lander and an astronaut planting a flag, Earth in the background"
     },
     {
       "texto": "Então, para a própria Cleópatra, a pirâmide já era uma antiguidade. Mais antiga para ela do que ela é para nós.",
       "visual": "pyramid sunset",
       "pausa": 0.25,
-      "destaque": "antiguidade"
+      "destaque": "antiguidade",
+      "ilustracao": "cute Cleopatra as a tourist looking at the old pyramid with a magnifying glass, amazed face"
     }
   ],
   "metadados": {
@@ -105,5 +110,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Cleópatra viveu mais perto da ida à Lua do que da Grande Pirâmide"
+  "manchete": "Cleópatra viveu mais perto da ida à Lua do que da Grande Pirâmide",
+  "personagem": "Ancient Egypt desert setting with a golden sun, a cute small Cleopatra character with black hair, golden headdress and white dress."
 }

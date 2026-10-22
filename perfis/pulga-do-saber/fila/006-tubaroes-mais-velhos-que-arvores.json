@@ -22,14 +22,16 @@
       "visual": "shark",
       "pausa": 0.25,
       "destaque": "antes das árvores",
-      "destaque_em": "árvores"
+      "destaque_em": "árvores",
+      "ilustracao": "the shark swimming happily under the sea while the land above the water is completely bare with no trees"
     },
     {
       "texto": "Os fósseis mais antigos ligados aos tubarões são escamas minúsculas, de cerca de 450 milhões de anos.",
       "visual": "fossil",
       "pausa": 0.25,
       "destaque": "450 milhões",
-      "destaque_em": "450"
+      "destaque_em": "450",
+      "ilustracao": "tiny shiny shark scales seen under a magnifying glass, with an old rock layer background"
     },
     {
       "texto": "Já a árvore mais antiga conhecida, a Archaeopteris, e as primeiras florestas apareceram por volta de 385 milhões de anos atrás.",
@@ -49,7 +51,8 @@
             "valor": 385
           }
         ]
-      }
+      },
+      "ilustracao": "a primitive early forest of tall archaeopteris trees on land next to the sea, the shark peeking from the water"
     },
     {
       "texto": "Ou seja, por uns 60 milhões de anos teve tubarão no mar e nenhuma árvore em terra. Só plantas baixinhas, como musgos.",
@@ -60,14 +63,16 @@
         "ate": 60,
         "sufixo": " mi anos",
         "rotulo": "tubarões no mar, nenhuma árvore"
-      }
+      },
+      "ilustracao": "the shark in the ocean while on the shore there are only small mosses, a sign with a long timeline"
     },
     {
       "texto": "Os cientistas ainda debatem se aquelas escamas eram de tubarões de verdade ou de parentes muito próximos. Mesmo assim, é uma família antiga demais.",
       "visual": "shark underwater",
       "pausa": 0.25,
       "destaque": "família antiga",
-      "destaque_em": "família"
+      "destaque_em": "família",
+      "ilustracao": "two scientists with lab coats looking at a fossil scale and arguing with question marks, the shark waving"
     }
   ],
   "metadados": {
@@ -100,5 +105,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Os tubarões já existiam antes das primeiras árvores"
+  "manchete": "Os tubarões já existiam antes das primeiras árvores",
+  "personagem": "A cute friendly grey shark character with big eyes, under a deep blue ancient ocean."
 }

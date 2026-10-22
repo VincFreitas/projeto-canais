@@ -21,7 +21,8 @@
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Saturno, um planeta gigante, boiaria na água.",
       "visual": "saturn",
       "pausa": 0.25,
-      "destaque": "boiaria"
+      "destaque": "boiaria",
+      "ilustracao": "the giant planet Saturn floating in a huge bathtub full of water like a rubber duck, stars around"
     },
     {
       "texto": "O motivo é a densidade. A da água é de 1 grama por centímetro cúbico. A de Saturno é só 0,687.",
@@ -41,26 +42,30 @@
             "valor": 0.687
           }
         ]
-      }
+      },
+      "ilustracao": "a balance scale with a water cube on one side and a lighter Saturn on the other side"
     },
     {
       "texto": "Ele é feito principalmente de hidrogênio e hélio, gases muito leves. É o único planeta do Sistema Solar menos denso que a água.",
       "visual": "saturn planet",
       "pausa": 0.25,
       "destaque": "hidrogênio e hélio",
-      "destaque_em": "hidrogênio"
+      "destaque_em": "hidrogênio",
+      "ilustracao": "Saturn made of light fluffy gas clouds, small balloons labeled with H and He shapes without letters floating out"
     },
     {
       "texto": "Claro que não existe banheira para isso. E, na prática, a gravidade de Saturno puxaria essa água para ele.",
       "visual": "bathtub",
       "pausa": 0.25,
-      "destaque": "gravidade"
+      "destaque": "gravidade",
+      "ilustracao": "Saturn with a confused face next to an empty giant bathtub floating in space, water drops flying towards Saturn"
     },
     {
       "texto": "Mas, na conta, ele ficaria por cima. Um gigante com a alma de uma boia.",
       "visual": "saturn rings",
       "pausa": 0.25,
-      "destaque": "boia"
+      "destaque": "boia",
+      "ilustracao": "Saturn floating on the water surface like a buoy with a life ring, relaxed happy face"
     }
   ],
   "metadados": {
@@ -93,5 +98,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Saturno é tão leve que boiaria numa banheira gigante"
+  "manchete": "Saturno é tão leve que boiaria numa banheira gigante",
+  "personagem": "A cute planet Saturn character with rings and a big smile, beige and golden stripes, space background."
 }

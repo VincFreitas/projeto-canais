@@ -32,6 +32,7 @@ Formato do arquivo: [docs/roteiro.md](../../../docs/roteiro.md). Leia antes de e
 - Cada cena tem **ou** uma `animacao` (quando a fala traz um número, uma comparação ou uma data) **ou** um `destaque` (de 1 a 3 palavras-chave que aparecem gigantes no segundo em que são faladas).
 - `animacao.em`: as palavras faladas que disparam cada elemento, na ordem (ex.: `["dois", "dois", "terceiro"]`). Sem `em`, o código procura os números sozinho.
 - `destaque_em`: a palavra falada que dispara o destaque, quando ela é diferente do texto mostrado (ex.: destaque "3 corações", `destaque_em` "três").
+- **Estilo pixel art** (padrão do Pulga do Saber): escreva em inglês o `personagem` do roteiro (o protagonista e o cenário, igual em todas as cenas) e a `ilustracao` de cada cena (o que se vê, em uma frase, sem texto na imagem). O pipeline desenha a cena no PC; mantenha `visual` como reserva para a busca.
 - Use **só** números que estão na narração. Nada de dado novo só na tela.
 
 ## 4. Verticais derivados (2 ou 3)

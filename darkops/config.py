@@ -14,6 +14,7 @@ OBRA = RAIZ / "obra"          # arquivos intermediários de produção (áudio, 
 SAIDA = RAIZ / "saida"        # vídeos, thumbnails e metadados prontos
 CACHE = RAIZ / "dados" / "cache"
 MUSICA = RAIZ / "assets" / "musica"
+MODELOS = RAIZ / "modelos"     # gerador de imagem local (sd.cpp + Z-Image-Turbo), fora do Git
 
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY", "").strip()
 PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY", "").strip()

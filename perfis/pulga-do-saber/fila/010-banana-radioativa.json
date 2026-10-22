@@ -21,13 +21,15 @@
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a banana é levemente radioativa.",
       "visual": "banana",
       "pausa": 0.25,
-      "destaque": "radioativa"
+      "destaque": "radioativa",
+      "ilustracao": "the banana character glowing with a soft green radioactive aura, a small geiger counter beside it"
     },
     {
       "texto": "Ela tem bastante potássio, e uma fração minúscula do potássio natural é o potássio-40, que é radioativo.",
       "visual": "bananas",
       "pausa": 0.25,
-      "destaque": "potássio-40"
+      "destaque": "potássio-40",
+      "ilustracao": "tiny glowing potassium atoms floating out of the banana like small sparkles"
     },
     {
       "texto": "A dose de uma banana é tão pequena que virou uma unidade de brincadeira: a dose equivalente de banana, cerca de 0,1 microsievert.",
@@ -39,20 +41,23 @@
         "casas": 1,
         "sufixo": " µSv",
         "rotulo": "dose de uma banana"
-      }
+      },
+      "ilustracao": "a measuring scale with one banana on it and a cute meter needle barely moving"
     },
     {
       "texto": "E não acumula: o corpo mantém o nível de potássio estável e elimina o que sobra.",
       "visual": "fruit market",
       "pausa": 0.25,
       "destaque": "não acumula",
-      "destaque_em": "acumula"
+      "destaque_em": "acumula",
+      "ilustracao": "a cute human body shape keeping a balance scale steady, extra sparkles leaving the body"
     },
     {
       "texto": "A curiosidade brasileira: a castanha-do-pará tem muito mais potássio-40 por grama que a banana. A campeã da radioatividade natural na fruteira é ela.",
       "visual": "brazil nuts",
       "pausa": 0.25,
-      "destaque": "castanha-do-pará"
+      "destaque": "castanha-do-pará",
+      "ilustracao": "a Brazil nut character with a crown glowing stronger than the banana in a fruit bowl"
     }
   ],
   "metadados": {
@@ -84,5 +89,6 @@
     }
   },
   "layout": "post",
-  "manchete": "A banana é levemente radioativa, e a castanha-do-pará é mais ainda"
+  "manchete": "A banana é levemente radioativa, e a castanha-do-pará é mais ainda",
+  "personagem": "A cute yellow banana character with big eyes and a happy face, in a simple kitchen."
 }

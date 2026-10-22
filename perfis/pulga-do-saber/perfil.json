@@ -14,5 +14,8 @@
   "ativo": true,
   "youtube": true,
   "instagram": true,
-  "privacidade_youtube": "public"
+  "privacidade_youtube": "public",
+  "estilo": "pixel",
+  "pixel": 5,
+  "narrador": true
 }

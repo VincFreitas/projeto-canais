@@ -22,20 +22,23 @@
       "visual": "waking up morning",
       "pausa": 0.25,
       "destaque": "mais alto",
-      "destaque_em": "alto"
+      "destaque_em": "alto",
+      "ilustracao": "the boy waking up and stretching next to a height ruler on the wall, morning sunlight from the window"
     },
     {
       "texto": "Entre as vértebras da coluna existem discos macios, cheios de água, que funcionam como amortecedores.",
       "visual": "spine",
       "pausa": 0.25,
-      "destaque": "amortecedores"
+      "destaque": "amortecedores",
+      "ilustracao": "a simple cute diagram of a spine with soft blue cushion discs between the vertebrae, like little water pillows"
     },
     {
       "texto": "Durante o dia, de pé ou sentado, o peso do corpo vai espremendo esses discos, e eles perdem um pouco de água.",
       "visual": "people walking",
       "pausa": 0.25,
       "destaque": "perdem água",
-      "destaque_em": "perdem"
+      "destaque_em": "perdem",
+      "ilustracao": "the boy sitting at a school desk in the afternoon, small arrows pressing down on his back, slightly shorter"
     },
     {
       "texto": "A diferença costuma ficar entre 1 e 2 centímetros. Num estudo com 90 adultos em Gana, a média foi de 1,6 centímetro.",
@@ -47,14 +50,16 @@
         "casas": 1,
         "sufixo": " cm",
         "rotulo": "média num estudo com 90 adultos"
-      }
+      },
+      "ilustracao": "the boy standing next to a height ruler at night, a small gap showing he is a bit shorter than in the morning"
     },
     {
       "texto": "À noite, deitado, os discos se reidratam e você recupera tudo. Quer parecer mais alto? Meça logo de manhã.",
       "visual": "sleeping",
       "pausa": 0.25,
       "destaque": "meça de manhã",
-      "destaque_em": "meça"
+      "destaque_em": "meça",
+      "ilustracao": "the boy sleeping in bed under the moon, small blue sparkles around his spine showing the discs refilling with water"
     }
   ],
   "metadados": {
@@ -86,5 +91,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Você acorda mais alto do que vai dormir, todos os dias"
+  "manchete": "Você acorda mais alto do que vai dormir, todos os dias",
+  "personagem": "A cute cartoon boy character with brown hair and blue pajamas, cozy bedroom setting."
 }

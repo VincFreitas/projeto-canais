@@ -11,7 +11,7 @@ FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 FPS = 30
 ZOOM = 0.12  # quanto a imagem aproxima/afasta ao longo da cena
 TRANSICAO = 0.15  # segundos de entrada (do preto) em cada cena, marca o corte sem dessincronizar o áudio
-VERSAO = 3  # mude para refazer as cenas em cache quando o visual do render mudar
+VERSAO = 4  # mude para refazer as cenas em cache quando o visual do render mudar
 
 
 def rodar(args: list[str], cwd: Path | None = None) -> None:
@@ -61,14 +61,19 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
         entrada = ["-stream_loop", "-1", "-i", str(visual)]
         video = (f"[0:v]scale={largura}:{altura}:force_original_aspect_ratio=increase,"
                  f"crop={largura}:{altura},fps={FPS},setsar=1")
+        if pixel:
+            video += (f",scale={largura // pixel}:{altura // pixel}:flags=area,"
+                      f"scale={largura // pixel * pixel}:{altura // pixel * pixel}:flags=neighbor,"
+                      f"pad={largura}:{altura}:(ow-iw)/2:(oh-ih)/2")
     elif pixel:
         entrada = ["-loop", "1", "-i", str(visual)]
         folga = pixel * 16  # margem para a panorâmica
         x = f"floor({folga}*t/{dur:.3f}/{pixel})*{pixel}"
         if indice % 2 == 0:
             x = f"{folga}-{x}"
-        video = (f"[0:v]scale={largura + folga}:{altura + folga}:force_original_aspect_ratio=increase:"
-                 f"flags=neighbor,crop={largura}:{altura}:x='{x}':y='floor((ih-{altura})/2/{pixel})*{pixel}',"
+        grade_w, grade_h = -(-(largura + folga) // pixel), -(-(altura + folga) // pixel)
+        video = (f"[0:v]scale={grade_w}:{grade_h}:force_original_aspect_ratio=increase:flags=area,"
+                 f"scale=iw*{pixel}:ih*{pixel}:flags=neighbor,crop={largura}:{altura}:x='{x}':y='floor((ih-{altura})/2/{pixel})*{pixel}',"
                  f"fps={FPS},setsar=1")
     else:
         entrada = ["-i", str(visual)]
@@ -81,8 +86,13 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
     if card:
         arquivo, x, y = card
         extra = ["-i", str(arquivo)]
-        video += (f",boxblur=7:1,eq=brightness=-0.07[base];[2:v]format=rgba[card];"
-                  f"[base][card]overlay=x={x}:y={y}:eof_action=pass:format=auto")
+        if pixel:  # sem desfoque (borraria os pixels); o card também vira pixel art
+            video += (f",eq=brightness=-0.12[base];[2:v]format=rgba,scale=iw/{pixel}:ih/{pixel}:flags=area,"
+                      "lutrgb=r='floor(val/40)*40':g='floor(val/40)*40':b='floor(val/40)*40',"  # poucas cores
+                      f"scale=iw*{pixel}:ih*{pixel}:flags=neighbor[card];")
+        else:
+            video += ",boxblur=7:1,eq=brightness=-0.07[base];[2:v]format=rgba[card];"
+        video += f"[base][card]overlay=x={x}:y={y}:eof_action=pass:format=auto"
     if narrador:  # a pulga que fala, num canto da cena
         arquivo_n, xn, yn = narrador
         indice = 2 + (1 if card else 0)
@@ -229,7 +239,8 @@ def _mascote(largura: int, destino: Path) -> Path:
     return destino
 
 
-def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: Path | None = None) -> Path:
+def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: Path | None = None,
+                  pixel: int = 0) -> Path:
     """Fundo branco 1080x1920 com avatar (a pulga num círculo amarelo), nome, @ e a manchete."""
     from PIL import Image, ImageDraw, ImageFont
 
@@ -255,8 +266,10 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
         ImageDraw.Draw(mascara).ellipse([0, 0, lado - 1, lado - 1], fill=255)
         img.paste(foto, (ax, ay), mascara)
     else:  # a mesma pulga cartoon que narra os vídeos
-        from .narrador import _desenhar
+        from .narrador import _desenhar, _pixelar
         pulga = _desenhar(0.4, 0.15, int(lado * 0.92))
+        if pixel:
+            pulga = _pixelar(pulga, max(pixel - 1, 2))
         img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 4), pulga)
     # nome e @
     tx = ax + lado + 36
@@ -338,7 +351,8 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     if post:  # moldura branca de post; a janela do vídeo fica no meio, com a barra de progresso embaixo
         from .config import TOPO_JANELA_POST
         entradas += ["-loop", "1", "-i", str(_moldura_post(post["manchete"], post["nome"], post["arroba"],
-                                                          pasta / "moldura.png", post.get("avatar")))]
+                                                          pasta / "moldura.png", post.get("avatar"),
+                                                          post.get("pixel", 0)))]
         indice = len([e for e in entradas if e == "-i"]) - 1
         barra = 8
         video = (f"[{indice}:v]format=yuv420p,setsar=1[fundo];"

@@ -22,20 +22,23 @@
       "visual": "oxford university",
       "pausa": 0.25,
       "destaque": "mais antiga",
-      "destaque_em": "antiga"
+      "destaque_em": "antiga",
+      "ilustracao": "an old stone university building with towers on the left and an Aztec pyramid city on a lake on the right"
     },
     {
       "texto": "Oxford não tem data oficial de fundação, mas já havia ensino por lá em 1096.",
       "visual": "old library",
       "pausa": 0.25,
-      "destaque": "1096"
+      "destaque": "1096",
+      "ilustracao": "a medieval classroom with a teacher and a few students with books and candles"
     },
     {
       "texto": "Ela cresceu rápido depois de 1167, quando o rei Henrique II proibiu estudantes ingleses de estudar em Paris.",
       "visual": "castle england",
       "pausa": 0.25,
       "destaque": "Henrique II",
-      "destaque_em": "Henrique"
+      "destaque_em": "Henrique",
+      "ilustracao": "a medieval king with a crown pointing a stop sign away from a road to Paris, students walking to Oxford"
     },
     {
       "texto": "Já Tenochtitlán, a capital asteca onde hoje fica a Cidade do México, foi fundada em 1325.",
@@ -60,7 +63,8 @@
             "rotulo": "Tenochtitlán"
           }
         ]
-      }
+      },
+      "ilustracao": "the Aztec city Tenochtitlan being built on an island in a lake, canals and canoes, an eagle on a cactus"
     },
     {
       "texto": "São 229 anos de diferença. Quando os astecas começaram a erguer sua cidade, Oxford já dava aula havia mais de dois séculos.",
@@ -71,7 +75,8 @@
         "ate": 229,
         "sufixo": " anos",
         "rotulo": "de diferença"
-      }
+      },
+      "ilustracao": "the student with a black robe giving a lesson while far away the Aztecs start building their city"
     }
   ],
   "metadados": {
@@ -104,5 +109,6 @@
     }
   },
   "layout": "post",
-  "manchete": "A Universidade de Oxford é mais antiga que a capital dos astecas"
+  "manchete": "A Universidade de Oxford é mais antiga que a capital dos astecas",
+  "personagem": "Medieval European town with stone buildings and green hills, a cute student character with a black robe and a book."
 }

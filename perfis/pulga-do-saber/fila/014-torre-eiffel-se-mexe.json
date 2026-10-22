@@ -22,20 +22,23 @@
       "visual": "eiffel tower",
       "pausa": 0.25,
       "destaque": "se mexe",
-      "destaque_em": "mexe"
+      "destaque_em": "mexe",
+      "ilustracao": "the Eiffel Tower with a cute face leaning slightly away from a bright sun, motion marks"
     },
     {
       "texto": "Ela é feita de ferro, e o ferro dilata com o calor. O lado virado para o Sol esquenta mais que o lado da sombra.",
       "visual": "eiffel tower structure",
       "pausa": 0.25,
       "destaque": "ferro dilata",
-      "destaque_em": "dilata"
+      "destaque_em": "dilata",
+      "ilustracao": "the Eiffel Tower with a red warm side facing the sun and a blue cool side in the shade"
     },
     {
       "texto": "Esse lado se estica um pouquinho mais, e o topo se inclina para longe do Sol.",
       "visual": "eiffel tower sun",
       "pausa": 0.25,
-      "destaque": "inclina"
+      "destaque": "inclina",
+      "ilustracao": "the iron of one side of the tower stretching a little with tiny arrows, the top tilting away from the sun"
     },
     {
       "texto": "Como o Sol anda pelo céu, o topo vai acompanhando. Segundo o site oficial, ele desenha uma curva de uns 15 centímetros de diâmetro num dia de céu limpo.",
@@ -46,7 +49,8 @@
         "ate": 15,
         "sufixo": " cm",
         "rotulo": "curva do topo num dia de sol"
-      }
+      },
+      "ilustracao": "the sun moving across the sky in an arc while the tower top draws a small curved path"
     },
     {
       "texto": "E o vento também balança: o topo pode oscilar uns 7 centímetros para os lados. Tudo previsto no projeto.",
@@ -57,7 +61,8 @@
         "ate": 7,
         "sufixo": " cm",
         "rotulo": "de balanço com o vento"
-      }
+      },
+      "ilustracao": "the Eiffel Tower swaying gently in the wind with wind lines and leaves flying, calm smiling face"
     }
   ],
   "metadados": {
@@ -90,5 +95,6 @@
     }
   },
   "layout": "post",
-  "manchete": "A Torre Eiffel se mexe sozinha em dias de sol"
+  "manchete": "A Torre Eiffel se mexe sozinha em dias de sol",
+  "personagem": "The Eiffel Tower in Paris on a sunny day with a cute face on its top part, blue sky."
 }

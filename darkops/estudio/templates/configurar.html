@@ -14,9 +14,14 @@
     <div><label>Layout</label><select name="layout">
       <option value="post" {{ 'selected' if d.layout == 'post' }}>Post (fundo branco + manchete)</option>
       <option value="cheio" {{ 'selected' if d.layout != 'post' }}>Tela cheia</option></select></div>
+    <div><label>Estilo visual</label><select name="estilo">
+      <option value="pixel" {{ 'selected' if d.estilo == 'pixel' }}>Pixel art (desenhado no PC)</option>
+      <option value="cartoon" {{ 'selected' if d.estilo == 'cartoon' }}>Cartoon</option>
+      <option value="" {{ 'selected' if not d.estilo }}>Clipes reais (Pexels/Pixabay)</option></select></div>
     <div><label>Música</label><select name="musica">
       <option value="animada" {{ 'selected' if d.musica == 'animada' }}>Animada (gerada)</option>
-      <option value="ambiente" {{ 'selected' if d.musica == 'ambiente' }}>Suspense (gerada)</option></select></div>
+      <option value="ambiente" {{ 'selected' if d.musica == 'ambiente' }}>Suspense (gerada)</option>
+      <option value="chiptune" {{ 'selected' if d.musica == 'chiptune' }}>Chiptune 8 bits (gerada)</option></select></div>
     <div><label>Privacidade no YouTube</label><select name="privacidade_youtube">
       {% for v, t in [('public','Público'),('unlisted','Não listado'),('private','Privado')] %}<option value="{{ v }}" {{ 'selected' if d.privacidade_youtube == v }}>{{ t }}</option>{% endfor %}</select></div>
     <div><label>Horários (vírgula)</label><input type="text" name="horarios" value="{{ ', '.join(d.horarios) }}"></div>

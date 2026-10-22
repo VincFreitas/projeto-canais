@@ -260,6 +260,8 @@ def configurar(pid):
                   "nicho": f.get("nicho", "").strip(), "descricao": f.get("descricao", "").strip(),
                   "voz": f.get("voz") or p.dados["voz"], "layout": f.get("layout") or "post",
                   "musica": f.get("musica") or "animada",
+                  # pixel e cartoon têm a pulga narradora; clipes reais não
+                  "estilo": f.get("estilo", ""), "narrador": f.get("estilo") in ("pixel", "cartoon"),
                   "privacidade_youtube": f.get("privacidade_youtube") or "public",
                   "horarios": horarios or p.dados["horarios"],
                   "youtube": bool(f.get("youtube")), "instagram": bool(f.get("instagram"))})
@@ -279,11 +281,13 @@ def avatar(pid):
     p = _perfil(pid)
     if p.avatar:
         return send_file(p.avatar)
-    from ..narrador import _desenhar
-    destino = p.controle / "pulga-avatar.png"
+    from ..narrador import _desenhar, _pixelar
+    pixel = p.dados.get("estilo") == "pixel"
+    destino = p.controle / ("pulga-avatar-pixel.png" if pixel else "pulga-avatar.png")
     p.controle.mkdir(parents=True, exist_ok=True)
     if not destino.exists():
-        _desenhar(0.4, 0.15, 400).save(destino)
+        pulga = _desenhar(0.4, 0.15, 400)
+        (_pixelar(pulga, 10) if pixel else pulga).save(destino)
     return send_file(destino)
 
 

@@ -72,6 +72,9 @@ def diagnostico() -> list[tuple[str, bool, str]]:
         ("App OAuth do Google (YouTube)", (config.RAIZ / "credenciais" / "client_secret.json").exists(),
          "Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e salve o JSON "
          "em credenciais/client_secret.json"),
+        ("Desenho local em pixel art (sd.cpp)", (config.MODELOS / "sd" / "sd-cli.exe").exists()
+         and (config.MODELOS / "z_image_turbo-Q4_K.gguf").exists(),
+         "opcional: veja 'Estilo pixel art' em docs/roteiro.md; sem ele as cenas usam Pexels/Pixabay"),
         ("Pelo menos um perfil", bool(perfis), "crie no Estúdio: python -m darkops estudio"),
     ]
     for p in perfis:

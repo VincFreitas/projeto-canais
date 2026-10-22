@@ -90,7 +90,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     # o perfil dá o padrão do canal (nome, @, layout, voz, música); o roteiro pode sobrescrever
     padrao = {"layout": perfil.dados.get("layout"), "voz": perfil.dados.get("voz"),
               "musica": perfil.dados.get("musica"), "selo": perfil.dados.get("arroba"),
-              "canal_nome": perfil.dados.get("nome")}
+              "canal_nome": perfil.dados.get("nome"), "estilo": perfil.dados.get("estilo"),
+              "narrador": perfil.dados.get("narrador"), "pixel": perfil.dados.get("pixel")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     formato = roteiro.get("formato", "longo")
     largura, altura = config.FORMATOS[formato]
@@ -119,8 +120,13 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
                                           obra / "audio" / f"{i:02d}")
         pausa = float(c.get("pausa", PAUSA_PADRAO))
-        visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
-                                        roteiro.get("tipo_visual", "foto"), usados)
+        visual = None
+        if pixel and c.get("ilustracao") and not c.get("arquivo"):  # cena desenhada no PC em pixel art
+            visual = visuais.ilustracao_pixel(c["ilustracao"], roteiro.get("personagem", ""), i,
+                                              obra / "visuais", largura, altura, pixel, slug)
+        if visual is None:
+            visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
+                                            roteiro.get("tipo_visual", "foto"), usados)
         dur_cena = render.duracao(audio) + pausa
         inicio_cena = sum(duracoes)
         if i > 1:
@@ -193,7 +199,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                   post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),
                         "nome": roteiro.get("canal_nome", perfil.dados.get("nome")),
                         "arroba": roteiro.get("selo", perfil.dados.get("arroba")),
-                        "avatar": perfil.avatar} if post else None)
+                        "avatar": perfil.avatar, "pixel": pixel} if post else None)
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

@@ -22,14 +22,16 @@
       "visual": "venus planet",
       "pausa": 0.25,
       "destaque": "dia > ano",
-      "destaque_em": "dia"
+      "destaque_em": "dia",
+      "ilustracao": "the yellow planet Venus floating in space next to a calendar page and a small clock, puzzled face, stars around"
     },
     {
       "texto": "É Vênus. Para dar uma volta completa em torno de si mesmo, ele leva cerca de 243 dias da Terra.",
       "visual": "planet space",
       "pausa": 0.25,
       "destaque": "243 dias",
-      "destaque_em": "243"
+      "destaque_em": "243",
+      "ilustracao": "the yellow planet Venus spinning very slowly with curved arrow marks around it, a tiny snail-like slow feeling, Earth small and far away"
     },
     {
       "texto": "Mas para dar a volta no Sol, leva só uns 225 dias. Ou seja, o ano termina antes do giro.",
@@ -49,14 +51,16 @@
             "valor": 225
           }
         ]
-      }
+      },
+      "ilustracao": "the yellow planet Venus orbiting the big bright Sun on a dotted circular path, a small finish flag on the path"
     },
     {
       "texto": "E tem mais: Vênus gira ao contrário da Terra. Lá, o Sol nasce no oeste e se põe no leste.",
       "visual": "sunrise",
       "pausa": 0.25,
       "destaque": "nasce no oeste",
-      "destaque_em": "oeste"
+      "destaque_em": "oeste",
+      "ilustracao": "the yellow planet Venus with a tiny sunrise on its right side and sunset on its left side, curved arrow showing backwards spin"
     },
     {
       "texto": "Por causa dessa combinação, de um nascer do Sol até o próximo passam uns 117 dias terrestres. Imagina esperar tudo isso pelo café da manhã.",
@@ -67,7 +71,8 @@
         "ate": 117,
         "sufixo": " dias",
         "rotulo": "de um nascer do Sol ao outro"
-      }
+      },
+      "ilustracao": "the yellow planet Venus holding a coffee cup, waiting with a sleepy face, a long dotted path towards a distant sunrise"
     }
   ],
   "metadados": {
@@ -100,5 +105,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Em Vênus, um dia dura mais que um ano inteiro"
+  "manchete": "Em Vênus, um dia dura mais que um ano inteiro",
+  "personagem": "A cute round yellow-orange planet Venus character with big eyes and a thick swirly cloud atmosphere, in a starry space background."
 }

@@ -145,6 +145,50 @@ def fundo_gerado(largura: int, altura: int, semente: int, destino: Path) -> Path
     return destino
 
 
+ESTILO_PIXEL = ("16-bit pixel art, retro SNES video game style, crisp visible square pixels, limited color "
+                "palette, no anti-aliasing, dithering, side view game scene, cute and friendly. "
+                "No text, no letters, no numbers, no watermark. ")
+
+
+def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
+                     pixel: int, semente: str) -> Path | None:
+    """Desenha a cena em pixel art no próprio PC (stable-diffusion.cpp + Z-Image-Turbo, grátis) e reduz à
+    grade de pixels da tela. A mesma semente e o mesmo 'personagem' em todas as cenas mantêm o visual.
+    Devolve None se o gerador local não estiver instalado (a cena cai na busca normal)."""
+    import hashlib
+    import subprocess
+    import zlib
+
+    sd = config.MODELOS / "sd" / "sd-cli.exe"
+    pesos = [config.MODELOS / n for n in ("z_image_turbo-Q4_K.gguf", "ae.safetensors",
+                                          "Qwen3-4B-Instruct-2507-Q4_K_M.gguf")]
+    if not sd.exists() or not all(p.exists() for p in pesos):
+        print(f"  cena {indice}: gerador local ausente em {config.MODELOS}; usando a busca de mídia")
+        return None
+    texto = ESTILO_PIXEL + (personagem.strip() + " " if personagem else "") + "Scene: " + prompt.strip()
+    chave = hashlib.md5(texto.encode("utf-8")).hexdigest()[:10]
+    final = pasta_visuais / f"{indice:02d}-pixel-{chave}.png"
+    if final.exists():
+        return final
+    bruto = pasta_visuais / f"{indice:02d}-pixel-bruto.png"
+    print(f"  cena {indice}: desenhando em pixel art no PC (cerca de 2 a 5 min)")
+    r = subprocess.run([str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
+                        "-p", texto, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
+                        "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", "1024", "-H", "768",
+                        "--seed", str(zlib.crc32(semente.encode("utf-8")) % 100000), "-o", str(bruto)],
+                       capture_output=True, text=True, errors="replace")
+    if r.returncode != 0 or not bruto.exists():
+        print(f"  cena {indice}: gerador local falhou; usando a busca de mídia\n{r.stderr[-400:]}")
+        return None
+    # grade de pixels da tela (com a folga da panorâmica): cada pixel do desenho vira um bloco
+    folga = pixel * 16
+    grade = (-(-(largura + folga) // pixel), -(-(altura + folga) // pixel))
+    ImageOps.fit(Image.open(bruto).convert("RGB"), grade, Image.BOX) \
+        .quantize(32, method=Image.Quantize.MEDIANCUT).convert("RGB").save(final)
+    bruto.unlink(missing_ok=True)
+    return final
+
+
 def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: Path,
                    largura: int, altura: int, tipo: str, usados: set) -> Path:
     """Ordem: arquivo indicado em 'arquivo' > cache já baixado > Pexels > Pixabay > fundo gerado."""

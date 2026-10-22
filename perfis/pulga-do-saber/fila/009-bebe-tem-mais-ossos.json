@@ -22,7 +22,8 @@
       "visual": "baby feet",
       "pausa": 0.25,
       "destaque": "100 ossos a mais",
-      "destaque_em": "100"
+      "destaque_em": "100",
+      "ilustracao": "the cute baby next to a grown-up person, both showing a simple x-ray skeleton, the baby has many small bones"
     },
     {
       "texto": "Um recém-nascido tem perto de 300 ossos. Um adulto tem 206.",
@@ -41,19 +42,22 @@
             "valor": 206
           }
         ]
-      }
+      },
+      "ilustracao": "a cute counter board comparing a pile of many small bones for the baby and fewer big bones for the adult"
     },
     {
       "texto": "Os ossos não somem. Muitos começam como cartilagem, que é flexível, e com o tempo endurecem e se juntam.",
       "visual": "x-ray",
       "pausa": 0.25,
-      "destaque": "cartilagem"
+      "destaque": "cartilagem",
+      "ilustracao": "small flexible blue cartilage pieces slowly turning into white hard bones, sparkles of growth"
     },
     {
       "texto": "O crânio é o melhor exemplo: ele nasce em placas separadas, e é por isso que o bebê tem a moleira.",
       "visual": "sleeping baby",
       "pausa": 0.25,
-      "destaque": "moleira"
+      "destaque": "moleira",
+      "ilustracao": "the baby's head shown as a simple diagram with separate skull plates and a soft spot on top"
     },
     {
       "texto": "Essa fusão começa nos primeiros meses e pode seguir até depois dos 20 anos. Você literalmente foi se montando.",
@@ -68,7 +72,8 @@
         "em": [
           "20"
         ]
-      }
+      },
+      "ilustracao": "the child growing up step by step from baby to young adult in a row, like a building game being assembled"
     }
   ],
   "metadados": {
@@ -100,5 +105,6 @@
     }
   },
   "layout": "post",
-  "manchete": "Quando você nasceu, tinha quase 100 ossos a mais do que hoje"
+  "manchete": "Quando você nasceu, tinha quase 100 ossos a mais do que hoje",
+  "personagem": "A cute baby character with a diaper and big eyes, soft pastel nursery room."
 }
