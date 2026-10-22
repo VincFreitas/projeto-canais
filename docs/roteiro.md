@@ -79,3 +79,9 @@ Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/vi
 - `cenas[].destaque`: de 1 a 3 palavras que aparecem gigantes, com um pulo, no segundo em que são faladas (só em cenas sem animação). `destaque_em`: a palavra falada, se for diferente do texto mostrado.
 - Efeitos sonoros sintetizados: whoosh na troca de cena e na entrada do card, pop em cada elemento, ding quando o contador termina e thud na palavra-herói. `"efeitos": false` desliga.
 - `"mascote": false` tira a pulga em pixel art do canto; `"selo"` troca o `@pulgadosaber` do topo.
+
+## Layout "post" (estilo post de rede social)
+
+- `"layout": "post"`: o vídeo final continua 1080x1920, mas fica num **fundo branco** com o avatar do canal (a pulga num círculo amarelo), o nome, o @ e a `manchete` em texto, e as cenas passam numa **janela** de 1080x780 no meio (`config.JANELA_POST`), com a barra de progresso embaixo dela.
+- `"manchete"`: frase completa de 8 a 14 palavras, que resume o vídeo (as linhas se equilibram sozinhas). Sem ela, usa o `titulo`.
+- Nas cenas da janela, a legenda e a palavra-herói usam o estilo grande de Shorts e o card das animações ocupa a janela. O mascote do canto e o selo do topo não aparecem: o avatar faz esse papel.

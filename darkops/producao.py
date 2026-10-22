@@ -88,6 +88,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     roteiro = carregar(caminho)
     formato = roteiro.get("formato", "longo")
     largura, altura = config.FORMATOS[formato]
+    post = roteiro.get("layout") == "post"
+    if post:  # cenas na janela; a moldura entra na junção
+        largura, altura = config.JANELA_POST
     idioma = roteiro.get("idioma", "pt")
     motor = roteiro.get("motor_voz") or config.MOTOR_VOZ
     voz = roteiro.get("voz")
@@ -144,7 +147,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if usar_legenda:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
             narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
-                                 baixo=bool(c.get("animacao")), destaque=destaque)
+                                 baixo=bool(c.get("animacao")), destaque=destaque, grande=post)
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
@@ -166,7 +169,10 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
                   selo=roteiro.get("selo", "@pulgadosaber"), efeitos=sfx,
-                  mascote=roteiro.get("mascote", True))
+                  mascote=roteiro.get("mascote", True),
+                  post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),
+                        "nome": roteiro.get("canal_nome", "Pulga do Saber"),
+                        "arroba": roteiro.get("selo", "@pulgadosaber")} if post else None)
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

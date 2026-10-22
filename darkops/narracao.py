@@ -252,14 +252,14 @@ def _grupos(palavras: list[dict], max_palavras: int) -> list[list[dict]]:
 
 
 def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float, destino: Path,
-               baixo: bool = False, destaque: tuple[str, float] | None = None) -> None:
+               baixo: bool = False, destaque: tuple[str, float] | None = None, grande: bool = False) -> None:
     """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
     baixo=True, para não cobrir uma animação), a palavra falada fica amarela e cada grupo entra com um pulo."""
-    vertical = altura > largura
+    vertical = altura > largura or grande  # grande: estilo de Shorts mesmo numa janela horizontal
     if vertical:
         # \kf pinta da cor secundária (branco) para a primária (amarelo) conforme a palavra é falada
-        alinhamento, margem = (2, int(altura * 0.2)) if baixo else (5, 0)
-        estilo = (f"Style: Base,Arial Black,{int(altura * 0.045)},&H0000E5FF,&H00FFFFFF,&H00000000,&H64000000,"
+        alinhamento, margem = (2, int(altura * (0.2 if altura > largura else 0.06))) if baixo else (5, 0)
+        estilo = (f"Style: Base,Arial Black,{int(largura * (0.08 if altura > largura else 0.07))},&H0000E5FF,&H00FFFFFF,&H00000000,&H64000000,"
                   f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.005)},2,{alinhamento},60,60,{margem},1")
         max_palavras = 3
     else:
@@ -275,8 +275,8 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         "Alignment, MarginL, MarginR, MarginV, Encoding",
         estilo,
         # palavra-herói: grande, amarela, contorno grosso, um pouco acima do centro
-        (f"Style: Heroi,Arial Black,{int(altura * 0.075)},&H0000D4FF,&H00FFFFFF,&H00101010,&H96000000,"
-         f"-1,0,0,0,100,100,2,0,1,{int(altura * 0.008)},4,5,40,40,0,1"),
+        (f"Style: Heroi,Arial Black,{int(largura * (0.133 if altura > largura else 0.11))},&H0000D4FF,"
+         f"&H00FFFFFF,&H00101010,&H96000000,-1,0,0,0,100,100,2,0,1,{int(largura * 0.014)},4,5,40,40,0,1"),
         "", "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
@@ -299,7 +299,7 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
     if destaque and vertical:
         texto, inicio = destaque
         fim = min(inicio + 1.3, duracao)
-        y = int(altura * 0.27)
+        y = int(altura * (0.27 if altura > largura else 0.24))
         efeito = (f"{{\\pos({largura // 2},{y})\\fad(60,220)\\frz-4\\fscx30\\fscy30"
                   f"\\t(0,150,\\fscx118\\fscy118)\\t(150,260,\\fscx100\\fscy100)}}")
         linhas.append(f"Dialogue: 1,{_tempo(inicio)},{_tempo(fim)},Heroi,,0,0,0,,{efeito}{_escapar(texto.upper())}")

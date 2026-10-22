@@ -208,8 +208,69 @@ def _mascote(largura: int, destino: Path) -> Path:
     return destino
 
 
+def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path) -> Path:
+    """Fundo branco 1080x1920 com avatar (a pulga num círculo amarelo), nome, @ e a manchete."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    from .config import JANELA_POST, TOPO_JANELA_POST
+
+    def fonte(arquivo, tamanho):
+        try:
+            return ImageFont.truetype(f"C:/Windows/Fonts/{arquivo}", tamanho)
+        except OSError:
+            return ImageFont.load_default()
+
+    w, h = 1080, 1920
+    img = Image.new("RGB", (w, h), (255, 255, 255))
+    d = ImageDraw.Draw(img)
+    # avatar: círculo amarelo com borda, a pulga em pixel art no meio
+    lado, ax, ay = 180, 100, 215
+    d.ellipse([ax - 8, ay - 8, ax + lado + 8, ay + lado + 8], fill=(255, 196, 0))
+    d.ellipse([ax, ay, ax + lado, ay + lado], fill=(255, 222, 70), outline=(230, 150, 0), width=6)
+    pulga = Image.open(_mascote(int(lado / 0.12 * 0.62), destino.with_name("pulga-avatar.png")))
+    img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 6), pulga)
+    # nome e @
+    tx = ax + lado + 36
+    d.text((tx, ay + 32), nome, font=fonte("segoeuib.ttf", 64), fill=(17, 17, 17))
+    d.text((tx, ay + 112), arroba, font=fonte("segoeui.ttf", 46), fill=(140, 140, 140))
+    # manchete: centralizada, até 3 linhas, encolhe se precisar
+    topo_texto, base_texto = ay + lado + 40, TOPO_JANELA_POST - 30
+    def quebrar(limite, f):
+        linhas, atual = [], ""
+        for palavra in manchete.split():
+            teste = f"{atual} {palavra}".strip()
+            if d.textlength(teste, font=f) <= limite or not atual:
+                atual = teste
+            else:
+                linhas.append(atual)
+                atual = palavra
+        return linhas + [atual]
+
+    for tamanho in range(68, 34, -4):
+        f = fonte("segoeui.ttf", tamanho)
+        linhas = quebrar(w - 100, f)
+        # linhas equilibradas: a menor largura que mantém o mesmo número de linhas (sem palavra sozinha)
+        limite = w - 100
+        while limite > 200 and len(quebrar(limite - 10, f)) == len(linhas):
+            limite -= 10
+        linhas = quebrar(limite, f)
+        altura_linha = int(tamanho * 1.28)
+        if len(linhas) <= 3 and len(linhas) * altura_linha <= base_texto - topo_texto:
+            break
+    y = topo_texto + (base_texto - topo_texto - len(linhas) * altura_linha) // 2
+    for linha in linhas:
+        d.text(((w - d.textlength(linha, font=f)) / 2, y), linha, font=f, fill=(17, 17, 17))
+        y += altura_linha
+    # sombra leve embaixo da janela do vídeo
+    jw, jh = JANELA_POST
+    d.rectangle([0, TOPO_JANELA_POST + jh, w, TOPO_JANELA_POST + jh + 3], fill=(235, 235, 235))
+    img.save(destino)
+    return destino
+
+
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
-           selo: str | None = None, efeitos: Path | None = None, mascote: bool = False) -> None:
+           selo: str | None = None, efeitos: Path | None = None, mascote: bool = False,
+           post: dict | None = None) -> None:
     """Concatena as cenas, põe a barra de progresso e o selo do canal (só no vertical) e normaliza o
     volume para -14 LUFS (padrão das plataformas)."""
     pasta = cenas[0].parent
@@ -245,7 +306,22 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     proc = subprocess.run([FFMPEG, "-hide_banner", "-i", str(junta)], capture_output=True, text=True,
                           encoding="utf-8", errors="replace")
     larg, alt = map(int, re.search(r"Video:.*?(\d{3,5})x(\d{3,5})", proc.stderr).groups())
-    if alt > larg:  # vertical: barra amarela que enche até o fim + selo do canal no topo
+    if post:  # moldura branca de post; a janela do vídeo fica no meio, com a barra de progresso embaixo
+        from .config import TOPO_JANELA_POST
+        entradas += ["-loop", "1", "-i", str(_moldura_post(post["manchete"], post["nome"], post["arroba"],
+                                                          pasta / "moldura.png"))]
+        indice = len([e for e in entradas if e == "-i"]) - 1
+        barra = 8
+        video = (f"[{indice}:v]format=yuv420p,setsar=1[fundo];"
+                 f"[fundo][0:v]overlay=x=0:y={TOPO_JANELA_POST}:shortest=1[comvideo];"
+                 f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
+                 f"[comvideo][barra]overlay=x='-W+W*t/{total:.3f}':y={TOPO_JANELA_POST + alt - barra}:"
+                 f"eval=frame[v]")
+        mapa_video = "[v]"
+        codec = ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "5M", "-bufsize", "10M",
+                 "-pix_fmt", "yuv420p", "-r", str(FPS)]
+        filtro = f"{video};{audio}"
+    elif alt > larg:  # vertical: barra amarela que enche até o fim + selo do canal no topo
         barra = max(int(alt * 0.006), 6)
         video = (f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
                  f"[0:v][barra]overlay=x='-W+W*t/{total:.3f}':y=H-h:eval=frame[vb]")

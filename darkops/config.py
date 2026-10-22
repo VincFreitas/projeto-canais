@@ -28,6 +28,10 @@ FORMATOS = {
     "longo": (1920, 1080),     # YouTube tradicional
     "vertical": (1080, 1920),  # Shorts, TikTok, Reels, Kwai
 }
+# layout "post": o vídeo final é vertical, mas as cenas são renderizadas nesta janela, que fica
+# no meio de uma moldura branca com avatar, nome, @ e manchete (estilo post de rede social)
+JANELA_POST = (1080, 780)
+TOPO_JANELA_POST = 700
 
 VOZ_PADRAO = {
     "pt": "pt-BR-AntonioNeural",

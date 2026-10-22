@@ -445,7 +445,8 @@ class _Animador:
         tipo = animacao.get("tipo")
         if tipo not in TIPOS:
             raise SystemExit(f"animação '{tipo}' não existe. Opções: {', '.join(TIPOS)}")
-        self.cw, self.ch = int(largura * CARD_L), int(altura * CARD_A)
+        _, _, cl, ca = _caixa(largura, altura)
+        self.cw, self.ch = int(largura * cl), int(altura * ca)
         self.base = _card(self.cw, self.ch)
         self.conteudo = TIPOS[tipo](self.cw, self.ch, animacao, duracao, gatilhos)
         self.brilhos = _Brilhos(self.cw, self.ch, len(json.dumps(animacao)), (255, 235, 160))
@@ -466,9 +467,17 @@ class _Animador:
         return tela
 
 
+def _caixa(largura: int, altura: int) -> tuple[float, float, float, float]:
+    """x, y, largura e altura do card em proporção da tela: tela vertical ou janela do layout post."""
+    if altura > largura:
+        return CARD_X, CARD_Y, CARD_L, CARD_A
+    return 0.12, 0.07, 0.76, 0.66
+
+
 def posicao(largura: int, altura: int) -> tuple[int, int]:
     """Canto superior esquerdo do vídeo do card na tela (já descontando a margem)."""
-    return int(largura * CARD_X) - MARGEM, int(altura * CARD_Y) - MARGEM
+    x, y, _, _ = _caixa(largura, altura)
+    return int(largura * x) - MARGEM, int(altura * y) - MARGEM
 
 
 def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: float,
@@ -480,7 +489,8 @@ def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: f
 def eventos(animacao: dict, largura: int, altura: int, duracao: float,
             gatilhos: list[float] | None = None) -> list[tuple[float, str]]:
     """Efeitos sonoros da animação, em segundos dentro da cena: whoosh do card e pop de cada elemento."""
-    conteudo = TIPOS[animacao["tipo"]](int(largura * CARD_L), int(altura * CARD_A), animacao, duracao, gatilhos)
+    _, _, cl, ca = _caixa(largura, altura)
+    conteudo = TIPOS[animacao["tipo"]](int(largura * cl), int(altura * ca), animacao, duracao, gatilhos)
     return [(0.05, "whoosh")] + conteudo.eventos()
 
 
