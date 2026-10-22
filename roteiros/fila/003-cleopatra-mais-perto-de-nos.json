@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Historia",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,27 @@
     {
       "texto": "Já entre a morte dela e o pouso da Apollo 11, em 1969, são quase 2 mil anos.",
       "visual": "astronaut moon",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "linha_do_tempo",
+        "marcos": [
+          {
+            "valor": -2560,
+            "texto": "2560 a.C.",
+            "rotulo": "Pirâmide"
+          },
+          {
+            "valor": -30,
+            "texto": "30 a.C.",
+            "rotulo": "Cleópatra"
+          },
+          {
+            "valor": 1969,
+            "texto": "1969",
+            "rotulo": "Lua"
+          }
+        ]
+      }
     },
     {
       "texto": "Então, para a própria Cleópatra, a pirâmide já era uma antiguidade. Mais antiga para ela do que ela é para nós.",

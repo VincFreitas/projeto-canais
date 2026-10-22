@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -26,7 +26,13 @@
     {
       "texto": "Dois deles bombeiam o sangue só pelas brânquias. O terceiro manda o sangue para o resto do corpo.",
       "visual": "octopus tentacles",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "icones",
+        "simbolo": "coracao",
+        "quantidade": 3,
+        "rotulo": "3 corações"
+      }
     },
     {
       "texto": "E esse sangue é azul. Em vez de ferro, como o nosso, ele usa uma proteína com cobre, a hemocianina.",

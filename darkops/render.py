@@ -10,6 +10,8 @@ from .visuais import EXT_VIDEO
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
 FPS = 30
 ZOOM = 0.12  # quanto a imagem aproxima/afasta ao longo da cena
+TRANSICAO = 0.15  # segundos de entrada (do preto) em cada cena, marca o corte sem dessincronizar o áudio
+VERSAO = 2  # mude para refazer as cenas em cache quando o visual do render mudar
 
 
 def rodar(args: list[str], cwd: Path | None = None) -> None:
@@ -59,7 +61,8 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
         video = (f"[0:v]scale={largura * 2}:{altura * 2}:force_original_aspect_ratio=increase,"
                  f"crop={largura * 2}:{altura * 2},{_movimento(indice, quadros)}:s={largura}x{altura}:fps={FPS},"
                  f"setsar=1")
-    filtro = f"{video}{legendas},format=yuv420p[v];[1:a]aresample=48000,apad[a]"
+    entrada_suave = f",fade=t=in:st=0:d={TRANSICAO}"
+    filtro = f"{video}{entrada_suave}{legendas},format=yuv420p[v];[1:a]aresample=48000,apad[a]"
     rodar([*entrada, "-i", str(audio), "-filter_complex", filtro, "-map", "[v]", "-map", "[a]",
            "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(FPS),
            "-pix_fmt", "yuv420p", "-color_range", "tv",
@@ -145,8 +148,27 @@ def animada(duracao_s: float, destino: Path, semente: str = "") -> Path:
     return destino
 
 
-def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12) -> None:
-    """Concatena sem reencodar o vídeo; normaliza o volume para -14 LUFS (padrão das plataformas)."""
+def _selo(texto: str, largura: int, destino: Path) -> Path:
+    """Etiqueta '@canal' em pílula translúcida, para o topo dos verticais."""
+    from PIL import Image, ImageDraw, ImageFont
+    try:
+        fonte = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", int(largura * 0.038))
+    except OSError:
+        fonte = ImageFont.load_default()
+    caixa = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textbbox((0, 0), texto, font=fonte)
+    w, h = caixa[2] - caixa[0] + 60, caixa[3] - caixa[1] + 34
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([0, 0, w - 1, h - 1], radius=h // 2, fill=(0, 0, 0, 120))
+    d.text((30, 17 - caixa[1]), texto, font=fonte, fill=(255, 255, 255, 235))
+    img.save(destino)
+    return destino
+
+
+def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
+           selo: str | None = None) -> None:
+    """Concatena as cenas, põe a barra de progresso e o selo do canal (só no vertical) e normaliza o
+    volume para -14 LUFS (padrão das plataformas)."""
     pasta = cenas[0].parent
     lista = pasta / "lista.txt"
     lista.write_text("".join(f"file '{c.name}'\n" for c in cenas), encoding="utf-8")
@@ -159,14 +181,32 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     elif musica == "animada":
         musica = animada(total, pasta / "animada.wav", saida.stem)
     normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
+    entradas = ["-i", str(junta)]
     if musica:
         fim = max(total - 3, 0)
-        filtro = (f"[1:a]volume={volume_musica},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[m];"
-                  f"[0:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,{normalizar}[a]")
-        entradas = ["-i", str(junta), "-stream_loop", "-1", "-i", str(musica)]
+        audio = (f"[1:a]volume={volume_musica},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[m];"
+                 f"[0:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,{normalizar}[a]")
+        entradas += ["-stream_loop", "-1", "-i", str(musica)]
     else:
-        filtro = f"[0:a]{normalizar}[a]"
-        entradas = ["-i", str(junta)]
+        audio = f"[0:a]{normalizar}[a]"
+
+    proc = subprocess.run([FFMPEG, "-hide_banner", "-i", str(junta)], capture_output=True, text=True,
+                          encoding="utf-8", errors="replace")
+    larg, alt = map(int, re.search(r"Video:.*?(\d{3,5})x(\d{3,5})", proc.stderr).groups())
+    if alt > larg:  # vertical: barra amarela que enche até o fim + selo do canal no topo
+        barra = max(int(alt * 0.006), 6)
+        video = (f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
+                 f"[0:v][barra]overlay=x='-W+W*t/{total:.3f}':y=H-h:eval=frame[vb]")
+        if selo:
+            entradas += ["-i", str(_selo(selo, larg, pasta / "selo.png"))]
+            indice_selo = len([e for e in entradas if e == "-i"]) - 1
+            video += f";[vb][{indice_selo}:v]overlay=x=(W-w)/2:y=H*0.055[v]"
+        else:
+            video += ";[vb]null[v]"
+        mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p"]
+        filtro = f"{video};{audio}"
+    else:
+        mapa_video, codec, filtro = "0:v", ["-c:v", "copy"], audio
     saida.parent.mkdir(parents=True, exist_ok=True)
-    rodar([*entradas, "-filter_complex", filtro, "-map", "0:v", "-map", "[a]", "-c:v", "copy",
+    rodar([*entradas, "-filter_complex", filtro, "-map", mapa_video, "-map", "[a]", *codec,
            "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(saida)])

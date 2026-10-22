@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -30,7 +30,15 @@
     {
       "texto": "Ele também é ácido, com pH entre 3 e 4,5. E as abelhas colocam uma enzima que gera um pouco de água oxigenada.",
       "visual": "honeycomb bees",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "de": 7,
+        "ate": 3,
+        "casas": 1,
+        "prefixo": "pH ",
+        "rotulo": "o mel é ácido: pH entre 3 e 4,5"
+      }
     },
     {
       "texto": "Arqueólogos já acharam potes de mel conservados em tumbas do Egito. Mas a famosa história de quem provou mel de 3 mil anos não tem fonte arqueológica firme.",

@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Historia",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,13 @@
     {
       "texto": "Como o Sol anda pelo céu, o topo vai acompanhando. Segundo o site oficial, ele desenha uma curva de uns 15 centímetros de diâmetro num dia de céu limpo.",
       "visual": "sun sky",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "ate": 15,
+        "sufixo": " cm",
+        "rotulo": "curva do topo num dia de sol"
+      }
     },
     {
       "texto": "E o vento também balança: o topo pode oscilar uns 7 centímetros para os lados. Tudo previsto no projeto.",

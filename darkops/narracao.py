@@ -251,13 +251,16 @@ def _grupos(palavras: list[dict], max_palavras: int) -> list[list[dict]]:
     return grupos
 
 
-def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float, destino: Path) -> None:
-    """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro, a palavra falada fica amarela."""
+def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float, destino: Path,
+               baixo: bool = False) -> None:
+    """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
+    baixo=True, para não cobrir uma animação), a palavra falada fica amarela e cada grupo entra com um pulo."""
     vertical = altura > largura
     if vertical:
         # \kf pinta da cor secundária (branco) para a primária (amarelo) conforme a palavra é falada
+        alinhamento, margem = (2, int(altura * 0.2)) if baixo else (5, 0)
         estilo = (f"Style: Base,Arial Black,{int(altura * 0.045)},&H0000E5FF,&H00FFFFFF,&H00000000,&H64000000,"
-                  f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.005)},2,5,60,60,0,1")
+                  f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.005)},2,{alinhamento},60,60,{margem},1")
         max_palavras = 3
     else:
         estilo = (f"Style: Base,Arial,{int(altura * 0.05)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,"
@@ -283,7 +286,9 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
             for j, p in enumerate(g):
                 prox = g[j + 1]["inicio"] if j + 1 < len(g) else p["fim"]
                 partes.append(f"{{\\kf{max(int((prox - p['inicio']) * 100), 1)}}}{_escapar(p['texto']).upper()}")
-            texto = "{\\fad(60,0)}" + " ".join(partes)
+            # pulo: o grupo entra a 75%, passa de 100% e assenta
+            texto = ("{\\fad(40,0)\\fscx75\\fscy75\\t(0,110,\\fscx108\\fscy108)\\t(110,190,\\fscx100\\fscy100)}"
+                     + " ".join(partes))
         else:
             texto = _escapar(" ".join(p["texto"] for p in g))
         linhas.append(f"Dialogue: 0,{_tempo(inicio)},{_tempo(fim)},Base,,0,0,0,,{texto}")

@@ -59,3 +59,16 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 Ordem de escolha do visual de cada cena: `arquivo` > o que já foi baixado em `obra/` > Pexels (precisa de `PEXELS_API_KEY`) > Pixabay (precisa de `PIXABAY_API_KEY`) > fundo escuro gerado.
 
 Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/visuais/NN.*` e rode de novo. Só as cenas alteradas são refeitas.
+
+## Movimento e animações
+
+- `"tipo_visual": "video"` no roteiro: cada cena busca um **clipe de vídeo real** (o Pixabay filtra mídia gerada por IA, desenho e 3D, e exige o assunto nas 3 primeiras tags). Sem clipe bom, usa foto com zoom lento.
+- Todas as cenas entram com uma transição curta do preto; no vertical, a legenda "pula" ao aparecer, e o vídeo final ganha a barra de progresso amarela embaixo e o selo `@pulgadosaber` no topo (troque com `"selo"` no roteiro).
+- `cenas[].animacao`: a cena vira um infográfico animado (fundo próprio, legenda vai para baixo). Use **só números que estão na narração**.
+
+| Tipo | Campos | Exemplo |
+|---|---|---|
+| `contador` | `ate`, `de` (0), `casas` (0), `prefixo`, `sufixo`, `rotulo` | `{"tipo": "contador", "ate": 243, "sufixo": " dias", "rotulo": "1 dia em Vênus"}` |
+| `comparacao` | `itens` [{`rotulo`, `valor`}] (até 3), `unidade`, `titulo`, `casas` | `{"tipo": "comparacao", "itens": [{"rotulo": "Bebê", "valor": 300}, {"rotulo": "Adulto", "valor": 206}]}` |
+| `linha_do_tempo` | `marcos` [{`valor` (ano; a.C. negativo), `texto`, `rotulo`}] (2 a 5) | `{"tipo": "linha_do_tempo", "marcos": [{"valor": -30, "texto": "30 a.C.", "rotulo": "Cleópatra"}, {"valor": 1969, "texto": "1969", "rotulo": "Lua"}]}` |
+| `icones` | `simbolo` (`coracao`, `estrela`, `cubo`, `circulo`), `quantidade` (até 12), `cor` [r,g,b], `rotulo` | `{"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}` |

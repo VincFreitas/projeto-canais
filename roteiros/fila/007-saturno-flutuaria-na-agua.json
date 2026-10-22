@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Motivacional",
   "volume_musica": 0.1,
   "legenda": true,
@@ -25,7 +25,22 @@
     {
       "texto": "O motivo é a densidade. A da água é de 1 grama por centímetro cúbico. A de Saturno é só 0,687.",
       "visual": "water drop",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "comparacao",
+        "titulo": "Densidade (g/cm³)",
+        "casas": 3,
+        "itens": [
+          {
+            "rotulo": "Água",
+            "valor": 1
+          },
+          {
+            "rotulo": "Saturno",
+            "valor": 0.687
+          }
+        ]
+      }
     },
     {
       "texto": "Ele é feito principalmente de hidrogênio e hélio, gases muito leves. É o único planeta do Sistema Solar menos denso que a água.",

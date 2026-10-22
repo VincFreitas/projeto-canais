@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,14 @@
     {
       "texto": "A diferença costuma ficar entre 1 e 2 centímetros. Num estudo com 90 adultos em Gana, a média foi de 1,6 centímetro.",
       "visual": "measuring tape",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "ate": 1.6,
+        "casas": 1,
+        "sufixo": " cm",
+        "rotulo": "média num estudo com 90 adultos"
+      }
     },
     {
       "texto": "À noite, deitado, os discos se reidratam e você recupera tudo. Quer parecer mais alto? Meça logo de manhã.",

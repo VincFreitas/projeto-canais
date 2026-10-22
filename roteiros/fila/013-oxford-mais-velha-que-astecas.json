@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Historia",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,27 @@
     {
       "texto": "Já Tenochtitlán, a capital asteca onde hoje fica a Cidade do México, foi fundada em 1325.",
       "visual": "mexico city",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "linha_do_tempo",
+        "marcos": [
+          {
+            "valor": 1096,
+            "texto": "1096",
+            "rotulo": "Oxford"
+          },
+          {
+            "valor": 1167,
+            "texto": "1167",
+            "rotulo": "Henrique II"
+          },
+          {
+            "valor": 1325,
+            "texto": "1325",
+            "rotulo": "Tenochtitlán"
+          }
+        ]
+      }
     },
     {
       "texto": "São 229 anos de diferença. Quando os astecas começaram a erguer sua cidade, Oxford já dava aula havia mais de dois séculos.",

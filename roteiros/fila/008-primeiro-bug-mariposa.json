@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Historia",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,22 @@
     {
       "texto": "A graça da piada é que a palavra bug já era usada para defeito. Thomas Edison escreveu isso numa carta de 1878.",
       "visual": "light bulb",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "linha_do_tempo",
+        "marcos": [
+          {
+            "valor": 1878,
+            "texto": "1878",
+            "rotulo": "Edison usa bug"
+          },
+          {
+            "valor": 1947,
+            "texto": "1947",
+            "rotulo": "a mariposa"
+          }
+        ]
+      }
     },
     {
       "texto": "Ou seja, a mariposa não inventou o termo, só deu a prova literal. E essa página do caderno hoje está num museu Smithsonian.",

@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -30,7 +30,14 @@
     {
       "texto": "A dose de uma banana é tão pequena que virou uma unidade de brincadeira: a dose equivalente de banana, cerca de 0,1 microsievert.",
       "visual": "radiation",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "ate": 0.1,
+        "casas": 1,
+        "sufixo": " µSv",
+        "rotulo": "dose de uma banana"
+      }
     },
     {
       "texto": "E não acumula: o corpo mantém o nível de potássio estável e elimina o que sobra.",

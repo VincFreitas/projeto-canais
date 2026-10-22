@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Motivacional",
   "volume_musica": 0.1,
   "legenda": true,
@@ -30,7 +30,22 @@
     {
       "texto": "Mas para dar a volta no Sol, leva só uns 225 dias. Ou seja, o ano termina antes do giro.",
       "visual": "solar system",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "comparacao",
+        "titulo": "Vênus",
+        "unidade": "dias",
+        "itens": [
+          {
+            "rotulo": "Dia",
+            "valor": 243
+          },
+          {
+            "rotulo": "Ano",
+            "valor": 225
+          }
+        ]
+      }
     },
     {
       "texto": "E tem mais: Vênus gira ao contrário da Terra. Lá, o Sol nasce no oeste e se põe no leste.",

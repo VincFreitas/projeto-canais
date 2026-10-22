@@ -10,6 +10,7 @@ from . import config
 
 EXT_VIDEO = {".mp4", ".mov", ".webm", ".mkv"}
 EXT_IMAGEM = {".jpg", ".jpeg", ".png", ".webp"}
+VERSAO_BUSCA = 3  # mude para baixar de novo os visuais em cache (ex.: filtro de busca novo)
 FONTES = [Path("C:/Windows/Fonts/ariblk.ttf"), Path("C:/Windows/Fonts/arialbd.ttf")]
 
 
@@ -68,9 +69,31 @@ def buscar_pexels(consulta: str, largura: int, altura: int, tipo: str, destino: 
 
 def _pixabay(caminho: str, params: dict) -> dict:
     r = requests.get(f"https://pixabay.com/api/{caminho}", timeout=30,
-                     params={"key": config.PIXABAY_API_KEY, "safesearch": "true", "per_page": 20, **params})
+                     params={"key": config.PIXABAY_API_KEY, "safesearch": "true", "per_page": 50, **params})
     r.raise_for_status()
     return r.json()
+
+
+BLOQUEADAS = {"cartoon", "3d", "animation", "animated", "illustration", "render", "christmas", "santa", "toy",
+              "fair", "carousel", "fairground", "logo", "text", "drawing", "clipart", "anime"}
+
+
+def _filtrar_pixabay(hits: list[dict], consulta: str, usados: set) -> list[dict]:
+    """Só mídia real (sem IA, que exigiria marcar 'conteúdo sintético'), sem desenho nem 3D, com o
+    assunto (1ª palavra da busca) entre as 3 primeiras tags. Ordena pela posição das palavras nas tags."""
+    palavras = consulta.lower().split()
+    bons = []
+    for h in hits:
+        tags = [t.strip().lower() for t in h.get("tags", "").split(",")]
+        if (h.get("isAiGenerated") or "ai generated" in tags or f"pb{h['id']}" in usados
+                or BLOQUEADAS & {p for t in tags for p in t.split()}):
+            continue
+        def posicao(palavra):
+            return next((i for i, t in enumerate(tags) if palavra in t), 99)
+        if posicao(palavras[0]) > 2:
+            continue
+        bons.append((sum(posicao(p) for p in palavras), h))
+    return [h for _, h in sorted(bons, key=lambda x: x[0])]
 
 
 def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set) -> Path | None:
@@ -78,7 +101,7 @@ def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino:
     vertical = altura > largura
     consulta = consulta[:100]
     if tipo == "video":
-        hits = [h for h in _pixabay("videos/", {"q": consulta}).get("hits", []) if f"pb{h['id']}" not in usados]
+        hits = _filtrar_pixabay(_pixabay("videos/", {"q": consulta}).get("hits", []), consulta, usados)
         hits.sort(key=lambda h: (h["videos"]["large"].get("height", 0) > h["videos"]["large"].get("width", 0)) != vertical)
         for h in hits:
             opcoes = [v for v in h["videos"].values() if v.get("url") and v.get("width")]
@@ -91,9 +114,7 @@ def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino:
     else:
         dados = _pixabay("", {"q": consulta, "image_type": "photo",
                               "orientation": "vertical" if vertical else "horizontal"})
-        for h in dados.get("hits", []):
-            if f"pb{h['id']}" in usados:
-                continue
+        for h in _filtrar_pixabay(dados.get("hits", []), consulta, usados):
             usados.add(f"pb{h['id']}")
             return _baixar(h["largeImageURL"], destino.with_suffix(".jpg"))
     return None
@@ -138,26 +159,32 @@ def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: 
     marca = pasta_visuais / f"{indice:02d}.visual.json"
     if marca.exists():
         anterior = json.loads(marca.read_text(encoding="utf-8"))
-        if anterior.get("consulta") == consulta and Path(anterior.get("arquivo", "")).exists():
+        if (anterior.get("consulta") == consulta and anterior.get("tipo", "foto") == cena.get("tipo_visual", tipo)
+                and anterior.get("versao") == VERSAO_BUSCA
+                and Path(anterior.get("arquivo", "")).exists()):
             return Path(anterior["arquivo"])
     achado = _buscar_em_bancos(consulta, indice, largura, altura, cena.get("tipo_visual", tipo), base, usados)
-    marca.write_text(json.dumps({"consulta": consulta, "arquivo": str(achado)}), encoding="utf-8")
+    marca.write_text(json.dumps({"consulta": consulta, "tipo": cena.get("tipo_visual", tipo), "versao": VERSAO_BUSCA,
+                                 "arquivo": str(achado)}),
+                     encoding="utf-8")
     return achado
 
 
 def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tipo: str,
                       base: Path, usados: set) -> Path:
+    """Tipo 'video' tenta clipe em cada banco e, se não achar, foto (que ganha movimento no render)."""
     bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
-    for nome, chave, buscar in bancos:
-        if not (consulta and chave):
-            continue
-        try:
-            achado = buscar(consulta, largura, altura, tipo, base, usados)
-            if achado:
-                return achado
-            print(f"  cena {indice}: {nome} sem resultado para '{consulta}'")
-        except requests.RequestException as erro:
-            print(f"  cena {indice}: {nome} falhou ({erro})")
+    for tentativa in (["video", "foto"] if tipo == "video" else [tipo]):
+        for nome, chave, buscar in bancos:
+            if not (consulta and chave):
+                continue
+            try:
+                achado = buscar(consulta, largura, altura, tentativa, base, usados)
+                if achado:
+                    return achado
+                print(f"  cena {indice}: {nome} sem {tentativa} para '{consulta}'")
+            except requests.RequestException as erro:
+                print(f"  cena {indice}: {nome} falhou ({erro})")
     return fundo_gerado(largura, altura, indice, base)
 
 

@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -25,7 +25,21 @@
     {
       "texto": "Um recém-nascido tem perto de 300 ossos. Um adulto tem 206.",
       "visual": "skeleton",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "comparacao",
+        "titulo": "Número de ossos",
+        "itens": [
+          {
+            "rotulo": "Bebê",
+            "valor": 300
+          },
+          {
+            "rotulo": "Adulto",
+            "valor": 206
+          }
+        ]
+      }
     },
     {
       "texto": "Os ossos não somem. Muitos começam como cartilagem, que é flexível, e com o tempo endurecem e se juntam.",

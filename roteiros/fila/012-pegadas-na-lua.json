@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Motivacional",
   "volume_musica": 0.1,
   "legenda": true,
@@ -40,7 +40,14 @@
     {
       "texto": "O cientista responsável pela câmera da sonda estimou que os rastros podem durar de 10 a 100 milhões de anos. Um passeio que virou monumento.",
       "visual": "full moon",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "de": 10,
+        "ate": 100,
+        "sufixo": " mi anos",
+        "rotulo": "quanto os rastros podem durar"
+      }
     }
   ],
   "metadados": {

@@ -6,7 +6,7 @@
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
   "velocidade": "+10%",
-  "tipo_visual": "foto",
+  "tipo_visual": "video",
   "musica": "tema:Emgracado",
   "volume_musica": 0.1,
   "legenda": true,
@@ -35,7 +35,18 @@
     {
       "texto": "Com as contrações, as partes duras e moles moldam os cantos. O cubo se forma lá dentro, na parte final do intestino, enquanto o cocô seca.",
       "visual": "cubes",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "icones",
+        "simbolo": "cubo",
+        "quantidade": 3,
+        "cor": [
+          139,
+          90,
+          50
+        ],
+        "rotulo": "cocô em cubo"
+      }
     },
     {
       "texto": "A pesquisa ganhou o Ig Nobel de Física em 2019, o prêmio para estudos que fazem rir e depois pensar.",

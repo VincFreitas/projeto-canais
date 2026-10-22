@@ -106,18 +106,24 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         print(f"cena {i}/{total}")
         audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
                                           obra / "audio" / f"{i:02d}")
-        visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
-                                        roteiro.get("tipo_visual", "foto"), usados)
-        visuais_usados.append(visual)
         pausa = float(c.get("pausa", PAUSA_PADRAO))
+        if c.get("animacao"):  # motion graphics com a duração exata da cena
+            from .animacoes import gerar
+            visual = gerar(c["animacao"], render.duracao(audio) + pausa, largura, altura,
+                           obra / "visuais" / f"{i:02d}-animacao.mp4")
+        else:
+            visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
+                                            roteiro.get("tipo_visual", "foto"), usados)
+        visuais_usados.append(visual)
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
         ass = None
         if usar_legenda:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
-            narracao.legenda_ass(palavras, largura, altura, render.duracao(audio) + pausa, ass)
+            narracao.legenda_ass(palavras, largura, altura, render.duracao(audio) + pausa, ass,
+                                 baixo=bool(c.get("animacao")))
         # a cena só é refeita se áudio, visual ou legenda mudarem
-        assinatura = {"audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
+        assinatura = {"render": render.VERSAO, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
                       "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
         marca = saida_cena.with_suffix(".json")
@@ -132,7 +138,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     video = config.SAIDA / f"{slug}-{formato}.mp4"
     print("juntando cenas e mixando áudio")
     faixa = _musica(roteiro, caminho.parent)
-    render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)))
+    render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
+                  selo=roteiro.get("selo", "@pulgadosaber"))
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)
