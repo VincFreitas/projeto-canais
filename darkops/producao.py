@@ -120,13 +120,11 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             from .sincronia import momento
             alvos = c["animacao"].get("em") or alvos_automaticos(c["animacao"])
             gatilhos, depois = [], 0.0
-            for alvo in alvos:
+            for alvo in alvos:  # cada elemento procura a sua palavra; sem achar, fica com o tempo padrão
                 t = momento(palavras, alvo, depois)
-                if t is None:
-                    break
                 gatilhos.append(t)
-                depois = t
-            gatilhos = gatilhos or None
+                depois = t if t is not None else depois
+            gatilhos = gatilhos if any(g is not None for g in gatilhos) else None
             card = (gerar(c["animacao"], dur_cena, largura, altura, obra / "visuais" / f"{i:02d}-animacao.mov",
                           gatilhos), *posicao(largura, altura))
             efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,

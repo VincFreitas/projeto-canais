@@ -25,21 +25,23 @@
     },
     {
       "texto": "A Grande Pirâmide de Gizé ficou pronta por volta de 2560 antes de Cristo.",
-      "visual": "great pyramid",
+      "visual": "pyramid giza",
       "pausa": 0.25,
       "destaque": "2560 a.C.",
-      "destaque_em": "2560"
+      "destaque_em": "2560",
+      "tipo_visual": "foto"
     },
     {
       "texto": "Cleópatra morreu em 30 antes de Cristo. Entre ela e a pirâmide, são uns 2.530 anos.",
-      "visual": "cleopatra",
+      "visual": "egypt temple",
       "pausa": 0.25,
       "animacao": {
         "tipo": "contador",
         "ate": 2530,
         "sufixo": " anos",
         "rotulo": "da pirâmide até Cleópatra"
-      }
+      },
+      "tipo_visual": "foto"
     },
     {
       "texto": "Já entre a morte dela e o pouso da Apollo 11, em 1969, são quase 2 mil anos.",

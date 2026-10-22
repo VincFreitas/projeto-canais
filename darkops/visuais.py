@@ -10,7 +10,7 @@ from . import config
 
 EXT_VIDEO = {".mp4", ".mov", ".webm", ".mkv"}
 EXT_IMAGEM = {".jpg", ".jpeg", ".png", ".webp"}
-VERSAO_BUSCA = 3  # mude para baixar de novo os visuais em cache (ex.: filtro de busca novo)
+VERSAO_BUSCA = 4  # mude para baixar de novo os visuais em cache (ex.: filtro de busca novo)
 FONTES = [Path("C:/Windows/Fonts/ariblk.ttf"), Path("C:/Windows/Fonts/arialbd.ttf")]
 
 
@@ -75,7 +75,8 @@ def _pixabay(caminho: str, params: dict) -> dict:
 
 
 BLOQUEADAS = {"cartoon", "3d", "animation", "animated", "illustration", "render", "christmas", "santa", "toy",
-              "fair", "carousel", "fairground", "logo", "text", "drawing", "clipart", "anime"}
+              "fair", "carousel", "fairground", "logo", "text", "drawing", "clipart", "anime", "digital",
+              "fantasy", "painting", "artwork", "art", "character", "avatar", "generated"}
 
 
 def _filtrar_pixabay(hits: list[dict], consulta: str, usados: set) -> list[dict]:
@@ -92,8 +93,10 @@ def _filtrar_pixabay(hits: list[dict], consulta: str, usados: set) -> list[dict]
             return next((i for i, t in enumerate(tags) if palavra in t), 99)
         if posicao(palavras[0]) > 2:
             continue
-        bons.append((sum(posicao(p) for p in palavras), h))
-    return [h for _, h in sorted(bons, key=lambda x: x[0])]
+        todas = all(posicao(p) < 99 for p in palavras)  # "great pyramid" não pode virar "great wall"
+        bons.append((not todas, sum(posicao(p) for p in palavras), h))
+    completos = [b for b in bons if not b[0]]
+    return [h for *_, h in sorted(completos or bons, key=lambda x: (x[0], x[1]))]
 
 
 def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set) -> Path | None:

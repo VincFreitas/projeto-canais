@@ -31,7 +31,7 @@ BRANCO = (248, 248, 252)
 CORES = [(255, 206, 40), (40, 200, 255), (255, 90, 125), (110, 230, 140)]
 FONTE_FORTE = "C:/Windows/Fonts/ariblk.ttf"
 FONTE = "C:/Windows/Fonts/arialbd.ttf"
-VERSAO = 5  # mude para refazer as animações em cache
+VERSAO = 6  # mude para refazer as animações em cache
 SAIDA_S = 0.3  # o card some nos últimos 0,3 s
 
 # card em proporção da tela (a legenda da cena fica embaixo, fora dele)
@@ -214,13 +214,14 @@ class _Brilhos:
             d.polygon([(x - r, yy), (x, yy - r * 0.25), (x + r, yy), (x, yy + r * 0.25)], fill=cor)
 
 
-def _entradas(n: int, gatilhos: list[float] | None, padrao: float, passo: float) -> list[float]:
+def _entradas(n: int, gatilhos: list[float | None] | None, padrao: float, passo: float) -> list[float]:
     """Segundo de entrada de cada um dos n elementos: o gatilho falado ou o espaçamento padrão."""
     if not gatilhos:
         return [padrao + passo * k for k in range(n)]
     saida: list[float] = []
     for k in range(n):
-        t = gatilhos[k] if k < len(gatilhos) else saida[-1] + passo
+        g = gatilhos[k] if k < len(gatilhos) else None
+        t = g if g is not None else (saida[-1] + passo if saida else padrao)
         if saida and t < saida[-1] + 0.15:  # mesma palavra para dois elementos: um logo depois do outro
             t = saida[-1] + 0.15
         saida.append(t)
@@ -247,8 +248,8 @@ class _Contador:
     def __init__(self, w, h, a, dur, gatilhos=None):
         self.w, self.h, self.a = w, h, a
         # o número termina de contar quando é falado
-        self.fim = gatilhos[0] + 0.15 if gatilhos else 0.25 + max(dur * 0.5, 0.7)
-        self.inicio = max(self.fim - 1.1, 0.15)
+        self.fim = gatilhos[0] + 0.15 if gatilhos and gatilhos[0] is not None else 0.25 + max(dur * 0.5, 0.7)
+        self.inicio = min(0.3, self.fim - 0.5)  # conta desde a entrada do card e termina na palavra
 
     def eventos(self) -> list[tuple[float, str]]:
         return [(self.fim, "ding")]
@@ -341,8 +342,11 @@ class _LinhaDoTempo:
         vmin, vmax = min(valores), max(valores)
         self.posicoes = [(v - vmin) / ((vmax - vmin) or 1) for v in valores]
         revelar = max(dur * 0.65, 0.9)
-        self.chegadas = [gatilhos[k] if gatilhos and k < len(gatilhos) else 0.2 + self.posicoes[k] * revelar
-                         for k in range(len(self.marcos))]
+        self.chegadas = [gatilhos[k] if gatilhos and k < len(gatilhos) and gatilhos[k] is not None
+                         else 0.2 + self.posicoes[k] * revelar for k in range(len(self.marcos))]
+        # um marco sincronizado não pode chegar antes de um anterior na linha
+        for k in range(1, len(self.chegadas)):
+            self.chegadas[k] = max(self.chegadas[k], self.chegadas[k - 1] + 0.25)
 
     def eventos(self) -> list[tuple[float, str]]:
         return [(t, "pop") for t in self.chegadas]
@@ -485,7 +489,7 @@ def gerar(animacao: dict, duracao: float, largura: int, altura: int, destino: Pa
     """Grava o card animado como .mov com transparência. Reaproveita se nada mudou."""
     destino = destino.with_suffix(".mov")
     assinatura = {"animacao": animacao, "duracao": round(duracao, 2), "tamanho": [largura, altura],
-                  "gatilhos": [round(g, 2) for g in gatilhos or []], "versao": VERSAO}
+                  "gatilhos": [None if g is None else round(g, 2) for g in gatilhos or []], "versao": VERSAO}
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
