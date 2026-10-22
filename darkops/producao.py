@@ -32,6 +32,10 @@ def _musica(roteiro: dict, pasta_roteiro: Path) -> Path | str | None:
     escolha = roteiro.get("musica")
     if not escolha or escolha in ("ambiente", "animada"):
         return escolha or None
+    if escolha.startswith("tema:"):  # faixa liberada em licencas.csv, da pasta do tema
+        from .musica import escolher
+        faixa, _ = escolher(escolha[5:].strip(), roteiro.get("slug", ""))
+        return faixa
     if escolha == "auto":
         opcoes = sorted(p for p in config.MUSICA.glob("*") if p.suffix.lower() in {".mp3", ".wav", ".m4a", ".ogg"})
         if not opcoes:
@@ -127,8 +131,11 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     config.SAIDA.mkdir(parents=True, exist_ok=True)
     video = config.SAIDA / f"{slug}-{formato}.mp4"
     print("juntando cenas e mixando áudio")
-    render.juntar(arquivos_cena, _musica(roteiro, caminho.parent), video,
-                  float(roteiro.get("volume_musica", 0.12)))
+    faixa = _musica(roteiro, caminho.parent)
+    render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)))
+    from .musica import _liberadas, salvar_credito
+    licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
+    salvar_credito(video, faixa or "sem música", licenca)
 
     if sum(duracoes) > LIMITE_VERTICAL_S and formato == "vertical":
         print(f"  aviso: vertical com {sum(duracoes):.0f}s passa de {LIMITE_VERTICAL_S}s; encurte para Shorts/Reels")

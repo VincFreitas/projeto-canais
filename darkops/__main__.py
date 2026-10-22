@@ -102,7 +102,7 @@ def cmd_publicar_youtube(a):
     if video_id:
         print(f"já publicado antes: https://youtu.be/{video_id}")
     else:
-        meta = metadados_youtube(roteiro)
+        meta = metadados_youtube(roteiro, video)
         print(f"publicando '{meta['titulo']}' ({a.privacidade})")
         video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
                                   a.privacidade, bool(roteiro.get("sintetico")))
@@ -126,7 +126,7 @@ def cmd_publicar_instagram(a):
         print(f"já publicado antes: mídia {midia_id}")
     else:
         print(f"publicando Reel de {video.name}")
-        midia_id = publicar_reel(video, legenda_instagram(roteiro))
+        midia_id = publicar_reel(video, legenda_instagram(roteiro, video))
         marcar(slug, "instagram", midia_id)
         print(f"pronto: mídia {midia_id}")
     _resultado({"slug": slug, "instagram": midia_id})

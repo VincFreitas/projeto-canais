@@ -16,3 +16,9 @@ token*.json
 # repo público: sem vídeos gerados nem transcrições de terceiros
 saida/*.mp4
 pesquisa/*/*/transcricoes/
+
+# músicas baixadas ficam só no PC (licenças variam); só a lista de liberadas vai para o Git
+assets/musica/**/*.mp3
+assets/musica/**/*.wav
+assets/musica/**/*.m4a
+assets/musica/**/*.ogg

@@ -49,9 +49,12 @@ def renovar_token() -> str:
     return dados["access_token"]
 
 
-def legenda_instagram(roteiro: dict) -> str:
+def legenda_instagram(roteiro: dict, video: Path | None = None) -> str:
+    from .musica import credito
     meta = (roteiro.get("metadados") or {}).get("instagram") or {}
     texto = meta.get("legenda") or roteiro.get("titulo", "")
+    if video and credito(video):
+        texto = f"{texto}\n\n{credito(video)}"
     hashtags = (meta.get("hashtags") or [])[:30]
     return (f"{texto}\n\n{' '.join(hashtags)}" if hashtags else texto)[:2200]
 

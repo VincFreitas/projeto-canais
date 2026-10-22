@@ -59,7 +59,7 @@ def canal() -> dict:
     return {"id": itens[0]["id"], "nome": itens[0]["snippet"]["title"]}
 
 
-def metadados_youtube(roteiro: dict) -> dict:
+def metadados_youtube(roteiro: dict, video: Path | None = None) -> dict:
     """Título, descrição e tags a partir do bloco 'metadados' do roteiro."""
     vertical = roteiro.get("formato", "longo") == "vertical"
     meta = (roteiro.get("metadados") or {}).get("youtube_shorts" if vertical else "youtube") or {}
@@ -73,6 +73,10 @@ def metadados_youtube(roteiro: dict) -> dict:
     fontes = roteiro.get("fontes") or []
     if fontes:
         descricao += "\n\nFontes:\n" + "\n".join(f"- {f}" for f in fontes)
+    if video:
+        from .musica import credito
+        if credito(video):
+            descricao += f"\n\n{credito(video)}"
     tags = meta.get("tags") or [h.lstrip("#") for h in hashtags]
     return {"titulo": titulo[:100], "descricao": descricao[:5000], "tags": tags}
 
