@@ -203,7 +203,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
             video += f";[vb][{indice_selo}:v]overlay=x=(W-w)/2:y=H*0.055[v]"
         else:
             video += ";[vb]null[v]"
-        mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p"]
+        mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "5M", "-bufsize", "10M", "-pix_fmt", "yuv420p"]
         filtro = f"{video};{audio}"
     else:
         mapa_video, codec, filtro = "0:v", ["-c:v", "copy"], audio
