@@ -30,3 +30,6 @@ perfis/*/controle/pulga-avatar.png
 
 # workflow do n8n gerado para a pasta deste PC (o modelo é que vai para o Git)
 n8n/workflow.json
+
+# modelos locais de IA (pesados)
+modelos/
