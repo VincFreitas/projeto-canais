@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set r = s.dados %}
+{% block titulo %}{{ r.manchete or r.titulo }}{% endblock %}
+{% block corpo %}
+<div class="dupla">
+  <div>
+    <div class="celular">
+      {% if s.video %}
+        <video src="{{ url_for('midia', nome=s.video) }}?v={{ agora.timestamp()|int }}" controls playsinline></video>
+      {% else %}
+        <div class="vazio">Ainda sem prévia.<br>Clique em “Gerar prévia”.</div>
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    <p class="suave" style="margin:0">{{ s.arquivo }}</p>
+    <h2 style="font-size:22px">{{ r.manchete or r.titulo }}</h2>
+    <p>
+      {% if s.aprovado %}<span class="selo aprovado">✓ aprovado para postar</span>
+      {% elif s.estado == 'pronta' %}<span class="selo pronta">prévia pronta</span>
+      {% elif s.estado == 'desatualizada' %}<span class="selo desatualizada">prévia desatualizada</span>
+      {% else %}<span class="selo sem-previa">sem prévia</span>{% endif %}
+    </p>
+    <div class="acoes">
+      <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao secundario">{{ 'Gerar prévia de novo' if s.video else 'Gerar prévia' }}</button></form>
+      <a class="botao secundario" href="{{ url_for('editar', pid=p.id, nome=s.arquivo) }}">Editar</a>
+      <form method="post" action="{{ url_for('aprovar', pid=p.id, nome=s.arquivo) }}"><button class="botao">{{ 'Retirar aprovação' if s.aprovado else 'Aprovar' }}</button></form>
+      {% if s.aprovado %}
+      <form method="post" action="{{ url_for('publicar_agora', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Publicar agora no YouTube e no Instagram?')"><button class="botao secundario">Publicar agora</button></form>
+      {% endif %}
+      <form method="post" action="{{ url_for('arquivar', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Tirar este vídeo da fila?')"><button class="botao perigo">Tirar da fila</button></form>
+    </div>
+    <h2 style="margin-top:22px">Cenas</h2>
+    {% for c in r.cenas %}
+      <div class="cena">
+        <b>{{ loop.index }}.</b> {{ c.texto }}
+        <p class="dica">imagem: {{ c.visual or '—' }}{% if c.tipo_visual %} ({{ c.tipo_visual }}){% endif %}
+          {% if c.destaque %} · destaque: <b>{{ c.destaque }}</b>{% endif %}</p>
+        {% if c.animacao %}<p class="anim">animação: {{ c.animacao.tipo }}{% if c.animacao.rotulo %} · {{ c.animacao.rotulo }}{% endif %}</p>{% endif %}
+      </div>
+    {% endfor %}
+    {% if r.fontes %}<h2>Fontes</h2><ul>{% for f in r.fontes %}<li><a href="{{ f }}" target="_blank">{{ f }}</a></li>{% endfor %}</ul>{% endif %}
+  </div>
+</div>
+{% endblock %}

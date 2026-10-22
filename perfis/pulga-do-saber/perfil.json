@@ -1,0 +1,18 @@
+{
+  "nome": "Pulga do Saber",
+  "arroba": "@pulgadosaber",
+  "nicho": "curiosidades",
+  "descricao": "Curiosidades rápidas que você não sabia, em menos de 1 minuto.",
+  "idioma": "pt",
+  "layout": "post",
+  "voz": "pt-BR-AntonioNeural",
+  "musica": "animada",
+  "horarios": [
+    "12:00",
+    "19:00"
+  ],
+  "ativo": true,
+  "youtube": true,
+  "instagram": true,
+  "privacidade_youtube": "public"
+}

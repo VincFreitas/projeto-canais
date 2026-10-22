@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block titulo %}Histórico · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<h2>Publicados</h2>
+{% if linhas %}
+<table>
+  <tr><th>Data</th><th>Plataforma</th><th>Vídeo</th><th>Link</th></tr>
+  {% for l in linhas %}<tr><td>{{ l.data_publicacao }}</td><td>{{ l.plataforma }}</td><td>{{ l.video }}</td><td><a href="{{ l.url }}" target="_blank">abrir ↗</a></td></tr>{% endfor %}
+</table>
+{% else %}<p class="cartao suave">Nada publicado ainda.</p>{% endif %}
+<h2 style="margin-top:24px">Falhas da automação</h2>
+{% if falhas %}<pre class="log">{{ '\n'.join(falhas) }}</pre>{% else %}<p class="cartao suave">Nenhuma falha registrada.</p>{% endif %}
+{% endblock %}

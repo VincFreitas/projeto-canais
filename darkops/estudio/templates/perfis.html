@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Perfis{% endblock %}
+{% block corpo %}
+<h1 style="margin-top:0">Perfis</h1>
+<p class="suave">Cada perfil é um canal: contas do YouTube e do Instagram próprias, estilo, fila e histórico separados.
+  As chaves de voz e de imagens são as mesmas para todos.</p>
+<div class="grade">
+  {% for item in perfis %}
+  <a class="cartao" href="{{ url_for('painel', pid=item.id) }}" style="text-decoration:none">
+    <div class="quem"><img src="{{ url_for('avatar', pid=item.id) }}" style="width:48px;height:48px;border-radius:50%;background:#ffc400;object-fit:cover;image-rendering:pixelated">
+      <div><b>{{ item.dados.nome }}</b><br><span class="suave">{{ item.dados.arroba }}</span></div></div>
+    <p class="suave">{{ 'Postando' if item.dados.ativo else 'Pausado' }} · {{ item.dados.nicho or 'sem nicho' }}</p>
+  </a>
+  {% endfor %}
+  <form method="post" action="{{ url_for('perfil_novo') }}" class="cartao">
+    <h2>Novo perfil</h2>
+    <label>Nome do canal</label><input type="text" name="nome" placeholder="Ex.: Arquivo do Terror">
+    <label>@</label><input type="text" name="arroba" placeholder="@arquivodoterror">
+    <label>Nicho</label><input type="text" name="nicho" placeholder="terror, curiosidades, história...">
+    <label>Descrição</label><input type="text" name="descricao">
+    <p><button class="botao">Criar perfil</button></p>
+  </form>
+</div>
+{% endblock %}

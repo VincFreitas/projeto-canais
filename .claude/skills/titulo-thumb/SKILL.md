@@ -5,7 +5,7 @@ description: Gera e testa opções de título, legenda e texto de thumbnail para
 
 # Título e thumbnail
 
-Argumento: o roteiro (`roteiros/fila/NNN-*.json`) ou o tema. Argumentos recebidos: $ARGUMENTS
+Argumento: o roteiro (`perfis/<perfil>/fila/NNN-*.json`) ou o tema. Argumentos recebidos: $ARGUMENTS
 
 1. Leia o roteiro inteiro e ache **a promessa que o vídeo realmente entrega** (o fato mais estranho que aparece na narração).
 2. Escreva **8 títulos**, cada um com uma fórmula diferente de [docs/ganchos.md](../../../docs/ganchos.md):

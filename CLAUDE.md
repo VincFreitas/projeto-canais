@@ -7,10 +7,11 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 1. `/pesquisar-nicho <nicho>`: demanda + outliers + transcrições, depois a análise e o banco de ideias em `pesquisa/<nicho>/<data>/analise.md`
 2. `/escrever-roteiro <ideia>`: pesquisa os fatos e escreve `roteiros/<slug>-longo.json` + verticais derivados
 3. `/produzir-video <roteiro>`: gera o vídeo, a thumbnail e os metadados em `saida/`
-4. `/revisar-desempenho`: lê `controle/testes.csv` e decide entre manter, ajustar, dobrar ou abandonar
+4. `/revisar-desempenho`: lê `perfis/<perfil>/controle/testes.csv` e decide entre manter, ajustar, dobrar ou abandonar
 5. `/titulo-thumb <roteiro>`: 8 títulos com notas, thumbnail e legenda do Instagram (grava só com aprovação)
 6. `/planejar-semana`: agenda das 14 postagens (12h e 19h), equilíbrio de temas e ganchos, roteiros que faltam
 7. `/responder-comentarios`: lê comentários e rascunha respostas para o usuário aprovar (nunca publica)
+- **Estúdio** (`python -m darkops estudio`): perfis, conexões (YouTube por OAuth, token do Instagram), chaves, fila com prévia e aprovação, novo vídeo e histórico. Comandos da CLI aceitam `--perfil <id>` (padrão `pulga-do-saber`).
 - Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: workflow do n8n em `n8n/pulga-do-saber.json`.
 
 ## Comandos (sempre pelo PowerShell, na raiz do projeto)
@@ -32,11 +33,12 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - **Promessa cumprida**: título e thumbnail precisam ser entregues no vídeo; clickbait sem entrega derruba a retenção e pode ser tratado como conteúdo enganoso.
 - **Licenças**: só Pexels ou Pixabay (licenças livres), arquivos próprios ou gerados, e música livre (YouTube Audio Library, CC0, CC BY com crédito, ou as trilhas `ambiente`/`animada`). Música só entra no vídeo se estiver em `assets/musica/licencas.csv`; nunca use faixas comerciais (artistas, trilhas de filme, slowed + reverb).
 - **Divulgação de IA**: imagem ou vídeo realista gerado por IA exige marcar "conteúdo alterado ou sintético" no YouTube Studio.
-- **Publicação**: upload automático é permitido só nos canais oficiais do projeto (Pulga do Saber: YouTube e Instagram @pulgadosaber), pelas APIs oficiais (YouTube Data API, Instagram Graph API), com tokens em segredos e nunca no código. A criação de contas, os logins e as autorizações OAuth continuam com o usuário. Não use contas compradas ("aquecidas").
+- **Publicação**: upload automático é permitido só nos canais do próprio usuário cadastrados como perfis no Estúdio (hoje: Pulga do Saber, YouTube e Instagram @pulgadosaber), só de vídeos que ele aprovou, pelas APIs oficiais (YouTube Data API, Instagram Graph API), com tokens em segredos e nunca no código. A criação de contas, os logins e as autorizações OAuth continuam com o usuário. Não use contas compradas ("aquecidas").
 
 ## Estrutura
 - `darkops/`: código (pesquisa.py, narracao.py, visuais.py, render.py, producao.py, __main__.py)
 - `pesquisa/`, `roteiros/`, `saida/`: entradas e saídas versionáveis
 - `obra/`: intermediários de produção (cache por cena; pode apagar)
 - `assets/musica/`: músicas livres; `assets/vozes/`: modelos do Piper
-- `controle/testes.csv`: métricas dos vídeos publicados
+- `perfis/<id>/`: um canal por perfil: `perfil.json` (nome, @, estilo, postagem ligada), `credenciais/` (tokens, fora do Git), `fila/` (só sai o que tem `"aprovado": true`), `publicados/` e `controle/` (estado.json, testes.csv, falhas.log)
+- `darkops/estudio/`: o Estúdio, painel local em Flask (`.\.venv\Scripts\python.exe -m darkops estudio`, em http://127.0.0.1:8765)

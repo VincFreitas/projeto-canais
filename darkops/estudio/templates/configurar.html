@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titulo %}Perfil · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<form method="post" enctype="multipart/form-data" class="cartao">
+  <div class="grade">
+    <div><label>Nome do canal</label><input type="text" name="nome" value="{{ d.nome }}"></div>
+    <div><label>@ (aparece no vídeo)</label><input type="text" name="arroba" value="{{ d.arroba }}"></div>
+    <div><label>Nicho</label><input type="text" name="nicho" value="{{ d.nicho }}"></div>
+  </div>
+  <label>Descrição</label>
+  <textarea name="descricao">{{ d.descricao }}</textarea>
+  <div class="grade">
+    <div><label>Voz</label><select name="voz">{% for v in vozes %}<option {{ 'selected' if v == d.voz }}>{{ v }}</option>{% endfor %}</select></div>
+    <div><label>Layout</label><select name="layout">
+      <option value="post" {{ 'selected' if d.layout == 'post' }}>Post (fundo branco + manchete)</option>
+      <option value="cheio" {{ 'selected' if d.layout != 'post' }}>Tela cheia</option></select></div>
+    <div><label>Música</label><select name="musica">
+      <option value="animada" {{ 'selected' if d.musica == 'animada' }}>Animada (gerada)</option>
+      <option value="ambiente" {{ 'selected' if d.musica == 'ambiente' }}>Suspense (gerada)</option></select></div>
+    <div><label>Privacidade no YouTube</label><select name="privacidade_youtube">
+      {% for v, t in [('public','Público'),('unlisted','Não listado'),('private','Privado')] %}<option value="{{ v }}" {{ 'selected' if d.privacidade_youtube == v }}>{{ t }}</option>{% endfor %}</select></div>
+    <div><label>Horários (vírgula)</label><input type="text" name="horarios" value="{{ ', '.join(d.horarios) }}"></div>
+  </div>
+  <p class="dica">Os horários de postagem que valem são os do workflow do n8n (12h e 19h); este campo mostra a agenda no Início.</p>
+  <label>Postar em</label>
+  <label style="font-weight:400"><input type="checkbox" name="youtube" {{ 'checked' if d.youtube }}> YouTube Shorts</label>
+  <label style="font-weight:400"><input type="checkbox" name="instagram" {{ 'checked' if d.instagram }}> Instagram Reels</label>
+  <label>Foto do perfil (aparece no topo dos vídeos)</label>
+  <div class="acoes"><img src="{{ url_for('avatar', pid=p.id) }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#ffc400;image-rendering:pixelated"><input type="file" name="avatar" accept="image/*"></div>
+  <p style="margin-top:16px"><button class="botao">Salvar perfil</button></p>
+</form>
+{% endblock %}

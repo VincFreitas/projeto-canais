@@ -1,13 +1,13 @@
 ---
 name: revisar-desempenho
-description: Analisa as métricas dos vídeos publicados em controle/testes.csv, diagnostica flops e decide entre manter, ajustar, dobrar ou abandonar cada linha de conteúdo. Use quando o usuário trouxer números do YouTube Studio, TikTok ou Instagram.
+description: Analisa as métricas dos vídeos publicados em perfis/<perfil>/controle/testes.csv, diagnostica flops e decide entre manter, ajustar, dobrar ou abandonar cada linha de conteúdo. Use quando o usuário trouxer números do YouTube Studio, TikTok ou Instagram.
 ---
 
 # Revisar desempenho
 
 Argumentos recebidos: $ARGUMENTS
 
-1. Se o usuário colou números no chat, acrescente as linhas em `controle/testes.csv` (colunas no cabeçalho do arquivo; datas no formato AAAA-MM-DD, separador `;`).
+1. Se o usuário colou números no chat, acrescente as linhas em `perfis/<perfil>/controle/testes.csv` (colunas no cabeçalho do arquivo; datas no formato AAAA-MM-DD, separador `;`).
 2. Para cada vídeo com 48 h ou mais, compare com os outros do mesmo canal e com o outlier de origem.
 3. Diagnóstico de flop, na ordem:
    1. **Demanda**: o tema tinha busca e interesse (veja o `demanda.md` e os outliers do nicho)?

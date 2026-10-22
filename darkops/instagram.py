@@ -14,16 +14,17 @@ from . import config
 VERSAO = "v23.0"
 GRAPH = f"https://graph.instagram.com/{VERSAO}"
 RUPLOAD = f"https://rupload.facebook.com/ig-api-upload/{VERSAO}"
-TOKEN_ARQUIVO = config.RAIZ / "credenciais" / "token_instagram.txt"
 
 
 def token() -> str:
-    """Token da variável INSTAGRAM_TOKEN (GitHub Actions) ou do arquivo local."""
+    """Token da variável INSTAGRAM_TOKEN ou do arquivo do perfil atual."""
+    from .perfis import carregar
+    arquivo = carregar().token_instagram
     valor = os.getenv("INSTAGRAM_TOKEN", "").strip()
-    if not valor and TOKEN_ARQUIVO.exists():
-        valor = TOKEN_ARQUIVO.read_text(encoding="utf-8-sig").strip()
+    if not valor and arquivo.exists():
+        valor = arquivo.read_text(encoding="utf-8-sig").strip()
     if not valor:
-        raise SystemExit(f"sem token do Instagram: salve em {TOKEN_ARQUIVO} ou defina INSTAGRAM_TOKEN")
+        raise SystemExit("sem token do Instagram neste perfil: cole no Estúdio (Conexões)")
     return valor
 
 

@@ -208,7 +208,7 @@ def _mascote(largura: int, destino: Path) -> Path:
     return destino
 
 
-def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path) -> Path:
+def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: Path | None = None) -> Path:
     """Fundo branco 1080x1920 com avatar (a pulga num círculo amarelo), nome, @ e a manchete."""
     from PIL import Image, ImageDraw, ImageFont
 
@@ -227,8 +227,15 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path) -> Path:
     lado, ax, ay = 180, 100, 215
     d.ellipse([ax - 8, ay - 8, ax + lado + 8, ay + lado + 8], fill=(255, 196, 0))
     d.ellipse([ax, ay, ax + lado, ay + lado], fill=(255, 222, 70), outline=(230, 150, 0), width=6)
-    pulga = Image.open(_mascote(int(lado / 0.12 * 0.62), destino.with_name("pulga-avatar.png")))
-    img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 6), pulga)
+    if avatar:  # foto do perfil recortada em círculo
+        from PIL import ImageOps
+        foto = ImageOps.fit(Image.open(avatar).convert("RGB"), (lado, lado))
+        mascara = Image.new("L", (lado, lado), 0)
+        ImageDraw.Draw(mascara).ellipse([0, 0, lado - 1, lado - 1], fill=255)
+        img.paste(foto, (ax, ay), mascara)
+    else:
+        pulga = Image.open(_mascote(int(lado / 0.12 * 0.62), destino.with_name("pulga-avatar.png")))
+        img.paste(pulga, (ax + (lado - pulga.width) // 2, ay + (lado - pulga.height) // 2 + 6), pulga)
     # nome e @
     tx = ax + lado + 36
     d.text((tx, ay + 32), nome, font=fonte("segoeuib.ttf", 64), fill=(17, 17, 17))
@@ -309,7 +316,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     if post:  # moldura branca de post; a janela do vídeo fica no meio, com a barra de progresso embaixo
         from .config import TOPO_JANELA_POST
         entradas += ["-loop", "1", "-i", str(_moldura_post(post["manchete"], post["nome"], post["arroba"],
-                                                          pasta / "moldura.png"))]
+                                                          pasta / "moldura.png", post.get("avatar")))]
         indice = len([e for e in entradas if e == "-i"]) - 1
         barra = 8
         video = (f"[{indice}:v]format=yuv420p,setsar=1[fundo];"

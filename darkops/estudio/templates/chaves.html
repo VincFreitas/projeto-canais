@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Chaves de serviços{% endblock %}
+{% block corpo %}
+<h1 style="margin-top:0">Chaves de serviços</h1>
+<p class="suave">Valem para todos os perfis e ficam só no arquivo <code>.env</code> deste PC (fora do Git). Por segurança, uma chave salva nunca é mostrada de novo: cole outra para trocar.</p>
+<form method="post" class="cartao">
+  {% for chave, rotulo, segredo, existe, valor in chaves %}
+    <label>{{ rotulo }} {% if existe %}<span class="ok-x sim">✓ configurada</span>{% else %}<span class="ok-x nao">✗ falta</span>{% endif %}</label>
+    <input type="{{ 'password' if segredo else 'text' }}" name="{{ chave }}" value="{{ valor }}"
+           placeholder="{{ 'deixe vazio para manter' if existe else 'cole aqui' }}" autocomplete="off">
+  {% endfor %}
+  <p style="margin-top:16px"><button class="botao">Salvar chaves</button></p>
+</form>
+{% endblock %}

@@ -1,5 +1,5 @@
 {
-  "name": "Pulga do Saber - postagem automática",
+  "name": "Canais dark - postagem automática (todos os perfis)",
   "nodes": [
     {
       "parameters": {
@@ -34,28 +34,29 @@
     },
     {
       "parameters": {
-        "command": "cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-proximo"
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-proximo"
       },
       "id": "a1f0c001-0000-4000-8000-000000000002",
       "name": "Próximo da fila",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        220,
+        660,
         300
       ],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "// Lê a última linha RESULTADO {...} impressa pelo darkops\nconst linhas = String($json.stdout || '').split(/\\r?\\n/).reverse();\nconst linha = linhas.find(l => l.startsWith('RESULTADO '));\nif (!linha) throw new Error('saída sem RESULTADO: ' + String($json.stdout).slice(-300));\nreturn [{ json: JSON.parse(linha.slice('RESULTADO '.length)) }];"
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Lê a última linha RESULTADO {...} impressa pelo darkops\nconst linhas = String($json.stdout || '').split(/\\r?\\n/).reverse();\nconst linha = linhas.find(l => l.startsWith('RESULTADO '));\nif (!linha) throw new Error('saída sem RESULTADO: ' + String($json.stdout).slice(-300));\nreturn { json: JSON.parse(linha.slice(10)) };"
       },
       "id": "a1f0c001-0000-4000-8000-000000000003",
       "name": "Ler fila",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        440,
+        880,
         280
       ]
     },
@@ -89,7 +90,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        660,
+        1100,
         280
       ]
     },
@@ -100,90 +101,117 @@
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        880,
+        1320,
         140
       ]
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-produzir \"{{ $('Ler fila').first().json.roteiro }}\""
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-produzir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000006",
       "name": "Produzir vídeo",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        880,
+        1320,
         320
       ],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops publicar-youtube \"{{ $('Ler fila').first().json.roteiro }}\" --privacidade public"
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-youtube \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000007",
       "name": "Publicar no YouTube",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1100,
+        1540,
         300
       ],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops publicar-instagram \"{{ $('Ler fila').first().json.roteiro }}\""
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-instagram \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000008",
       "name": "Publicar no Instagram",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1320,
+        1760,
         280
       ],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops fila-concluir \"{{ $('Ler fila').first().json.roteiro }}\""
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-concluir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000009",
       "name": "Registrar publicação",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1540,
+        1980,
         260
       ],
       "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
+        "command": "=cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
       },
       "id": "a1f0c001-0000-4000-8000-00000000000a",
       "name": "Registrar falha",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        1320,
+        1760,
         560
       ]
     },
     {
       "parameters": {
-        "errorMessage": "Falha registrada em controle/falhas.log (canais-dark)"
+        "errorMessage": "Falha registrada em perfis/<perfil>/controle/falhas.log"
       },
       "id": "a1f0c001-0000-4000-8000-00000000000b",
       "name": "Marcar execução com erro",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        1540,
+        1980,
         560
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d C:\\Users\\Vinic\\canais-dark && .venv\\Scripts\\python.exe -m darkops perfis-ativos"
+      },
+      "id": "a1f0c001-0000-4000-8000-00000000000d",
+      "name": "Perfis ativos",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lê a última linha RESULTADO {...} impressa pelo darkops\nconst linhas = String($json.stdout || '').split(/\\r?\\n/).reverse();\nconst linha = linhas.find(l => l.startsWith('RESULTADO '));\nif (!linha) throw new Error('saída sem RESULTADO: ' + String($json.stdout).slice(-300));\nconst perfis = JSON.parse(linha.slice(10)).perfis;\nreturn perfis.map(perfil => ({ json: { perfil } }));"
+      },
+      "id": "a1f0c001-0000-4000-8000-00000000000e",
+      "name": "Separar perfis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
       ]
     }
   ],
@@ -192,7 +220,7 @@
       "main": [
         [
           {
-            "node": "Próximo da fila",
+            "node": "Perfis ativos",
             "type": "main",
             "index": 0
           }
@@ -324,6 +352,35 @@
       ]
     },
     "Executar agora (teste)": {
+      "main": [
+        [
+          {
+            "node": "Perfis ativos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perfis ativos": {
+      "main": [
+        [
+          {
+            "node": "Separar perfis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar execução com erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar perfis": {
       "main": [
         [
           {

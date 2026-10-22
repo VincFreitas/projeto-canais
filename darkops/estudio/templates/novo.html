@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}Novo vídeo · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<form method="post" class="cartao">
+  <p class="suave" style="margin-top:0">O vídeo entra no fim da fila, sem aprovação. Use só fatos que você conferiu, e coloque os links nas fontes.
+    Para o Claude escrever o roteiro com pesquisa, use <code>/escrever-roteiro</code> no Claude Code.</p>
+  <label>Manchete (aparece em cima do vídeo)</label>
+  <input type="text" name="manchete" value="{{ f.manchete or '' }}" placeholder="Ex.: O polvo tem três corações e o sangue dele é azul">
+  <label>Título do YouTube (opcional)</label>
+  <input type="text" name="titulo" value="{{ f.titulo or '' }}">
+  <label>Cenas (uma por linha: <code>narração | busca de imagem em inglês | palavra-herói</code>)</label>
+  <textarea name="cenas" style="min-height:200px" placeholder="Tá com a pulga atrás da orelha? Então escuta essa: o polvo tem três corações. | octopus | 3 corações
+Dois deles bombeiam o sangue pelas brânquias. | octopus tentacles">{{ f.cenas or '' }}</textarea>
+  <p class="dica">De 4 a 6 cenas, 1 ou 2 frases cada, dá um Short de 30 a 45 segundos.</p>
+  <label>Fontes (uma por linha)</label>
+  <textarea name="fontes">{{ f.fontes or '' }}</textarea>
+  <p style="margin-top:16px"><button class="botao">Criar na fila</button></p>
+</form>
+{% endblock %}

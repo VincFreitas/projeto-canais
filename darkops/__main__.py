@@ -98,11 +98,19 @@ def cmd_publicar_youtube(a):
     from .fila import ja_publicado, marcar
     from .publicar import enviar_youtube, metadados_youtube
     _, roteiro, slug, video = _roteiro_e_video(a.roteiro)
+    from .perfis import carregar
+    if not carregar().dados.get("youtube", True):
+        print("youtube desligado neste perfil: pulando")
+        _resultado({"slug": slug, "youtube": None, "pulado": True})
+        return
     video_id = ja_publicado(slug, "youtube")
     if video_id:
         print(f"já publicado antes: https://youtu.be/{video_id}")
     else:
         meta = metadados_youtube(roteiro, video)
+        if not a.privacidade:
+            from .perfis import carregar
+            a.privacidade = carregar().dados.get("privacidade_youtube", "private")
         print(f"publicando '{meta['titulo']}' ({a.privacidade})")
         video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
                                   a.privacidade, bool(roteiro.get("sintetico")))
@@ -121,6 +129,11 @@ def cmd_publicar_instagram(a):
     from .fila import ja_publicado, marcar
     from .instagram import legenda_instagram, publicar_reel
     _, roteiro, slug, video = _roteiro_e_video(a.roteiro, "vertical")
+    from .perfis import carregar
+    if not carregar().dados.get("instagram", True):
+        print("instagram desligado neste perfil: pulando")
+        _resultado({"slug": slug, "instagram": None, "pulado": True})
+        return
     midia_id = ja_publicado(slug, "instagram")
     if midia_id:
         print(f"já publicado antes: mídia {midia_id}")
@@ -134,11 +147,29 @@ def cmd_publicar_instagram(a):
 
 def cmd_fila_proximo(_):
     from .fila import proximo, restantes
+    from .perfis import atual
     caminho = proximo()
     if not caminho:
-        _resultado({"vazia": True, "restantes": 0})
+        _resultado({"perfil": atual(), "vazia": True, "restantes": 0})
         return
-    _resultado({"vazia": False, "roteiro": str(caminho), "restantes": restantes()})
+    _resultado({"perfil": atual(), "vazia": False, "roteiro": str(caminho), "restantes": restantes()})
+
+
+def cmd_perfis_ativos(_):
+    from .perfis import listar
+    _resultado({"perfis": [p.id for p in listar() if p.dados.get("ativo")]})
+
+
+def cmd_perfis(_):
+    from .perfis import listar
+    for p in listar():
+        d = p.dados
+        print(f"{p.id:<24} {d['nome']:<24} {d['arroba']:<20} {'ativo' if d.get('ativo') else 'pausado'}")
+
+
+def cmd_estudio(a):
+    from .estudio import rodar
+    rodar(porta=a.porta, abrir=not a.sem_navegador)
 
 
 def cmd_fila_produzir(a):
@@ -168,7 +199,19 @@ def cmd_nichos(_):
 
 def main():
     p = argparse.ArgumentParser(prog="dark", description="Pesquisa e produção de canais dark")
+    p.add_argument("--perfil", help="id do perfil (pasta em perfis/); padrão: pulga-do-saber")
     sub = p.add_subparsers(dest="comando", required=True)
+
+    s = sub.add_parser("perfis", help="lista os perfis")
+    s.set_defaults(fn=cmd_perfis)
+
+    s = sub.add_parser("perfis-ativos", help="perfis com postagem ligada (saída JSON para o n8n)")
+    s.set_defaults(fn=cmd_perfis_ativos)
+
+    s = sub.add_parser("estudio", help="abre o Estúdio (painel local no navegador)")
+    s.add_argument("--porta", type=int, default=8765)
+    s.add_argument("--sem-navegador", action="store_true")
+    s.set_defaults(fn=cmd_estudio)
 
     s = sub.add_parser("nichos", help="lista os nichos de config/nichos.json")
     s.set_defaults(fn=cmd_nichos)
@@ -211,7 +254,8 @@ def main():
 
     s = sub.add_parser("publicar-youtube", help="envia o vídeo produzido de um roteiro ao YouTube")
     s.add_argument("roteiro")
-    s.add_argument("--privacidade", default="private", choices=["private", "unlisted", "public"])
+    s.add_argument("--privacidade", default=None, choices=["private", "unlisted", "public"],
+                   help="padrão: o configurado no perfil")
     s.set_defaults(fn=cmd_publicar_youtube)
 
     s = sub.add_parser("conta-instagram", help="confere o token do Instagram")
@@ -221,14 +265,14 @@ def main():
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_publicar_instagram)
 
-    s = sub.add_parser("fila-proximo", help="próximo roteiro de roteiros/fila (saída JSON para o n8n)")
+    s = sub.add_parser("fila-proximo", help="próximo roteiro aprovado da fila do perfil (saída JSON para o n8n)")
     s.set_defaults(fn=cmd_fila_proximo)
 
     s = sub.add_parser("fila-produzir", help="produz um roteiro e devolve o vídeo em JSON")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_fila_produzir)
 
-    s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota em controle/testes.csv")
+    s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota no testes.csv do perfil")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_fila_concluir)
 
@@ -238,6 +282,9 @@ def main():
     s.set_defaults(fn=cmd_registrar_falha)
 
     a = p.parse_args()
+    if a.perfil:
+        import os
+        os.environ["DARKOPS_PERFIL"] = a.perfil
     a.fn(a)
 
 

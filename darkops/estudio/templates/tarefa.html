@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Tarefa{% endblock %}
+{% block corpo %}
+<div class="cartao">
+  <h2 id="titulo">{{ job.titulo if job else 'Tarefa' }}</h2>
+  <p id="estado" class="suave">Rodando…</p>
+  <pre class="log" id="log"></pre>
+  <p><a class="botao secundario" id="voltar" href="{{ voltar }}">Voltar</a></p>
+</div>
+<script>
+const estado = document.getElementById("estado"), log = document.getElementById("log");
+const nomes = {rodando: "Rodando… pode deixar a página aberta.", concluido: "✓ Concluído.", falhou: "✗ Falhou: veja o log.", desconhecido: "Tarefa não encontrada (o Estúdio foi reiniciado?)."};
+async function atualizar() {
+  const r = await fetch("{{ url_for('tarefa_json', job=job_id) }}");
+  const j = await r.json();
+  estado.textContent = nomes[j.estado] + (j.segundos ? ` (${j.segundos}s)` : "");
+  log.textContent = j.log; log.scrollTop = log.scrollHeight;
+  if (j.estado === "rodando") setTimeout(atualizar, 1500);
+  else if (j.estado === "concluido") document.getElementById("voltar").classList.remove("secundario");
+}
+atualizar();
+</script>
+{% endblock %}

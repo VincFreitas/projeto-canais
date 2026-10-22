@@ -85,7 +85,13 @@ def _metadados(roteiro: dict, duracoes: list[float], destino: Path) -> None:
 
 def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     caminho = caminho.resolve()
-    roteiro = carregar(caminho)
+    from .perfis import carregar as carregar_perfil
+    perfil = carregar_perfil()
+    # o perfil dá o padrão do canal (nome, @, layout, voz, música); o roteiro pode sobrescrever
+    padrao = {"layout": perfil.dados.get("layout"), "voz": perfil.dados.get("voz"),
+              "musica": perfil.dados.get("musica"), "selo": perfil.dados.get("arroba"),
+              "canal_nome": perfil.dados.get("nome")}
+    roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     formato = roteiro.get("formato", "longo")
     largura, altura = config.FORMATOS[formato]
     post = roteiro.get("layout") == "post"
@@ -168,11 +174,12 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav") \
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
-                  selo=roteiro.get("selo", "@pulgadosaber"), efeitos=sfx,
+                  selo=roteiro.get("selo"), efeitos=sfx,
                   mascote=roteiro.get("mascote", True),
                   post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),
-                        "nome": roteiro.get("canal_nome", "Pulga do Saber"),
-                        "arroba": roteiro.get("selo", "@pulgadosaber")} if post else None)
+                        "nome": roteiro.get("canal_nome", perfil.dados.get("nome")),
+                        "arroba": roteiro.get("selo", perfil.dados.get("arroba")),
+                        "avatar": perfil.avatar} if post else None)
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

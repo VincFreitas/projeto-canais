@@ -7,7 +7,7 @@ description: Monta o plano da semana do canal (o que postar, em que ordem e quan
 
 Argumentos recebidos: $ARGUMENTS
 
-1. Leia `roteiros/fila/*.json` (ordem do nome = ordem de postagem) e `controle/testes.csv` (o que já saiu e como foi).
+1. Leia `perfis/<perfil>/fila/*.json` (ordem do nome = ordem de postagem) e `perfis/<perfil>/controle/testes.csv` (o que já saiu e como foi).
 2. Horários: o workflow do n8n posta às **12h e às 19h** (horário de Brasília), 2 vídeos por dia = 14 por semana.
 3. Monte a tabela da semana (dia, horário, número do roteiro, tema, fórmula do gancho) seguindo estas regras:
    - não repetir o mesmo tema (corpo, animais, espaço, história, cotidiano) em dois posts seguidos;

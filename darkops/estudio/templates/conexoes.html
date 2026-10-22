@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block titulo %}Conexões · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<div class="grade">
+  <section class="cartao">
+    <h2>YouTube</h2>
+    {% if tem_youtube %}
+      <p class="ok-x {{ 'sim' if conexoes.youtube and conexoes.youtube.ok else '' }}">
+        {{ '✓ ' ~ conexoes.youtube.texto if conexoes.youtube and conexoes.youtube.ok else 'Conta conectada' }}</p>
+    {% else %}<p class="ok-x nao">✗ Não conectado</p>{% endif %}
+    {% if tem_client %}
+      <ol class="passos">
+        <li>Clique no botão: o login do Google abre no navegador.</li>
+        <li>Escolha a conta do Google <b>deste canal</b>.</li>
+        <li>Em “app não verificado”, vá em Avançado e depois em Acessar, e permita.</li>
+      </ol>
+      <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao">{{ 'Reconectar' if tem_youtube else 'Conectar YouTube' }}</button></form>
+    {% else %}
+      <p>Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Ele é criado uma vez no Google Cloud e vale para todos os perfis.</p>
+    {% endif %}
+    <p class="dica">Sem a auditoria do Google, os vídeos enviados pela API ficam privados.</p>
+  </section>
+  <section class="cartao">
+    <h2>Instagram</h2>
+    {% if tem_instagram %}
+      <p class="ok-x {{ 'sim' if conexoes.instagram and conexoes.instagram.ok else '' }}">
+        {{ conexoes.instagram.texto if conexoes.instagram else 'Token salvo' }}</p>
+    {% else %}<p class="ok-x nao">✗ Não conectado</p>{% endif %}
+    <ol class="passos">
+      <li>A conta precisa ser <b>Profissional</b> (Criador ou Empresa).</li>
+      <li>No painel do app da Meta: Instagram, Configuração da API, <b>Adicionar conta</b> e <b>Gerar token</b>.</li>
+      <li>Cole o token abaixo. Ele dura 60 dias.</li>
+    </ol>
+    <form method="post" action="{{ url_for('conectar_instagram', pid=p.id) }}">
+      <input type="password" name="token" placeholder="{{ 'token salvo (cole outro para trocar)' if tem_instagram else 'cole o token aqui' }}" autocomplete="off">
+      <p><button class="botao">Salvar e testar</button></p>
+    </form>
+  </section>
+  <section class="cartao largo">
+    <div class="acoes" style="justify-content: space-between">
+      <span class="suave">{{ 'Último teste: ' ~ conexoes.testado_em if conexoes.testado_em else 'Ainda não testado.' }}</span>
+      <form method="post" action="{{ url_for('testar_conexoes', pid=p.id) }}"><button class="botao secundario">Testar conexões</button></form>
+    </div>
+  </section>
+</div>
+{% endblock %}

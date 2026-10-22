@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block titulo %}Fila · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<div class="acoes" style="justify-content: space-between; margin-bottom: 14px">
+  <p class="suave" style="margin:0">A automação posta, em ordem, só os vídeos <b>aprovados</b>. Gere a prévia, assista e aprove.</p>
+  <a class="botao" href="{{ url_for('novo', pid=p.id) }}">+ Novo vídeo</a>
+</div>
+<div class="fila">
+  {% for i in itens %}
+  <div class="item">
+    <div class="ordem">{{ i.arquivo[:3] }}</div>
+    <div>
+      <h3><a href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">{{ i.dados.manchete or i.dados.titulo }}</a></h3>
+      {% if i.aprovado %}<span class="selo aprovado">✓ aprovado</span>
+      {% elif i.estado == 'pronta' %}<span class="selo pronta">prévia pronta: assista e aprove</span>
+      {% elif i.estado == 'desatualizada' %}<span class="selo desatualizada">roteiro mudou: gere a prévia de novo</span>
+      {% else %}<span class="selo sem-previa">sem prévia</span>{% endif %}
+      <span class="suave" style="font-size:13px"> · {{ i.dados.cenas|length }} cenas</span>
+    </div>
+    <div class="acoes">
+      <form method="post" action="{{ url_for('mover', pid=p.id, nome=i.arquivo, direcao='cima') }}"><button class="botao pequeno secundario" title="subir">↑</button></form>
+      <form method="post" action="{{ url_for('mover', pid=p.id, nome=i.arquivo, direcao='baixo') }}"><button class="botao pequeno secundario" title="descer">↓</button></form>
+      <a class="botao pequeno secundario" href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">Abrir</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="cartao">A fila está vazia. Crie um <a href="{{ url_for('novo', pid=p.id) }}">novo vídeo</a>.</div>
+  {% endfor %}
+</div>
+{% endblock %}

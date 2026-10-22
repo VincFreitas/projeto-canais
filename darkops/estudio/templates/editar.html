@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Editar · {{ nome }}{% endblock %}
+{% block corpo %}
+<p class="suave">{{ nome }} · ao salvar, a aprovação é retirada e é preciso gerar a prévia de novo.</p>
+<form method="post" class="cartao">
+  <input type="hidden" name="modo" value="campos">
+  <label>Manchete (texto que aparece em cima do vídeo)</label>
+  <input type="text" name="manchete" value="{{ r.manchete or '' }}">
+  <label>Título interno</label>
+  <input type="text" name="titulo" value="{{ r.titulo or '' }}">
+  <label>Título do YouTube Shorts</label>
+  <input type="text" name="titulo_yt" value="{{ (r.metadados or {}).get('youtube_shorts', {}).get('titulo', '') }}">
+  <label>Legenda do Instagram</label>
+  <textarea name="legenda_ig">{{ (r.metadados or {}).get('instagram', {}).get('legenda', '') }}</textarea>
+  <label>Hashtags do Instagram</label>
+  <input type="text" name="hashtags" value="{{ ' '.join((r.metadados or {}).get('instagram', {}).get('hashtags', [])) }}">
+  <h2 style="margin-top:20px">Cenas</h2>
+  {% for c in r.cenas %}
+  <div class="cena">
+    <label>Cena {{ loop.index }}: narração</label>
+    <textarea name="texto_{{ loop.index0 }}">{{ c.texto }}</textarea>
+    <div class="linha">
+      <div><label>Busca de imagem (inglês)</label><input type="text" name="visual_{{ loop.index0 }}" value="{{ c.visual or '' }}"></div>
+      <div><label>Palavra-herói (opcional)</label><input type="text" name="destaque_{{ loop.index0 }}" value="{{ c.destaque or '' }}"></div>
+      <div><label>Dispara na palavra</label><input type="text" name="destaque_em_{{ loop.index0 }}" value="{{ c.destaque_em or '' }}"></div>
+      <div><label>Tipo</label><select name="tipo_{{ loop.index0 }}">
+        <option value="">padrão</option>
+        <option value="video" {{ 'selected' if c.tipo_visual == 'video' }}>vídeo</option>
+        <option value="foto" {{ 'selected' if c.tipo_visual == 'foto' }}>foto</option></select></div>
+    </div>
+    {% if c.animacao %}<p class="anim">Esta cena tem animação ({{ c.animacao.tipo }}). Para mudar, use o JSON completo abaixo.</p>{% endif %}
+  </div>
+  {% endfor %}
+  <label>Fontes (uma por linha)</label>
+  <textarea name="fontes">{{ '\n'.join(r.fontes or []) }}</textarea>
+  <p style="margin-top:16px"><button class="botao">Salvar</button>
+    <a class="botao secundario" href="{{ url_for('ver', pid=p.id, nome=nome) }}">Cancelar</a></p>
+</form>
+<details class="cartao" style="margin-top:16px">
+  <summary><b>JSON completo</b> (avançado: animações, música, layout)</summary>
+  <form method="post">
+    <input type="hidden" name="modo" value="json">
+    <textarea name="json" style="min-height:420px; font-family: Consolas, monospace; font-size: 13px">{{ bruto }}</textarea>
+    <p><button class="botao">Salvar JSON</button></p>
+  </form>
+</details>
+{% endblock %}

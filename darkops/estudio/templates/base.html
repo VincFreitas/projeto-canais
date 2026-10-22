@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titulo %}Estúdio{% endblock %} · Estúdio de Canais</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
+</head>
+<body>
+<aside class="lateral">
+  <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Estúdio de Canais</a>
+  <p class="rotulo">Perfis</p>
+  <nav class="perfis">
+    {% for item in perfis %}
+    <a href="{{ url_for('painel', pid=item.id) }}" class="perfil {% if p and p.id == item.id %}ativo{% endif %}">
+      <img src="{{ url_for('avatar', pid=item.id) }}" alt="">
+      <span>{{ item.dados.nome }}<small>{{ item.dados.arroba }}</small></span>
+      <i class="bolinha {% if item.dados.ativo %}ligado{% endif %}" title="{{ 'postando' if item.dados.ativo else 'pausado' }}"></i>
+    </a>
+    {% endfor %}
+    <a href="{{ url_for('perfis_pagina') }}" class="novo-perfil">+ Novo perfil</a>
+  </nav>
+  <p class="rotulo">Geral</p>
+  <nav class="menu">
+    <a href="{{ url_for('chaves') }}">Chaves de serviços</a>
+  </nav>
+</aside>
+<main class="conteudo">
+  {% if p %}
+  <header class="topo">
+    <div class="quem">
+      <img src="{{ url_for('avatar', pid=p.id) }}" alt="">
+      <div><h1>{{ d.nome }}</h1><p>{{ d.arroba }} · {{ d.nicho or 'sem nicho' }}</p></div>
+    </div>
+    <form method="post" action="{{ url_for('ativar', pid=p.id) }}">
+      <button class="interruptor {% if d.ativo %}ligado{% endif %}">
+        <span></span>{{ 'Postagem automática ligada' if d.ativo else 'Postagem automática pausada' }}
+      </button>
+    </form>
+  </header>
+  <nav class="abas">
+    {% set aba = request.endpoint %}
+    <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' }}">Início</a>
+    <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar') }}">Fila</a>
+    <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo</a>
+    <a href="{{ url_for('conexoes', pid=p.id) }}" class="{{ 'atual' if aba == 'conexoes' }}">Conexões</a>
+    <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico</a>
+    <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' }}">Perfil</a>
+  </nav>
+  {% endif %}
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% for tipo, texto in mensagens %}<div class="aviso {{ tipo }}">{{ texto }}</div>{% endfor %}
+  {% endwith %}
+  {% block corpo %}{% endblock %}
+</main>
+</body>
+</html>

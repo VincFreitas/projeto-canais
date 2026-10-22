@@ -9,7 +9,7 @@ Argumentos recebidos: $ARGUMENTS
 
 **Regra:** esta skill só **lê e rascunha**. Publicar resposta é falar em nome do canal: o usuário aprova cada uma, e quem publica é ele (no YouTube Studio ou no app do Instagram). O token atual do YouTube só tem leitura (`youtube.readonly`).
 
-1. Liste os vídeos publicados em `controle/estado.json` (IDs do YouTube) e leia os comentários com a YouTube Data API:
+1. Liste os vídeos publicados em `perfis/<perfil>/controle/estado.json` (IDs do YouTube) e leia os comentários com a YouTube Data API:
    ```
    .\.venv\Scripts\python.exe -c "from darkops.publicar import _servico; import json; s=_servico(); print(json.dumps(s.commentThreads().list(part='snippet', videoId='ID', maxResults=50, order='relevance').execute(), ensure_ascii=False))"
    ```

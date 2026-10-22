@@ -22,3 +22,8 @@ assets/musica/**/*.mp3
 assets/musica/**/*.wav
 assets/musica/**/*.m4a
 assets/musica/**/*.ogg
+
+# Estúdio: tarefas e testes de conexão são locais
+perfis/*/controle/jobs/
+perfis/*/controle/conexoes.json
+perfis/*/controle/pulga-avatar.png

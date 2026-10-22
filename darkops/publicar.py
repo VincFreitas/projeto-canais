@@ -9,8 +9,12 @@ ESCOPOS = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
-CLIENT_SECRET = config.RAIZ / "credenciais" / "client_secret.json"
-TOKEN_YOUTUBE = config.RAIZ / "credenciais" / "token_youtube.json"
+CLIENT_SECRET = config.RAIZ / "credenciais" / "client_secret.json"  # app OAuth, igual para todos os perfis
+
+
+def _token_youtube() -> Path:
+    from .perfis import carregar
+    return carregar().token_youtube
 CATEGORIA_EDUCACAO = "27"
 
 
@@ -22,9 +26,12 @@ def autorizar_youtube() -> Path:
         raise SystemExit(f"falta {CLIENT_SECRET} (baixe o JSON do cliente OAuth no Google Cloud)")
     fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS)
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
-    cred = fluxo.run_local_server(port=0, prompt="consent", access_type="offline")
-    TOKEN_YOUTUBE.write_text(cred.to_json(), encoding="utf-8")
-    return TOKEN_YOUTUBE
+    # select_account: deixa escolher a conta do Google do canal deste perfil
+    cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")
+    destino = _token_youtube()
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(cred.to_json(), encoding="utf-8")
+    return destino
 
 
 def _credenciais():
@@ -35,8 +42,8 @@ def _credenciais():
     bruto = os.getenv("YOUTUBE_TOKEN", "").strip()
     if bruto:
         info = json.loads(bruto)
-    elif TOKEN_YOUTUBE.exists():
-        info = json.loads(TOKEN_YOUTUBE.read_text(encoding="utf-8"))
+    elif _token_youtube().exists():
+        info = json.loads(_token_youtube().read_text(encoding="utf-8"))
     else:
         raise SystemExit("sem token do YouTube: rode '.\\dark.ps1 autorizar-youtube' ou defina YOUTUBE_TOKEN")
     cred = Credentials.from_authorized_user_info(info, ESCOPOS)
