@@ -92,3 +92,10 @@ Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/vi
 - `"narrador": true`: a pulga mascote (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca e balança as antenas.
 - Ilustração de cada cena em `cenas[].arquivo` (ex.: `../midia/<slug>/cena1.png`, relativo à pasta da fila). Para manter o mesmo estilo e personagem, gere a 1ª imagem e use-a como **referência** nas outras, com o mesmo trecho de estilo no prompt: *"Flat 2D cartoon illustration in a clean vector explainer style (Kurzgesagt-inspired): bold simple shapes, soft gradients, vibrant saturated colors, rounded forms, NO text, NO letters, NO watermark"*. Proporção 4:3 para a janela do layout post.
 - Cartoon gerado por IA não é "realista", então não precisa da marcação de conteúdo sintético; mesmo assim, cite no roteiro (`"ilustracoes": "IA"`) para controle.
+
+## Estilo pixel art (teste)
+- `"estilo": "pixel"` liga o visual de videogame 16 bits; `"pixel": 5` é o tamanho de cada pixel na tela.
+- As cenas devem ser imagens pequenas já pixeladas (por exemplo 232x174 com 32 cores, para a janela do layout post). O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom.
+- Com `"narrador": true`, a pulga também sai pixelada. A legenda fica embaixo, como no cartoon.
+- `"musica": "chiptune"` usa a trilha sintetizada com onda quadrada (som de 8 bits).
+- Exemplo: `roteiros/teste-pixel-polvo.json`; as cenas foram geradas no PC com `perfis/pulga-do-saber/midia/polvo-tres-coracoes-pixel/gerar.py` e reduzidas depois.

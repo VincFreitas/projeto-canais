@@ -105,11 +105,23 @@ def _desenhar(t: float, boca: float, lado: int) -> Image.Image:
     return saida.resize((lado, lado), Image.LANCZOS)
 
 
-def gerar(audio: Path, duracao: float, lado: int, destino: Path) -> Path:
-    """Vídeo .mov com transparência da pulga falando junto com 'audio'. Reaproveita se nada mudou."""
+def _pixelar(img: Image.Image, pixel: int) -> Image.Image:
+    """Versão pixel art do quadro: desenha pequeno, sem meia transparência, e amplia sem suavizar."""
+    lado = img.width
+    peq = img.resize((lado // pixel, lado // pixel), Image.BOX)
+    alfa = peq.getchannel("A").point(lambda a: 255 if a > 110 else 0)
+    peq = peq.convert("RGB").quantize(24, method=Image.Quantize.MEDIANCUT).convert("RGBA")
+    peq.putalpha(alfa)
+    return peq.resize((lado, lado), Image.NEAREST)
+
+
+def gerar(audio: Path, duracao: float, lado: int, destino: Path, pixel: int = 0) -> Path:
+    """Vídeo .mov com transparência da pulga falando junto com 'audio'. Reaproveita se nada mudou.
+
+    pixel > 0 = pulga em pixel art (cada pixel do desenho vira um bloco de 'pixel' x 'pixel')."""
     destino = destino.with_suffix(".mov")
     assinatura = {"audio": audio.name, "mtime": audio.stat().st_mtime, "duracao": round(duracao, 2),
-                  "lado": lado, "versao": VERSAO}
+                  "lado": lado, "versao": VERSAO, "pixel": pixel}
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
@@ -121,7 +133,10 @@ def gerar(audio: Path, duracao: float, lado: int, destino: Path) -> Path:
     assert proc.stdin is not None
     try:
         for q in range(quadros):
-            proc.stdin.write(_desenhar(q / FPS, float(vol[q]), lado).tobytes())
+            quadro = _desenhar(q / FPS, float(vol[q]), lado)
+            if pixel:
+                quadro = _pixelar(quadro, pixel)
+            proc.stdin.write(quadro.tobytes())
     finally:
         proc.stdin.close()
         proc.wait()

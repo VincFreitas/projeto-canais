@@ -47,11 +47,13 @@ def _movimento(indice: int, quadros: int) -> str:
 
 def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
          largura: int, altura: int, indice: int, pausa: float,
-         card: tuple[Path, int, int] | None = None, narrador: tuple[Path, int, int] | None = None) -> float:
+         card: tuple[Path, int, int] | None = None, narrador: tuple[Path, int, int] | None = None,
+         pixel: int = 0) -> float:
     """Renderiza uma cena com a duração da narração + pausa. Devolve a duração.
 
     card = (vídeo com transparência, x, y): infográfico por cima do clipe, que fica desfocado e
-    um pouco mais escuro para o card se destacar."""
+    um pouco mais escuro para o card se destacar. pixel = tamanho do pixel no estilo pixel art: a imagem
+    é ampliada sem suavizar e anda em degraus de pixel, como num jogo antigo."""
     dur = duracao(audio) + pausa
     quadros = max(int(dur * FPS), 1)
     legendas = f",ass={legenda.name}" if legenda else ""  # caminho relativo evita escapar 'C:' no filtro
@@ -59,6 +61,15 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
         entrada = ["-stream_loop", "-1", "-i", str(visual)]
         video = (f"[0:v]scale={largura}:{altura}:force_original_aspect_ratio=increase,"
                  f"crop={largura}:{altura},fps={FPS},setsar=1")
+    elif pixel:
+        entrada = ["-loop", "1", "-i", str(visual)]
+        folga = pixel * 16  # margem para a panorâmica
+        x = f"floor({folga}*t/{dur:.3f}/{pixel})*{pixel}"
+        if indice % 2 == 0:
+            x = f"{folga}-{x}"
+        video = (f"[0:v]scale={largura + folga}:{altura + folga}:force_original_aspect_ratio=increase:"
+                 f"flags=neighbor,crop={largura}:{altura}:x='{x}':y='floor((ih-{altura})/2/{pixel})*{pixel}',"
+                 f"fps={FPS},setsar=1")
     else:
         entrada = ["-i", str(visual)]
         # ampliar antes do zoompan tira o tremido causado pelo arredondamento de pixels
@@ -99,10 +110,11 @@ def ambiente(duracao_s: float, destino: Path) -> Path:
     return destino
 
 
-def animada(duracao_s: float, destino: Path, semente: str = "") -> Path:
+def animada(duracao_s: float, destino: Path, semente: str = "", chip: bool = False) -> Path:
     """Trilha alegre sintetizada (bumbo, palmas, chimbal, baixo e arpejo em I-V-vi-IV): livre de direitos.
 
     A semente (slug do vídeo) varia tom e andamento, para os vídeos não soarem todos iguais.
+    chip = baixo e arpejo em onda quadrada, som de videogame 8 bits (para o estilo pixel).
     """
     import wave
     import zlib
@@ -117,6 +129,9 @@ def animada(duracao_s: float, destino: Path, semente: str = "") -> Path:
     n = int((duracao_s + 1) * taxa)
     t = np.arange(n) / taxa
     esq, dir_ = np.zeros(n), np.zeros(n)
+
+    def osc(fase):  # fase em ciclos; senoide ou quadrada (chiptune)
+        return np.sign(np.sin(2 * np.pi * fase)) * 0.5 if chip else np.sin(2 * np.pi * fase)
 
     def nota(semitom: int) -> float:                  # 0 = Dó4
         return 261.63 * 2 ** ((semitom + tom) / 12)
@@ -147,12 +162,12 @@ def animada(duracao_s: float, destino: Path, semente: str = "") -> Path:
                      0.05, 0.4)
             for meio in (0, 0.5):  # baixo em colcheias
                 f = nota(raiz - 24)
-                soar(tb + meio * batida, batida * 0.45, lambda x, f=f: (np.sin(2 * np.pi * f * x)
-                     + 0.3 * np.sin(4 * np.pi * f * x)) * np.exp(-x * 6), 0.22)
+                soar(tb + meio * batida, batida * 0.45, lambda x, f=f: (osc(f * x)
+                     + 0.3 * osc(2 * f * x)) * np.exp(-x * 6), 0.22)
             for k, grau in enumerate((raiz, terca, quinta, terca + 12)):  # arpejo em semicolcheias
                 f = nota(grau + 12)
-                soar(tb + k * batida / 4, batida / 2, lambda x, f=f: (np.sin(2 * np.pi * f * x)
-                     + 0.25 * np.sin(6 * np.pi * f * x)) * np.exp(-x * 9), 0.07, -0.3 if k % 2 else 0.3)
+                soar(tb + k * batida / 4, batida / 2, lambda x, f=f: (osc(f * x)
+                     + 0.25 * osc(3 * f * x)) * np.exp(-x * 9), 0.07, -0.3 if k % 2 else 0.3)
 
     mix = np.stack([esq, dir_], axis=1)[: int(duracao_s * taxa)]
     mix = mix / (np.abs(mix).max() or 1) * 0.8
@@ -296,8 +311,8 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     total = duracao(junta)
     if musica == "ambiente":
         musica = ambiente(total, pasta / "ambiente.wav")
-    elif musica == "animada":
-        musica = animada(total, pasta / "animada.wav", saida.stem)
+    elif musica in ("animada", "chiptune"):
+        musica = animada(total, pasta / f"{musica}.wav", saida.stem, chip=musica == "chiptune")
     normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
     entradas = ["-i", str(junta)]
     fontes, partes = ["[0:a]"], []

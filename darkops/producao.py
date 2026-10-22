@@ -27,10 +27,10 @@ def carregar(caminho: Path) -> dict:
 
 
 def _musica(roteiro: dict, pasta_roteiro: Path) -> Path | str | None:
-    """null = sem música; 'ambiente' (suspense) ou 'animada' (alegre) = trilha sintetizada;
+    """null = sem música; 'ambiente' (suspense), 'animada' (alegre) ou 'chiptune' (8 bits) = trilha sintetizada;
     'auto' = sorteia de assets/musica; ou um caminho."""
     escolha = roteiro.get("musica")
-    if not escolha or escolha in ("ambiente", "animada"):
+    if not escolha or escolha in ("ambiente", "animada", "chiptune"):
         return escolha or None
     if escolha.startswith("tema:"):  # faixa liberada em licencas.csv, da pasta do tema
         from .musica import escolher
@@ -103,6 +103,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     velocidade = roteiro.get("velocidade", "+0%")
     usar_legenda = roteiro.get("legenda", True) if legenda is None else legenda
     slug = roteiro.get("slug") or caminho.stem
+    estilo = roteiro.get("estilo")
+    pixel = int(roteiro.get("pixel", 5)) if estilo == "pixel" else 0  # tamanho do pixel na tela
 
     obra = config.OBRA / slug / formato
     for sub in ("audio", "visuais", "cenas"):
@@ -143,7 +145,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             from .narrador import gerar as gerar_narrador
             lado = int(largura * (0.19 if altura < largura else 0.26))
             y = altura - lado - int(altura * (0.02 if altura < largura else 0.2))
-            narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov"),
+            narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov",
+                                       pixel),
                         int(largura * 0.01), y)
         destaque = None
         if c.get("destaque") and not c.get("animacao"):  # palavra-herói no segundo em que é falada
@@ -161,19 +164,19 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
             narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
                                  # no cartoon a legenda fica embaixo para não cobrir o personagem
-                                 baixo=bool(c.get("animacao")) or roteiro.get("estilo") == "cartoon",
+                                 baixo=bool(c.get("animacao")) or estilo in ("cartoon", "pixel"),
                                  destaque=destaque, grande=post)
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
-                      "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
+                      "visual_mtime": visual.stat().st_mtime, "pausa": pausa, "pixel": pixel,
                       "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
         marca = saida_cena.with_suffix(".json")
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
-                                        narrador))
+                                        narrador, pixel))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 
