@@ -11,6 +11,10 @@ Uma cena do roteiro ganha uma animação com o campo "animacao":
 O resultado é um vídeo com transparência (.mov, qtrle/argb) do tamanho do card. O render põe esse
 vídeo por cima do clipe real da cena (desfocado e escurecido), então o ritmo do vídeo não quebra.
 Tudo fica vivo: o card entra com mola, o conteúdo pulsa e flutua, brilhos sobem, e o card sai no fim.
+
+Sincronia com a fala: cada elemento entra no segundo em que a palavra correspondente é falada.
+Use "em": ["dois", "dois", "terceiro"] (uma palavra por elemento, na ordem). Sem "em", o código tenta
+achar sozinho (o número de cada barra, o ano de cada marco, a última palavra do rótulo dos ícones).
 """
 import json
 import math
@@ -27,7 +31,7 @@ BRANCO = (248, 248, 252)
 CORES = [(255, 206, 40), (40, 200, 255), (255, 90, 125), (110, 230, 140)]
 FONTE_FORTE = "C:/Windows/Fonts/ariblk.ttf"
 FONTE = "C:/Windows/Fonts/arialbd.ttf"
-VERSAO = 4  # mude para refazer as animações em cache
+VERSAO = 5  # mude para refazer as animações em cache
 SAIDA_S = 0.3  # o card some nos últimos 0,3 s
 
 # card em proporção da tela (a legenda da cena fica embaixo, fora dele)
@@ -210,35 +214,72 @@ class _Brilhos:
             d.polygon([(x - r, yy), (x, yy - r * 0.25), (x + r, yy), (x, yy + r * 0.25)], fill=cor)
 
 
+def _entradas(n: int, gatilhos: list[float] | None, padrao: float, passo: float) -> list[float]:
+    """Segundo de entrada de cada um dos n elementos: o gatilho falado ou o espaçamento padrão."""
+    if not gatilhos:
+        return [padrao + passo * k for k in range(n)]
+    saida: list[float] = []
+    for k in range(n):
+        t = gatilhos[k] if k < len(gatilhos) else saida[-1] + passo
+        if saida and t < saida[-1] + 0.15:  # mesma palavra para dois elementos: um logo depois do outro
+            t = saida[-1] + 0.15
+        saida.append(t)
+    return saida
+
+
+def alvos_automaticos(animacao: dict) -> list[str]:
+    """Palavras que disparam cada elemento quando o roteiro não diz ('em')."""
+    tipo = animacao.get("tipo")
+    if tipo == "comparacao":
+        return [_numero(float(i["valor"]), int(animacao.get("casas", 0))) for i in animacao.get("itens", [])]
+    if tipo == "linha_do_tempo":
+        return [str(m.get("texto", "")).split()[0] if m.get("texto") else "" for m in animacao.get("marcos", [])]
+    if tipo == "contador":
+        return [_numero(float(animacao.get("ate", 0)), int(animacao.get("casas", 0)))]
+    if tipo == "icones" and animacao.get("rotulo"):
+        return [animacao["rotulo"].split()[-1]]
+    return []
+
+
 # ---------- conteúdos (desenham dentro do card, em coordenadas do card) ----------
 
 class _Contador:
-    def __init__(self, w, h, a):
+    def __init__(self, w, h, a, dur, gatilhos=None):
         self.w, self.h, self.a = w, h, a
+        # o número termina de contar quando é falado
+        self.fim = gatilhos[0] + 0.15 if gatilhos else 0.25 + max(dur * 0.5, 0.7)
+        self.inicio = max(self.fim - 1.1, 0.15)
+
+    def eventos(self) -> list[tuple[float, str]]:
+        return [(self.fim, "ding")]
 
     def quadro(self, c: Image.Image, t: float, dur: float) -> None:
         a, w, h = self.a, self.w, self.h
         ate, de, casas = float(a.get("ate", 100)), float(a.get("de", 0)), int(a.get("casas", 0))
-        p = _suave((t - 0.25) / max(dur * 0.5, 0.7))
+        p = _suave((t - self.inicio) / (self.fim - self.inicio))
         valor = de + (ate - de) * p
-        pulo = 1 + 0.06 * math.sin(min(max(t - 0.25 - dur * 0.5, 0) / 0.3, 1) * math.pi)  # pulo ao chegar
+        pulo = 1 + 0.08 * math.sin(min(max(t - self.fim, 0) / 0.3, 1) * math.pi)  # pulo ao chegar
         flutua = math.sin(t * 2.2) * 6
         _texto(c, a.get("prefixo", "") + _numero(valor, casas) + a.get("sufixo", ""), FONTE_FORTE,
                int(w * 0.2 * pulo), w / 2, h * 0.28 + flutua, AMARELO, w * 0.88, brilho=True)
         if a.get("rotulo"):
-            entrada = _suave((t - 0.45) / 0.4)
+            entrada = _suave((t - self.inicio - 0.2) / 0.4)
             if entrada > 0.02:
                 _texto(c, a["rotulo"], FONTE, int(w * 0.068), w / 2, h * 0.68 + (1 - entrada) * 30,
                        BRANCO, w * 0.88)
 
 
 class _Comparacao:
-    def __init__(self, w, h, a):
+    def __init__(self, w, h, a, dur, gatilhos=None):
         self.w, self.h, self.a = w, h, a
         self.itens = a.get("itens", [])[:3]
+        self.entradas = _entradas(len(self.itens), gatilhos, 0.3, 0.3)
         n = max(len(self.itens), 1)
         self.larg_barra = int(w * 0.6 / n)
         self.espaco = (w - self.larg_barra * n) / (n + 1)
+
+    def eventos(self) -> list[tuple[float, str]]:
+        return [(t, "pop") for t in self.entradas]
 
     def _barra(self, altura: int, cor) -> Image.Image:
         lb, altura = self.larg_barra, max(altura, 2)
@@ -261,7 +302,7 @@ class _Comparacao:
         maior = max(float(i["valor"]) for i in self.itens) or 1
         base, topo = h * 0.80, h * 0.33
         for k, item in enumerate(self.itens):
-            p = _mola((t - 0.3 - 0.22 * k) / max(dur * 0.4, 0.6))
+            p = _mola((t - self.entradas[k]) / 0.7)
             alto = int((base - topo) * float(item["valor"]) / maior * p * (1 + 0.012 * math.sin(t * 3 + k)))
             x0 = int(self.espaco + k * (self.larg_barra + self.espaco))
             cor = CORES[k % len(CORES)]
@@ -292,20 +333,36 @@ class _Comparacao:
 
 
 class _LinhaDoTempo:
-    def __init__(self, w, h, a):
+    def __init__(self, w, h, a, dur, gatilhos=None):
         self.w, self.h, self.a = w, h, a
         self.marcos = a.get("marcos", [])[:5]
         self.pontos: dict[int, Image.Image] = {}
+        valores = [float(m["valor"]) for m in self.marcos] or [0.0]
+        vmin, vmax = min(valores), max(valores)
+        self.posicoes = [(v - vmin) / ((vmax - vmin) or 1) for v in valores]
+        revelar = max(dur * 0.65, 0.9)
+        self.chegadas = [gatilhos[k] if gatilhos and k < len(gatilhos) else 0.2 + self.posicoes[k] * revelar
+                         for k in range(len(self.marcos))]
+
+    def eventos(self) -> list[tuple[float, str]]:
+        return [(t, "pop") for t in self.chegadas]
+
+    def _progresso(self, t: float) -> float:
+        """Ponta da linha: chega em cada marco no segundo em que ele é falado."""
+        pares = sorted(zip(self.chegadas, self.posicoes))
+        if t <= pares[0][0]:
+            return pares[0][1] * _suave(t / max(pares[0][0], 0.01))
+        for (t0, p0), (t1, p1) in zip(pares, pares[1:]):
+            if t <= t1:
+                return p0 + (p1 - p0) * _suave((t - t0) / max(t1 - t0, 0.01))
+        return 1.0
 
     def quadro(self, c: Image.Image, t: float, dur: float) -> None:
         w, h = self.w, self.h
         if len(self.marcos) < 2:
             return
-        valores = [float(m["valor"]) for m in self.marcos]
-        vmin, vmax = min(valores), max(valores)
         x0, x1, y = w * 0.12, w * 0.88, h * 0.52
-        revelar = max(dur * 0.65, 0.9)
-        p = min(max(t - 0.2, 0) / revelar, 1.0)
+        p = self._progresso(t)
         d = ImageDraw.Draw(c)
         d.rounded_rectangle([x0, y - 5, x1, y + 5], radius=5, fill=(255, 255, 255, 45))
         fim = x0 + (x1 - x0) * p
@@ -315,8 +372,8 @@ class _LinhaDoTempo:
             c.alpha_composite(linha.filter(ImageFilter.GaussianBlur(10)))
             c.alpha_composite(linha)
         for k, m in enumerate(self.marcos):
-            pos = (float(m["valor"]) - vmin) / ((vmax - vmin) or 1)
-            chegou = t - 0.2 - pos * revelar
+            pos = self.posicoes[k]
+            chegou = t - self.chegadas[k]
             if chegou < 0:
                 continue
             cor = CORES[k % len(CORES)]
@@ -339,9 +396,10 @@ class _LinhaDoTempo:
 
 
 class _Icones:
-    def __init__(self, w, h, a):
+    def __init__(self, w, h, a, dur, gatilhos=None):
         self.w, self.h, self.a = w, h, a
         self.n = max(1, min(int(a.get("quantidade", 3)), 12))
+        self.entradas = _entradas(self.n, gatilhos, 0.3, 0.2)
         simbolo = a.get("simbolo", "circulo")
         cor = tuple(a["cor"]) if a.get("cor") else (240, 55, 85) if simbolo == "coracao" else AMARELO
         self.colunas = min(self.n, 4)
@@ -349,6 +407,9 @@ class _Icones:
         self.tam = int(w * (0.22 if self.n <= 4 else 0.15))
         self.sprite = _sprite_brilhante(FORMAS.get(simbolo, _circulo), self.tam, cor, glow=22)
         self.coracao = simbolo == "coracao"
+
+    def eventos(self) -> list[tuple[float, str]]:
+        return [(t, "pop") for t in self.entradas]
 
     def quadro(self, c: Image.Image, t: float, dur: float) -> None:
         w, h = self.w, self.h
@@ -358,13 +419,13 @@ class _Icones:
             nesta = min(self.colunas, self.n - lin * self.colunas)
             cx = w / 2 + (col - (nesta - 1) / 2) * passo
             cy = h * 0.40 + (lin - (self.linhas - 1) / 2) * passo * 0.95 + math.sin(t * 2 + k * 1.3) * 7
-            entrada = _mola((t - 0.3 - 0.2 * k) / 0.4)
+            entrada = _mola((t - self.entradas[k]) / 0.4)
             if entrada <= 0:
                 continue
             vivo = 1 + (0.12 * _batimento(t + k * 0.15) if self.coracao else 0.04 * math.sin(t * 3 + k))
             _colar(c, self.sprite, cx, cy, entrada * vivo)
         if self.a.get("rotulo"):
-            entrada = _suave((t - 0.3 - 0.2 * self.n) / 0.4)
+            entrada = _suave((t - max(self.entradas) - 0.25) / 0.4)
             if entrada > 0.02:
                 _texto(c, self.a["rotulo"], FONTE_FORTE, int(w * 0.085), w / 2, h * 0.74 + (1 - entrada) * 30,
                        BRANCO, w * 0.88)
@@ -375,13 +436,14 @@ TIPOS = {"contador": _Contador, "comparacao": _Comparacao, "linha_do_tempo": _Li
 
 
 class _Animador:
-    def __init__(self, animacao: dict, largura: int, altura: int, duracao: float):
+    def __init__(self, animacao: dict, largura: int, altura: int, duracao: float,
+                 gatilhos: list[float] | None = None):
         tipo = animacao.get("tipo")
         if tipo not in TIPOS:
             raise SystemExit(f"animação '{tipo}' não existe. Opções: {', '.join(TIPOS)}")
         self.cw, self.ch = int(largura * CARD_L), int(altura * CARD_A)
         self.base = _card(self.cw, self.ch)
-        self.conteudo = TIPOS[tipo](self.cw, self.ch, animacao)
+        self.conteudo = TIPOS[tipo](self.cw, self.ch, animacao, duracao, gatilhos)
         self.brilhos = _Brilhos(self.cw, self.ch, len(json.dumps(animacao)), (255, 235, 160))
         self.duracao = duracao
 
@@ -405,21 +467,30 @@ def posicao(largura: int, altura: int) -> tuple[int, int]:
     return int(largura * CARD_X) - MARGEM, int(altura * CARD_Y) - MARGEM
 
 
-def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: float) -> Image.Image:
+def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: float,
+                 gatilhos: list[float] | None = None) -> Image.Image:
     """Um quadro avulso (RGBA, tamanho do card) para conferir o visual sem gerar o vídeo."""
-    return _Animador(animacao, largura, altura, duracao).quadro(t)
+    return _Animador(animacao, largura, altura, duracao, gatilhos).quadro(t)
 
 
-def gerar(animacao: dict, duracao: float, largura: int, altura: int, destino: Path) -> Path:
+def eventos(animacao: dict, largura: int, altura: int, duracao: float,
+            gatilhos: list[float] | None = None) -> list[tuple[float, str]]:
+    """Efeitos sonoros da animação, em segundos dentro da cena: whoosh do card e pop de cada elemento."""
+    conteudo = TIPOS[animacao["tipo"]](int(largura * CARD_L), int(altura * CARD_A), animacao, duracao, gatilhos)
+    return [(0.05, "whoosh")] + conteudo.eventos()
+
+
+def gerar(animacao: dict, duracao: float, largura: int, altura: int, destino: Path,
+          gatilhos: list[float] | None = None) -> Path:
     """Grava o card animado como .mov com transparência. Reaproveita se nada mudou."""
     destino = destino.with_suffix(".mov")
     assinatura = {"animacao": animacao, "duracao": round(duracao, 2), "tamanho": [largura, altura],
-                  "versao": VERSAO}
+                  "gatilhos": [round(g, 2) for g in gatilhos or []], "versao": VERSAO}
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
 
-    animador = _Animador(animacao, largura, altura, duracao)
+    animador = _Animador(animacao, largura, altura, duracao, gatilhos)
     cw, ch = animador.base.size
     proc = subprocess.Popen([FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
                              "-pix_fmt", "rgba", "-s", f"{cw}x{ch}", "-r", str(FPS), "-i", "-",

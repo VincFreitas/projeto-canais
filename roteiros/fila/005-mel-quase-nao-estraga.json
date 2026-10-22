@@ -20,12 +20,16 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o mel é um dos poucos alimentos que podem durar praticamente para sempre.",
       "visual": "honey",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "para sempre",
+      "destaque_em": "sempre"
     },
     {
       "texto": "O segredo é que ele é quase só açúcar e tem pouca água livre. Um micróbio que cai ali perde água e não consegue crescer.",
       "visual": "honey dripping",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "pouca água",
+      "destaque_em": "pouca"
     },
     {
       "texto": "Ele também é ácido, com pH entre 3 e 4,5. E as abelhas colocam uma enzima que gera um pouco de água oxigenada.",
@@ -43,12 +47,16 @@
     {
       "texto": "Arqueólogos já acharam potes de mel conservados em tumbas do Egito. Mas a famosa história de quem provou mel de 3 mil anos não tem fonte arqueológica firme.",
       "visual": "hieroglyphs",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "sem fonte firme",
+      "destaque_em": "fonte"
     },
     {
       "texto": "E tem um porém: aberto e com umidade, o mel absorve água e pode fermentar. Então, tampa bem fechada.",
       "visual": "honey jar",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "tampa fechada",
+      "destaque_em": "tampa"
     }
   ],
   "metadados": {

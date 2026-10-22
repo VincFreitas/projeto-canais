@@ -27,6 +27,13 @@ Formato do arquivo: [docs/roteiro.md](../../../docs/roteiro.md). Leia antes de e
 - `visual`: busca em **inglês**, concreta e fotografável (`foggy abandoned asylum hallway`, não `mystery`). Varie entre as cenas.
 - `capitulo` na 1ª cena e no início de cada bloco (3 ou mais no total).
 
+## 3b. Gancho, animações e destaques (Shorts e Reels)
+- Escolha o gancho em [docs/ganchos.md](../../../docs/ganchos.md). Não repita a fórmula do vídeo anterior da fila.
+- Cada cena tem **ou** uma `animacao` (quando a fala traz um número, uma comparação ou uma data) **ou** um `destaque` (de 1 a 3 palavras-chave que aparecem gigantes no segundo em que são faladas).
+- `animacao.em`: as palavras faladas que disparam cada elemento, na ordem (ex.: `["dois", "dois", "terceiro"]`). Sem `em`, o código procura os números sozinho.
+- `destaque_em`: a palavra falada que dispara o destaque, quando ela é diferente do texto mostrado (ex.: destaque "3 corações", `destaque_em` "três").
+- Use **só** números que estão na narração. Nada de dado novo só na tela.
+
 ## 4. Verticais derivados (2 ou 3)
 - Arquivos `roteiros/<slug>-v1.json`, `-v2.json`... com `"formato": "vertical"`, 30 a 60 s (80 a 150 palavras), `velocidade` `+10%`.
 - Cada um é um recorte com gancho próprio na 1ª frase (o curiosity gap mais forte do tema), não um resumo do longo.

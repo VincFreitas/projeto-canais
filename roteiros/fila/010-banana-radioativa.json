@@ -20,12 +20,14 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a banana é levemente radioativa.",
       "visual": "banana",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "radioativa"
     },
     {
       "texto": "Ela tem bastante potássio, e uma fração minúscula do potássio natural é o potássio-40, que é radioativo.",
       "visual": "bananas",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "potássio-40"
     },
     {
       "texto": "A dose de uma banana é tão pequena que virou uma unidade de brincadeira: a dose equivalente de banana, cerca de 0,1 microsievert.",
@@ -42,12 +44,15 @@
     {
       "texto": "E não acumula: o corpo mantém o nível de potássio estável e elimina o que sobra.",
       "visual": "fruit market",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "não acumula",
+      "destaque_em": "acumula"
     },
     {
       "texto": "A curiosidade brasileira: a castanha-do-pará tem muito mais potássio-40 por grama que a banana. A campeã da radioatividade natural na fruteira é ela.",
       "visual": "brazil nuts",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "castanha-do-pará"
     }
   ],
   "metadados": {

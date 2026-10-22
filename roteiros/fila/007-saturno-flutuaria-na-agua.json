@@ -20,7 +20,8 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: Saturno, um planeta gigante, boiaria na água.",
       "visual": "saturn",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "boiaria"
     },
     {
       "texto": "O motivo é a densidade. A da água é de 1 grama por centímetro cúbico. A de Saturno é só 0,687.",
@@ -45,17 +46,21 @@
     {
       "texto": "Ele é feito principalmente de hidrogênio e hélio, gases muito leves. É o único planeta do Sistema Solar menos denso que a água.",
       "visual": "saturn planet",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "hidrogênio e hélio",
+      "destaque_em": "hidrogênio"
     },
     {
       "texto": "Claro que não existe banheira para isso. E, na prática, a gravidade de Saturno puxaria essa água para ele.",
       "visual": "bathtub",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "gravidade"
     },
     {
       "texto": "Mas, na conta, ele ficaria por cima. Um gigante com a alma de uma boia.",
       "visual": "saturn rings",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "boia"
     }
   ],
   "metadados": {

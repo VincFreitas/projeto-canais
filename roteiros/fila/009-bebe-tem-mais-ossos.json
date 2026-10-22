@@ -20,7 +20,9 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: quando você nasceu, tinha quase 100 ossos a mais do que tem hoje.",
       "visual": "baby feet",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "100 ossos a mais",
+      "destaque_em": "100"
     },
     {
       "texto": "Um recém-nascido tem perto de 300 ossos. Um adulto tem 206.",
@@ -44,17 +46,29 @@
     {
       "texto": "Os ossos não somem. Muitos começam como cartilagem, que é flexível, e com o tempo endurecem e se juntam.",
       "visual": "x-ray",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "cartilagem"
     },
     {
       "texto": "O crânio é o melhor exemplo: ele nasce em placas separadas, e é por isso que o bebê tem a moleira.",
       "visual": "sleeping baby",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "moleira"
     },
     {
       "texto": "Essa fusão começa nos primeiros meses e pode seguir até depois dos 20 anos. Você literalmente foi se montando.",
       "visual": "children playing",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "ate": 20,
+        "prefixo": "até ",
+        "sufixo": " anos",
+        "rotulo": "a fusão dos ossos pode continuar",
+        "em": [
+          "20"
+        ]
+      }
     }
   ],
   "metadados": {

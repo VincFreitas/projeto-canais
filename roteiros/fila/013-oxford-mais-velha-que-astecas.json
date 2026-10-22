@@ -20,17 +20,22 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: a Universidade de Oxford é mais antiga que a capital dos astecas.",
       "visual": "oxford university",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "mais antiga",
+      "destaque_em": "antiga"
     },
     {
       "texto": "Oxford não tem data oficial de fundação, mas já havia ensino por lá em 1096.",
       "visual": "old library",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "1096"
     },
     {
       "texto": "Ela cresceu rápido depois de 1167, quando o rei Henrique II proibiu estudantes ingleses de estudar em Paris.",
       "visual": "castle england",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "Henrique II",
+      "destaque_em": "Henrique"
     },
     {
       "texto": "Já Tenochtitlán, a capital asteca onde hoje fica a Cidade do México, foi fundada em 1325.",
@@ -60,7 +65,13 @@
     {
       "texto": "São 229 anos de diferença. Quando os astecas começaram a erguer sua cidade, Oxford já dava aula havia mais de dois séculos.",
       "visual": "university students",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "animacao": {
+        "tipo": "contador",
+        "ate": 229,
+        "sufixo": " anos",
+        "rotulo": "de diferença"
+      }
     }
   ],
   "metadados": {

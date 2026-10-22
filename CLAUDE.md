@@ -8,6 +8,10 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 2. `/escrever-roteiro <ideia>`: pesquisa os fatos e escreve `roteiros/<slug>-longo.json` + verticais derivados
 3. `/produzir-video <roteiro>`: gera o vídeo, a thumbnail e os metadados em `saida/`
 4. `/revisar-desempenho`: lê `controle/testes.csv` e decide entre manter, ajustar, dobrar ou abandonar
+5. `/titulo-thumb <roteiro>`: 8 títulos com notas, thumbnail e legenda do Instagram (grava só com aprovação)
+6. `/planejar-semana`: agenda das 14 postagens (12h e 19h), equilíbrio de temas e ganchos, roteiros que faltam
+7. `/responder-comentarios`: lê comentários e rascunha respostas para o usuário aprovar (nunca publica)
+- Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: workflow do n8n em `n8n/pulga-do-saber.json`.
 
 ## Comandos (sempre pelo PowerShell, na raiz do projeto)
 ```

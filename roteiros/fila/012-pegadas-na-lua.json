@@ -20,22 +20,29 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: as pegadas dos astronautas da Apollo provavelmente continuam na Lua.",
       "visual": "moon surface",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "continuam na Lua",
+      "destaque_em": "continuam"
     },
     {
       "texto": "Aqui na Terra, vento e chuva apagam uma pegada rapidinho. Na Lua não tem vento nem chuva.",
       "visual": "footprints",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "sem vento",
+      "destaque_em": "não tem"
     },
     {
       "texto": "Segundo a NASA, as pegadas e as marcas das rodas do jipe lunar vão ficar lá por milhões de anos.",
       "visual": "astronaut",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "milhões de anos",
+      "destaque_em": "milhões"
     },
     {
       "texto": "A sonda Lunar Reconnaissance Orbiter já fotografou os locais de pouso, com equipamentos e as trilhas de solo pisado.",
       "visual": "satellite",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "fotografou"
     },
     {
       "texto": "O cientista responsável pela câmera da sonda estimou que os rastros podem durar de 10 a 100 milhões de anos. Um passeio que virou monumento.",

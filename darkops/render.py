@@ -175,8 +175,41 @@ def _selo(texto: str, largura: int, destino: Path) -> Path:
     return destino
 
 
+def _mascote(largura: int, destino: Path) -> Path:
+    """A pulga do canal em pixel art (corpo marrom, olhos grandes, óculos, antenas e patas)."""
+    from PIL import Image
+    desenho = [
+        "....a......a....",
+        ".....a....a.....",
+        "......a..a......",
+        "....MMMMMMMM....",
+        "...MMMMMMMMMM...",
+        "..MOOOOMMOOOOM..",
+        "..MOWPOMMOWPOM..",
+        "..MOPPOOOOPPOM..",
+        "..MOOOOMMOOOOM..",
+        "..MMMMMMMMMMMM..",
+        "..MMMMSSSSMMMM..",
+        "...MMMMMMMMMM...",
+        "....MMMMMMMM....",
+        "...p.p....p.p...",
+        "..p..p....p..p..",
+        ".pp..pp..pp..pp.",
+    ]
+    cores = {"M": (150, 82, 40, 255), "O": (30, 30, 30, 255), "W": (255, 255, 255, 255),
+             "P": (20, 20, 20, 255), "S": (240, 120, 120, 255), "a": (110, 60, 30, 255), "p": (110, 60, 30, 255)}
+    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y, linha in enumerate(desenho):
+        for x, ch in enumerate(linha):
+            if ch in cores:
+                img.putpixel((x, y), cores[ch])
+    lado = int(largura * 0.12)
+    img.resize((lado, lado), Image.NEAREST).save(destino)
+    return destino
+
+
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
-           selo: str | None = None) -> None:
+           selo: str | None = None, efeitos: Path | None = None, mascote: bool = False) -> None:
     """Concatena as cenas, põe a barra de progresso e o selo do canal (só no vertical) e normaliza o
     volume para -14 LUFS (padrão das plataformas)."""
     pasta = cenas[0].parent
@@ -192,13 +225,22 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         musica = animada(total, pasta / "animada.wav", saida.stem)
     normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
     entradas = ["-i", str(junta)]
+    fontes, partes = ["[0:a]"], []
     if musica:
         fim = max(total - 3, 0)
-        audio = (f"[1:a]volume={volume_musica},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[m];"
-                 f"[0:a][m]amix=inputs=2:duration=first:dropout_transition=0:normalize=0,{normalizar}[a]")
         entradas += ["-stream_loop", "-1", "-i", str(musica)]
+        partes.append(f"[1:a]volume={volume_musica},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[m]")
+        fontes.append("[m]")
+    if efeitos:
+        entradas += ["-i", str(efeitos)]
+        partes.append(f"[{len(fontes)}:a]volume=1.0[fx]")
+        fontes.append("[fx]")
+    if len(fontes) > 1:
+        partes.append(f"{''.join(fontes)}amix=inputs={len(fontes)}:duration=first:dropout_transition=0:"
+                      f"normalize=0,{normalizar}[a]")
     else:
-        audio = f"[0:a]{normalizar}[a]"
+        partes.append(f"[0:a]{normalizar}[a]")
+    audio = ";".join(partes)
 
     proc = subprocess.run([FFMPEG, "-hide_banner", "-i", str(junta)], capture_output=True, text=True,
                           encoding="utf-8", errors="replace")
@@ -207,12 +249,19 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         barra = max(int(alt * 0.006), 6)
         video = (f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
                  f"[0:v][barra]overlay=x='-W+W*t/{total:.3f}':y=H-h:eval=frame[vb]")
+        atual = "vb"
         if selo:
             entradas += ["-i", str(_selo(selo, larg, pasta / "selo.png"))]
-            indice_selo = len([e for e in entradas if e == "-i"]) - 1
-            video += f";[vb][{indice_selo}:v]overlay=x=(W-w)/2:y=H*0.055[v]"
-        else:
-            video += ";[vb]null[v]"
+            indice = len([e for e in entradas if e == "-i"]) - 1
+            video += f";[{atual}][{indice}:v]overlay=x=(W-w)/2:y=H*0.055[vs]"
+            atual = "vs"
+        if mascote:  # pulga em pixel art no canto, pulando de leve
+            entradas += ["-i", str(_mascote(larg, pasta / "mascote.png"))]
+            indice = len([e for e in entradas if e == "-i"]) - 1
+            video += (f";[{atual}][{indice}:v]overlay=x=W*0.05:"
+                      f"y='H*0.835-abs(sin(t*2.6))*{int(alt * 0.012)}':eval=frame[vm]")
+            atual = "vm"
+        video += f";[{atual}]null[v]"
         mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "5M", "-bufsize", "10M", "-pix_fmt", "yuv420p"]
         filtro = f"{video};{audio}"
     else:

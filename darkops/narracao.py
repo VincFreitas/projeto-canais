@@ -252,7 +252,7 @@ def _grupos(palavras: list[dict], max_palavras: int) -> list[list[dict]]:
 
 
 def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float, destino: Path,
-               baixo: bool = False) -> None:
+               baixo: bool = False, destaque: tuple[str, float] | None = None) -> None:
     """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
     baixo=True, para não cobrir uma animação), a palavra falada fica amarela e cada grupo entra com um pulo."""
     vertical = altura > largura
@@ -273,7 +273,11 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         "Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, "
         "Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, "
         "Alignment, MarginL, MarginR, MarginV, Encoding",
-        estilo, "", "[Events]",
+        estilo,
+        # palavra-herói: grande, amarela, contorno grosso, um pouco acima do centro
+        (f"Style: Heroi,Arial Black,{int(altura * 0.075)},&H0000D4FF,&H00FFFFFF,&H00101010,&H96000000,"
+         f"-1,0,0,0,100,100,2,0,1,{int(altura * 0.008)},4,5,40,40,0,1"),
+        "", "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
     grupos = _grupos(palavras, max_palavras)
@@ -292,4 +296,11 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         else:
             texto = _escapar(" ".join(p["texto"] for p in g))
         linhas.append(f"Dialogue: 0,{_tempo(inicio)},{_tempo(fim)},Base,,0,0,0,,{texto}")
+    if destaque and vertical:
+        texto, inicio = destaque
+        fim = min(inicio + 1.3, duracao)
+        y = int(altura * 0.27)
+        efeito = (f"{{\\pos({largura // 2},{y})\\fad(60,220)\\frz-4\\fscx30\\fscy30"
+                  f"\\t(0,150,\\fscx118\\fscy118)\\t(150,260,\\fscx100\\fscy100)}}")
+        linhas.append(f"Dialogue: 1,{_tempo(inicio)},{_tempo(fim)},Heroi,,0,0,0,,{efeito}{_escapar(texto.upper())}")
     destino.write_text("\n".join(linhas) + "\n", encoding="utf-8")

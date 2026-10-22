@@ -72,3 +72,10 @@ Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/vi
 | `comparacao` | `itens` [{`rotulo`, `valor`}] (até 3), `unidade`, `titulo`, `casas` | `{"tipo": "comparacao", "itens": [{"rotulo": "Bebê", "valor": 300}, {"rotulo": "Adulto", "valor": 206}]}` |
 | `linha_do_tempo` | `marcos` [{`valor` (ano; a.C. negativo), `texto`, `rotulo`}] (2 a 5) | `{"tipo": "linha_do_tempo", "marcos": [{"valor": -30, "texto": "30 a.C.", "rotulo": "Cleópatra"}, {"valor": 1969, "texto": "1969", "rotulo": "Lua"}]}` |
 | `icones` | `simbolo` (`coracao`, `estrela`, `cubo`, `circulo`), `quantidade` (até 12), `cor` [r,g,b], `rotulo` | `{"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}` |
+
+## Sincronia, destaques e efeitos
+
+- `cenas[].animacao.em`: palavras faladas que disparam cada elemento, na ordem. Sem `em`, o código procura o número de cada barra, o ano de cada marco ou a última palavra do rótulo dos ícones.
+- `cenas[].destaque`: de 1 a 3 palavras que aparecem gigantes, com um pulo, no segundo em que são faladas (só em cenas sem animação). `destaque_em`: a palavra falada, se for diferente do texto mostrado.
+- Efeitos sonoros sintetizados: whoosh na troca de cena e na entrada do card, pop em cada elemento, ding quando o contador termina e thud na palavra-herói. `"efeitos": false` desliga.
+- `"mascote": false` tira a pulga em pixel art do canto; `"selo"` troca o `@pulgadosaber` do topo.

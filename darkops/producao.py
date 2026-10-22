@@ -101,6 +101,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
 
     usados: set = set()
     arquivos_cena, duracoes, visuais_usados = [], [], []
+    efeitos: list[tuple[float, str]] = []  # (segundo no vídeo, som)
     total = len(roteiro["cenas"])
     for i, c in enumerate(roteiro["cenas"], 1):
         print(f"cena {i}/{total}")
@@ -109,19 +110,43 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         pausa = float(c.get("pausa", PAUSA_PADRAO))
         visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
                                         roteiro.get("tipo_visual", "foto"), usados)
+        dur_cena = render.duracao(audio) + pausa
+        inicio_cena = sum(duracoes)
+        if i > 1:
+            efeitos.append((inicio_cena, "whoosh"))  # transição entre cenas
         card = None
-        if c.get("animacao"):  # infográfico em card de vidro por cima do clipe, com a duração da cena
-            from .animacoes import gerar, posicao
-            card = (gerar(c["animacao"], render.duracao(audio) + pausa, largura, altura,
-                          obra / "visuais" / f"{i:02d}-animacao.mov"), *posicao(largura, altura))
+        if c.get("animacao"):  # infográfico em card de vidro por cima do clipe, sincronizado com a fala
+            from .animacoes import alvos_automaticos, eventos, gerar, posicao
+            from .sincronia import momento
+            alvos = c["animacao"].get("em") or alvos_automaticos(c["animacao"])
+            gatilhos, depois = [], 0.0
+            for alvo in alvos:
+                t = momento(palavras, alvo, depois)
+                if t is None:
+                    break
+                gatilhos.append(t)
+                depois = t
+            gatilhos = gatilhos or None
+            card = (gerar(c["animacao"], dur_cena, largura, altura, obra / "visuais" / f"{i:02d}-animacao.mov",
+                          gatilhos), *posicao(largura, altura))
+            efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,
+                                                                      dur_cena, gatilhos)]
+        destaque = None
+        if c.get("destaque") and not c.get("animacao"):  # palavra-herói no segundo em que é falada
+            from .sincronia import momento
+            texto = c["destaque"]
+            t = momento(palavras, c.get("destaque_em") or texto)
+            if t is not None:
+                destaque = (texto, t)
+                efeitos.append((inicio_cena + t, "thud"))
         visuais_usados.append(visual)
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
         ass = None
         if usar_legenda:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
-            narracao.legenda_ass(palavras, largura, altura, render.duracao(audio) + pausa, ass,
-                                 baixo=bool(c.get("animacao")))
+            narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
+                                 baixo=bool(c.get("animacao")), destaque=destaque)
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa,
@@ -138,8 +163,12 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     video = config.SAIDA / f"{slug}-{formato}.mp4"
     print("juntando cenas e mixando áudio")
     faixa = _musica(roteiro, caminho.parent)
+    from .sincronia import trilha_efeitos
+    sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav") \
+        if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
-                  selo=roteiro.get("selo", "@pulgadosaber"))
+                  selo=roteiro.get("selo", "@pulgadosaber"), efeitos=sfx,
+                  mascote=roteiro.get("mascote", True))
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

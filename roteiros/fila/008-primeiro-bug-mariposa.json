@@ -20,17 +20,23 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: o primeiro bug de computador registrado era um inseto de verdade.",
       "visual": "moth",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "inseto de verdade",
+      "destaque_em": "inseto"
     },
     {
       "texto": "Em 9 de setembro de 1947, na Universidade Harvard, engenheiros acharam uma mariposa presa dentro do computador Mark II.",
       "visual": "vintage computer",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "Mark II",
+      "destaque_em": "Mark"
     },
     {
       "texto": "Eles colaram o bicho no caderno de registros com a frase: primeiro caso real de bug encontrado.",
       "visual": "old notebook",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "primeiro bug",
+      "destaque_em": "primeiro"
     },
     {
       "texto": "A graça da piada é que a palavra bug já era usada para defeito. Thomas Edison escreveu isso numa carta de 1878.",
@@ -55,7 +61,8 @@
     {
       "texto": "Ou seja, a mariposa não inventou o termo, só deu a prova literal. E essa página do caderno hoje está num museu Smithsonian.",
       "visual": "museum",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "Smithsonian"
     }
   ],
   "metadados": {

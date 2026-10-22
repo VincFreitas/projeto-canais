@@ -20,17 +20,22 @@
     {
       "texto": "Tá com a pulga atrás da orelha? Então escuta essa: existe um animal que faz cocô em forma de cubo.",
       "visual": "wombat",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "cocô em cubo",
+      "destaque_em": "cubo"
     },
     {
       "texto": "É o vombate, um marsupial da Austrália. E o mistério de como ele faz isso levou anos para ser resolvido.",
       "visual": "wombat australia",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "vombate"
     },
     {
       "texto": "Pesquisadores da Universidade da Tasmânia dissecaram o intestino e acharam o segredo: a parede tem faixas mais duras e faixas mais flexíveis.",
       "visual": "laboratory",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "faixas duras",
+      "destaque_em": "faixas"
     },
     {
       "texto": "Com as contrações, as partes duras e moles moldam os cantos. O cubo se forma lá dentro, na parte final do intestino, enquanto o cocô seca.",
@@ -51,7 +56,9 @@
     {
       "texto": "A pesquisa ganhou o Ig Nobel de Física em 2019, o prêmio para estudos que fazem rir e depois pensar.",
       "visual": "wombat walking",
-      "pausa": 0.25
+      "pausa": 0.25,
+      "destaque": "Ig Nobel",
+      "destaque_em": "Ig"
     }
   ],
   "metadados": {
