@@ -221,6 +221,17 @@ def cmd_referencia(a):
     print(f"proposta: {referencia.proposta(analises)}\nsalvo em {destino}")
 
 
+def cmd_conferir(a):
+    from .conferir import conferir, salvar
+    from .perfis import carregar
+    perfil = carregar()
+    resultado = conferir(Path(a.video), perfil.dados.get("duracao_s"))
+    print(f"{resultado['video']}: {resultado['duracao_s']} s, {resultado['resolucao']}")
+    for x in resultado["achados"]:
+        print(f"  {x['nivel'].upper():5} {x['texto']}")
+    salvar(resultado, perfil)
+
+
 def cmd_n8n_workflow(a):
     from .instalacao import gerar_workflow
     gerar_workflow(importar=a.importar)
@@ -294,6 +305,10 @@ def main():
 
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
     s.set_defaults(fn=cmd_diagnostico)
+
+    s = sub.add_parser("conferir", help="confere o vídeo pronto: tela preta, silêncio, volume, duração e resolução")
+    s.add_argument("video")
+    s.set_defaults(fn=cmd_conferir)
 
     s = sub.add_parser("referencia", help="mede o estilo de vídeos de referência e propõe o padrão do perfil")
     s.add_argument("url", nargs="+")

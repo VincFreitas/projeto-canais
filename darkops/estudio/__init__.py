@@ -534,7 +534,9 @@ def publicar_agora(pid, nome):
 @app.get("/p/<pid>/fila/<nome>")
 def ver(pid, nome):
     p = _perfil(pid)
-    return render_template("ver.html", p=p, d=p.dados, s=_situacao(_arquivo_fila(p, nome)))
+    from .. import conferir
+    s = _situacao(_arquivo_fila(p, nome))
+    return render_template("ver.html", p=p, d=p.dados, s=s, conferencia=conferir.ler(p, s["video"]) if s.get("video") else {})
 
 
 @app.route("/p/<pid>/fila/<nome>/editar", methods=["GET", "POST"])
@@ -649,6 +651,19 @@ def editar_cena(pid, nome, i):
     return redirect(url_for("ver", pid=pid, nome=nome) + f"#cena{i}")
 
 
+@app.post("/p/<pid>/fila/<nome>/conferir")
+def conferir_video(pid, nome):
+    from .. import conferir
+    p = _perfil(pid)
+    s = _situacao(_arquivo_fila(p, nome))
+    if not s.get("video"):
+        flash("Gere a prévia antes de conferir.", "erro")
+        return redirect(url_for("ver", pid=pid, nome=nome))
+    resultado = conferir.conferir(config.SAIDA / s["video"], p.dados.get("duracao_s"))
+    conferir.salvar(resultado, p)
+    return redirect(url_for("ver", pid=pid, nome=nome) + "#conferencia")
+
+
 @app.post("/p/<pid>/fila/<nome>/legenda")
 def alternar_legenda(pid, nome):
     p = _perfil(pid)
@@ -659,6 +674,88 @@ def alternar_legenda(pid, nome):
     _gravar(caminho, dados)
     flash(f"Legenda {'ligada' if dados['legenda'] else 'desligada'} neste vídeo. Gere a prévia de novo.", "ok")
     return redirect(url_for("ver", pid=pid, nome=nome))
+
+
+# ---------- lotes para gerador externo (Google Flow, Gemini, ChatGPT...) ----------
+
+DOWNLOADS = Path.home() / "Downloads"
+EXT_IMAGEM = (".jpg", ".jpeg", ".png", ".webp")
+TAMANHO_LOTE = 20
+
+
+def _prompts(p, dados: dict) -> list[str]:
+    """Um prompt por cena: estilo + personagem fixo + o que se vê na cena (ilustração ou, sem ela, a fala)."""
+    from ..visuais import ESTILOS_IA
+    estilo = dados.get("estilo") or p.dados.get("estilo") or ""
+    base = ESTILOS_IA.get(estilo, "Illustration for a short educational video. No text, no letters, no watermark. ")
+    formato = "vertical 9:16" if dados.get("formato", "vertical") == "vertical" else "horizontal 16:9"
+    personagem = (dados.get("personagem") or "").strip()
+    return [f"{base}{personagem + ' ' if personagem else ''}Scene: {(c.get('ilustracao') or c['texto']).strip()} "
+            f"Aspect ratio {formato}." for c in dados.get("cenas", [])]
+
+
+def _baixadas_desde(momento: float) -> list[Path]:
+    if not DOWNLOADS.exists():
+        return []
+    novas = [f for f in DOWNLOADS.iterdir() if f.is_file() and f.suffix.lower() in EXT_IMAGEM
+             and f.stat().st_mtime > momento and not f.name.endswith((".crdownload", ".part"))]
+    return sorted(novas, key=lambda f: f.stat().st_mtime)
+
+
+@app.get("/p/<pid>/fila/<nome>/lotes")
+def lotes(pid, nome):
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    dados = _ler(caminho)
+    if request.args.get("comecar") or not dados.get("lote_aberto_em"):
+        dados["lote_aberto_em"] = time.time()  # só valem as imagens baixadas daqui para a frente
+        _gravar(caminho, dados)
+    prompts = _prompts(p, dados)
+    blocos = [list(enumerate(prompts, 1))[i:i + TAMANHO_LOTE] for i in range(0, len(prompts), TAMANHO_LOTE)]
+    faltam = [i for i, c in enumerate(dados.get("cenas", []), 1) if not c.get("arquivo")]
+    return render_template("lotes.html", p=p, d=p.dados, nome=nome, r=dados, blocos=blocos, faltam=faltam,
+                           pasta=str(DOWNLOADS))
+
+
+@app.get("/p/<pid>/fila/<nome>/lotes/novas.json")
+def lotes_novas(pid, nome):
+    p = _perfil(pid)
+    dados = _ler(_arquivo_fila(p, nome))
+    novas = _baixadas_desde(float(dados.get("lote_aberto_em", time.time())))
+    return jsonify({"novas": [f.name for f in novas],
+                    "faltam": sum(1 for c in dados.get("cenas", []) if not c.get("arquivo"))})
+
+
+@app.post("/p/<pid>/fila/<nome>/lotes/importar")
+def lotes_importar(pid, nome):
+    """Põe as imagens baixadas, na ordem em que chegaram, nas cenas que ainda não têm arquivo."""
+    import shutil
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    dados = _ler(caminho)
+    novas = _baixadas_desde(float(dados.get("lote_aberto_em", time.time())))
+    vazias = [c for c in dados.get("cenas", []) if not c.get("arquivo")]
+    pasta = p.fila / "midia"
+    pasta.mkdir(parents=True, exist_ok=True)
+    usadas = 0
+    for cena, arquivo in zip(vazias, novas):
+        i = dados["cenas"].index(cena) + 1
+        destino = pasta / f"{Path(nome).stem}-{i:02d}{arquivo.suffix.lower()}"
+        shutil.copy2(arquivo, destino)
+        cena["arquivo"] = f"midia/{destino.name}"
+        usadas += 1
+    if usadas:
+        ultima = novas[usadas - 1].stat().st_mtime
+        dados["lote_aberto_em"] = ultima  # a próxima importação começa depois da última usada
+        dados["imagens_ia"] = True
+        if request.form.get("realistas"):
+            dados["sintetico"] = True
+        dados["aprovado"] = False
+        _gravar(caminho, dados)
+    restam = len(vazias) - usadas
+    flash(f"{usadas} imagem(ns) importada(s) para as cenas." + (f" Faltam {restam}." if restam > 0 else
+          " Todas as cenas têm imagem: gere a prévia."), "ok" if usadas else "erro")
+    return redirect(url_for("lotes", pid=pid, nome=nome))
 
 
 def _descoberta(p) -> dict:
@@ -692,6 +789,74 @@ def descobrir(pid):
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("novo", pid=pid) + "#assuntos"))
 
 
+def _criar_roteiro(p, manchete: str, titulo: str, cenas: list[dict], fontes: str, **extra) -> Path:
+    """Grava um roteiro novo no fim da fila do perfil (sem aprovação) e devolve o caminho."""
+    numeros = [int(c.name[:3]) for c in fila_mod.roteiros(p) if c.name[:3].isdigit()]
+    numero = max(numeros + [0]) + 1
+    titulo = titulo.strip() or manchete
+    s = slug(titulo)
+    formato = p.dados.get("formato", "vertical")
+    roteiro = {
+        "slug": s, "titulo": titulo, "manchete": manchete,
+        "idioma": p.dados.get("idioma", "pt"), "formato": formato, "velocidade": "+10%",
+        "tipo_visual": "video", "fontes": [l.strip() for l in fontes.splitlines() if l.strip()],
+        "cenas": cenas,
+        "metadados": {("youtube_shorts" if formato == "vertical" else "youtube"): {"titulo": titulo},
+                      "instagram": {"legenda": f"{manchete}. Você sabia? Segue a {p.dados['arroba']} para mais.",
+                                    "hashtags": ["#curiosidades", "#vocesabia"]}},
+        "aprovado": False, **extra,
+    }
+    destino = p.fila / f"{numero:03d}-{s}.json"
+    _gravar(destino, roteiro)
+    return destino
+
+
+@app.post("/p/<pid>/novo/roteiro")
+def novo_de_roteiro(pid):
+    """Roteiro pronto colado: o Estúdio divide em cenas pelo ritmo do canal."""
+    from ..entrada import cenas_de_texto
+    p = _perfil(pid)
+    f = request.form
+    manchete, texto = f.get("manchete", "").strip(), f.get("texto", "").strip()
+    if not manchete or not texto:
+        flash("Preencha a manchete e cole o roteiro.", "erro")
+        return redirect(url_for("novo", pid=pid) + "#pronto")
+    destino = _criar_roteiro(p, manchete, f.get("titulo", ""), cenas_de_texto(texto, p.dados.get("ritmo_corte_s", 4)),
+                             f.get("fontes", ""))
+    flash("Roteiro dividido em cenas e colocado no fim da fila. Confira as buscas de imagem no editor de cenas.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=destino.name))
+
+
+@app.post("/p/<pid>/novo/narracao")
+def novo_de_narracao(pid):
+    """Narração pronta enviada: transcreve com o Azure, corta em cenas e usa a própria voz no vídeo."""
+    from ..entrada import cenas_de_narracao
+    p = _perfil(pid)
+    f = request.form
+    manchete, arquivo = f.get("manchete", "").strip(), request.files.get("audio")
+    if not manchete or not arquivo or not arquivo.filename:
+        flash("Preencha a manchete e escolha o arquivo de áudio.", "erro")
+        return redirect(url_for("novo", pid=pid) + "#pronto")
+    extensao = Path(arquivo.filename).suffix.lower()
+    if extensao not in (".mp3", ".wav", ".m4a", ".ogg", ".aac", ".flac", ".webm"):
+        flash("Envie o áudio em mp3, wav, m4a, ogg, aac, flac ou webm.", "erro")
+        return redirect(url_for("novo", pid=pid) + "#pronto")
+    nome = slug(f.get("titulo") or manchete)
+    pasta = p.fila / "midia"
+    pasta.mkdir(parents=True, exist_ok=True)
+    original = pasta / f"{nome}-narracao{extensao}"
+    arquivo.save(original)
+    try:
+        cenas = cenas_de_narracao(original, p.dados.get("idioma", "pt"), p.dados.get("ritmo_corte_s", 4), pasta, nome)
+    except SystemExit as erro:
+        flash(str(erro), "erro")
+        return redirect(url_for("novo", pid=pid) + "#pronto")
+    destino = _criar_roteiro(p, manchete, f.get("titulo", ""), cenas, f.get("fontes", ""),
+                             narracao_original=f"midia/{original.name}")
+    flash(f"Narração transcrita em {len(cenas)} cenas e colocada no fim da fila. Confira o texto e as imagens.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=destino.name))
+
+
 @app.route("/p/<pid>/novo", methods=["GET", "POST"])
 def novo(pid):
     p = _perfil(pid)
@@ -710,23 +875,7 @@ def novo(pid):
         if not manchete or not cenas:
             flash("Preencha a manchete e pelo menos uma cena.", "erro")
             return render_template("novo.html", p=p, d=p.dados, f=f, descoberta=_descoberta(p))
-        numeros = [int(c.name[:3]) for c in fila_mod.roteiros(p) if c.name[:3].isdigit()]
-        numero = max(numeros + [0]) + 1
-        s = slug(f.get("titulo") or manchete)
-        formato = p.dados.get("formato", "vertical")
-        roteiro = {
-            "slug": s, "titulo": f.get("titulo", "").strip() or manchete, "manchete": manchete,
-            "idioma": p.dados.get("idioma", "pt"), "formato": formato, "velocidade": "+10%",
-            "tipo_visual": "video", "fontes": [l.strip() for l in f.get("fontes", "").splitlines() if l.strip()],
-            "cenas": cenas,
-            "metadados": {("youtube_shorts" if formato == "vertical" else "youtube"):
-                          {"titulo": f.get("titulo", "").strip() or manchete},
-                          "instagram": {"legenda": f"{manchete}. Você sabia? Segue a {p.dados['arroba']} para mais.",
-                                        "hashtags": ["#curiosidades", "#vocesabia"]}},
-            "aprovado": False,
-        }
-        destino = p.fila / f"{numero:03d}-{s}.json"
-        _gravar(destino, roteiro)
+        destino = _criar_roteiro(p, manchete, f.get("titulo", ""), cenas, f.get("fontes", ""))
         flash("Roteiro criado no fim da fila. Revise e gere a prévia.", "ok")
         return redirect(url_for("ver", pid=pid, nome=destino.name))
     return render_template("novo.html", p=p, d=p.dados, f={}, descoberta=_descoberta(p))

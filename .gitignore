@@ -39,6 +39,8 @@ perfis/*/fila/midia/
 perfis/*/controle/referencias.json
 perfis/*/controle/descobrir.json
 perfis/*/controle/pulga-avatar-pixel.png
+perfis/*/controle/conferencias/
+roteiros/midia/
 
 # identidade visual: fundo bruto (pesado, refeito pelo gerador) e pacote de envio
 perfis/*/marca/fundo-capa.png

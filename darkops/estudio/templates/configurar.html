@@ -17,6 +17,9 @@
       <option value="cheio" {{ 'selected' if d.layout != 'post' }}>Tela cheia</option></select></div>
     <div><label>Estilo visual</label><select name="estilo">
       <option value="pixel" {{ 'selected' if d.estilo == 'pixel' }}>Pixel art (desenhado no PC)</option>
+      {% for k, t in [('desenho2d', 'Desenho 2D'), ('pintura', 'Pintura histórica'), ('foto_antiga', 'Foto antiga *'),
+                      ('anime', 'Anime'), ('3d', 'Animação 3D'), ('sombrio', 'Sombrio e misterioso'), ('realista', 'Realista de cinema *')] %}
+      <option value="{{ k }}" {{ 'selected' if d.estilo == k }}>{{ t }} (desenhado no PC)</option>{% endfor %}
       <option value="cartoon" {{ 'selected' if d.estilo == 'cartoon' }}>Cartoon</option>
       <option value="" {{ 'selected' if not d.estilo }}>Clipes reais (Pexels/Pixabay)</option></select></div>
     <div><label>Música</label><select name="musica">
@@ -27,6 +30,9 @@
       {% for v, t in [('public','Público'),('unlisted','Não listado'),('private','Privado')] %}<option value="{{ v }}" {{ 'selected' if d.privacidade_youtube == v }}>{{ t }}</option>{% endfor %}</select></div>
     <div><label>Horários (vírgula)</label><input type="text" name="horarios" value="{{ ', '.join(d.horarios) }}"></div>
   </div>
+  <p class="dica">Estilos desenhados no PC usam a <code>ilustracao</code> de cada cena e o <code>personagem</code> do roteiro
+    (o mesmo em todas as cenas). Cada cena leva de 2 a 5 minutos. * Imagem realista feita por IA: marque
+    “conteúdo alterado ou sintético” no YouTube Studio.</p>
   <p class="dica">Os horários de postagem que valem são os do workflow do n8n (12h e 19h); este campo mostra a agenda no Início.</p>
   {{ canal.campos(d, status) }}
   <h2 style="margin-top:20px">Padrão dos vídeos</h2>

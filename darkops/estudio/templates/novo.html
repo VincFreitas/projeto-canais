@@ -43,6 +43,42 @@ function usarTema(botao) {
   caixa.scrollIntoView({behavior: 'smooth', block: 'center'});
 }
 </script>
+<section class="cartao" id="pronto" style="margin-bottom:16px">
+  <h2>Já tenho o roteiro ou a narração</h2>
+  <div class="abas-mini">
+    <button type="button" class="botao claro ativo" onclick="trocarPronto(this, 'pronto-roteiro')">Roteiro pronto</button>
+    <button type="button" class="botao claro" onclick="trocarPronto(this, 'pronto-narracao')">Narração pronta (áudio)</button>
+  </div>
+  <form method="post" action="{{ url_for('novo_de_roteiro', pid=p.id) }}" id="pronto-roteiro">
+    <p class="suave">Cole o texto. O Estúdio divide em cenas de ~{{ d.ritmo_corte_s }} s (o ritmo do canal), sempre em fim de
+      frase, e sugere uma busca de imagem para cada uma. Depois é só revisar no editor de cenas.</p>
+    <div class="grade">
+      <div><label>Manchete</label><input type="text" name="manchete" required></div>
+      <div><label>Título do YouTube (opcional)</label><input type="text" name="titulo"></div>
+    </div>
+    <label>Roteiro</label><textarea name="texto" rows="8" required placeholder="Cole aqui o texto inteiro da narração."></textarea>
+    <label>Fontes (uma por linha)</label><textarea name="fontes" rows="2"></textarea>
+    <p><button class="botao">Dividir em cenas e criar na fila</button></p>
+  </form>
+  <form method="post" action="{{ url_for('novo_de_narracao', pid=p.id) }}" enctype="multipart/form-data" id="pronto-narracao" hidden
+        onsubmit="this.querySelector('button').textContent = 'Transcrevendo... (cerca de 15 s por minuto de áudio)'">
+    <p class="suave">Envie a sua narração gravada (mp3, wav, m4a...). O Estúdio transcreve com o Azure Speech, corta em cenas
+      nas pausas da fala e usa a <b>sua voz</b> no vídeo, com a legenda sincronizada palavra por palavra.</p>
+    <div class="grade">
+      <div><label>Manchete</label><input type="text" name="manchete" required></div>
+      <div><label>Título do YouTube (opcional)</label><input type="text" name="titulo"></div>
+    </div>
+    <label>Arquivo de áudio</label><input type="file" name="audio" accept="audio/*,.m4a" required>
+    <label>Fontes (uma por linha)</label><textarea name="fontes" rows="2"></textarea>
+    <p><button class="botao">Transcrever e criar na fila</button></p>
+  </form>
+</section>
+<script>
+function trocarPronto(botao, id) {
+  document.querySelectorAll('#pronto form').forEach(f => f.hidden = f.id !== id);
+  document.querySelectorAll('.abas-mini .botao').forEach(b => b.classList.toggle('ativo', b === botao));
+}
+</script>
 <form method="post" class="cartao">
   <p class="suave" style="margin-top:0">O vídeo entra no fim da fila, sem aprovação. Use só fatos que você conferiu, e coloque os links nas fontes.
     Para o Claude escrever o roteiro com pesquisa, use <code>/escrever-roteiro</code> no Claude Code.</p>

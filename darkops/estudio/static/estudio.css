@@ -164,3 +164,11 @@ h3 { font-size: 16px; margin: 14px 0 6px; }
 .miniatura img, .miniatura video { width: 100%; height: 100%; object-fit: cover; }
 .form-cena { margin-top: 8px; }
 .form-cena input[type=text], .form-cena select { padding: 6px 8px; }
+.abas-mini { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.abas-mini .botao.ativo { background: var(--amarelo); border-color: var(--amarelo); }
+pre.prompt { white-space: pre-wrap; background: #f3efe8; border: 1px solid var(--linha); border-radius: 9px; padding: 10px 12px; font-size: 13px; max-height: 320px; overflow: auto; }
+.achados { list-style: none; padding: 0; margin: 6px 0; }
+.achados li { padding: 3px 0; }
+.achados li.erro { color: var(--vermelho); font-weight: 600; }
+.achados li.aviso { color: #8a6400; }
+.achados li.ok { color: var(--verde); }

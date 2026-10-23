@@ -59,6 +59,11 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `legenda_tamanho` | não | `pequena`, `media` (padrão) ou `grande` |
 | `legenda_cor` | não | Cor da palavra falada, `#RRGGBB` (padrão `#FFE500`) |
 | `cenas[].movimento` | não | Movimento da foto: `aproxima`, `afasta`, `panoramica_direita`, `panoramica_esquerda` (sem o campo, alterna sozinho) |
+| `cenas[].audio` | não | Trecho de narração gravada (caminho relativo ao roteiro). Com ele, a cena usa esse áudio em vez da voz sintética; vem de **Narração pronta** no Estúdio |
+| `cenas[].palavras` | não | Com `audio`: lista `{texto, inicio, fim}` (segundos desde o começo da cena) para a legenda sincronizada |
+| `cenas[].visual_idioma` | não | Língua da busca de imagem (`en` padrão; `pt` nas buscas montadas de roteiro ou narração prontos) |
+| `estilo` | não | Desenho feito no PC a partir de `ilustracao` e `personagem`: `pixel`, `desenho2d`, `pintura`, `foto_antiga`, `anime`, `3d`, `sombrio`, `realista`. `foto_antiga` e `realista` exigem marcar conteúdo sintético |
+| `sintetico` | não | `true` quando há imagem realista feita por IA (os metadados avisam para marcar no YouTube e no Instagram) |
 | `cenas[].variante` | não | Pula as N primeiras opções da busca (o botão **Outra opção** do editor de cenas soma 1) |
 | `fontes` | não | Links usados na pesquisa. Não entram no vídeo; servem para checar os fatos |
 

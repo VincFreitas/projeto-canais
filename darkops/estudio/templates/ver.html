@@ -35,7 +35,18 @@
       <form method="post" action="{{ url_for('alternar_legenda', pid=p.id, nome=s.arquivo) }}">
         <button class="botao claro">{{ 'Desligar legenda' if com_legenda else 'Ligar legenda' }}</button></form>
       {% if s.video %}<a class="botao claro" href="{{ url_for('midia', nome=s.video) }}" download="{{ s.video }}">Baixar vídeo</a>{% endif %}
+      <a class="botao claro" href="{{ url_for('lotes', pid=p.id, nome=s.arquivo) }}">Imagens num gerador externo</a>
+      {% if s.video %}<form method="post" action="{{ url_for('conferir_video', pid=p.id, nome=s.arquivo) }}"><button class="botao claro">Conferir vídeo</button></form>{% endif %}
     </div>
+    {% if conferencia.achados %}
+    <div class="cartao" id="conferencia" style="margin-top:10px">
+      <b>Conferência automática</b> <span class="suave">· {{ conferencia.duracao_s }} s · {{ conferencia.resolucao }}</span>
+      <ul class="achados">
+        {% for x in conferencia.achados %}<li class="{{ x.nivel }}">{{ {'erro': '✗', 'aviso': '!', 'ok': '✓'}[x.nivel] }} {{ x.texto }}</li>{% endfor %}
+      </ul>
+      <p class="dica">É uma segunda olhada; assista inteiro antes de aprovar.</p>
+    </div>
+    {% endif %}
     <h2 style="margin-top:22px">Cenas</h2>
     <p class="dica">Editor de cenas: troque a imagem (outra opção da busca, nova busca ou arquivo do seu PC) e o movimento.
       Depois, gere a prévia de novo; só as cenas alteradas são refeitas.</p>
@@ -53,7 +64,7 @@
           {% if c.animacao %}<p class="anim">animação: {{ c.animacao.tipo }}{% if c.animacao.rotulo %} · {{ c.animacao.rotulo }}{% endif %}</p>{% endif %}
           <form method="post" action="{{ url_for('editar_cena', pid=p.id, nome=s.arquivo, i=i) }}" enctype="multipart/form-data" class="form-cena">
             {% if c.arquivo %}<p class="dica">usando arquivo do PC: {{ c.arquivo }}</p>
-            {% elif c.ilustracao and (r.estilo or d.estilo) == 'pixel' %}<p class="dica">Cena desenhada no PC em pixel art: a busca é só reserva.
+            {% elif c.ilustracao and (r.estilo or d.estilo) in ('pixel', 'desenho2d', 'pintura', 'foto_antiga', 'anime', '3d', 'sombrio', 'realista') %}<p class="dica">Cena desenhada no PC: a busca é só reserva.
               Para outro desenho, mude a ilustração em Editar; ou envie um arquivo do PC.</p>{% endif %}
             <div class="acoes">
               <input type="text" name="visual" value="{{ c.visual or '' }}" placeholder="busca em inglês" style="flex:1;min-width:140px">

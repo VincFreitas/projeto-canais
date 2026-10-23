@@ -39,11 +39,14 @@ def _baixar(url: str, destino: Path) -> Path:
     return destino
 
 
-def buscar_pexels(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set) -> Path | None:
-    """Baixa o primeiro resultado ainda não usado neste vídeo. tipo: 'video' ou 'foto'."""
+def buscar_pexels(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set,
+                  idioma: str = "en") -> Path | None:
+    """Baixa o primeiro resultado ainda não usado neste vídeo. tipo: 'video' ou 'foto'.
+    idioma: língua da busca (as buscas montadas de roteiro pronto ou narração vêm em português)."""
     orientacao = "portrait" if altura > largura else "landscape"
+    local = {"locale": {"pt": "pt-BR", "es": "es-ES"}[idioma]} if idioma in ("pt", "es") else {}
     if tipo == "video":
-        dados = _pexels("videos/search", {"query": consulta, "orientation": orientacao, "per_page": 15})
+        dados = _pexels("videos/search", {"query": consulta, "orientation": orientacao, "per_page": 15, **local})
         for v in dados.get("videos", []):
             if v["id"] in usados:
                 continue
@@ -56,7 +59,7 @@ def buscar_pexels(consulta: str, largura: int, altura: int, tipo: str, destino: 
                 usados.add(v["id"])
                 return _baixar(escolhido["link"], destino.with_suffix(".mp4"))
     else:
-        dados = _pexels("v1/search", {"query": consulta, "orientation": orientacao, "per_page": 15})
+        dados = _pexels("v1/search", {"query": consulta, "orientation": orientacao, "per_page": 15, **local})
         for foto in dados.get("photos", []):
             if foto["id"] in usados:
                 continue
@@ -99,12 +102,13 @@ def _filtrar_pixabay(hits: list[dict], consulta: str, usados: set) -> list[dict]
     return [h for *_, h in sorted(completos or bons, key=lambda x: (x[0], x[1]))]
 
 
-def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set) -> Path | None:
+def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set,
+                   idioma: str = "en") -> Path | None:
     """Mesmo contrato de buscar_pexels. Vídeo: prefere a orientação do formato e a menor resolução suficiente."""
     vertical = altura > largura
     consulta = consulta[:100]
     if tipo == "video":
-        hits = _filtrar_pixabay(_pixabay("videos/", {"q": consulta}).get("hits", []), consulta, usados)
+        hits = _filtrar_pixabay(_pixabay("videos/", {"q": consulta, "lang": idioma}).get("hits", []), consulta, usados)
         hits.sort(key=lambda h: (h["videos"]["large"].get("height", 0) > h["videos"]["large"].get("width", 0)) != vertical)
         for h in hits:
             opcoes = [v for v in h["videos"].values() if v.get("url") and v.get("width")]
@@ -115,7 +119,7 @@ def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino:
                 usados.add(f"pb{h['id']}")
                 return _baixar(escolhido["url"], destino.with_suffix(".mp4"))
     else:
-        dados = _pixabay("", {"q": consulta, "image_type": "photo",
+        dados = _pixabay("", {"q": consulta, "image_type": "photo", "lang": idioma,
                               "orientation": "vertical" if vertical else "horizontal"})
         for h in _filtrar_pixabay(dados.get("hits", []), consulta, usados):
             usados.add(f"pb{h['id']}")
@@ -148,12 +152,38 @@ def fundo_gerado(largura: int, altura: int, semente: int, destino: Path) -> Path
 ESTILO_PIXEL = ("16-bit pixel art, retro SNES video game style, crisp visible square pixels, limited color "
                 "palette, no anti-aliasing, dithering, side view game scene, cute and friendly. "
                 "No text, no letters, no numbers, no watermark. ")
+_SEM_TEXTO = "No text, no letters, no numbers, no watermark. "
+# estilos que o gerador local desenha a partir de 'ilustracao' e 'personagem' (o prompt vai em inglês)
+ESTILOS_IA = {
+    "pixel": ESTILO_PIXEL,
+    "desenho2d": "Flat 2D cartoon illustration, clean bold outlines, soft cel shading, warm friendly colors, "
+                 "storybook style, simple readable shapes. " + _SEM_TEXTO,
+    "pintura": "Classical historical oil painting, visible brush strokes, dramatic chiaroscuro lighting, rich "
+               "earthy palette, museum quality. " + _SEM_TEXTO,
+    "foto_antiga": "Old black and white vintage photograph, early twentieth century, film grain, light scratches, "
+                   "faded sepia tones, documentary look. " + _SEM_TEXTO,
+    "anime": "Japanese anime style illustration, cel shading, vibrant colors, expressive characters, detailed "
+             "painted background. " + _SEM_TEXTO,
+    "3d": "Stylized 3D animated movie render, soft global illumination, cute rounded characters, vibrant colors. "
+          + _SEM_TEXTO,
+    "sombrio": "Dark moody cinematic illustration, mysterious atmosphere, fog, low key lighting, muted cold colors, "
+               "suspense. " + _SEM_TEXTO,
+    "realista": "Photorealistic cinematic still, 35mm film look, natural lighting, highly detailed, documentary. "
+                + _SEM_TEXTO,
+}
+# imagem realista feita por IA exige marcar "conteúdo alterado ou sintético" no YouTube Studio
+ESTILOS_SINTETICOS = {"realista", "foto_antiga"}
 
 
 def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
                      pixel: int, semente: str) -> Path | None:
-    """Desenha a cena em pixel art no próprio PC (stable-diffusion.cpp + Z-Image-Turbo, grátis) e reduz à
-    grade de pixels da tela. A mesma semente e o mesmo 'personagem' em todas as cenas mantêm o visual.
+    return ilustracao_local(prompt, personagem, indice, pasta_visuais, largura, altura, "pixel", semente, pixel)
+
+
+def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
+                     estilo: str, semente: str, pixel: int = 0) -> Path | None:
+    """Desenha a cena no próprio PC (stable-diffusion.cpp + Z-Image-Turbo, grátis) no estilo pedido. No pixel art
+    reduz à grade de pixels da tela. A mesma semente e o mesmo 'personagem' em todas as cenas mantêm o visual.
     Devolve None se o gerador local não estiver instalado (a cena cai na busca normal)."""
     import hashlib
     import subprocess
@@ -165,21 +195,27 @@ def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: P
     if not sd.exists() or not all(p.exists() for p in pesos):
         print(f"  cena {indice}: gerador local ausente em {config.MODELOS}; usando a busca de mídia")
         return None
-    texto = ESTILO_PIXEL + (personagem.strip() + " " if personagem else "") + "Scene: " + prompt.strip()
+    texto = ESTILOS_IA[estilo] + (personagem.strip() + " " if personagem else "") + "Scene: " + prompt.strip()
     chave = hashlib.md5(texto.encode("utf-8")).hexdigest()[:10]
-    final = pasta_visuais / f"{indice:02d}-pixel-{chave}.png"
+    final = pasta_visuais / f"{indice:02d}-{estilo}-{chave}.png"
     if final.exists():
         return final
-    bruto = pasta_visuais / f"{indice:02d}-pixel-bruto.png"
-    print(f"  cena {indice}: desenhando em pixel art no PC (cerca de 2 a 5 min)")
+    bruto = pasta_visuais / f"{indice:02d}-{estilo}-bruto.png"
+    # tela cheia vertical pede desenho em pé; o resto (layout post e 16:9) sai deitado
+    w, h = (768, 1344) if altura > largura else (1024, 768)
+    print(f"  cena {indice}: desenhando no PC, estilo {estilo} (cerca de 2 a 5 min)")
     r = subprocess.run([str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
                         "-p", texto, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
-                        "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", "1024", "-H", "768",
+                        "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", str(w), "-H", str(h),
                         "--seed", str(zlib.crc32(semente.encode("utf-8")) % 100000), "-o", str(bruto)],
                        capture_output=True, text=True, errors="replace")
     if r.returncode != 0 or not bruto.exists():
         print(f"  cena {indice}: gerador local falhou; usando a busca de mídia\n{r.stderr[-400:]}")
         return None
+    if not pixel:
+        ImageOps.fit(Image.open(bruto).convert("RGB"), (largura, altura), Image.LANCZOS).save(final)
+        bruto.unlink(missing_ok=True)
+        return final
     # grade de pixels da tela (com a folga da panorâmica): cada pixel do desenho vira um bloco
     folga = pixel * 16
     grade = (-(-(largura + folga) // pixel), -(-(altura + folga) // pixel))
@@ -208,18 +244,20 @@ def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: 
         anterior = json.loads(marca.read_text(encoding="utf-8"))
         if (anterior.get("consulta") == consulta and anterior.get("tipo", "foto") == cena.get("tipo_visual", tipo)
                 and anterior.get("versao") == VERSAO_BUSCA and anterior.get("variante", 0) == cena.get("variante", 0)
+                and anterior.get("idioma", "en") == cena.get("visual_idioma", "en")
                 and Path(anterior.get("arquivo", "")).exists()):
             return Path(anterior["arquivo"])
     achado = _buscar_em_bancos(consulta, indice, largura, altura, cena.get("tipo_visual", tipo), base, usados,
-                               int(cena.get("variante", 0)))
+                               int(cena.get("variante", 0)), cena.get("visual_idioma", "en"))
     marca.write_text(json.dumps({"consulta": consulta, "tipo": cena.get("tipo_visual", tipo), "versao": VERSAO_BUSCA,
-                                 "variante": cena.get("variante", 0), "arquivo": str(achado)}),
+                                 "variante": cena.get("variante", 0), "idioma": cena.get("visual_idioma", "en"),
+                                 "arquivo": str(achado)}),
                      encoding="utf-8")
     return achado
 
 
 def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tipo: str,
-                      base: Path, usados: set, variante: int = 0) -> Path:
+                      base: Path, usados: set, variante: int = 0, idioma: str = "en") -> Path:
     """Tipo 'video' tenta clipe em cada banco e, se não achar, foto (que ganha movimento no render).
     variante > 0 pula as primeiras opções (marcadas como usadas) para trazer outra imagem."""
     bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
@@ -230,10 +268,11 @@ def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tip
             try:
                 pulados = set(usados)
                 for _ in range(variante):  # baixa e descarta as opções anteriores só para marcá-las
-                    anterior = buscar(consulta, largura, altura, tentativa, base.with_name(base.name + "-pulado"), pulados)
+                    anterior = buscar(consulta, largura, altura, tentativa, base.with_name(base.name + "-pulado"), pulados,
+                                      idioma)
                     if anterior:
                         anterior.unlink(missing_ok=True)
-                achado = buscar(consulta, largura, altura, tentativa, base, pulados)
+                achado = buscar(consulta, largura, altura, tentativa, base, pulados, idioma)
                 usados |= pulados
                 if achado:
                     return achado

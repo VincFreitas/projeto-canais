@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-> **Projeto Canais v0.10.0 (beta)** · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.11.0 (beta)** · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -38,6 +38,10 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 | Aprender o estilo de vídeos de referência | Estúdio > Perfil > **Aprender com referência** (mede cortes, palavras por minuto e duração; nunca copia o texto), ou `python -m darkops referencia <links>` |
 | Definir o padrão do canal | Estúdio > Perfil > **Padrão dos vídeos**: motor da voz, imagens/vídeos e proporção, ritmo dos cortes, legenda (tamanho, fonte e cor) |
 | Escrever o roteiro com fontes, ganchos e animações | `/escrever-roteiro <ideia>`, banco de ganchos em [docs/ganchos.md](docs/ganchos.md) |
+| Começar de um roteiro ou de uma narração prontos | Estúdio > Novo vídeo > **Já tenho o roteiro ou a narração**: cola o texto (vira cenas pelo ritmo do canal) ou envia o áudio gravado (transcreve com o Azure e usa a sua voz, com legenda sincronizada) |
+| Estilo das imagens | Estúdio > Perfil > Estilo visual: pixel art, desenho 2D, pintura histórica, foto antiga, anime, 3D, sombrio ou realista, todos desenhados no PC; ou clipes reais (Pexels/Pixabay) |
+| Gerar imagens no Google Flow, Gemini ou ChatGPT | Prévia > **Imagens num gerador externo**: instruções, ficha do personagem e prompts em lotes de 20 para copiar; as imagens baixadas entram sozinhas nas cenas |
+| Conferir antes de aprovar | Prévia > **Conferir vídeo** (ou `python -m darkops conferir <video>`): tela preta, silêncio, volume, duração e resolução |
 | Gerar a prévia, ajustar e aprovar | Estúdio > Fila: **editor de cenas** (outra imagem, nova busca, arquivo do PC, movimento), legenda liga/desliga, baixar o vídeo |
 | Postar às 12h e às 19h | n8n (workflow gerado por `python -m darkops n8n-workflow --importar`) |
 | Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |

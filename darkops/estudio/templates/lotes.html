@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block titulo %}Imagens por IA · {{ r.manchete or r.titulo }}{% endblock %}
+{% block corpo %}
+<p><a href="{{ url_for('ver', pid=p.id, nome=nome) }}">← voltar ao vídeo</a></p>
+<h1 style="margin-top:0">Imagens num gerador externo</h1>
+<p class="suave">Para quem prefere gerar as imagens no Google Flow, no Gemini, no ChatGPT ou em outro gerador. Copie os
+  prompts em lotes, gere, baixe as imagens <b>na ordem das cenas</b> e o Estúdio coloca cada uma na sua cena sozinho,
+  olhando a pasta <code>{{ pasta }}</code>.</p>
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2>1. Antes dos lotes</h2>
+  <p class="suave">Cole isto primeiro no gerador, para ele manter o estilo e o personagem iguais em todas as imagens:</p>
+  {% set instrucao %}Vou mandar prompts numerados. Gere exatamente 1 imagem por prompt, na ordem, sem texto, letras ou marca d'água na imagem, {{ 'formato vertical 9:16' if r.formato == 'vertical' else 'formato horizontal 16:9' }}. Mantenha o mesmo estilo{{ ' e o mesmo personagem: ' ~ r.personagem if r.personagem else '' }} em todas.{% endset %}
+  <pre class="prompt" id="instrucao">{{ instrucao }}</pre>
+  <button type="button" class="botao claro" onclick="copiar('instrucao', this)">Copiar instruções</button>
+  {% if r.personagem %}
+  <h3>Ficha do personagem</h3>
+  <p class="suave">Se o gerador tiver uma área de personagens (como o Flow), crie o personagem com esta ficha antes das cenas.</p>
+  <pre class="prompt" id="ficha">{{ r.personagem }}</pre>
+  <button type="button" class="botao claro" onclick="copiar('ficha', this)">Copiar ficha</button>
+  {% endif %}
+</section>
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2>2. Lotes de cenas</h2>
+  {% for bloco in blocos %}
+  <h3>Lote {{ loop.index }}: cenas {{ bloco[0][0] }} a {{ bloco[-1][0] }}</h3>
+  <pre class="prompt" id="lote{{ loop.index }}">{% for n, texto in bloco %}{{ '%02d' % n }}. {{ texto }}
+{% endfor %}</pre>
+  <button type="button" class="botao claro" onclick="copiar('lote{{ loop.index }}', this)">Copiar lote {{ loop.index }}</button>
+  {% endfor %}
+</section>
+
+<section class="cartao">
+  <h2>3. Baixar e importar</h2>
+  <p class="suave">Baixe as imagens para <code>{{ pasta }}</code>, uma por cena, na ordem. Cenas sem imagem: <b>{{ faltam | length }}</b>
+    de {{ r.cenas | length }}.</p>
+  <p id="novas" class="aviso" hidden></p>
+  <form method="post" action="{{ url_for('lotes_importar', pid=p.id, nome=nome) }}" class="acoes">
+    <label style="font-weight:400"><input type="checkbox" name="realistas"> As imagens são realistas (marcar conteúdo sintético)</label>
+    <button class="botao" id="importar">Importar imagens baixadas</button>
+    <a class="botao claro" href="{{ url_for('lotes', pid=p.id, nome=nome, comecar=1) }}">Recomeçar a contagem agora</a>
+  </form>
+  <p class="dica">Só contam as imagens baixadas depois que você abriu esta página. Elas entram nas cenas vazias, na ordem em que
+    chegaram. Imagem feita por IA: confira se nenhuma cena tem gente real reconhecível ou marca registrada.</p>
+</section>
+<script>
+function copiar(id, botao) {
+  navigator.clipboard.writeText(document.getElementById(id).textContent.trim());
+  const antes = botao.textContent; botao.textContent = 'Copiado!'; setTimeout(() => botao.textContent = antes, 1500);
+}
+async function olhar() {
+  try {
+    const r = await (await fetch("{{ url_for('lotes_novas', pid=p.id, nome=nome) }}")).json();
+    const aviso = document.getElementById('novas');
+    aviso.hidden = r.novas.length === 0;
+    aviso.className = 'aviso ok';
+    aviso.textContent = `${r.novas.length} imagem(ns) nova(s) em Downloads para ${r.faltam} cena(s) sem imagem.`;
+  } catch (e) {}
+}
+olhar(); setInterval(olhar, 4000);
+</script>
+{% endblock %}

@@ -77,6 +77,10 @@ def _metadados(roteiro: dict, duracoes: list[float], destino: Path) -> None:
             partes.append(f"**{chave}:**\n\n{valor}\n")
         if plataforma == "youtube" and capitulos:
             partes.append("**capítulos (colar na descrição):**\n\n" + "\n".join(capitulos) + "\n")
+    if roteiro.get("estilo") in visuais.ESTILOS_SINTETICOS or roteiro.get("sintetico"):
+        partes += ["## ATENÇÃO: conteúdo sintético",
+                   "Este vídeo tem imagens realistas feitas por IA. No upload, marque 'conteúdo alterado ou sintético' "
+                   "no YouTube Studio e o selo de IA no Instagram.", ""]
     partes += ["## Antes de publicar",
                "- Assista inteiro: a entrega cumpre o que o título e a thumbnail prometem?",
                "- Se houver imagem ou vídeo realista gerado por IA, marque 'conteúdo alterado ou sintético' no YouTube Studio.",
@@ -135,13 +139,19 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     total = len(roteiro["cenas"])
     for i, c in enumerate(roteiro["cenas"], 1):
         print(f"cena {i}/{total}")
-        audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
-                                          obra / "audio" / f"{i:02d}")
+        if c.get("audio"):  # narração pronta: o trecho do áudio enviado, com o tempo das palavras já medido
+            audio = (caminho.parent / c["audio"]).resolve()
+            if not audio.exists():
+                raise SystemExit(f"Cena {i}: áudio não encontrado: {audio}")
+            palavras = c.get("palavras") or []
+        else:
+            audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
+                                              obra / "audio" / f"{i:02d}")
         pausa = float(c.get("pausa", PAUSA_PADRAO))
         visual = None
-        if pixel and c.get("ilustracao") and not c.get("arquivo"):  # cena desenhada no PC em pixel art
-            visual = visuais.ilustracao_pixel(c["ilustracao"], roteiro.get("personagem", ""), i,
-                                              obra / "visuais", largura, altura, pixel, slug)
+        if estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):  # desenhada no PC
+            visual = visuais.ilustracao_local(c["ilustracao"], roteiro.get("personagem", ""), i, obra / "visuais",
+                                              largura, altura, estilo, slug, pixel)
         if visual is None:
             visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
                                             _tipo_da_cena(roteiro, i), usados)
