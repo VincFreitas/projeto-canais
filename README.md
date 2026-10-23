@@ -1,10 +1,22 @@
 # Projeto Canais (canais-dark)
 
-> **Projeto Canais v0.13.0 (beta)** · licença não comercial ([LICENSE](LICENSE))
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.13.0%20beta-f5c518)](darkops/__init__.py)
+[![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
+[![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
+[![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
+[![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
+
+> **Projeto Canais v0.13.0 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
+**Veja funcionando:** o canal de exemplo é o **Pulga do Saber**, curiosidades rápidas narradas por uma pulga em pixel art, no [YouTube](https://www.youtube.com/@pulgadosaber) e no [Instagram](https://www.instagram.com/pulgadosaber).
+
 Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico.
+
+![Estúdio do Projeto Canais: início do perfil Pulga do Saber, com fila, próximas postagens e conexões por função](docs/img/estudio.png)
+
+**Neste README:** [Começar em 3 passos](#começar-em-3-passos-com-o-claude-code) · [Sem o Claude](#sem-o-claude-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
 
 ## Começar em 3 passos (com o Claude Code)
 
@@ -64,7 +76,8 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
 - `n8n/`: modelo do workflow e lançadores
-- `site/`: páginas de privacidade e termos exigidas pelo Google e pela Meta (GitHub Pages)
+- `site/`: página inicial, privacidade e termos exigidos pelo Google e pela Meta (GitHub Pages)
+- `docs/img/`: imagens do README
 - `docs/`: formato do roteiro e banco de ganchos
 
 ## Regras que mantêm o canal vivo
