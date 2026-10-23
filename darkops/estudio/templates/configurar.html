@@ -59,6 +59,13 @@
     <div><label>Cor da palavra falada</label><input type="color" name="legenda_cor" value="{{ d.legenda_cor }}"></div>
   </div>
   <div class="previa-legenda" style="font-family:'{{ d.legenda_fonte }}'">ESSA <span style="color:{{ d.legenda_cor }}">PALAVRA</span> AQUI</div>
+  <label>Tema dos cards (números, comparações e linhas do tempo na tela)</label>
+  <div class="temas-cards">
+    {% for k, t in temas_cards.items() %}
+    <label class="tema-card"><input type="radio" name="tema_cards" value="{{ k }}" {{ 'checked' if d.tema_cards == k }}>
+      <img src="{{ url_for('tema_card', nome=k) }}" alt="{{ t }}" loading="lazy"><span>{{ t }}</span></label>
+    {% endfor %}
+  </div>
   <label>Foto do perfil (aparece no topo dos vídeos)</label>
   <div class="acoes"><img src="{{ url_for('avatar', pid=p.id) }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#ffc400;image-rendering:pixelated"><input type="file" name="avatar" accept="image/*"></div>
   <p style="margin-top:16px"><button class="botao">Salvar perfil</button></p>

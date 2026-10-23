@@ -53,6 +53,7 @@ MODELO = {
     "legenda_tamanho": "media",
     "legenda_cor": "#FFE500",
     "legenda_fonte": "Arial Black",
+    "tema_cards": "padrao",
 }
 
 MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azure": "Azure Speech (grátis até 500 mil caracteres)",
@@ -60,6 +61,8 @@ MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azu
 TIPOS_VISUAL = {"foto": "Só imagens", "video": "Só vídeos (foto quando faltar clipe)", "misto": "Imagens e vídeos"}
 RITMOS = [2, 3, 4, 6, 8]
 TAMANHOS_LEGENDA = {"pequena": 0.8, "media": 1.0, "grande": 1.25}
+TEMAS_CARDS = {"padrao": "Vidro escuro (padrão)", "arquivo_frio": "Arquivo frio", "jornal_antigo": "Jornal antigo",
+               "moderno_limpo": "Moderno limpo"}
 FONTES_LEGENDA = ["Arial Black", "Impact", "Segoe UI Black", "Bahnschrift", "Verdana", "Comic Sans MS"]
 
 
@@ -78,7 +81,8 @@ def campos_padrao(form) -> dict:
             "legenda": bool(form.get("legenda")),
             "legenda_tamanho": form.get("legenda_tamanho") if form.get("legenda_tamanho") in TAMANHOS_LEGENDA else "media",
             "legenda_cor": cor.upper() if re.match(r"^#[0-9a-fA-F]{6}$", cor) else "#FFE500",
-            "legenda_fonte": form.get("legenda_fonte") if form.get("legenda_fonte") in FONTES_LEGENDA else "Arial Black"}
+            "legenda_fonte": form.get("legenda_fonte") if form.get("legenda_fonte") in FONTES_LEGENDA else "Arial Black",
+            "tema_cards": form.get("tema_cards") if form.get("tema_cards") in TEMAS_CARDS else "padrao"}
 
 # onde o canal existe; só YouTube e Instagram têm postagem automática, as outras ficam como referência
 PLATAFORMAS = [("youtube", "YouTube"), ("instagram", "Instagram"), ("facebook", "Facebook"),

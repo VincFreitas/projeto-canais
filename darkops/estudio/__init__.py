@@ -23,7 +23,7 @@ from .. import config
 from .. import fila as fila_mod
 from .. import autoria, plataformas
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
-                      TAMANHOS_LEGENDA, TIPOS_VISUAL, campos_canal, campos_padrao, carregar, criar, listar,
+                      TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
@@ -326,7 +326,7 @@ def configurar(pid):
         return redirect(url_for("configurar", pid=pid))
     return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p),
                            motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
-                           tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA,
+                           tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS,
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p))
 
 
@@ -361,6 +361,23 @@ def referencia_folha(pid, vid):
     if not re.match(r"^[\w-]{3,40}$", vid) or not folha.exists():
         abort(404)
     return send_file(folha, mimetype="image/jpeg")
+
+
+@app.get("/tema-card/<nome>.png")
+def tema_card(nome):
+    """Amostra de um card de comparação no tema pedido (para escolher na aba Perfil)."""
+    import io
+    from ..animacoes import TEMAS, quadro_teste
+    if nome not in TEMAS:
+        abort(404)
+    exemplo = {"tipo": "comparacao", "titulo": "Vênus", "unidade": "dias", "tema": nome,
+               "itens": [{"rotulo": "Dia", "valor": 243}, {"rotulo": "Ano", "valor": 225}]}
+    img = quadro_teste(exemplo, 1080, 1920, 2.5, 4.0)
+    img.thumbnail((360, 360))
+    saida = io.BytesIO()
+    img.save(saida, "PNG")
+    saida.seek(0)
+    return send_file(saida, mimetype="image/png", max_age=3600)
 
 
 @app.get("/p/<pid>/avatar")

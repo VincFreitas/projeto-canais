@@ -33,6 +33,37 @@ CORES = [(255, 206, 40), (40, 200, 255), (255, 90, 125), (110, 230, 140)]
 FONTE_FORTE = "C:/Windows/Fonts/ariblk.ttf"
 FONTE = "C:/Windows/Fonts/arialbd.ttf"
 VERSAO = 6  # mude para refazer as animações em cache
+SOMBRA = 0.75  # força da sombra do texto
+FUNDO = ((24, 22, 52), (34, 28, 38), 205)  # gradiente do card: cor do topo, cor da base, opacidade
+BRILHO = (255, 235, 160)  # cor das faíscas que sobem no card
+
+# temas de edição: cores e fontes do card (o roteiro escolhe com "tema_cards"; o padrão é o vidro escuro)
+_F = "C:/Windows/Fonts/"
+TEMAS = {
+    "padrao": {"amarelo": (255, 212, 0), "branco": (248, 248, 252), "sombra": 0.75, "brilho": (255, 235, 160),
+               "cores": [(255, 206, 40), (40, 200, 255), (255, 90, 125), (110, 230, 140)],
+               "forte": _F + "ariblk.ttf", "fonte": _F + "arialbd.ttf", "fundo": ((24, 22, 52), (34, 28, 38), 205)},
+    "arquivo_frio": {"amarelo": (120, 220, 255), "branco": (232, 240, 246), "sombra": 0.8, "brilho": (170, 220, 255),
+                     "cores": [(120, 220, 255), (200, 210, 220), (255, 120, 110), (150, 240, 200)],
+                     "forte": _F + "bahnschrift.ttf", "fonte": _F + "bahnschrift.ttf",
+                     "fundo": ((18, 30, 44), (10, 18, 28), 215)},
+    "jornal_antigo": {"amarelo": (150, 35, 25), "branco": (45, 32, 20), "sombra": 0.18, "brilho": (120, 90, 50),
+                      "cores": [(150, 35, 25), (70, 60, 50), (130, 85, 35), (35, 70, 105)],
+                      "forte": _F + "georgiab.ttf", "fonte": _F + "timesbd.ttf",
+                      "fundo": ((236, 222, 188), (214, 194, 152), 238)},
+    "moderno_limpo": {"amarelo": (37, 99, 235), "branco": (22, 26, 34), "sombra": 0.12, "brilho": (150, 180, 255),
+                      "cores": [(37, 99, 235), (13, 148, 136), (244, 90, 80), (124, 58, 237)],
+                      "forte": _F + "seguibl.ttf", "fonte": _F + "segoeuib.ttf",
+                      "fundo": ((252, 252, 254), (236, 239, 245), 242)},
+}
+
+
+def usar_tema(nome: str | None) -> None:
+    """Troca as cores e as fontes dos cards (vale para as próximas animações geradas)."""
+    global AMARELO, BRANCO, CORES, FONTE_FORTE, FONTE, SOMBRA, FUNDO, BRILHO
+    t = TEMAS.get(nome or "padrao", TEMAS["padrao"])
+    AMARELO, BRANCO, CORES = t["amarelo"], t["branco"], t["cores"]
+    FONTE_FORTE, FONTE, SOMBRA, FUNDO, BRILHO = t["forte"], t["fonte"], t["sombra"], t["fundo"], t["brilho"]
 SAIDA_S = 0.3  # o card some nos últimos 0,3 s
 
 # card em proporção da tela (a legenda da cena fica embaixo, fora dele)
@@ -84,7 +115,7 @@ def _texto(camada: Image.Image, texto: str, caminho: str, tamanho: int, cx: floa
     sprite = Image.new("RGBA", (lw + 2 * pad, lh + 2 * pad), (0, 0, 0, 0))
     ImageDraw.Draw(sprite).text((pad - caixa[0], pad - caixa[1]), texto, font=fonte, fill=cor + (255,))
     sombra = Image.new("RGBA", sprite.size, (0, 0, 0, 0))
-    sombra.putalpha(sprite.getchannel("A").point(lambda a: int(a * 0.75)))
+    sombra.putalpha(sprite.getchannel("A").point(lambda a: int(a * SOMBRA)))
     sombra = sombra.filter(ImageFilter.GaussianBlur(6))
     x, yy = int(cx - sprite.width / 2), int(y - pad)
     camada.alpha_composite(sombra, (x + 3, yy + 6))
@@ -180,7 +211,8 @@ def _card(largura: int, altura: int) -> Image.Image:
     cd = ImageDraw.Draw(corpo)
     for y in range(altura):
         k = y / altura
-        cd.line([(0, y), (largura, y)], fill=(int(24 + 10 * k), int(22 + 6 * k), int(52 - 14 * k), 205))
+        (r0, g0, b0), (r1, g1, b1), opaco = FUNDO
+        cd.line([(0, y), (largura, y)], fill=(int(r0 + (r1 - r0) * k), int(g0 + (g1 - g0) * k), int(b0 + (b1 - b0) * k), opaco))
     mascara = Image.new("L", (largura, altura), 0)
     ImageDraw.Draw(mascara).rounded_rectangle([0, 0, largura - 1, altura - 1], radius=48, fill=255)
     vidro = Image.new("RGBA", (largura, altura), (0, 0, 0, 0))
@@ -484,11 +516,12 @@ class _Animador:
         tipo = animacao.get("tipo")
         if tipo not in TIPOS:
             raise SystemExit(f"animação '{tipo}' não existe. Opções: {', '.join(TIPOS)}")
+        usar_tema(animacao.get("tema"))
         _, _, cl, ca = _caixa(largura, altura)
         self.cw, self.ch = int(largura * cl), int(altura * ca)
         self.base = _card(self.cw, self.ch)
         self.conteudo = TIPOS[tipo](self.cw, self.ch, animacao, duracao, gatilhos)
-        self.brilhos = _Brilhos(self.cw, self.ch, len(json.dumps(animacao)), (255, 235, 160))
+        self.brilhos = _Brilhos(self.cw, self.ch, len(json.dumps(animacao)), BRILHO)
         self.duracao = duracao
 
     def quadro(self, t: float) -> Image.Image:

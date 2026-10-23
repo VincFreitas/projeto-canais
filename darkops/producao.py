@@ -111,7 +111,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
               "motor_voz": perfil.dados.get("motor_voz") if perfil.dados.get("motor_voz") != "auto" else None,
               "tipo_visual": perfil.dados.get("tipo_visual"), "proporcao_video": perfil.dados.get("proporcao_video"),
               "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
-              "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade")}
+              "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade"),
+              "tema_cards": perfil.dados.get("tema_cards")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     if "legenda" not in roteiro and perfil.arquivo.exists():
         roteiro["legenda"] = perfil.dados.get("legenda", True)
@@ -164,6 +165,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if c.get("animacao"):  # infográfico em card de vidro por cima do clipe, sincronizado com a fala
             from .animacoes import alvos_automaticos, eventos, gerar, posicao
             from .sincronia import momento
+            tema = roteiro.get("tema_cards")
+            if tema and tema != "padrao" and "tema" not in c["animacao"]:  # tema de edição do canal
+                c["animacao"] = {**c["animacao"], "tema": tema}
             alvos = c["animacao"].get("em") or alvos_automaticos(c["animacao"])
             gatilhos, depois = [], 0.0
             for alvo in alvos:  # cada elemento procura a sua palavra; sem achar, fica com o tempo padrão

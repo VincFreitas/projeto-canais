@@ -172,3 +172,8 @@ pre.prompt { white-space: pre-wrap; background: #f3efe8; border: 1px solid var(-
 .achados li.erro { color: var(--vermelho); font-weight: 600; }
 .achados li.aviso { color: #8a6400; }
 .achados li.ok { color: var(--verde); }
+.temas-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 6px 0 10px; }
+.tema-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border: 2px solid var(--linha); border-radius: 12px; cursor: pointer; font-weight: 400; background: #2b2924; color: #fff; }
+.tema-card:has(input:checked) { border-color: var(--amarelo); }
+.tema-card input { display: none; }
+.tema-card img { width: 100%; border-radius: 8px; }
