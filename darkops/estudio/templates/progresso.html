@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Progresso{% endblock %}
+{% macro etapas(lista) %}
+<ul class="etapas">
+  {% for e in lista %}
+  <li><span class="ok-x {{ 'sim' if e.feita }}">{{ '✓' if e.feita else '○' }}</span> {{ e.nome }}
+    {% if not e.feita and e.como %}<span class="como">{{ e.como }}{% if e.link %} · <a href="{{ e.link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</span>{% endif %}</li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+{% block corpo %}
+<h1 style="margin-top:0">Progresso da configuração</h1>
+<p class="suave">O que já está pronto em cada plataforma e qual é o próximo passo. Para ser guiado do zero, abra o Claude Code
+  nesta pasta e rode <code>/configurar</code>: ele pergunta quais plataformas você quer e mostra o tutorial de cada uma.</p>
+<div class="grade">
+  {% set feitas = base | selectattr('feita') | list | length %}
+  <section class="cartao">
+    <h2>Base (todas as plataformas)</h2>
+    <p class="suave">{{ feitas }} de {{ base | length }} etapas</p>
+    <div class="barra {{ 'falta' if feitas < base | length }}"><span style="width:{{ (100 * feitas / base | length) | round | int if base else 0 }}%"></span></div>
+    {{ etapas(base) }}
+  </section>
+  {% for r in redes %}
+  <section class="cartao">
+    <h2>{{ r.nome }} <span class="selo {{ r.situacao }}">{{ {'pronta': 'pronta', 'falta': 'falta configurar', 'manual': 'só manual'}[r.situacao] }}</span></h2>
+    {% if r.automatica %}
+    <p class="suave">{{ r.feitas }} de {{ r.etapas | length }} etapas{% if r.proximo %} · próximo: {{ r.proximo.nome }}{% endif %}</p>
+    <div class="barra {{ r.situacao }}"><span style="width:{{ r.percentual }}%"></span></div>
+    {% else %}
+    <p class="suave">Sem postagem automática por enquanto: os vídeos saem prontos e você posta à mão.</p>
+    {% endif %}
+    {{ etapas(r.etapas) }}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -15,12 +15,24 @@ Objetivo: deixar o usuário com um canal postando sozinho, sem ele precisar mexe
 - Não mude configurações de segurança do Windows (política de execução, firewall). Use `powershell -ExecutionPolicy Bypass -File ...`, que vale só para aquele comando.
 - Antes de instalar algo global (Node, n8n), diga o que é, o tamanho aproximado e peça o ok.
 
+## 0. Perguntar o que a pessoa quer testar (sempre primeiro)
+Antes de instalar qualquer coisa, use AskUserQuestion (multiSelect) e deixe claro o que cada opção significa:
+- **YouTube**: Shorts ou vídeo convencional, com postagem automática (precisa de um app OAuth do Google, uma vez, e de um clique por canal).
+- **Instagram**: Reels, com postagem automática (precisa de conta Profissional, app da Meta e um token por canal, que dura 60 dias).
+- **Facebook, TikTok ou Kwai**: o projeto gera o vídeo, mas a postagem é **manual** (ainda não há postagem automática).
+- **Só gerar vídeos**: sem publicar, para testar o pipeline (voz, imagens e render).
+
+Pergunte também se é só um teste (vídeos privados ou não listados, sem ligar a postagem) ou se o canal vai postar de verdade.
+Depois, diga em uma frase o plano: "Vamos configurar a base e depois <plataformas escolhidas>", e siga **só** os tutoriais das plataformas escolhidas (passos 4 e 5). Pule os outros.
+
 ## 1. Ver onde estamos
-Rode o diagnóstico (se o `.venv` ainda não existir, pule para o passo 2):
+Rode o diagnóstico e o progresso por plataforma (se o `.venv` ainda não existir, pule para o passo 2):
 ```
 .\.venv\Scripts\python.exe -m darkops diagnostico
+.\.venv\Scripts\python.exe -m darkops progresso
 ```
-Mostre o resultado resumido e siga só os passos que faltam.
+Mostre o resultado resumido das plataformas escolhidas e siga só os passos que faltam.
+Mostre também a tela **Progresso da configuração** do Estúdio (menu Geral, http://127.0.0.1:8765/progresso), que tem uma barra por plataforma e se atualiza a cada etapa.
 
 ## 2. Dependências (Python 3.11+)
 - Confira `python --version`. Sem Python: peça para instalar em python.org (marcar "Add to PATH").
@@ -38,7 +50,7 @@ Abra o Estúdio e mostre a aba **Conexões**, que explica cada conector:
 - **Imagens: Pixabay (grátis).** pixabay.com/api/docs mostra a chave depois do login.
 - Sem Azure, a voz cai no Edge e no Piper, que já funcionam.
 
-## 4. YouTube (uma vez por instalação, depois um clique por canal)
+## 4. YouTube (se escolhido; uma vez por instalação, depois um clique por canal)
 App OAuth do Google, que vale para todos os perfis:
 1. console.cloud.google.com, logado na conta do canal: criar o projeto, ativar a **YouTube Data API v3**.
 2. Google Auth Platform: Branding (nome do app, e-mail), Público **Externo**, usuário de teste = o Gmail do canal.
@@ -49,7 +61,7 @@ App OAuth do Google, que vale para todos os perfis:
 
 Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos enviados pela API ficam **privados**.
 
-## 5. Instagram (por canal)
+## 5. Instagram (se escolhido; por canal)
 1. A conta do Instagram precisa ser **Profissional** (Criador) e estar ligada a uma Página do Facebook.
 2. developers.facebook.com > criar app > caso de uso "Gerenciar mensagens e conteúdo no Instagram".
 3. Instagram > Configuração da API com login do Instagram > etapa 2 **Adicionar conta** (com o @ do canal) > **Gerar token**.
@@ -68,4 +80,5 @@ Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos envi
 5. Opcional: iniciar com o Windows (`powershell -ExecutionPolicy Bypass -File n8n\iniciar-com-windows.ps1`) e suspensão do PC em "Nunca" na tomada.
 
 ## 8. Conferir
-Rode o diagnóstico de novo, mostre o que ficou pronto e o que é opcional. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio, gerar prévias, aprovar.
+Depois de cada plataforma, rode `.\.venv\Scripts\python.exe -m darkops progresso` e mostre a barra dela. No fim, rode o diagnóstico de novo e mostre o que ficou pronto e o que é opcional.
+No perfil (Estúdio > Novo perfil ou aba Perfil), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Marque só as que a pessoa escolheu. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio, gerar prévias, aprovar.

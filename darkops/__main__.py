@@ -176,6 +176,26 @@ def cmd_diagnostico(_):
     print(f"\n{'Tudo pronto.' if not faltando else f'{faltando} item(ns) para configurar.'}")
 
 
+def cmd_progresso(_):
+    from .plataformas import base, calcular
+
+    def barra(feitas: int, total: int) -> str:
+        cheio = round(10 * feitas / total) if total else 0
+        return f"[{'#' * cheio}{'.' * (10 - cheio)}] {feitas}/{total}"
+
+    def etapas(lista) -> None:
+        for e in lista:
+            print(f"    {'OK ' if e.feita else 'FALTA'}  {e.nome}" + ("" if e.feita or not e.como else f"\n           -> {e.como}"))
+
+    comum = base()
+    print(f"Base (todas as plataformas)  {barra(sum(e.feita for e in comum), len(comum))}")
+    etapas(comum)
+    for r in calcular():
+        resumo = barra(r.feitas, len(r.etapas)) if r.automatica else "só postagem manual"
+        print(f"\n{r.nome}  {resumo}  ({r.situacao})")
+        etapas(r.etapas)
+
+
 def cmd_n8n_workflow(a):
     from .instalacao import gerar_workflow
     gerar_workflow(importar=a.importar)
@@ -224,6 +244,9 @@ def main():
 
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
     s.set_defaults(fn=cmd_diagnostico)
+
+    s = sub.add_parser("progresso", help="progresso da configuração de cada plataforma (YouTube, Instagram...)")
+    s.set_defaults(fn=cmd_progresso)
 
     s = sub.add_parser("n8n-workflow", help="gera n8n/workflow.json para esta pasta (e importa com --importar)")
     s.add_argument("--importar", action="store_true")

@@ -21,7 +21,7 @@
     <label>@</label><input type="text" name="arroba" placeholder="@arquivodoterror">
     <label>Nicho</label><input type="text" name="nicho" placeholder="terror, curiosidades, história...">
     <label>Descrição</label><input type="text" name="descricao">
-    {{ canal.campos(novo) }}
+    {{ canal.campos(modelo, status, novo=True) }}
     <p><button class="botao">Criar perfil</button></p>
   </form>
 </div>

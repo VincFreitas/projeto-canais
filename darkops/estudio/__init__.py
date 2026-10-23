@@ -21,7 +21,8 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from ..perfis import (DURACOES, FORMATOS, ID_VALIDO, MODELO, PADRAO, PLATAFORMAS, campos_canal, carregar, criar, listar,
+from .. import plataformas
+from ..perfis import (DURACOES, FORMATOS, ID_VALIDO, MODELO, PADRAO, campos_canal, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
@@ -187,7 +188,7 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 
 @app.context_processor
 def _contexto():
-    return {"perfis": listar(), "agora": datetime.now(), "plataformas": PLATAFORMAS, "formatos": FORMATOS,
+    return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas}
 
 
@@ -202,7 +203,12 @@ def inicio():
 
 @app.get("/perfis")
 def perfis_pagina():
-    return render_template("perfis.html", novo=MODELO)
+    return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True))
+
+
+@app.get("/progresso")
+def progresso():
+    return render_template("progresso.html", base=plataformas.base(), redes=plataformas.calcular())
 
 
 @app.post("/perfis/novo")
@@ -274,7 +280,7 @@ def configurar(pid):
             img.save(p.pasta / "avatar.png")
         flash("Perfil salvo.", "ok")
         return redirect(url_for("configurar", pid=pid))
-    return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES)
+    return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p))
 
 
 @app.get("/p/<pid>/avatar")

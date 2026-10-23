@@ -1,13 +1,28 @@
 {# Plataformas, formato, duração e vídeo de exemplo do canal; usado em Novo perfil e na aba Perfil. #}
-{% macro campos(d) %}
+{# status: lista de plataformas.Plataforma (de plataformas.calcular); novo=True no formulário de criação #}
+{% macro campos(d, status, novo=False) %}
 <label>Plataformas do canal</label>
+{% set prontas = status | selectattr('situacao', 'equalto', 'pronta') | list %}
+{% set faltam = status | selectattr('situacao', 'equalto', 'falta') | list %}
+{% set manuais = status | selectattr('situacao', 'equalto', 'manual') | list %}
+<div class="alerta-plataformas">
+  {% if prontas %}<p><span class="selo pronta">Prontas</span> {{ prontas | map(attribute='nome') | join(', ') }}
+    {% if novo %}<span class="suave">· depois de criar, conecte cada conta em Conexões</span>{% endif %}</p>{% endif %}
+  {% if faltam %}<p><span class="selo falta">Falta configurar</span>
+    {% for s in faltam %}{{ s.nome }} <span class="suave">(falta: {{ s.proximo.nome }})</span>{{ ', ' if not loop.last }}{% endfor %}</p>{% endif %}
+  {% if manuais %}<p><span class="selo manual">Só postagem manual</span> {{ manuais | map(attribute='nome') | join(', ') }}</p>{% endif %}
+  <p><a href="{{ url_for('progresso') }}">Ver o progresso da configuração de cada plataforma →</a></p>
+</div>
 <div class="opcoes">
-  {% for chave, nome in plataformas %}
-  <label style="font-weight:400"><input type="checkbox" name="{{ chave }}" {{ 'checked' if d[chave] }}> {{ nome }}</label>
+  {% for s in status %}
+  <label style="font-weight:400" title="{{ s.proximo.como if s.proximo and s.automatica else '' }}">
+    <input type="checkbox" name="{{ s.id }}" {{ 'checked' if d[s.id] }}> {{ s.nome }}
+    <span class="selo {{ s.situacao }}">{{ {'pronta': 'pronta', 'falta': 'falta configurar', 'manual': 'manual'}[s.situacao] }}</span></label>
   {% endfor %}
 </div>
 <input type="text" name="outra_plataforma" value="{{ d.outra_plataforma }}" placeholder="Outra plataforma (opcional)">
-<p class="dica">A postagem automática funciona no YouTube e no Instagram; as outras ficam registradas para postar à mão.</p>
+<p class="dica">A postagem automática funciona no YouTube e no Instagram; as outras ficam registradas para postar à mão.
+  Dá para marcar uma plataforma que ainda falta configurar: ela só posta depois de pronta.</p>
 <label>Formato</label>
 {% for chave, nome in formatos.items() %}
 <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
