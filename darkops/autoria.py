@@ -11,7 +11,7 @@ from . import __version__, config
 AUTOR = "Vinicius Freitas"
 PROJETO = "Projeto Canais"
 VERSAO = __version__
-REPOSITORIO = "https://github.com/VincFreitas/pulga-do-saber"
+REPOSITORIO = "https://github.com/VincFreitas/projeto-canais"
 LINKEDIN = "https://www.linkedin.com/in/vinicius-freitas-5941b9446"
 YOUTUBE = "https://www.youtube.com/@pulgadosaber"
 INSTAGRAM = "https://www.instagram.com/pulgadosaber"

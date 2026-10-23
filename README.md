@@ -11,7 +11,7 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 1. Instale o [Claude Code](https://claude.com/claude-code) e o [Python 3.11+](https://www.python.org/downloads/) (marque "Add to PATH").
 2. Clone e abra a pasta no Claude Code:
    ```
-   git clone https://github.com/VincFreitas/pulga-do-saber.git canais-dark
+   git clone https://github.com/VincFreitas/projeto-canais.git canais-dark
    cd canais-dark
    claude
    ```
