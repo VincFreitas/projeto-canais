@@ -45,8 +45,11 @@ def _volumes(audio: Path, quadros: int) -> np.ndarray:
     return np.convolve(vol, np.ones(3) / 3, mode="same")
 
 
-def _desenhar(t: float, boca: float, lado: int) -> Image.Image:
-    """Um quadro da pulga (RGBA, lado x lado)."""
+EXPRESSOES = ("normal", "feliz", "surpresa", "preocupada")
+
+
+def _desenhar(t: float, boca: float, lado: int, expressao: str = "normal") -> Image.Image:
+    """Um quadro da pulga (RGBA, lado x lado). expressao: normal, feliz, surpresa ou preocupada."""
     L = lado * SS
     img = Image.new("RGBA", (L, L), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
@@ -79,21 +82,38 @@ def _desenhar(t: float, boca: float, lado: int) -> Image.Image:
     piscar = (t % 3.7) < 0.12
     for x in (38, 62):
         e(x - 10, cy - 22, x + 10, cy - 2, BRANCO)
-        if piscar:
+        dentro = 1 if x < 50 else -1  # lado da sobrancelha voltado para o meio do rosto
+        if expressao == "surpresa":  # sobrancelhas lá em cima
+            d.arc([(x - 8) * u, (cy - 36) * u, (x + 8) * u, (cy - 26) * u], 200, 340, fill=CONTORNO, width=int(2.4 * u))
+        elif expressao == "preocupada":  # ponta de dentro levantada
+            d.line([((x - 8 * dentro) * u, (cy - 27) * u), ((x + 7 * dentro) * u, (cy - 32) * u)],
+                   fill=CONTORNO, width=int(2.4 * u))
+        if expressao == "feliz" and not piscar:  # olhos fechados de alegria (^ ^)
+            d.arc([(x - 6) * u, (cy - 15) * u, (x + 6) * u, (cy - 5) * u], 200, 340, fill=PRETO, width=int(2.4 * u))
+        elif piscar:
             d.line([((x - 7) * u, (cy - 12) * u), ((x + 7) * u, (cy - 12) * u)], fill=PRETO, width=int(2.4 * u))
         else:
             olhar = math.sin(t * 0.7) * 2
-            e(x - 4 + olhar, cy - 16, x + 4 + olhar, cy - 8, PRETO, borda=False)
+            r = 2.5 if expressao == "surpresa" else 4  # pupila pequena de susto
+            e(x - r + olhar, cy - 12 - r, x + r + olhar, cy - 12 + r, PRETO, borda=False)
             e(x - 1.5 + olhar, cy - 15, x + 1 + olhar, cy - 12.5, BRANCO, borda=False)
         d.ellipse([(x - 11) * u, (cy - 23) * u, (x + 11) * u, (cy - 1) * u], outline=OCULOS, width=int(2.4 * u))
     d.line([(49 * u, (cy - 13) * u), (51 * u, (cy - 13) * u)], fill=OCULOS, width=int(2.4 * u))
     # bochechas
     for x in (30, 70):
         d.ellipse([(x - 4) * u, (cy + 1) * u, (x + 4) * u, (cy + 5) * u], fill=BOCHECHA + (150,))
+    if expressao == "preocupada":  # gota de suor na testa
+        gx, gy = 74, cy - 26 + (t * 6 % 6)
+        d.polygon([(gx * u, (gy - 5) * u), ((gx - 3) * u, gy * u), ((gx + 3) * u, gy * u)], fill=(120, 200, 255))
+        e(gx - 3, gy - 2.5, gx + 3, gy + 3.5, (120, 200, 255), borda=False)
     # boca: abre com o volume
-    abre = 1.5 + boca * 9
-    d.rounded_rectangle([42 * u, (cy + 3) * u, 58 * u, (cy + 3 + abre) * u], radius=int(min(abre, 8) * u / 1.2),
-                        fill=PRETO if abre > 3 else MARROM_ESCURO)
+    abre = 1.5 + boca * 9 + (4 if expressao == "surpresa" else 0)
+    if expressao == "feliz" and boca < 0.15:  # sorriso quando não está falando
+        d.arc([42 * u, (cy - 2) * u, 58 * u, (cy + 10) * u], 20, 160, fill=PRETO, width=int(2.4 * u))
+        abre = 0
+    if abre:
+        d.rounded_rectangle([42 * u, (cy + 3) * u, 58 * u, (cy + 3 + abre) * u],
+                            radius=int(min(abre, 8) * u / 1.2), fill=PRETO if abre > 3 else MARROM_ESCURO)
     if abre > 5:
         d.ellipse([45 * u, (cy + abre - 1) * u, 55 * u, (cy + 3 + abre) * u], fill=LINGUA)
     # sombra suave embaixo
@@ -115,13 +135,14 @@ def _pixelar(img: Image.Image, pixel: int) -> Image.Image:
     return peq.resize((lado, lado), Image.NEAREST)
 
 
-def gerar(audio: Path, duracao: float, lado: int, destino: Path, pixel: int = 0) -> Path:
+def gerar(audio: Path, duracao: float, lado: int, destino: Path, pixel: int = 0,
+          expressao: str = "normal") -> Path:
     """Vídeo .mov com transparência da pulga falando junto com 'audio'. Reaproveita se nada mudou.
 
     pixel > 0 = pulga em pixel art (cada pixel do desenho vira um bloco de 'pixel' x 'pixel')."""
     destino = destino.with_suffix(".mov")
     assinatura = {"audio": audio.name, "mtime": audio.stat().st_mtime, "duracao": round(duracao, 2),
-                  "lado": lado, "versao": VERSAO, "pixel": pixel}
+                  "lado": lado, "versao": VERSAO, "pixel": pixel, "expressao": expressao}
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
@@ -133,7 +154,7 @@ def gerar(audio: Path, duracao: float, lado: int, destino: Path, pixel: int = 0)
     assert proc.stdin is not None
     try:
         for q in range(quadros):
-            quadro = _desenhar(q / FPS, float(vol[q]), lado)
+            quadro = _desenhar(q / FPS, float(vol[q]), lado, expressao)
             if pixel:
                 quadro = _pixelar(quadro, pixel)
             proc.stdin.write(quadro.tobytes())

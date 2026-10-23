@@ -75,6 +75,11 @@ def analisar(url: str) -> dict:
     trechos = [b - a for a, b in zip([0.0] + cortes, cortes + [duracao]) if b - a > 0.2]
     palavras = _palavras(info)
     largura, altura = info.get("width") or 0, info.get("height") or 0
+    if not (largura and altura):  # o Instagram não informa o tamanho: lê do próprio arquivo
+        proc = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(video)],
+                              capture_output=True, text=True, errors="replace")
+        achado = re.search(r"Video:.*?(\d{2,5})x(\d{2,5})", proc.stderr)
+        largura, altura = (int(achado[1]), int(achado[2])) if achado else (0, 0)
     resultado = {
         "url": url, "id": info["id"], "titulo": info.get("title"), "canal": info.get("channel") or info.get("uploader"),
         "duracao_s": round(duracao, 1),

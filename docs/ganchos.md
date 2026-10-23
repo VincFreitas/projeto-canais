@@ -32,4 +32,14 @@ O gancho é a primeira frase depois do bordão "Tá com a pulga atrás da orelha
 
 ## Fechamento (últimos 2 segundos)
 - Feche com uma frase de efeito curta que amarra o gancho ("Três corações, e às vezes um dá uma pausa").
-- Sem "se inscreva" no meio. Se houver CTA, só na legenda.
+- Sem "se inscreva" no meio. Nos vídeos curtos de curiosidade, o CTA fica só na legenda.
+- No formato explicativo (abaixo), o CTA falado entra só na última frase e é um pedido de comentário com uma palavra ligada ao tema ("Comenta GELO se você não sabia que..."). Nunca "se inscreva" nem "deixa o like".
+
+## Formato explicativo ("você monta")
+Para temas "como funciona" (objetos e sistemas do dia a dia), com 75 a 110 s. Começa direto na ação, **sem o bordão**, e a primeira frase já é o primeiro passo.
+1. **Ponto de partida**: "Se você [ação simples]..." (o jeito mais simples possível de resolver o problema).
+2. **Ciclo**, repetido de 4 a 6 vezes: "**Mas** [problema que aparece]." / "**Então** você [solução]." / "**Esse é o** [termo técnico]." (vai para o campo `termo` da cena).
+3. Ao longo do vídeo, uma ou duas consequências que o espectador reconhece ("Por isso a parte de trás da geladeira é quente").
+4. **Fechamento**: "Pronto: você acabou de montar um/uma [objeto]." + o CTA de comentário com uma palavra.
+
+Cada "Mas" abre uma dúvida, e cada "Esse é o..." fecha a dúvida com a recompensa (o nome técnico). Todo passo precisa de fonte: simplificar pode, inventar não. Escolha temas próprios, sem repetir os das referências (portão eletrônico, lâmpada).

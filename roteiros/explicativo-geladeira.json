@@ -1,0 +1,128 @@
+{
+  "slug": "explicativo-geladeira",
+  "titulo": "Como funciona a geladeira",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A cozy kitchen interior seen from the side, warm lamp light, blue tiled wall, small window with night sky, a big cream-colored box-shaped cabinet standing on the wooden floor in the center.",
+  "fontes": [
+    "https://www.nps.gov/articles/000/the-icebox-the-predecessor-of-modern-refrigeration.htm",
+    "https://en.wikipedia.org/wiki/Iceman_(occupation)",
+    "https://www.searshomeservices.com/blog/how-does-a-refrigerator-work-overview",
+    "https://www.rtings.com/refrigerator/learn/how-refrigerators-work",
+    "https://refrigeranthq.com/r-600a-isobutane-refrigerant-fact-info-sheet/",
+    "https://hsmagnet.com/2025/11/11/how-to-re-magnetize-a-refrigerator-door-gasket/"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você coloca um bloco de gelo dentro de uma caixa de madeira, a comida lá dentro fica gelada.",
+      "visual": "ice block wooden box",
+      "ilustracao": "a big wooden box with its door open, a large blue ice block on the top shelf, milk bottle and vegetables on the lower shelf",
+      "rotulos": [{"texto": "bloco de gelo", "x": 0.5, "y": 0.3, "em": "gelo"}],
+      "expressao": "feliz"
+    },
+    {
+      "texto": "Era assim antes da geladeira elétrica: um entregador passava de casa em casa vendendo gelo.",
+      "visual": "ice delivery",
+      "ilustracao": "a delivery man with a cap carrying a big ice block with metal tongs towards the wooden box",
+      "rotulos": [{"texto": "entregador de gelo", "x": 0.5, "y": 0.28, "em": "entregador"}]
+    },
+    {
+      "texto": "Mas o gelo derrete, vira uma poça, e no dia seguinte você tem que comprar mais.",
+      "visual": "melting ice",
+      "ilustracao": "the wooden box with a small melting ice block and a puddle of water dripping on the floor",
+      "expressao": "preocupada"
+    },
+    {
+      "texto": "Então você inverte a ideia: em vez de colocar frio lá dentro, você tira o calor de lá.",
+      "visual": "heat waves",
+      "ilustracao": "the closed box with orange wavy heat lines flowing out of it towards the window",
+      "rotulos": [{"texto": "calor saindo", "x": 0.5, "y": 0.32, "em": "calor"}],
+      "expressao": "surpresa"
+    },
+    {
+      "texto": "Sabe o álcool na mão? Ele evapora e a pele gela, porque o líquido rouba calor para virar gás.",
+      "visual": "hand alcohol",
+      "ilustracao": "a close-up of a cartoon hand with liquid drops turning into small vapor clouds, blue cold sparkles on the skin",
+      "rotulos": [{"texto": "evapora", "x": 0.5, "y": 0.3, "em": "evapora"}]
+    },
+    {
+      "texto": "Então você passa um cano fino por dentro da caixa, com um líquido que ferve a 12 graus abaixo de zero.",
+      "visual": "copper pipe",
+      "ilustracao": "inside the box, a thin copper pipe zigzagging along the back wall, frost on the pipe",
+      "animacao": {"tipo": "contador", "de": 20, "ate": -12, "sufixo": " °C", "rotulo": "o líquido já ferve", "em": ["12"]}
+    },
+    {
+      "texto": "Lá dentro, ele ferve, rouba o calor da comida e vira gás. Esse é o gás refrigerante, e esse cano gelado é o evaporador.",
+      "visual": "frost pipe",
+      "ilustracao": "inside the box, the frosty copper pipe with small bubbles and vapor inside it, food on the shelves",
+      "termo": "evaporador",
+      "rotulos": [{"texto": "gás refrigerante", "x": 0.5, "y": 0.62, "em": "refrigerante"}]
+    },
+    {
+      "texto": "Mas agora o gás saiu da caixa cheio de calor. Então você coloca um motor que espreme esse gás com força, e espremido ele esquenta. Esse é o compressor.",
+      "visual": "compressor",
+      "ilustracao": "behind the box at the bottom, a round black metal motor connected to the copper pipe, small red heat glow",
+      "termo": "compressor",
+      "rotulos": [{"texto": "motor", "x": 0.5, "y": 0.6, "em": "motor"}]
+    },
+    {
+      "texto": "Aí o gás quente passa por uma grade de canos atrás da caixa, solta o calor na cozinha e volta a ser líquido. Esse é o condensador.",
+      "visual": "refrigerator coils",
+      "ilustracao": "the back of the box with a black grid of zigzag pipes glowing warm orange, heat waves going into the kitchen",
+      "termo": "condensador"
+    },
+    {
+      "texto": "Por isso a parte de trás da geladeira é quente.",
+      "visual": "back of refrigerator",
+      "ilustracao": "the back of the box with warm orange heat waves, a small thermometer on the wall showing hot",
+      "destaque": "atrás é quente",
+      "destaque_em": "quente",
+      "expressao": "surpresa"
+    },
+    {
+      "texto": "Antes de voltar para dentro, o líquido passa por um tubo bem fininho, a pressão cai e ele gela de novo. Esse é o tubo capilar.",
+      "visual": "thin copper tube",
+      "ilustracao": "a very thin coiled copper tube between the warm back grid and the cold pipe inside the box, blue frost at its end",
+      "termo": "tubo capilar"
+    },
+    {
+      "texto": "Mas o motor não precisa ficar ligado o tempo todo. Então você põe um sensor que liga quando esquenta e desliga quando esfria. Esse é o termostato.",
+      "visual": "thermostat dial",
+      "ilustracao": "inside the box, a small round dial with a pointer on the wall, a green light on and a red light off",
+      "termo": "termostato",
+      "rotulos": [{"texto": "sensor", "x": 0.5, "y": 0.32, "em": "sensor"}]
+    },
+    {
+      "texto": "E para o frio não escapar, a borracha da porta tem um ímã que puxa a porta e fecha sozinha.",
+      "visual": "refrigerator door seal",
+      "ilustracao": "the box door closing with a rubber seal along the edge, small magnet sparkles on the seal",
+      "rotulos": [{"texto": "ímã na borracha", "x": 0.5, "y": 0.3, "em": "ímã"}]
+    },
+    {
+      "texto": "Pronto: você acabou de montar uma geladeira. Comenta gelo se você não sabia que ela não faz frio, ela tira o calor.",
+      "visual": "modern refrigerator kitchen",
+      "ilustracao": "the finished cream refrigerator with a glowing interior light, door open showing food, happy kitchen, sparkles",
+      "destaque": "comenta GELO",
+      "destaque_em": "comenta",
+      "expressao": "feliz"
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona a geladeira (ela não faz frio) #shorts",
+      "descricao": "A geladeira não cria frio: ela tira o calor de dentro e joga na cozinha. Monte uma com a gente, peça por peça.",
+      "hashtags": ["#shorts", "#curiosidades", "#comofunciona", "#pulgadosaber", "#ciencia", "#geladeira"]
+    },
+    "instagram": {
+      "legenda": "A geladeira não faz frio: ela tira o calor. Comenta GELO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": ["#curiosidades", "#comofunciona", "#pulgadosaber", "#ciencia", "#reels", "#geladeira", "#vocesabia"]
+    }
+  }
+}

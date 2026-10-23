@@ -128,6 +128,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     slug = roteiro.get("slug") or caminho.stem
     estilo = roteiro.get("estilo")
     pixel = int(roteiro.get("pixel", 5)) if estilo == "pixel" else 0  # tamanho do pixel na tela
+    palavra = roteiro.get("legenda_modo") == "palavra"  # formato explicativo: uma palavra por vez
 
     obra = config.OBRA / slug / formato
     for sub in ("audio", "visuais", "cenas"):
@@ -178,9 +179,11 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if roteiro.get("narrador"):  # pulga cartoon que fala junto com a voz, no canto esquerdo de baixo
             from .narrador import gerar as gerar_narrador
             lado = int(largura * (0.19 if altura < largura else 0.26))
-            y = altura - lado - int(altura * (0.02 if altura < largura else 0.2))
+            # com a legenda de uma palavra, o meio de baixo fica livre e a pulga desce para o canto
+            margem = 0.02 if altura < largura else 0.04 if palavra else 0.2
+            y = altura - lado - int(altura * margem)
             narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov",
-                                       pixel),
+                                       pixel, c.get("expressao", "normal")),
                         int(largura * 0.01), y)
         destaque = None
         if c.get("destaque") and not c.get("animacao"):  # palavra-herói no segundo em que é falada
@@ -190,6 +193,17 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             if t is not None:
                 destaque = (texto, t)
                 efeitos.append((inicio_cena + t, "thud"))
+        termo, rotulos = None, []
+        if c.get("termo"):  # "Esse é o tungstênio": o nome técnico fica no topo até o fim da cena
+            from .sincronia import momento
+            t = momento(palavras, c.get("termo_em") or c["termo"])
+            termo = (c["termo"], t if t is not None else 0.2)
+            efeitos.append((inicio_cena + termo[1], "thud"))
+        for r in c.get("rotulos", []):  # etiquetas presas ao objeto, cada uma na sua palavra
+            from .sincronia import momento
+            t = momento(palavras, r.get("em") or r["texto"])
+            rotulos.append((r["texto"], float(r.get("x", 0.5)), float(r.get("y", 0.4)), t if t is not None else 0.3))
+            efeitos.append((inicio_cena + rotulos[-1][3], "pop"))
         visuais_usados.append(visual)
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
@@ -202,7 +216,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                  destaque=destaque, grande=post,
                                  fonte=roteiro.get("legenda_fonte", "Arial Black"),
                                  escala=TAMANHOS_LEGENDA.get(roteiro.get("legenda_tamanho", "media"), 1.0),
-                                 cor=roteiro.get("legenda_cor", "#FFE500"))
+                                 cor=roteiro.get("legenda_cor", "#FFE500"),
+                                 palavra=palavra, termo=termo, rotulos=rotulos)
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
@@ -227,7 +242,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
                   selo=roteiro.get("selo"), efeitos=sfx,
-                  mascote=roteiro.get("mascote", True),
+                  # a pulga narradora já faz o papel do mascote do canto
+                  mascote=roteiro.get("mascote", not roteiro.get("narrador")),
                   post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),
                         "nome": roteiro.get("canal_nome", perfil.dados.get("nome")),
                         "arroba": roteiro.get("selo", perfil.dados.get("arroba")),

@@ -7,6 +7,7 @@ Uma cena do roteiro ganha uma animação com o campo "animacao":
    "unidade": "dias", "titulo": "Vênus"}
   {"tipo": "linha_do_tempo", "marcos": [{"valor": -2560, "texto": "2560 a.C.", "rotulo": "Pirâmide"}, ...]}
   {"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}
+  {"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}
 
 O resultado é um vídeo com transparência (.mov, qtrle/argb) do tamanho do card. O render põe esse
 vídeo por cima do clipe real da cena (desfocado e escurecido), então o ritmo do vídeo não quebra.
@@ -237,6 +238,8 @@ def alvos_automaticos(animacao: dict) -> list[str]:
         return [str(m.get("texto", "")).split()[0] if m.get("texto") else "" for m in animacao.get("marcos", [])]
     if tipo == "contador":
         return [_numero(float(animacao.get("ate", 0)), int(animacao.get("casas", 0)))]
+    if tipo == "barra":
+        return [_numero(float(animacao.get("valor", 0)), int(animacao.get("casas", 0)))]
     if tipo == "icones" and animacao.get("rotulo"):
         return [animacao["rotulo"].split()[-1]]
     return []
@@ -435,8 +438,44 @@ class _Icones:
                        BRANCO, w * 0.88)
 
 
+class _Barra:
+    """Barra horizontal que enche até 'valor' de 100 ("95% vira calor")."""
+    def __init__(self, w, h, a, dur, gatilhos=None):
+        self.w, self.h, self.a = w, h, a
+        self.fim = gatilhos[0] + 0.15 if gatilhos and gatilhos[0] is not None else 0.25 + max(dur * 0.5, 0.7)
+        self.inicio = min(0.3, self.fim - 0.5)
+
+    def eventos(self) -> list[tuple[float, str]]:
+        return [(self.fim, "ding")]
+
+    def quadro(self, c: Image.Image, t: float, dur: float) -> None:
+        a, w, h = self.a, self.w, self.h
+        valor = max(0.0, min(float(a.get("valor", 50)), 100.0))
+        p = _suave((t - self.inicio) / (self.fim - self.inicio))
+        if a.get("titulo"):
+            _texto(c, a["titulo"], FONTE_FORTE, int(w * 0.07), w / 2, h * 0.1, BRANCO, w * 0.88)
+        x0, x1, y0, y1 = w * 0.08, w * 0.92, h * 0.36, h * 0.56
+        d = ImageDraw.Draw(c)
+        d.rounded_rectangle([x0, y0, x1, y1], radius=14, fill=(255, 255, 255, 55))
+        cor = tuple(a["cor"]) if a.get("cor") else CORES[2]
+        fim = x0 + (x1 - x0) * valor / 100 * p
+        if fim > x0 + 4:
+            barra = Image.new("RGBA", c.size, (0, 0, 0, 0))
+            ImageDraw.Draw(barra).rounded_rectangle([x0, y0, fim, y1], radius=14, fill=cor + (255,))
+            c.alpha_composite(barra.filter(ImageFilter.GaussianBlur(12)))
+            c.alpha_composite(barra)
+        pulo = 1 + 0.08 * math.sin(min(max(t - self.fim, 0) / 0.3, 1) * math.pi)
+        _texto(c, _numero(valor * p, int(a.get("casas", 0))) + a.get("sufixo", "%"), FONTE_FORTE,
+               int(w * 0.11 * pulo), w / 2, (y0 + y1) / 2 - w * 0.07, BRANCO, w * 0.8)
+        if a.get("rotulo"):
+            entrada = _suave((t - self.inicio - 0.2) / 0.4)
+            if entrada > 0.02:
+                _texto(c, a["rotulo"], FONTE_FORTE, int(w * 0.075), w / 2, h * 0.7 + (1 - entrada) * 30,
+                       cor, w * 0.88)
+
+
 TIPOS = {"contador": _Contador, "comparacao": _Comparacao, "linha_do_tempo": _LinhaDoTempo,
-         "icones": _Icones}
+         "icones": _Icones, "barra": _Barra}
 
 
 class _Animador:

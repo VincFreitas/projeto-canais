@@ -37,6 +37,16 @@ Perfil do canal (`perfis/<perfil>/perfil.json`, padrão `pulga-do-saber`): quand
 - **Estilos desenhados no PC** (`pixel`, padrão do Pulga do Saber, e também `desenho2d`, `pintura`, `foto_antiga`, `anime`, `3d`, `sombrio`, `realista`): escreva em inglês o `personagem` do roteiro (o protagonista e o cenário, igual em todas as cenas) e a `ilustracao` de cada cena (o que se vê, em uma frase, sem texto na imagem). O pipeline desenha a cena no PC; mantenha `visual` como reserva para a busca.
 - Use **só** números que estão na narração. Nada de dado novo só na tela.
 
+## 3c. Formato explicativo ("como funciona", 75 a 110 s)
+Quando a ideia é explicar como algo funciona, use o formato explicativo de [docs/ganchos.md](../../../docs/ganchos.md#formato-explicativo-você-monta) e os campos de [docs/roteiro.md](../../../docs/roteiro.md#formato-explicativo-tela-cheia-você-monta). Modelo: `roteiros/explicativo-geladeira.json`.
+- Use `"layout": "cheio"`, `"legenda_modo": "palavra"` e `"velocidade": "+15%"`, e escreva de 12 a 16 cenas com 1 ou 2 frases cada (cerca de 280 a 320 palavras).
+- Não use o bordão. A 1ª frase já é "Se você [ação simples]...".
+- Cada ciclo "Mas... / Então você... / Esse é o [termo]" põe o nome técnico em `termo`. Marque as peças com `rotulos` (2 ou 3 palavras, com `em` na palavra falada).
+- Ponha uma `expressao` na pulga quando a fala pedir: `preocupada` no problema, `surpresa` na virada, `feliz` na solução e no fim.
+- O `personagem` descreve o cenário fixo, e cada `ilustracao` descreve o mesmo objeto no estado daquele passo.
+- O CTA vai só na última frase e é um pedido de comentário com uma palavra ("Comenta GELO se...").
+- Simplificar pode, inventar não: cada passo tem fonte em `fontes`.
+
 ## 4. Verticais derivados (2 ou 3)
 - Arquivos `roteiros/<slug>-v1.json`, `-v2.json`... com `"formato": "vertical"`, 30 a 60 s (80 a 150 palavras), `velocidade` `+10%`.
 - Cada um é um recorte com gancho próprio na 1ª frase (o curiosity gap mais forte do tema), não um resumo do longo.

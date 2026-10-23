@@ -85,6 +85,7 @@ Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do *
 | `comparacao` | `itens` [{`rotulo`, `valor`}] (até 3), `unidade`, `titulo`, `casas` | `{"tipo": "comparacao", "itens": [{"rotulo": "Bebê", "valor": 300}, {"rotulo": "Adulto", "valor": 206}]}` |
 | `linha_do_tempo` | `marcos` [{`valor` (ano; a.C. negativo), `texto`, `rotulo`}] (2 a 5) | `{"tipo": "linha_do_tempo", "marcos": [{"valor": -30, "texto": "30 a.C.", "rotulo": "Cleópatra"}, {"valor": 1969, "texto": "1969", "rotulo": "Lua"}]}` |
 | `icones` | `simbolo` (`coracao`, `estrela`, `cubo`, `circulo`), `quantidade` (até 12), `cor` [r,g,b], `rotulo` | `{"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}` |
+| `barra` | `valor` (0 a 100), `sufixo` (`%`), `titulo`, `rotulo`, `cor` [r,g,b] | `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}` |
 
 ## Sincronia, destaques e efeitos
 
@@ -98,6 +99,21 @@ Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do *
 - `"layout": "post"`: o vídeo final continua 1080x1920, mas fica num **fundo branco** com o avatar do canal (a pulga num círculo amarelo), o nome, o @ e a `manchete` em texto, e as cenas passam numa **janela** de 1080x780 no meio (`config.JANELA_POST`), com a barra de progresso embaixo dela.
 - `"manchete"`: frase completa de 8 a 14 palavras, que resume o vídeo (as linhas se equilibram sozinhas). Sem ela, usa o `titulo`.
 - Nas cenas da janela, a legenda e a palavra-herói usam o estilo grande de Shorts e o card das animações ocupa a janela. O mascote do canto e o selo do topo não aparecem: o avatar faz esse papel.
+
+## Formato explicativo (tela cheia, "você monta")
+Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-explicativo-você-monta)), com 75 a 110 s, 12 a 16 cenas de 5 a 8 s e `velocidade` `+15%` (cerca de 180 palavras/min). Exemplo: `roteiros/explicativo-geladeira.json`.
+
+| Campo | Onde | O que faz |
+|---|---|---|
+| `"layout": "cheio"` | roteiro | Tela cheia 1080x1920, sem a moldura do layout post. No pixel art, o desenho já sai em pé (768x1344) |
+| `"legenda_modo": "palavra"` | roteiro | Uma palavra por vez, branca e grande, abaixo do centro. As palavras do `termo` saem na `legenda_cor` (laranja `#FF9F1C` no exemplo) |
+| `termo` (`termo_em`) | cena | O nome técnico ("evaporador") aparece no topo, em caixa alta, no segundo em que é falado, e fica até o fim da cena |
+| `rotulos` | cena | Etiquetas brancas presas ao objeto: `[{"texto": "gás refrigerante", "x": 0.5, "y": 0.6, "em": "refrigerante"}]`. `x` e `y` vão de 0 a 1 na tela, e `em` é a palavra falada que faz a etiqueta aparecer (sem `em`, vale o texto) |
+| `expressao` | cena | Rosto da pulga narradora: `normal`, `feliz`, `surpresa` ou `preocupada` |
+| `personagem` | roteiro | No explicativo, descreve o **cenário fixo** (a mesma cozinha, a mesma caixa) para o objeto ir mudando na mesma cena |
+
+- Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e a pulga desce para o canto de baixo.
+- Animação nova, `barra`: `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}`. A barra enche até `valor`% no segundo em que o número é falado.
 
 ## Estilo cartoon
 
