@@ -22,9 +22,12 @@
   </nav>
   <p class="rotulo">Geral</p>
   <nav class="menu">
-    <a href="{{ url_for('progresso') }}">Progresso da configuração</a>
+    <a href="{{ url_for('progresso') }}">Progresso da configuração{% if guiado %} <span class="selo falta">guiado</span>{% endif %}</a>
     <a href="{{ url_for('chaves') }}">Chaves de serviços</a>
+    <a href="{{ url_for('sobre') }}">Sobre o projeto</a>
+    <a href="{{ url_for('sobre') }}#sugestao">Enviar sugestão</a>
   </nav>
+  <p class="versao">{{ autoria.PROJETO }} v{{ autoria.VERSAO }}<br>por {{ autoria.AUTOR }}</p>
 </aside>
 <main class="conteudo">
   {% if p %}
@@ -41,18 +44,26 @@
   </header>
   <nav class="abas">
     {% set aba = request.endpoint %}
-    <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' }}">Início</a>
-    <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar') }}">Fila</a>
-    <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo</a>
+    {% set trava = ' 🔒' if guiado else '' %}
+    <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' }}">Início{{ trava }}</a>
+    <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar') }}">Fila{{ trava }}</a>
+    <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo{{ trava }}</a>
     <a href="{{ url_for('conexoes', pid=p.id) }}" class="{{ 'atual' if aba == 'conexoes' }}">Conexões</a>
-    <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico</a>
+    <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico{{ trava }}</a>
     <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' }}">Perfil</a>
   </nav>
+  {% endif %}
+  {% if creditos_removidos %}
+  <div class="aviso erro">Cópia modificada: {{ creditos_removidos | join(', ') }}. Este projeto foi criado por
+    {{ autoria.AUTOR }} e é distribuído sob licença não comercial. Original: <a href="{{ autoria.REPOSITORIO }}">{{ autoria.REPOSITORIO }}</a></div>
   {% endif %}
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% for tipo, texto in mensagens %}<div class="aviso {{ tipo }}">{{ texto }}</div>{% endfor %}
   {% endwith %}
   {% block corpo %}{% endblock %}
 </main>
+<a class="carimbo" href="{{ url_for('sobre') }}" title="{{ autoria.CARIMBO }}">
+  <b>{{ autoria.AUTOR }}</b><span>{{ autoria.PROJETO }} · v{{ autoria.VERSAO }}</span>
+</a>
 </body>
 </html>

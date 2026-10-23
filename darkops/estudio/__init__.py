@@ -21,7 +21,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import plataformas
+from .. import autoria, plataformas
 from ..perfis import (DURACOES, FORMATOS, ID_VALIDO, MODELO, PADRAO, campos_canal, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
@@ -52,6 +52,26 @@ def _so_local():
         origem = request.headers.get("Origin") or request.headers.get("Referer") or ""
         if origem and not re.match(r"^https?://(127\.0\.0\.1|localhost)(:\d+)?(/|$)", origem):
             abort(403)
+
+
+# ---------- modo guiado: enquanto a configuração não termina, só as telas de configurar ----------
+
+# telas que esperam a configuração pronta; o resto (progresso, conexões, chaves, perfis, sobre) fica livre
+TRAVADAS = {"inicio", "painel", "fila", "ver", "editar", "novo", "historico"}
+
+
+def _guia_pendente() -> list:
+    if os.getenv("DARKOPS_MODO_GUIADO", "1").strip() == "0":
+        return []
+    return plataformas.pendencias()
+
+
+@app.before_request
+def _modo_guiado():
+    if request.endpoint in TRAVADAS and request.method == "GET" and _guia_pendente():
+        if request.endpoint != "inicio":
+            flash("Modo guiado: termine a configuração para liberar esta tela. Siga o próximo passo abaixo.", "erro")
+        return redirect(url_for("progresso"))
 
 
 # ---------- utilidades ----------
@@ -189,7 +209,9 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 @app.context_processor
 def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
-            "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas}
+            "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
+            "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
+            "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS}
 
 
 # ---------- perfis e chaves ----------
@@ -208,7 +230,28 @@ def perfis_pagina():
 
 @app.get("/progresso")
 def progresso():
-    return render_template("progresso.html", base=plataformas.base(), redes=plataformas.calcular())
+    return render_template("progresso.html", base=plataformas.base(), redes=plataformas.calcular(),
+                           pendentes=_guia_pendente())
+
+
+@app.route("/sobre", methods=["GET", "POST"])
+def sobre():
+    if request.method == "POST":
+        # o Estúdio roda no PC de quem testa: a sugestão vira uma issue pré-preenchida no repositório do autor
+        f = request.form
+        texto = f.get("texto", "").strip()
+        if not texto:
+            flash("Escreva a sugestão antes de enviar.", "erro")
+            return redirect(url_for("sobre") + "#sugestao")
+        tipo = f.get("tipo") or "Ideia"
+        redes = sorted({nomes_plataformas(p.dados) for p in listar()} - {""})
+        corpo = (f"{texto}\n\n---\nTipo: {tipo}\nNome: {f.get('nome', '').strip() or 'não informado'}\n"
+                 f"Versão: {autoria.VERSAO}\nPlataformas dos perfis: {'; '.join(redes) or 'nenhuma'}\n"
+                 f"Configuração pendente: {len(_guia_pendente())} etapa(s)\nSistema: {sys.platform}")
+        titulo = f"[{tipo}] {texto.splitlines()[0][:70]}"
+        from urllib.parse import urlencode
+        return redirect(f"{autoria.REPOSITORIO}/issues/new?{urlencode({'title': titulo, 'body': corpo})}")
+    return render_template("sobre.html")
 
 
 @app.post("/perfis/novo")

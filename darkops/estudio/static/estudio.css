@@ -145,3 +145,19 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .etapas li { padding: 6px 0; border-top: 1px solid var(--linha); }
 .etapas li .como { display: block; font-size: 13px; color: var(--suave); }
 .etapas li .como a { color: var(--azul); }
+/* carimbo do autor: selo fixo no canto, como um carimbo de tinta */
+.carimbo {
+  position: fixed; right: 18px; bottom: 16px; z-index: 50; display: flex; flex-direction: column; align-items: center;
+  padding: 6px 12px; border: 2px solid #b4462f; outline: 1px solid #b4462f; outline-offset: 2px; border-radius: 8px;
+  color: #b4462f; background: rgba(255, 253, 250, .7); transform: rotate(-6deg); opacity: .55;
+  text-decoration: none; text-transform: uppercase; letter-spacing: .08em; line-height: 1.25; transition: opacity .2s;
+}
+.carimbo:hover { opacity: .95; }
+.carimbo b { font-size: 12px; }
+.carimbo span { font-size: 9.5px; }
+.versao { margin-top: 28px; font-size: 12px; color: #8f887d; line-height: 1.4; }
+.passo-atual { border-left: 4px solid var(--amarelo); }
+.sobre p { max-width: 70ch; }
+.botoes-apoio { display: flex; flex-wrap: wrap; gap: 8px; }
+.botao.claro { background: #fff; border: 1px solid var(--linha); color: var(--texto); text-decoration: none; }
+@media (max-width: 700px) { .carimbo { right: 8px; bottom: 8px; transform: rotate(-6deg) scale(.85); } }

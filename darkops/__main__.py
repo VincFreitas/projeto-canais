@@ -168,7 +168,9 @@ def cmd_perfis(_):
 
 
 def cmd_diagnostico(_):
+    from .autoria import carimbo_cli
     from .instalacao import diagnostico
+    print(carimbo_cli() + "\n")
     faltando = 0
     for item, pronto, fazer in diagnostico():
         print(f"{'OK ' if pronto else 'FALTA'}  {item}" + ("" if pronto else f"\n        -> {fazer}"))
@@ -177,7 +179,9 @@ def cmd_diagnostico(_):
 
 
 def cmd_progresso(_):
+    from .autoria import carimbo_cli
     from .plataformas import base, calcular
+    print(carimbo_cli() + "\n")
 
     def barra(feitas: int, total: int) -> str:
         cheio = round(10 * feitas / total) if total else 0
@@ -232,7 +236,9 @@ def cmd_nichos(_):
 
 
 def main():
-    p = argparse.ArgumentParser(prog="dark", description="Pesquisa e produção de canais dark")
+    from .autoria import CARIMBO, VERSAO
+    p = argparse.ArgumentParser(prog="dark", description=f"Pesquisa e produção de canais dark. {CARIMBO}")
+    p.add_argument("--version", action="version", version=f"%(prog)s {VERSAO}")
     p.add_argument("--perfil", help="id do perfil (pasta em perfis/); padrão: pulga-do-saber")
     sub = p.add_subparsers(dest="comando", required=True)
 

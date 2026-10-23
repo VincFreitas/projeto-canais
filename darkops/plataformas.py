@@ -96,6 +96,25 @@ def calcular(perfil=None, novo: bool = False) -> list[Plataforma]:
     ]
 
 
+ESSENCIAIS = ("Arquivo .env", "Voz offline (Piper)", "Pelo menos um perfil")
+
+
+def pendencias() -> list[Etapa]:
+    """Etapas que travam o modo guiado: o essencial da base e tudo das plataformas automáticas marcadas
+    em algum perfil. Vazia = configuração concluída, Estúdio liberado."""
+    from .perfis import listar
+    comum = base()
+    faltando = [e for e in comum if e.nome in ESSENCIAIS and not e.feita]
+    imagens = [e for e in comum if e.nome.startswith(("Imagens", "Desenho local"))]
+    if imagens and not any(e.feita for e in imagens):
+        faltando.append(imagens[0])
+    marcadas = {chave for p in listar() for chave in ("youtube", "instagram") if p.dados.get(chave)}
+    for r in calcular():
+        if r.id in marcadas:
+            faltando += [Etapa(f"{r.nome}: {e.nome}", e.feita, e.como, e.link) for e in r.etapas if not e.feita]
+    return faltando
+
+
 def base() -> list[Etapa]:
     """Peças comuns a todas as plataformas (voz, imagens, perfil e n8n), tiradas do diagnóstico."""
     from .instalacao import diagnostico

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block titulo %}Sobre o projeto{% endblock %}
+{% block corpo %}
+<div class="sobre">
+<h1 style="margin-top:0">{{ autoria.PROJETO }} <span class="selo manual">v{{ autoria.VERSAO }}</span></h1>
+<p class="suave">Criado por <b>{{ autoria.AUTOR }}</b> · versão de teste (beta)</p>
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2>O que é</h2>
+  <p>Uma fábrica de canais de vídeo sem rosto (canais dark) que roda no seu próprio PC. Ela pesquisa o que já
+    está fazendo sucesso num nicho, ajuda a escrever roteiros com fatos checados e fontes, narra com voz neural,
+    desenha as cenas (em pixel art, no PC, ou com clipes de licença livre), monta o vídeo com legenda e música
+    liberada e, depois que você aprova, posta sozinha no YouTube e no Instagram nos horários marcados.</p>
+  <p>O canal de demonstração é o <b>Pulga do Saber</b>: curiosidades rápidas narradas por uma pulga em pixel art.</p>
+  <p>Tudo segue as regras das plataformas: conteúdo original, fatos com fonte, música com licença, postagem só pelas
+    APIs oficiais e só do que você aprovou.</p>
+</section>
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2>Apoie o projeto</h2>
+  <p>O projeto é gratuito para testar e estudar. Se ele te ajudou, o apoio que mais faz diferença é:</p>
+  <div class="botoes-apoio">
+    <a class="botao" href="{{ autoria.REPOSITORIO }}" target="_blank" rel="noopener">★ Dar uma estrela no GitHub</a>
+    <a class="botao claro" href="{{ autoria.YOUTUBE }}" target="_blank" rel="noopener">Seguir no YouTube</a>
+    <a class="botao claro" href="{{ autoria.INSTAGRAM }}" target="_blank" rel="noopener">Seguir no Instagram</a>
+    <button type="button" class="botao claro" onclick="compartilhar(this)">Compartilhar o projeto</button>
+    <a class="botao claro" href="{{ autoria.LINKEDIN }}" target="_blank" rel="noopener">Falar comigo no LinkedIn</a>
+  </div>
+  <p class="dica">Parcerias e uso comercial: fale pelo LinkedIn. A licença permite uso pessoal e não comercial.</p>
+</section>
+
+<section class="cartao" id="sugestao" style="margin-bottom:16px">
+  <h2>Enviar sugestão</h2>
+  <p class="suave">Está testando? Conte o que travou, o que faltou ou uma ideia. Ao enviar, abre uma página do GitHub já
+    preenchida com o seu texto, a versão e as plataformas que você marcou; é só conferir e clicar em
+    “Submit new issue” (precisa de uma conta grátis no GitHub). Nenhuma chave ou token é enviado.</p>
+  <form method="post" target="_blank">
+    <div class="grade">
+      <div><label>Tipo</label><select name="tipo">
+        {% for t in ['Ideia', 'Problema', 'Dúvida', 'Elogio'] %}<option>{{ t }}</option>{% endfor %}</select></div>
+      <div><label>Seu nome (opcional)</label><input type="text" name="nome"></div>
+    </div>
+    <label>Sugestão</label>
+    <textarea name="texto" rows="5" required placeholder="Ex.: no passo do Instagram não ficou claro onde gerar o token..."></textarea>
+    <p><button class="botao">Enviar sugestão</button></p>
+  </form>
+</section>
+
+<section class="cartao">
+  <h2>Licença e créditos</h2>
+  <p>{{ autoria.CARIMBO }}. Distribuído sob a licença <b>PolyForm Noncommercial 1.0.0</b> (arquivo LICENSE): pode
+    baixar, testar, estudar e modificar para uso pessoal, mantendo o crédito. Vender ou usar comercialmente exige
+    autorização do autor.</p>
+  <p><a href="{{ autoria.REPOSITORIO }}" target="_blank" rel="noopener">{{ autoria.REPOSITORIO }}</a></p>
+</section>
+</div>
+<script>
+function compartilhar(botao) {
+  const dados = {title: "{{ autoria.PROJETO }}", text: "Fábrica de canais dark que roda no seu PC", url: "{{ autoria.REPOSITORIO }}"};
+  if (navigator.share) { navigator.share(dados).catch(() => {}); return; }
+  navigator.clipboard.writeText(dados.url).then(() => { botao.textContent = "Link copiado!"; });
+}
+</script>
+{% endblock %}

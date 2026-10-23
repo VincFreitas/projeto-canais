@@ -1,5 +1,7 @@
 # Estúdio de Canais (canais-dark)
 
+> **Fábrica de Canais v0.9.0 (beta) · criado por Vinicius Freitas** · [LinkedIn](https://www.linkedin.com/in/vinicius-freitas-5941b9446) · licença não comercial ([LICENSE](LICENSE))
+
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
 Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico.
@@ -66,3 +68,13 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 - Só mídia e música com licença livre; mídia realista gerada por IA exige marcar "conteúdo sintético".
 - Contas próprias (nada de contas compradas) e postagem só do que foi aprovado.
 - Sem a auditoria do Google, o YouTube deixa os vídeos enviados pela API como privados.
+
+## Testando? Sua opinião ajuda
+
+No Estúdio, **Sobre o projeto** explica a ideia e tem o campo **Enviar sugestão**, que abre uma issue já preenchida aqui no GitHub. Enquanto a configuração não termina, o Estúdio fica em **modo guiado**: Fila, Novo vídeo e Histórico só liberam depois de concluir as etapas da tela Progresso (quem já tem tudo pronto pode desligar com `DARKOPS_MODO_GUIADO=0` no `.env`).
+
+Se o projeto te ajudou, deixe uma ⭐ no repositório e siga o [Pulga do Saber no YouTube](https://www.youtube.com/@pulgadosaber) e no [Instagram](https://www.instagram.com/pulgadosaber).
+
+## Licença e autoria
+
+Criado por **Vinicius Freitas**. Distribuído sob a [PolyForm Noncommercial 1.0.0](LICENSE): pode baixar, testar, estudar e modificar para uso pessoal e não comercial, mantendo o crédito. Vender, revender ou usar comercialmente exige autorização do autor. A versão atual está em `darkops/__init__.py` (`python -m darkops --version`).

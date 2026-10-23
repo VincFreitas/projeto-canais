@@ -12,6 +12,18 @@
 <h1 style="margin-top:0">Progresso da configuração</h1>
 <p class="suave">O que já está pronto em cada plataforma e qual é o próximo passo. Para ser guiado do zero, abra o Claude Code
   nesta pasta e rode <code>/configurar</code>: ele pergunta quais plataformas você quer e mostra o tutorial de cada uma.</p>
+{% if pendentes %}
+{% set e = pendentes[0] %}
+<section class="cartao passo-atual" style="margin-bottom:16px">
+  <h2>Modo guiado · próximo passo</h2>
+  <p><b>{{ e.nome }}</b></p>
+  {% if e.como %}<p>{{ e.como }}{% if e.link %} · <a href="{{ e.link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</p>{% endif %}
+  <p class="suave">Faltam {{ pendentes | length }} etapa(s). Fila, Novo vídeo e Histórico ficam travados até terminar, para
+    você não pular nenhuma parte da configuração da aplicação e das contas. Depois de cada passo, recarregue esta página.</p>
+</section>
+{% else %}
+<div class="aviso ok">Configuração concluída: todas as telas estão liberadas.</div>
+{% endif %}
 <div class="grade">
   {% set feitas = base | selectattr('feita') | list | length %}
   <section class="cartao">

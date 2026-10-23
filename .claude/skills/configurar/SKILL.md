@@ -32,7 +32,7 @@ Rode o diagnóstico e o progresso por plataforma (se o `.venv` ainda não existi
 .\.venv\Scripts\python.exe -m darkops progresso
 ```
 Mostre o resultado resumido das plataformas escolhidas e siga só os passos que faltam.
-Mostre também a tela **Progresso da configuração** do Estúdio (menu Geral, http://127.0.0.1:8765/progresso), que tem uma barra por plataforma e se atualiza a cada etapa.
+O Estúdio fica em **modo guiado** até essas etapas terminarem: Fila, Novo vídeo e Histórico ficam travados e a tela Progresso mostra o próximo passo; siga essa ordem. Mostre também a tela **Progresso da configuração** do Estúdio (menu Geral, http://127.0.0.1:8765/progresso), que tem uma barra por plataforma e se atualiza a cada etapa.
 
 ## 2. Dependências (Python 3.11+)
 - Confira `python --version`. Sem Python: peça para instalar em python.org (marcar "Add to PATH").
@@ -81,4 +81,4 @@ Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos envi
 
 ## 8. Conferir
 Depois de cada plataforma, rode `.\.venv\Scripts\python.exe -m darkops progresso` e mostre a barra dela. No fim, rode o diagnóstico de novo e mostre o que ficou pronto e o que é opcional.
-No perfil (Estúdio > Novo perfil ou aba Perfil), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Marque só as que a pessoa escolheu. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio, gerar prévias, aprovar.
+No perfil (Estúdio > Novo perfil ou aba Perfil), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Marque só as que a pessoa escolheu. Lembre que em **Sobre o projeto > Enviar sugestão** dá para mandar o que travou. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio, gerar prévias, aprovar.

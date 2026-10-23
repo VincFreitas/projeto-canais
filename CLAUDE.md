@@ -35,6 +35,12 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - **Divulgação de IA**: imagem ou vídeo realista gerado por IA exige marcar "conteúdo alterado ou sintético" no YouTube Studio.
 - **Publicação**: upload automático é permitido só nos canais do próprio usuário cadastrados como perfis no Estúdio (hoje: Pulga do Saber, YouTube e Instagram @pulgadosaber), só de vídeos que ele aprovou, pelas APIs oficiais (YouTube Data API, Instagram Graph API), com tokens em segredos e nunca no código. A criação de contas, os logins e as autorizações OAuth continuam com o usuário. Não use contas compradas ("aquecidas").
 
+## Autoria, versão e testadores
+- Autor: Vinicius Freitas. Licença PolyForm Noncommercial (`LICENSE`); nunca remova o carimbo, o `LICENSE` nem o crédito do README (o Estúdio confere em `darkops/autoria.py` e avisa "cópia modificada").
+- Versão em `darkops/__init__.py` (`__version__`, aparece no Estúdio e em `--version`). Suba a versão a cada entrega que muda o comportamento (correção: 0.9.x; recurso novo: 0.x.0).
+- Modo guiado: enquanto `plataformas.pendencias()` não estiver vazia, o Estúdio trava Fila, Novo vídeo e Histórico e mostra o próximo passo em Progresso (`DARKOPS_MODO_GUIADO=0` no `.env` desliga).
+- Guia **Sobre o projeto** (`/sobre`): apresentação, apoio (estrela, seguir, compartilhar, LinkedIn) e **Enviar sugestão**, que abre uma issue pré-preenchida em VincFreitas/pulga-do-saber.
+
 ## Estrutura
 - `darkops/`: código (pesquisa.py, narracao.py, visuais.py, render.py, producao.py, __main__.py)
 - `pesquisa/`, `roteiros/`, `saida/`: entradas e saídas versionáveis
