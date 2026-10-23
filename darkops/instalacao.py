@@ -82,6 +82,10 @@ def diagnostico() -> list[tuple[str, bool, str]]:
                       "Estúdio > Conexões > Conectar YouTube"))
         itens.append((f"Instagram do perfil {p.id}", p.token_instagram.exists() or not p.dados.get("instagram", True),
                       "Estúdio > Conexões > colar o token do app da Meta"))
+        ident = p.dados.get("identidade") or {}
+        faltam = [n for n in ("youtube", "instagram") if p.dados.get(n, True) and n not in ident.get("aplicada", {})]
+        itens.append((f"Identidade visual do perfil {p.id}", bool(ident.get("aprovada")) and not faltam,
+                      "opcional: Estúdio > Identidade para aprovar, depois /identidade-visual no Claude"))
     itens += [
         ("Node.js", bool(shutil.which("node")), "instale o Node.js LTS em nodejs.org"),
         ("n8n", bool(_n8n_cmd()), "npm install -g n8n"),

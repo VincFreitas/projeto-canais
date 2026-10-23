@@ -72,6 +72,11 @@ Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos envi
 - Para encher a fila com qualidade, use `/pesquisar-nicho <nicho>` e depois `/escrever-roteiro <ideia>`; salve os roteiros em `perfis/<perfil>/fila/NNN-slug.json`.
 - No Estúdio: abra cada vídeo, **Gerar prévia**, assista e **Aprovar**. Só os aprovados vão ao ar.
 
+## 6b. Identidade visual das contas (depois de conectar YouTube e/ou Instagram)
+- Rode a skill `/identidade-visual <perfil>`: ela gera a foto de perfil, a capa do YouTube, a marca d'água, a bio do Instagram e a descrição do YouTube no estilo do canal.
+- Mostre a prévia e peça a aprovação de quem está testando (no chat ou no Estúdio, aba **Identidade**). **Só depois de aprovada**, aplique nas contas que a pessoa abriu e logou no navegador interno.
+- Se a pessoa não quiser mexer nas contas agora, deixe gerado e aprovado; dá para aplicar depois com `/identidade-visual`.
+
 ## 7. Postagem automática (n8n)
 1. Node.js LTS (nodejs.org), depois `npm install -g n8n` (cerca de 10 minutos; peça o ok).
 2. Inicie o n8n: `powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1` e crie a conta local no primeiro acesso (http://localhost:5678).

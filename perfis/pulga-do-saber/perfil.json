@@ -15,7 +15,33 @@
   "youtube": true,
   "instagram": true,
   "privacidade_youtube": "public",
+  "facebook": false,
+  "tiktok": false,
+  "kwai": false,
+  "outra_plataforma": "",
+  "formato": "vertical",
+  "duracao_s": 60,
+  "video_exemplo": "",
+  "motor_voz": "auto",
+  "tipo_visual": "video",
+  "proporcao_video": 50,
+  "ritmo_corte_s": 4,
+  "velocidade": "+0%",
+  "legenda": true,
+  "legenda_tamanho": "media",
+  "legenda_cor": "#FFE500",
+  "legenda_fonte": "Arial Black",
   "estilo": "pixel",
   "pixel": 5,
-  "narrador": true
+  "narrador": true,
+  "identidade": {
+    "gerada": "2026-10-23",
+    "aprovada": true,
+    "aprovada_por": "",
+    "aplicada": {
+      "youtube": "2026-10-23",
+      "instagram": "2026-10-23"
+    },
+    "aprovada_em": "2026-10-23"
+  }
 }

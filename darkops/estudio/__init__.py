@@ -766,6 +766,50 @@ def tarefa_json(job):
                     "segundos": int(time.time() - info["inicio"])})
 
 
+@app.route("/p/<pid>/identidade", methods=["GET", "POST"])
+def identidade_pagina(pid):
+    """Foto, capa, marca d'água e textos das contas: prévia, edição e aprovação de quem está testando."""
+    from .. import identidade
+    p = _perfil(pid)
+    pasta = identidade.pasta(p)
+    if request.method == "POST":
+        acao = request.form.get("acao")
+        if acao == "gerar":
+            job = _iniciar_job(p, "Gerar identidade visual", [["identidade", "gerar"]])
+            return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("identidade_pagina", pid=pid)))
+        if acao in ("salvar", "aprovar"):
+            textos = {k: request.form.get(k, "").replace("\r\n", "\n").strip()
+                      for k in ("bio_instagram", "descricao_youtube", "titulo_capa", "subtitulo_capa")}
+            if len(textos["bio_instagram"]) > identidade.BIO_MAX:
+                flash(f"A bio do Instagram aceita até {identidade.BIO_MAX} caracteres.", "erro")
+                return redirect(url_for("identidade_pagina", pid=pid))
+            atual = json.loads((pasta / "textos.json").read_text(encoding="utf-8")) if (pasta / "textos.json").exists() else {}
+            if not atual or textos["titulo_capa"] != atual.get("titulo_capa") or textos["subtitulo_capa"] != atual.get("subtitulo_capa"):
+                identidade.gerar(p, textos)  # a capa muda junto com os textos dela
+            else:
+                (pasta / "textos.json").write_text(json.dumps(textos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+            if acao == "aprovar":
+                identidade.aprovar(p, request.form.get("por", "").strip())
+                flash("Identidade aprovada. Para aplicar nas contas, peça ao Claude: /identidade-visual", "ok")
+            else:
+                flash("Textos salvos. Revise e aprove quando estiver bom.", "ok")
+        return redirect(url_for("identidade_pagina", pid=pid))
+    textos = json.loads((pasta / "textos.json").read_text(encoding="utf-8")) if (pasta / "textos.json").exists() \
+        else identidade.textos_padrao(p)
+    return render_template("identidade.html", p=p, d=p.dados, textos=textos, estado=identidade.estado(p),
+                           gerada=(pasta / "capa-youtube.png").exists(), bio_max=identidade.BIO_MAX,
+                           versao=int((pasta / "capa-youtube.png").stat().st_mtime) if (pasta / "capa-youtube.png").exists() else 0)
+
+
+@app.get("/p/<pid>/marca/<arquivo>")
+def marca_arquivo(pid, arquivo):
+    from .. import identidade
+    p = _perfil(pid)
+    if arquivo not in ("foto-perfil.png", "capa-youtube.png", "marca-dagua.png"):
+        abort(404)
+    return send_file(identidade.pasta(p) / arquivo)
+
+
 @app.get("/p/<pid>/historico")
 def historico(pid):
     p = _perfil(pid)

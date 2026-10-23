@@ -251,6 +251,29 @@ def cmd_registrar_falha(a):
     _resultado({"registrado": True})
 
 
+def cmd_identidade(a):
+    from . import identidade
+    from .perfis import carregar
+    perfil = carregar()
+    if a.acao == "gerar":
+        _resultado(identidade.gerar(perfil))
+    elif a.acao == "aprovar":
+        _resultado(identidade.aprovar(perfil, a.por or ""))
+    elif a.acao == "pacote":
+        _resultado(identidade.pacote(perfil))
+    elif a.acao == "bloco":  # um pedaço do pacote, cru, para a skill colar na página
+        pacote = json.loads((identidade.pasta(perfil) / "pacote.json").read_text(encoding="utf-8"))
+        bloco = pacote["arquivos"][a.arquivo]["blocos"][a.numero]
+        print(bloco["dados"])
+        print(f"SHA8 {bloco['sha8']}", file=sys.stderr)
+    elif a.acao == "aplicada":
+        if a.plataforma not in ("youtube", "instagram"):
+            raise SystemExit("use --plataforma youtube ou --plataforma instagram")
+        _resultado(identidade.marcar_aplicada(perfil, a.plataforma))
+    else:
+        _resultado({"estado": identidade.estado(perfil), "pasta": str(identidade.pasta(perfil))})
+
+
 def cmd_nichos(_):
     for nome, n in config.nichos().items():
         print(f"{nome:<22} [{n['idioma']}] {n['descricao']}")
@@ -287,6 +310,14 @@ def main():
     s.add_argument("--porta", type=int, default=8765)
     s.add_argument("--sem-navegador", action="store_true")
     s.set_defaults(fn=cmd_estudio)
+
+    s = sub.add_parser("identidade", help="foto, capa, marca d'água e bio das contas (gerar, aprovar, pacote, aplicada)")
+    s.add_argument("acao", nargs="?", default="estado", choices=["estado", "gerar", "aprovar", "pacote", "bloco", "aplicada"])
+    s.add_argument("--plataforma", help="com 'aplicada': youtube ou instagram")
+    s.add_argument("--por", help="com 'aprovar': quem aprovou")
+    s.add_argument("--arquivo", choices=["foto", "marca", "capa"], help="com 'bloco'")
+    s.add_argument("--numero", type=int, default=0, help="com 'bloco': número do pedaço (0, 1, 2...)")
+    s.set_defaults(fn=cmd_identidade)
 
     s = sub.add_parser("nichos", help="lista os nichos de config/nichos.json")
     s.set_defaults(fn=cmd_nichos)

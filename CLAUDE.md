@@ -11,6 +11,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 5. `/titulo-thumb <roteiro>`: 8 títulos com notas, thumbnail e legenda do Instagram (grava só com aprovação)
 6. `/planejar-semana`: agenda das 14 postagens (12h e 19h), equilíbrio de temas e ganchos, roteiros que faltam
 7. `/responder-comentarios`: lê comentários e rascunha respostas para o usuário aprovar (nunca publica)
+8. `/identidade-visual <perfil>`: foto de perfil, capa, marca d'água, bio e descrição das contas; gera, pede aprovação e só então aplica pelo navegador (Estúdio > Identidade para revisar)
 - **Estúdio** (`python -m darkops estudio`): perfis, conexões (YouTube por OAuth, token do Instagram), chaves, fila com prévia e aprovação, novo vídeo e histórico. Comandos da CLI aceitam `--perfil <id>` (padrão `pulga-do-saber`).
 - Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: modelo do workflow em `n8n/workflow.modelo.json` (gere com `python -m darkops n8n-workflow --importar`). Instalação do zero: skill `/configurar`, que começa perguntando quais plataformas a pessoa quer testar e segue só os tutoriais delas; confira com `python -m darkops diagnostico` e `python -m darkops progresso` (tela **Progresso da configuração** no Estúdio). Se a pasta ainda não tem `.venv` (repositório recém-clonado), ofereça o `/configurar` antes de qualquer outra coisa.
 

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block titulo %}Identidade · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<h2>Identidade visual das contas</h2>
+<p class="dica">Foto de perfil, capa do YouTube, marca d'água e textos do canal. Revise, ajuste os textos e aprove.
+  Depois de aprovada, peça ao Claude <code>/identidade-visual</code>: ele aplica no YouTube e no Instagram pelo navegador,
+  com as contas abertas por você.</p>
+
+<div class="cartao">
+  <p>
+    {% if estado.aprovada %}<span class="selo pronta">Aprovada</span>
+      {% if estado.aprovada_por %}por {{ estado.aprovada_por }}{% endif %} em {{ estado.aprovada_em }}
+    {% elif gerada %}<span class="selo falta">Aguardando aprovação</span>
+    {% else %}<span class="selo falta">Ainda não gerada</span>{% endif %}
+    {% for plat in ['youtube', 'instagram'] if d[plat] %}
+      · {{ {'youtube': 'YouTube', 'instagram': 'Instagram'}[plat] }}:
+      {% if estado.aplicada and estado.aplicada[plat] %}<span class="selo pronta">aplicada em {{ estado.aplicada[plat] }}</span>
+      {% else %}<span class="selo manual">não aplicada</span>{% endif %}
+    {% endfor %}
+  </p>
+  <form method="post"><input type="hidden" name="acao" value="gerar">
+    <button class="botao secundario">{{ 'Gerar de novo' if gerada else 'Gerar identidade' }}</button>
+    <span class="dica">Desenha o fundo da capa no PC a partir do nicho (cerca de 3 min; sem o gerador local, usa um céu pixel).</span>
+  </form>
+</div>
+
+{% if gerada %}
+<div class="cartao">
+  <label>Capa do YouTube (2560x1440; o texto fica na área que aparece em todos os aparelhos)</label>
+  <img src="{{ url_for('marca_arquivo', pid=p.id, arquivo='capa-youtube.png') }}?v={{ versao }}" alt="Capa"
+       style="width:100%;max-width:720px;image-rendering:pixelated;border-radius:8px">
+  <div class="acoes" style="margin-top:12px;gap:24px">
+    <div><label>Foto de perfil</label>
+      <img src="{{ url_for('marca_arquivo', pid=p.id, arquivo='foto-perfil.png') }}?v={{ versao }}" alt="Foto"
+           style="width:120px;height:120px;border-radius:50%;image-rendering:pixelated"></div>
+    <div><label>Marca d'água (canto dos vídeos)</label>
+      <img src="{{ url_for('marca_arquivo', pid=p.id, arquivo='marca-dagua.png') }}?v={{ versao }}" alt="Marca d'água"
+           style="width:60px;height:60px;image-rendering:pixelated"></div>
+  </div>
+  <p class="dica">Para trocar o personagem, envie uma foto em Perfil &gt; Foto do perfil e gere de novo.</p>
+</div>
+{% endif %}
+
+<form method="post" class="cartao">
+  <label>Bio do Instagram (até {{ bio_max }} caracteres)</label>
+  <textarea name="bio_instagram" maxlength="{{ bio_max }}" rows="4"
+            oninput="this.nextElementSibling.textContent = this.value.length + ' / {{ bio_max }}'">{{ textos.bio_instagram }}</textarea>
+  <p class="dica">{{ textos.bio_instagram | length }} / {{ bio_max }}</p>
+  <label>Descrição do canal no YouTube</label>
+  <textarea name="descricao_youtube" rows="6">{{ textos.descricao_youtube }}</textarea>
+  <div class="grade">
+    <div><label>Título na capa</label><input type="text" name="titulo_capa" value="{{ textos.titulo_capa }}"></div>
+    <div><label>Subtítulo na capa</label><input type="text" name="subtitulo_capa" value="{{ textos.subtitulo_capa }}"></div>
+  </div>
+  <p class="dica">Mudar o título ou o subtítulo refaz a capa.</p>
+  <label>Quem está aprovando (opcional)</label>
+  <input type="text" name="por" value="{{ estado.aprovada_por or '' }}" placeholder="Seu nome">
+  <p style="margin-top:16px" class="acoes">
+    <button class="botao secundario" name="acao" value="salvar">Salvar textos</button>
+    <button class="botao" name="acao" value="aprovar" {{ 'disabled' if not gerada }}>Aprovar identidade</button>
+  </p>
+</form>
+{% endblock %}
