@@ -1,6 +1,6 @@
-# Estúdio de Canais (canais-dark)
+# Projeto Canais (canais-dark)
 
-> **Fábrica de Canais v0.9.0 (beta) · criado por Vinicius Freitas** · [LinkedIn](https://www.linkedin.com/in/vinicius-freitas-5941b9446) · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.9.1 (beta)** · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 

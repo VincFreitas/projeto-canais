@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block titulo %}Estúdio{% endblock %} · Estúdio de Canais</title>
+<title>{% block titulo %}Estúdio{% endblock %} · Projeto Canais</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
 </head>
 <body>
 <aside class="lateral">
-  <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Estúdio de Canais</a>
+  <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Projeto Canais</a>
   <p class="rotulo">Perfis</p>
   <nav class="perfis">
     {% for item in perfis %}
@@ -27,7 +27,7 @@
     <a href="{{ url_for('sobre') }}">Sobre o projeto</a>
     <a href="{{ url_for('sobre') }}#sugestao">Enviar sugestão</a>
   </nav>
-  <p class="versao">{{ autoria.PROJETO }} v{{ autoria.VERSAO }}<br>por {{ autoria.AUTOR }}</p>
+  <p class="versao">v{{ autoria.VERSAO }}</p>
 </aside>
 <main class="conteudo">
   {% if p %}
@@ -62,8 +62,5 @@
   {% endwith %}
   {% block corpo %}{% endblock %}
 </main>
-<a class="carimbo" href="{{ url_for('sobre') }}" title="{{ autoria.CARIMBO }}">
-  <b>{{ autoria.AUTOR }}</b><span>{{ autoria.PROJETO }} · v{{ autoria.VERSAO }}</span>
-</a>
 </body>
 </html>

@@ -48,7 +48,7 @@
 
 <section class="cartao">
   <h2>Licença e créditos</h2>
-  <p>{{ autoria.CARIMBO }}. Distribuído sob a licença <b>PolyForm Noncommercial 1.0.0</b> (arquivo LICENSE): pode
+  <p>{{ autoria.ROTULO }}, criado por {{ autoria.AUTOR }}. Distribuído sob a licença <b>PolyForm Noncommercial 1.0.0</b> (arquivo LICENSE): pode
     baixar, testar, estudar e modificar para uso pessoal, mantendo o crédito. Vender ou usar comercialmente exige
     autorização do autor.</p>
   <p><a href="{{ autoria.REPOSITORIO }}" target="_blank" rel="noopener">{{ autoria.REPOSITORIO }}</a></p>
@@ -56,7 +56,7 @@
 </div>
 <script>
 function compartilhar(botao) {
-  const dados = {title: "{{ autoria.PROJETO }}", text: "Fábrica de canais dark que roda no seu PC", url: "{{ autoria.REPOSITORIO }}"};
+  const dados = {title: "{{ autoria.PROJETO }}", text: "Projeto de canais dark que roda no seu PC", url: "{{ autoria.REPOSITORIO }}"};
   if (navigator.share) { navigator.share(dados).catch(() => {}); return; }
   navigator.clipboard.writeText(dados.url).then(() => { botao.textContent = "Link copiado!"; });
 }
