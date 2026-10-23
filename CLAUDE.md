@@ -40,5 +40,5 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - `pesquisa/`, `roteiros/`, `saida/`: entradas e saídas versionáveis
 - `obra/`: intermediários de produção (cache por cena; pode apagar)
 - `assets/musica/`: músicas livres; `assets/vozes/`: modelos do Piper
-- `perfis/<id>/`: um canal por perfil: `perfil.json` (nome, @, estilo, postagem ligada), `credenciais/` (tokens, fora do Git), `fila/` (só sai o que tem `"aprovado": true`), `publicados/` e `controle/` (estado.json, testes.csv, falhas.log)
+- `perfis/<id>/`: um canal por perfil: `perfil.json` (nome, @, plataformas, `formato` vertical/longo, `duracao_s`, `video_exemplo`, estilo, postagem ligada), `credenciais/` (tokens, fora do Git), `fila/` (só sai o que tem `"aprovado": true`), `publicados/` e `controle/` (estado.json, testes.csv, falhas.log)
 - `darkops/estudio/`: o Estúdio, painel local em Flask (`.\.venv\Scripts\python.exe -m darkops estudio`, em http://127.0.0.1:8765)

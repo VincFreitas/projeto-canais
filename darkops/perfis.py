@@ -1,6 +1,6 @@
 """Perfis: cada canal (contas do YouTube e do Instagram, estilo, fila e histórico) numa pasta própria.
 
-perfis/<id>/perfil.json        nome, @, nicho, estilo dos vídeos, se a postagem está ativa
+perfis/<id>/perfil.json        nome, @, nicho, plataformas, formato e duração, estilo, se a postagem está ativa
 perfis/<id>/credenciais/       token_youtube.json e token_instagram.txt (fora do Git)
 perfis/<id>/fila/*.json        roteiros esperando; só os com "aprovado": true vão ao ar
 perfis/<id>/publicados/*.json  roteiros já publicados
@@ -36,7 +36,45 @@ MODELO = {
     "youtube": True,
     "instagram": True,
     "privacidade_youtube": "public",
+    "facebook": False,
+    "tiktok": False,
+    "kwai": False,
+    "outra_plataforma": "",
+    "formato": "vertical",
+    "duracao_s": 60,
+    "video_exemplo": "",
 }
+
+# onde o canal existe; só YouTube e Instagram têm postagem automática, as outras ficam como referência
+PLATAFORMAS = [("youtube", "YouTube"), ("instagram", "Instagram"), ("facebook", "Facebook"),
+               ("tiktok", "TikTok"), ("kwai", "Kwai")]
+FORMATOS = {"vertical": "Shorts / Reels (vertical 9:16)", "longo": "Vídeo convencional do YouTube (16:9)"}
+# duração alvo de cada vídeo, em segundos, por formato
+DURACOES = {"vertical": [15, 30, 45, 60, 90, 180], "longo": [180, 300, 480, 600, 900, 1200, 1800]}
+
+
+def rotulo_duracao(segundos: int) -> str:
+    return f"{segundos}s" if segundos < 120 else f"{segundos // 60} min"
+
+
+def nomes_plataformas(dados: dict) -> str:
+    nomes = [nome for chave, nome in PLATAFORMAS if dados.get(chave)]
+    return ", ".join(nomes + ([dados["outra_plataforma"]] if dados.get("outra_plataforma") else []))
+
+
+def campos_canal(form) -> dict:
+    """Lê do formulário as plataformas, o formato, a duração e o vídeo de exemplo do canal."""
+    formato = form.get("formato") if form.get("formato") in FORMATOS else "vertical"
+    try:
+        duracao = int(form.get("duracao_s", ""))
+    except ValueError:
+        duracao = 0
+    if duracao not in DURACOES[formato]:
+        duracao = 60 if formato == "vertical" else 600
+    exemplo = form.get("video_exemplo", "").strip()
+    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS},
+            "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
+            "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else ""}
 
 
 def atual() -> str:

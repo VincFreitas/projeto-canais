@@ -85,7 +85,7 @@ h2 { font-size: 18px; margin: 0 0 12px; }
 .celular video { width: 100%; border-radius: 20px; display: block; aspect-ratio: 9 / 16; background: #111; }
 .vazio { aspect-ratio: 9 / 16; border-radius: 20px; display: grid; place-items: center; color: #aaa; text-align: center; padding: 20px; }
 label { display: block; font-weight: 600; margin: 12px 0 4px; }
-input[type=text], input[type=password], textarea, select { width: 100%; padding: 9px 11px; border: 1px solid var(--linha); border-radius: 9px; font: inherit; background: #fffdfa; }
+input[type=text], input[type=password], input[type=url], textarea, select { width: 100%; padding: 9px 11px; border: 1px solid var(--linha); border-radius: 9px; font: inherit; background: #fffdfa; }
 textarea { min-height: 70px; resize: vertical; }
 .cena { border: 1px solid var(--linha); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: #fffdfa; }
 .cena .linha { display: grid; grid-template-columns: 1fr 1fr 1fr 110px; gap: 8px; }
@@ -129,3 +129,5 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .linha-form, .campos-chave { display: flex; flex-direction: column; gap: 6px; }
 .conector .passos { margin: 4px 0; font-size: 13.5px; }
 .conector .link { font-size: 13px; color: var(--azul); text-decoration: none; margin-top: auto; }
+.opcoes { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 8px; }
+[hidden] { display: none !important; }

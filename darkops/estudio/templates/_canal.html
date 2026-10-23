@@ -1,0 +1,36 @@
+{# Plataformas, formato, duração e vídeo de exemplo do canal; usado em Novo perfil e na aba Perfil. #}
+{% macro campos(d) %}
+<label>Plataformas do canal</label>
+<div class="opcoes">
+  {% for chave, nome in plataformas %}
+  <label style="font-weight:400"><input type="checkbox" name="{{ chave }}" {{ 'checked' if d[chave] }}> {{ nome }}</label>
+  {% endfor %}
+</div>
+<input type="text" name="outra_plataforma" value="{{ d.outra_plataforma }}" placeholder="Outra plataforma (opcional)">
+<p class="dica">A postagem automática funciona no YouTube e no Instagram; as outras ficam registradas para postar à mão.</p>
+<label>Formato</label>
+{% for chave, nome in formatos.items() %}
+<label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
+  onchange="trocarFormato(this.form)"> {{ nome }}</label>
+{% endfor %}
+<label>Duração de cada vídeo</label>
+{% for chave, opcoes in duracoes.items() %}
+<select name="duracao_s" data-formato="{{ chave }}" {{ 'hidden disabled' if d.formato != chave }}>
+  {% set padrao = d.duracao_s if d.duracao_s in opcoes else (60 if chave == 'vertical' else 600) %}
+  {% for s in opcoes %}<option value="{{ s }}" {{ 'selected' if padrao == s }}>{{ rotulo_duracao(s) }}</option>{% endfor %}
+</select>
+{% endfor %}
+<label>Vídeo de exemplo (link)</label>
+<input type="url" name="video_exemplo" value="{{ d.video_exemplo }}" placeholder="https://www.youtube.com/shorts/...">
+<p class="dica">Um vídeo de referência do estilo que você quer. Ele serve de modelo para os roteiros, nunca para copiar.</p>
+<script>
+function trocarFormato(form) {
+  const formato = form.querySelector('input[name=formato]:checked').value;
+  form.querySelectorAll('select[name=duracao_s]').forEach(s => {
+    const ativo = s.dataset.formato === formato;
+    s.hidden = !ativo;
+    s.disabled = !ativo;
+  });
+}
+</script>
+{% endmacro %}

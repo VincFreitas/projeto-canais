@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_canal.html" as canal with context %}
 {% block titulo %}Perfil · {{ d.nome }}{% endblock %}
 {% block corpo %}
 <form method="post" enctype="multipart/form-data" class="cartao">
@@ -27,9 +28,7 @@
     <div><label>Horários (vírgula)</label><input type="text" name="horarios" value="{{ ', '.join(d.horarios) }}"></div>
   </div>
   <p class="dica">Os horários de postagem que valem são os do workflow do n8n (12h e 19h); este campo mostra a agenda no Início.</p>
-  <label>Postar em</label>
-  <label style="font-weight:400"><input type="checkbox" name="youtube" {{ 'checked' if d.youtube }}> YouTube Shorts</label>
-  <label style="font-weight:400"><input type="checkbox" name="instagram" {{ 'checked' if d.instagram }}> Instagram Reels</label>
+  {{ canal.campos(d) }}
   <label>Foto do perfil (aparece no topo dos vídeos)</label>
   <div class="acoes"><img src="{{ url_for('avatar', pid=p.id) }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#ffc400;image-rendering:pixelated"><input type="file" name="avatar" accept="image/*"></div>
   <p style="margin-top:16px"><button class="botao">Salvar perfil</button></p>

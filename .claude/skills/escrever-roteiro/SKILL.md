@@ -9,6 +9,8 @@ Argumento: a ideia (título ou número da ideia num `analise.md`), duração alv
 
 Formato do arquivo: [docs/roteiro.md](../../../docs/roteiro.md). Leia antes de escrever.
 
+Perfil do canal (`perfis/<perfil>/perfil.json`, padrão `pulga-do-saber`): quando o usuário não disser outra coisa, use o `formato` (`vertical` ou `longo`) e a `duracao_s` dele como formato e duração alvo (~150 palavras/min a `+0%`, ~165 a `+10%`). Se houver `video_exemplo`, estude o ritmo, a estrutura e o tom dele (transcreva com `.\dark.ps1 transcrever` se precisar), **nunca o texto**.
+
 ## 1. Pesquisar
 - Se a ideia veio de um `analise.md`, releia o mecanismo e a transcrição do outlier de origem. Use-os como referência de estrutura e ritmo, **nunca de texto**.
 - Levante os fatos com WebSearch/WebFetch. Guarde de 3 a 8 links confiáveis em `fontes`.

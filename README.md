@@ -53,7 +53,7 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 
 - `darkops/`: o código (CLI `python -m darkops`, com `--perfil <id>` em qualquer comando)
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
-- `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git)
+- `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
 - `n8n/`: modelo do workflow e lançadores
 - `site/`: páginas de privacidade e termos exigidas pelo Google e pela Meta (GitHub Pages)
 - `docs/`: formato do roteiro e banco de ganchos

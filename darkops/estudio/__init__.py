@@ -21,7 +21,8 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from ..perfis import ID_VALIDO, PADRAO, carregar, criar, listar, slug
+from ..perfis import (DURACOES, FORMATOS, ID_VALIDO, MODELO, PADRAO, PLATAFORMAS, campos_canal, carregar, criar, listar,
+                      nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
 ARQUIVO_VALIDO = re.compile(r"^[\w.-]+\.json$")
@@ -186,7 +187,8 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 
 @app.context_processor
 def _contexto():
-    return {"perfis": listar(), "agora": datetime.now()}
+    return {"perfis": listar(), "agora": datetime.now(), "plataformas": PLATAFORMAS, "formatos": FORMATOS,
+            "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas}
 
 
 # ---------- perfis e chaves ----------
@@ -200,7 +202,7 @@ def inicio():
 
 @app.get("/perfis")
 def perfis_pagina():
-    return render_template("perfis.html")
+    return render_template("perfis.html", novo=MODELO)
 
 
 @app.post("/perfis/novo")
@@ -213,7 +215,7 @@ def perfil_novo():
     try:
         criar(pid, {"nome": nome, "arroba": request.form.get("arroba", "").strip() or f"@{pid.replace('-', '')}",
                     "nicho": request.form.get("nicho", "").strip(),
-                    "descricao": request.form.get("descricao", "").strip()})
+                    "descricao": request.form.get("descricao", "").strip(), **campos_canal(request.form)})
     except SystemExit as erro:
         flash(str(erro), "erro")
         return redirect(url_for("perfis_pagina"))
@@ -263,8 +265,7 @@ def configurar(pid):
                   # pixel e cartoon têm a pulga narradora; clipes reais não
                   "estilo": f.get("estilo", ""), "narrador": f.get("estilo") in ("pixel", "cartoon"),
                   "privacidade_youtube": f.get("privacidade_youtube") or "public",
-                  "horarios": horarios or p.dados["horarios"],
-                  "youtube": bool(f.get("youtube")), "instagram": bool(f.get("instagram"))})
+                  "horarios": horarios or p.dados["horarios"], **campos_canal(f)})
         foto = request.files.get("avatar")
         if foto and foto.filename:
             from PIL import Image, ImageOps
@@ -514,12 +515,14 @@ def novo(pid):
         numeros = [int(c.name[:3]) for c in fila_mod.roteiros(p) if c.name[:3].isdigit()]
         numero = max(numeros + [0]) + 1
         s = slug(f.get("titulo") or manchete)
+        formato = p.dados.get("formato", "vertical")
         roteiro = {
             "slug": s, "titulo": f.get("titulo", "").strip() or manchete, "manchete": manchete,
-            "idioma": p.dados.get("idioma", "pt"), "formato": "vertical", "velocidade": "+10%",
+            "idioma": p.dados.get("idioma", "pt"), "formato": formato, "velocidade": "+10%",
             "tipo_visual": "video", "fontes": [l.strip() for l in f.get("fontes", "").splitlines() if l.strip()],
             "cenas": cenas,
-            "metadados": {"youtube_shorts": {"titulo": f.get("titulo", "").strip() or manchete},
+            "metadados": {("youtube_shorts" if formato == "vertical" else "youtube"):
+                          {"titulo": f.get("titulo", "").strip() or manchete},
                           "instagram": {"legenda": f"{manchete}. Você sabia? Segue a {p.dados['arroba']} para mais.",
                                         "hashtags": ["#curiosidades", "#vocesabia"]}},
             "aprovado": False,
