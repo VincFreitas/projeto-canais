@@ -150,3 +150,17 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .sobre p { max-width: 70ch; }
 .botoes-apoio { display: flex; flex-wrap: wrap; gap: 8px; }
 .botao.claro { background: #fff; border: 1px solid var(--linha); color: var(--texto); text-decoration: none; }
+.previa-legenda { margin: 8px 0 4px; padding: 14px; border-radius: 10px; background: #2b2924; color: #fff; text-align: center;
+  font-size: 22px; font-weight: 900; letter-spacing: .02em; text-shadow: 0 2px 0 #000, 0 0 3px #000; }
+input[type=range] { width: 100%; }
+.folhas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; margin: 12px 0; }
+.folhas img { width: 100%; border-radius: 8px; border: 1px solid var(--linha); }
+h3 { font-size: 16px; margin: 14px 0 6px; }
+.cartao.tema { display: flex; flex-direction: column; gap: 6px; }
+.cartao.tema .acoes { margin-top: auto; justify-content: space-between; }
+.cartao.tema a { color: var(--azul); }
+.cena.editor { display: flex; gap: 12px; align-items: flex-start; }
+.miniatura { width: 96px; flex-shrink: 0; aspect-ratio: 9 / 16; border-radius: 8px; overflow: hidden; background: #2b2924; display: grid; place-items: center; font-size: 12px; }
+.miniatura img, .miniatura video { width: 100%; height: 100%; object-fit: cover; }
+.form-cena { margin-top: 8px; }
+.form-cena input[type=text], .form-cena select { padding: 6px 8px; }

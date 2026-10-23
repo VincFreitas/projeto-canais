@@ -31,7 +31,7 @@ def cmd_outliers(a):
         n = config.nicho(a.nicho)
         buscas, idioma, nome = a.busca or n["buscas"], n["idioma"], a.nicho
     elif a.busca:
-        buscas, idioma, nome = a.busca, a.idioma, "avulso"
+        buscas, idioma, nome = a.busca, a.idioma, a.nome or "avulso"
     else:
         sys.exit("informe --nicho ou --busca")
     pasta = outliers(nome, buscas, idioma, por_busca=a.por_busca, min_views=a.min_views,
@@ -200,6 +200,27 @@ def cmd_progresso(_):
         etapas(r.etapas)
 
 
+def cmd_referencia(a):
+    from . import referencia
+    from .perfis import carregar
+    analises = []
+    for url in a.url:
+        print(f"analisando: {url}")
+        try:
+            r = referencia.analisar(url)
+        except Exception as erro:  # um link quebrado não derruba os outros
+            print(f"  falhou: {erro}")
+            continue
+        print(f"  {r['titulo']} ({r['canal']}): {r['duracao_s']:.0f}s, {r['formato']}, "
+              f"{r['cortes_por_min']} cortes/min, {r['segundos_por_corte']} s por corte, "
+              f"{r['palavras_por_min'] or '?'} palavras/min")
+        analises.append(r)
+    if not analises:
+        sys.exit("nenhuma referência pôde ser analisada")
+    destino = referencia.salvar(carregar(), analises)
+    print(f"proposta: {referencia.proposta(analises)}\nsalvo em {destino}")
+
+
 def cmd_n8n_workflow(a):
     from .instalacao import gerar_workflow
     gerar_workflow(importar=a.importar)
@@ -251,6 +272,10 @@ def main():
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
     s.set_defaults(fn=cmd_diagnostico)
 
+    s = sub.add_parser("referencia", help="mede o estilo de vídeos de referência e propõe o padrão do perfil")
+    s.add_argument("url", nargs="+")
+    s.set_defaults(fn=cmd_referencia)
+
     s = sub.add_parser("progresso", help="progresso da configuração de cada plataforma (YouTube, Instagram...)")
     s.set_defaults(fn=cmd_progresso)
 
@@ -282,6 +307,7 @@ def main():
     s.add_argument("--min-views", type=int, default=10_000)
     s.add_argument("--top", type=int, default=30)
     s.add_argument("--detalhar", type=int, default=15, help="quantos buscam data e views/dia (lento)")
+    s.add_argument("--nome", help="pasta em pesquisa/ para uma busca avulsa (padrão: avulso)")
     s.set_defaults(fn=cmd_outliers)
 
     s = sub.add_parser("transcrever", help="transcrição de um vídeo ou dos top de um outliers.json")

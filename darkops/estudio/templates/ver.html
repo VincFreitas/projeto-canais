@@ -30,13 +30,48 @@
       {% endif %}
       <form method="post" action="{{ url_for('arquivar', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Tirar este vídeo da fila?')"><button class="botao perigo">Tirar da fila</button></form>
     </div>
+    <div class="acoes" style="margin-top:8px">
+      {% set com_legenda = r.legenda if r.legenda is defined else d.legenda %}
+      <form method="post" action="{{ url_for('alternar_legenda', pid=p.id, nome=s.arquivo) }}">
+        <button class="botao claro">{{ 'Desligar legenda' if com_legenda else 'Ligar legenda' }}</button></form>
+      {% if s.video %}<a class="botao claro" href="{{ url_for('midia', nome=s.video) }}" download="{{ s.video }}">Baixar vídeo</a>{% endif %}
+    </div>
     <h2 style="margin-top:22px">Cenas</h2>
+    <p class="dica">Editor de cenas: troque a imagem (outra opção da busca, nova busca ou arquivo do seu PC) e o movimento.
+      Depois, gere a prévia de novo; só as cenas alteradas são refeitas.</p>
     {% for c in r.cenas %}
-      <div class="cena">
-        <b>{{ loop.index }}.</b> {{ c.texto }}
-        <p class="dica">imagem: {{ c.visual or '—' }}{% if c.tipo_visual %} ({{ c.tipo_visual }}){% endif %}
-          {% if c.destaque %} · destaque: <b>{{ c.destaque }}</b>{% endif %}</p>
-        {% if c.animacao %}<p class="anim">animação: {{ c.animacao.tipo }}{% if c.animacao.rotulo %} · {{ c.animacao.rotulo }}{% endif %}</p>{% endif %}
+      {% set i = loop.index %}
+      <div class="cena editor" id="cena{{ i }}">
+        <div class="miniatura">
+          {% set fonte = url_for('visual_cena', pid=p.id, nome=s.arquivo, i=i) %}
+          {% if (c.arquivo or '').lower().endswith(('.mp4', '.mov')) %}<video src="{{ fonte }}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
+          {% else %}<img src="{{ fonte }}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'suave', textContent: 'sem prévia'}))">{% endif %}
+        </div>
+        <div style="flex:1">
+          <b>{{ i }}.</b> {{ c.texto }}
+          {% if c.destaque %}<p class="dica">destaque: <b>{{ c.destaque }}</b></p>{% endif %}
+          {% if c.animacao %}<p class="anim">animação: {{ c.animacao.tipo }}{% if c.animacao.rotulo %} · {{ c.animacao.rotulo }}{% endif %}</p>{% endif %}
+          <form method="post" action="{{ url_for('editar_cena', pid=p.id, nome=s.arquivo, i=i) }}" enctype="multipart/form-data" class="form-cena">
+            {% if c.arquivo %}<p class="dica">usando arquivo do PC: {{ c.arquivo }}</p>
+            {% elif c.ilustracao and (r.estilo or d.estilo) == 'pixel' %}<p class="dica">Cena desenhada no PC em pixel art: a busca é só reserva.
+              Para outro desenho, mude a ilustração em Editar; ou envie um arquivo do PC.</p>{% endif %}
+            <div class="acoes">
+              <input type="text" name="visual" value="{{ c.visual or '' }}" placeholder="busca em inglês" style="flex:1;min-width:140px">
+              <select name="tipo_visual" style="width:auto">
+                <option value="video" {{ 'selected' if c.tipo_visual == 'video' }}>clipe</option>
+                <option value="foto" {{ 'selected' if c.tipo_visual != 'video' }}>foto</option></select>
+              <select name="movimento" style="width:auto">
+                {% for k, t in [('auto', 'movimento automático'), ('aproxima', 'aproxima'), ('afasta', 'afasta'), ('panoramica_direita', 'panorâmica →'), ('panoramica_esquerda', 'panorâmica ←')] %}
+                <option value="{{ k }}" {{ 'selected' if (c.movimento or 'auto') == k }}>{{ t }}</option>{% endfor %}</select>
+            </div>
+            <div class="acoes" style="margin-top:6px">
+              <button class="botao claro" name="acao" value="salvar">Salvar</button>
+              <button class="botao claro" name="acao" value="outra">Outra opção</button>
+              {% if c.arquivo %}<button class="botao claro" name="acao" value="banco">Voltar à busca</button>{% endif %}
+              <label class="botao claro" style="font-weight:600">Enviar do PC<input type="file" name="arquivo" accept="image/*,video/mp4,video/quicktime" hidden onchange="this.form.submit()"></label>
+            </div>
+          </form>
+        </div>
       </div>
     {% endfor %}
     {% if r.fontes %}<h2>Fontes</h2><ul>{% for f in r.fontes %}<li><a href="{{ f }}" target="_blank">{{ f }}</a></li>{% endfor %}</ul>{% endif %}

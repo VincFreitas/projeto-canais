@@ -29,8 +29,67 @@
   </div>
   <p class="dica">Os horários de postagem que valem são os do workflow do n8n (12h e 19h); este campo mostra a agenda no Início.</p>
   {{ canal.campos(d, status) }}
+  <h2 style="margin-top:20px">Padrão dos vídeos</h2>
+  <p class="dica">Vale para todos os vídeos deste canal; um roteiro pode mudar qualquer item só para ele.</p>
+  <div class="grade">
+    <div><label>Motor da voz</label><select name="motor_voz">
+      {% for k, t in motores_voz.items() %}<option value="{{ k }}" {{ 'selected' if d.motor_voz == k }}
+        {{ 'disabled' if k == 'elevenlabs' and not tem_elevenlabs }}>{{ t }}{{ ' (sem chave)' if k == 'elevenlabs' and not tem_elevenlabs }}</option>{% endfor %}</select></div>
+    <div><label>Imagens ou vídeos</label><select name="tipo_visual" onchange="this.form.querySelector('#proporcao').hidden = this.value !== 'misto'">
+      {% for k, t in tipos_visual.items() %}<option value="{{ k }}" {{ 'selected' if d.tipo_visual == k }}>{{ t }}</option>{% endfor %}</select></div>
+    <div id="proporcao" {{ 'hidden' if d.tipo_visual != 'misto' }}><label>Proporção de vídeos: <output>{{ d.proporcao_video }}</output>%</label>
+      <input type="range" name="proporcao_video" min="0" max="100" step="10" value="{{ d.proporcao_video }}"
+        oninput="this.previousElementSibling.querySelector('output').value = this.value"></div>
+    <div><label>Ritmo dos cortes</label><select name="ritmo_corte_s">
+      {% for s in ritmos %}<option value="{{ s }}" {{ 'selected' if d.ritmo_corte_s == s }}>troca de imagem a cada ~{{ s }} s</option>{% endfor %}</select></div>
+  </div>
+  <p class="dica">O ritmo guia o tamanho de cada cena quando o roteiro é escrito (/escrever-roteiro): cenas de ~{{ d.ritmo_corte_s }} s têm cerca de {{ (d.ritmo_corte_s * 2.6) | round | int }} palavras.</p>
+  <label style="font-weight:400"><input type="checkbox" name="legenda" {{ 'checked' if d.legenda }}> Legenda no vídeo</label>
+  <div class="grade">
+    <div><label>Tamanho da legenda</label><select name="legenda_tamanho">
+      {% for k in tamanhos_legenda %}<option value="{{ k }}" {{ 'selected' if d.legenda_tamanho == k }}>{{ {'pequena': 'Pequena', 'media': 'Média', 'grande': 'Grande'}[k] }}</option>{% endfor %}</select></div>
+    <div><label>Fonte</label><select name="legenda_fonte">
+      {% for f in fontes_legenda %}<option {{ 'selected' if d.legenda_fonte == f }} style="font-family:'{{ f }}'">{{ f }}</option>{% endfor %}</select></div>
+    <div><label>Cor da palavra falada</label><input type="color" name="legenda_cor" value="{{ d.legenda_cor }}"></div>
+  </div>
+  <div class="previa-legenda" style="font-family:'{{ d.legenda_fonte }}'">ESSA <span style="color:{{ d.legenda_cor }}">PALAVRA</span> AQUI</div>
   <label>Foto do perfil (aparece no topo dos vídeos)</label>
   <div class="acoes"><img src="{{ url_for('avatar', pid=p.id) }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#ffc400;image-rendering:pixelated"><input type="file" name="avatar" accept="image/*"></div>
   <p style="margin-top:16px"><button class="botao">Salvar perfil</button></p>
 </form>
+
+<section class="cartao" id="referencia" style="margin-top:16px">
+  <h2>Aprender com referência</h2>
+  <p class="suave">Cole até 5 links de vídeos com o estilo que você quer (YouTube, Shorts, Instagram). O Estúdio mede
+    a duração, o ritmo dos cortes e as palavras por minuto, e tira prints para mostrar o tipo de imagem. Ele aprende
+    o <b>estilo</b>, nunca copia o texto: a narração é usada só para contar palavras.</p>
+  <form method="post" action="{{ url_for('referencia_analisar', pid=p.id) }}">
+    <textarea name="urls" rows="3" placeholder="https://www.youtube.com/shorts/...">{{ d.video_exemplo }}</textarea>
+    <p><button class="botao secundario">Analisar referências</button> <span class="dica">leva de 20 s a 2 min por vídeo</span></p>
+  </form>
+  {% if ref.analises %}
+  <table class="tabela">
+    <tr><th>Vídeo</th><th>Duração</th><th>Formato</th><th>Cortes/min</th><th>s por corte</th><th>Palavras/min</th></tr>
+    {% for a in ref.analises %}
+    <tr><td><a href="{{ a.url }}" target="_blank" rel="noopener">{{ a.titulo or a.url }}</a><br><span class="suave">{{ a.canal }}</span></td>
+      <td>{{ rotulo_duracao(a.duracao_s | int) }}</td><td>{{ 'vertical' if a.formato == 'vertical' else '16:9' }}</td>
+      <td>{{ a.cortes_por_min }}</td><td>{{ a.segundos_por_corte }}</td><td>{{ a.palavras_por_min or '—' }}</td></tr>
+    {% endfor %}
+  </table>
+  <div class="folhas">
+    {% for a in ref.analises %}<img src="{{ url_for('referencia_folha', pid=p.id, vid=a.id) }}" alt="Prints de {{ a.titulo }}" loading="lazy">{% endfor %}
+  </div>
+  {% set s = ref.proposta %}
+  {% if s %}
+  <h3>Padrão proposto para este canal</h3>
+  <ul>
+    <li>Formato: <b>{{ 'Shorts / Reels' if s.formato == 'vertical' else 'vídeo convencional 16:9' }}</b> (agora: {{ 'Shorts / Reels' if d.formato == 'vertical' else '16:9' }})</li>
+    <li>Duração: <b>{{ rotulo_duracao(s.duracao_s) }}</b> (agora: {{ rotulo_duracao(d.duracao_s) }})</li>
+    {% if s.ritmo_corte_s %}<li>Ritmo dos cortes: <b>a cada ~{{ s.ritmo_corte_s }} s</b> (agora: ~{{ d.ritmo_corte_s }} s)</li>{% endif %}
+    {% if s.velocidade %}<li>Velocidade da voz: <b>{{ s.velocidade }}</b> para chegar perto de {{ s.palavras_por_min }} palavras/min (agora: {{ d.velocidade }})</li>{% endif %}
+  </ul>
+  <form method="post" action="{{ url_for('referencia_aplicar', pid=p.id) }}"><button class="botao">Aplicar no perfil</button></form>
+  {% endif %}
+  {% endif %}
+</section>
 {% endblock %}

@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 
 from . import config, narracao, render, visuais
+from .perfis import TAMANHOS_LEGENDA
 
 PAUSA_PADRAO = 0.35
 LIMITE_VERTICAL_S = 180  # Shorts aceita até 3 min; TikTok e Reels rendem melhor bem abaixo disso
@@ -83,6 +84,17 @@ def _metadados(roteiro: dict, duracoes: list[float], destino: Path) -> None:
     destino.write_text("\n".join(partes) + "\n", encoding="utf-8")
 
 
+def _tipo_da_cena(roteiro: dict, indice: int) -> str:
+    """'misto' alterna clipe e foto na proporção pedida (proporcao_video = % de cenas com clipe),
+    sempre igual para o mesmo roteiro, para o cache das cenas continuar valendo."""
+    tipo = roteiro.get("tipo_visual", "foto")
+    if tipo != "misto":
+        return tipo
+    proporcao = int(roteiro.get("proporcao_video", 50))
+    # espalha os clipes: a cena vira clipe quando a conta acumulada passa de mais um inteiro
+    return "video" if (indice * proporcao) // 100 > ((indice - 1) * proporcao) // 100 else "foto"
+
+
 def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     caminho = caminho.resolve()
     from .perfis import carregar as carregar_perfil
@@ -91,8 +103,14 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     padrao = {"layout": perfil.dados.get("layout"), "voz": perfil.dados.get("voz"),
               "musica": perfil.dados.get("musica"), "selo": perfil.dados.get("arroba"),
               "canal_nome": perfil.dados.get("nome"), "estilo": perfil.dados.get("estilo"),
-              "narrador": perfil.dados.get("narrador"), "pixel": perfil.dados.get("pixel")}
+              "narrador": perfil.dados.get("narrador"), "pixel": perfil.dados.get("pixel"),
+              "motor_voz": perfil.dados.get("motor_voz") if perfil.dados.get("motor_voz") != "auto" else None,
+              "tipo_visual": perfil.dados.get("tipo_visual"), "proporcao_video": perfil.dados.get("proporcao_video"),
+              "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
+              "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
+    if "legenda" not in roteiro and perfil.arquivo.exists():
+        roteiro["legenda"] = perfil.dados.get("legenda", True)
     formato = roteiro.get("formato", "longo")
     largura, altura = config.FORMATOS[formato]
     post = roteiro.get("layout") == "post"
@@ -126,7 +144,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                               obra / "visuais", largura, altura, pixel, slug)
         if visual is None:
             visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
-                                            roteiro.get("tipo_visual", "foto"), usados)
+                                            _tipo_da_cena(roteiro, i), usados)
         dur_cena = render.duracao(audio) + pausa
         inicio_cena = sum(duracoes)
         if i > 1:
@@ -171,18 +189,22 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
                                  # no cartoon a legenda fica embaixo para não cobrir o personagem
                                  baixo=bool(c.get("animacao")) or estilo in ("cartoon", "pixel"),
-                                 destaque=destaque, grande=post)
+                                 destaque=destaque, grande=post,
+                                 fonte=roteiro.get("legenda_fonte", "Arial Black"),
+                                 escala=TAMANHOS_LEGENDA.get(roteiro.get("legenda_tamanho", "media"), 1.0),
+                                 cor=roteiro.get("legenda_cor", "#FFE500"))
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa, "pixel": pixel,
+                      "movimento": c.get("movimento"),
                       "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
         marca = saida_cena.with_suffix(".json")
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
-                                        narrador, pixel))
+                                        narrador, pixel, c.get("movimento")))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 

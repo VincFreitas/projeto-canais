@@ -251,19 +251,27 @@ def _grupos(palavras: list[dict], max_palavras: int) -> list[list[dict]]:
     return grupos
 
 
+def _cor_ass(hexa: str) -> str:
+    """#RRGGBB vira &H00BBGGRR (o ASS guarda as cores ao contrário)."""
+    hexa = hexa.lstrip("#")
+    return f"&H00{hexa[4:6]}{hexa[2:4]}{hexa[0:2]}".upper()
+
+
 def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float, destino: Path,
-               baixo: bool = False, destaque: tuple[str, float] | None = None, grande: bool = False) -> None:
+               baixo: bool = False, destaque: tuple[str, float] | None = None, grande: bool = False,
+               fonte: str = "Arial Black", escala: float = 1.0, cor: str = "#FFE500") -> None:
     """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
-    baixo=True, para não cobrir uma animação), a palavra falada fica amarela e cada grupo entra com um pulo."""
+    baixo=True, para não cobrir uma animação), a palavra falada fica na cor de destaque (amarelo por padrão)
+    e cada grupo entra com um pulo. fonte, escala e cor vêm do padrão do canal."""
     vertical = altura > largura or grande  # grande: estilo de Shorts mesmo numa janela horizontal
     if vertical:
-        # \kf pinta da cor secundária (branco) para a primária (amarelo) conforme a palavra é falada
+        # \kf pinta da cor secundária (branco) para a primária (destaque) conforme a palavra é falada
         alinhamento, margem = (2, int(altura * (0.2 if altura > largura else 0.06))) if baixo else (5, 0)
-        estilo = (f"Style: Base,Arial Black,{int(largura * (0.08 if altura > largura else 0.07))},&H0000E5FF,&H00FFFFFF,&H00000000,&H64000000,"
+        estilo = (f"Style: Base,{fonte},{int(largura * (0.08 if altura > largura else 0.07) * escala)},{_cor_ass(cor)},&H00FFFFFF,&H00000000,&H64000000,"
                   f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.005)},2,{alinhamento},60,60,{margem},1")
         max_palavras = 3
     else:
-        estilo = (f"Style: Base,Arial,{int(altura * 0.05)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,"
+        estilo = (f"Style: Base,{'Arial' if fonte == 'Arial Black' else fonte},{int(altura * 0.05 * escala)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,"
                   f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.0035)},1,2,120,120,{int(altura * 0.07)},1")
         max_palavras = 7
 

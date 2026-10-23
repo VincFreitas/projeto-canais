@@ -51,14 +51,22 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `motor_voz` | não | `auto` (edge e, se falhar, Piper), `edge`, `piper`, `elevenlabs`, `azure`. Padrão: `MOTOR_VOZ` do `.env` |
 | `voz` | não | edge/azure: `pt-BR-AntonioNeural`, `pt-BR-FranciscaNeural`... (`.\dark.ps1 vozes pt-BR`); piper: `pt_BR-faber-medium`; elevenlabs: voice_id |
 | `velocidade` | não | `+0%` a `+15%` é o comum em canais dark |
-| `tipo_visual` | não | `foto` (padrão, com zoom lento) ou `video` (clipes do Pexels) |
+| `tipo_visual` | não | `foto` (padrão, com zoom lento), `video` (clipes do Pexels) ou `misto` (alterna clipe e foto) |
+| `proporcao_video` | não | Com `misto`: % de cenas com clipe (0 a 100, padrão 50) |
 | `musica` | não | `null` = sem música; `ambiente` = trilha de suspense sintetizada; `animada` = trilha alegre sintetizada (tom e andamento variam pelo vídeo); `tema:<pasta>` = sorteia uma faixa de `assets/musica/<pasta>` listada em `assets/musica/licencas.csv` (senão usa `animada`) e põe o crédito CC BY na descrição e na legenda; `auto` = sorteia de `assets/musica/`; ou um caminho |
 | `legenda` | não | `true` (padrão). O vertical usa legenda grande palavra a palavra |
+| `legenda_fonte` | não | `Arial Black` (padrão), `Impact`, `Segoe UI Black`, `Bahnschrift`, `Verdana`, `Comic Sans MS` |
+| `legenda_tamanho` | não | `pequena`, `media` (padrão) ou `grande` |
+| `legenda_cor` | não | Cor da palavra falada, `#RRGGBB` (padrão `#FFE500`) |
+| `cenas[].movimento` | não | Movimento da foto: `aproxima`, `afasta`, `panoramica_direita`, `panoramica_esquerda` (sem o campo, alterna sozinho) |
+| `cenas[].variante` | não | Pula as N primeiras opções da busca (o botão **Outra opção** do editor de cenas soma 1) |
 | `fontes` | não | Links usados na pesquisa. Não entram no vídeo; servem para checar os fatos |
 
 Ordem de escolha do visual de cada cena: `arquivo` > o que já foi baixado em `obra/` > Pexels (precisa de `PEXELS_API_KEY`) > Pixabay (precisa de `PIXABAY_API_KEY`) > fundo escuro gerado.
 
-Para trocar o visual de uma cena já produzida, apague `obra/<slug>/<formato>/visuais/NN.*` e rode de novo. Só as cenas alteradas são refeitas.
+Para trocar o visual de uma cena já produzida, use o **editor de cenas** na prévia do Estúdio (outra opção, nova busca, arquivo do PC ou movimento) e gere a prévia de novo. Só as cenas alteradas são refeitas.
+
+Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do **padrão do canal** (`perfis/<id>/perfil.json`, aba Perfil do Estúdio).
 
 ## Movimento e animações
 

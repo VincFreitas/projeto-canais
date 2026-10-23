@@ -43,7 +43,42 @@ MODELO = {
     "formato": "vertical",
     "duracao_s": 60,
     "video_exemplo": "",
+    # padrão dos vídeos (o roteiro pode sobrescrever cada um)
+    "motor_voz": "auto",
+    "tipo_visual": "video",
+    "proporcao_video": 50,
+    "ritmo_corte_s": 4,
+    "velocidade": "+0%",
+    "legenda": True,
+    "legenda_tamanho": "media",
+    "legenda_cor": "#FFE500",
+    "legenda_fonte": "Arial Black",
 }
+
+MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azure": "Azure Speech (grátis até 500 mil caracteres)",
+               "elevenlabs": "ElevenLabs (pago; precisa da chave)"}
+TIPOS_VISUAL = {"foto": "Só imagens", "video": "Só vídeos (foto quando faltar clipe)", "misto": "Imagens e vídeos"}
+RITMOS = [2, 3, 4, 6, 8]
+TAMANHOS_LEGENDA = {"pequena": 0.8, "media": 1.0, "grande": 1.25}
+FONTES_LEGENDA = ["Arial Black", "Impact", "Segoe UI Black", "Bahnschrift", "Verdana", "Comic Sans MS"]
+
+
+def campos_padrao(form) -> dict:
+    """Lê do formulário o padrão dos vídeos (voz, visual, ritmo e legenda), validando cada valor."""
+    def numero(chave: str, padrao: int, minimo: int, maximo: int) -> int:
+        try:
+            return min(max(int(form.get(chave, padrao)), minimo), maximo)
+        except ValueError:
+            return padrao
+    cor = form.get("legenda_cor", "")
+    return {"motor_voz": form.get("motor_voz") if form.get("motor_voz") in MOTORES_VOZ else "auto",
+            "tipo_visual": form.get("tipo_visual") if form.get("tipo_visual") in TIPOS_VISUAL else "video",
+            "proporcao_video": numero("proporcao_video", 50, 0, 100),
+            "ritmo_corte_s": numero("ritmo_corte_s", 4, 1, 15),
+            "legenda": bool(form.get("legenda")),
+            "legenda_tamanho": form.get("legenda_tamanho") if form.get("legenda_tamanho") in TAMANHOS_LEGENDA else "media",
+            "legenda_cor": cor.upper() if re.match(r"^#[0-9a-fA-F]{6}$", cor) else "#FFE500",
+            "legenda_fonte": form.get("legenda_fonte") if form.get("legenda_fonte") in FONTES_LEGENDA else "Arial Black"}
 
 # onde o canal existe; só YouTube e Instagram têm postagem automática, as outras ficam como referência
 PLATAFORMAS = [("youtube", "YouTube"), ("instagram", "Instagram"), ("facebook", "Facebook"),

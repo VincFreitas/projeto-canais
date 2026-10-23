@@ -9,7 +9,7 @@ Argumento: a ideia (título ou número da ideia num `analise.md`), duração alv
 
 Formato do arquivo: [docs/roteiro.md](../../../docs/roteiro.md). Leia antes de escrever.
 
-Perfil do canal (`perfis/<perfil>/perfil.json`, padrão `pulga-do-saber`): quando o usuário não disser outra coisa, use o `formato` (`vertical` ou `longo`) e a `duracao_s` dele como formato e duração alvo (~150 palavras/min a `+0%`, ~165 a `+10%`). Se houver `video_exemplo`, estude o ritmo, a estrutura e o tom dele (transcreva com `.\dark.ps1 transcrever` se precisar), **nunca o texto**.
+Perfil do canal (`perfis/<perfil>/perfil.json`, padrão `pulga-do-saber`): quando o usuário não disser outra coisa, use o `formato` (`vertical` ou `longo`) e a `duracao_s` dele como formato e duração alvo (~150 palavras/min a `+0%`, ~165 a `+10%`). Se houver `video_exemplo`, estude o ritmo, a estrutura e o tom dele (transcreva com `.\dark.ps1 transcrever` se precisar), **nunca o texto**. Use também o `ritmo_corte_s` do perfil: cada cena dura mais ou menos isso (cerca de 2,6 palavras por segundo), e a `velocidade` do perfil. Se existir `perfis/<perfil>/controle/referencias.json` (feito em Aprender com referência), siga as palavras por minuto e o ritmo medidos ali. Voz, visual, legenda e música já vêm do padrão do canal; só ponha esses campos no roteiro quando o vídeo precisar ser diferente.
 
 ## 1. Pesquisar
 - Se a ideia veio de um `analise.md`, releia o mecanismo e a transcrição do outlier de origem. Use-os como referência de estrutura e ritmo, **nunca de texto**.

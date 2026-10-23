@@ -22,7 +22,8 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 from .. import config
 from .. import fila as fila_mod
 from .. import autoria, plataformas
-from ..perfis import (DURACOES, FORMATOS, ID_VALIDO, MODELO, PADRAO, campos_canal, carregar, criar, listar,
+from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
+                      TAMANHOS_LEGENDA, TIPOS_VISUAL, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
@@ -314,7 +315,7 @@ def configurar(pid):
                   # pixel e cartoon têm a pulga narradora; clipes reais não
                   "estilo": f.get("estilo", ""), "narrador": f.get("estilo") in ("pixel", "cartoon"),
                   "privacidade_youtube": f.get("privacidade_youtube") or "public",
-                  "horarios": horarios or p.dados["horarios"], **campos_canal(f)})
+                  "horarios": horarios or p.dados["horarios"], **campos_canal(f), **campos_padrao(f)})
         foto = request.files.get("avatar")
         if foto and foto.filename:
             from PIL import Image, ImageOps
@@ -323,7 +324,43 @@ def configurar(pid):
             img.save(p.pasta / "avatar.png")
         flash("Perfil salvo.", "ok")
         return redirect(url_for("configurar", pid=pid))
-    return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p))
+    return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p),
+                           motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
+                           tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA,
+                           tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p))
+
+
+@app.post("/p/<pid>/referencia")
+def referencia_analisar(pid):
+    p = _perfil(pid)
+    urls = [u.strip() for u in request.form.get("urls", "").split() if re.match(r"^https?://\S+$", u.strip())][:5]
+    if not urls:
+        flash("Cole pelo menos um link de vídeo (YouTube, Shorts, Instagram...).", "erro")
+        return redirect(url_for("configurar", pid=pid) + "#referencia")
+    job = _iniciar_job(p, "Aprender com referência", [["referencia", *urls]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("configurar", pid=pid) + "#referencia"))
+
+
+@app.post("/p/<pid>/referencia/aplicar")
+def referencia_aplicar(pid):
+    from .. import referencia
+    p = _perfil(pid)
+    sugestao = referencia.ler(p).get("proposta") or {}
+    novos = {k: sugestao[k] for k in ("formato", "duracao_s", "ritmo_corte_s", "velocidade") if k in sugestao}
+    if novos:
+        p.salvar(novos)
+        flash("Padrão da referência aplicado no perfil: " + ", ".join(f"{k} = {v}" for k, v in novos.items()), "ok")
+    return redirect(url_for("configurar", pid=pid) + "#referencia")
+
+
+@app.get("/p/<pid>/referencia/<vid>.jpg")
+def referencia_folha(pid, vid):
+    _perfil(pid)
+    from .. import referencia
+    folha = referencia.PASTA / vid / "folha.jpg"
+    if not re.match(r"^[\w-]{3,40}$", vid) or not folha.exists():
+        abort(404)
+    return send_file(folha, mimetype="image/jpeg")
 
 
 @app.get("/p/<pid>/avatar")
@@ -543,6 +580,118 @@ def editar(pid, nome):
                            bruto=json.dumps(dados, ensure_ascii=False, indent=2))
 
 
+# ---------- editor de cenas (na prévia) ----------
+
+def _visual_atual(dados: dict, nome: str, i: int) -> Path | None:
+    """Imagem ou clipe que a última prévia usou na cena i (1, 2, ...), se existir."""
+    slug_ = dados.get("slug") or Path(nome).stem
+    pasta = config.OBRA / slug_ / dados.get("formato", "vertical") / "visuais"
+    candidatos = [c for c in pasta.glob(f"{i:02d}*") if c.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp", ".mp4")
+                  and "animacao" not in c.name and "narrador" not in c.name and "pulado" not in c.name
+                  and "bruto" not in c.name] if pasta.exists() else []
+    return max(candidatos, key=lambda c: c.stat().st_mtime) if candidatos else None
+
+
+@app.get("/p/<pid>/fila/<nome>/visual/<int:i>")
+def visual_cena(pid, nome, i):
+    p = _perfil(pid)
+    dados = _ler(_arquivo_fila(p, nome))
+    cena = (dados.get("cenas") or [])[i - 1] if 0 < i <= len(dados.get("cenas") or []) else None
+    if cena and cena.get("arquivo"):  # arquivo enviado do PC
+        caminho = (p.fila / cena["arquivo"]).resolve()
+        if caminho.is_relative_to(p.fila.resolve()) and caminho.exists():
+            return send_file(caminho)
+    atual = _visual_atual(dados, nome, i)
+    if not atual:
+        abort(404)
+    return send_file(atual)
+
+
+@app.post("/p/<pid>/fila/<nome>/cena/<int:i>")
+def editar_cena(pid, nome, i):
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    dados = _ler(caminho)
+    cenas = dados.get("cenas") or []
+    if not 0 < i <= len(cenas):
+        abort(404)
+    cena, f = cenas[i - 1], request.form
+    acao = f.get("acao", "salvar")
+    busca = f.get("visual", "").strip()
+    if busca and busca != cena.get("visual"):
+        cena["visual"], cena["variante"] = busca, 0
+        cena.pop("arquivo", None)
+    if f.get("tipo_visual") in ("foto", "video"):
+        cena["tipo_visual"] = f["tipo_visual"]
+    if f.get("movimento") in ("aproxima", "afasta", "panoramica_direita", "panoramica_esquerda"):
+        cena["movimento"] = f["movimento"]
+    elif f.get("movimento") == "auto":
+        cena.pop("movimento", None)
+    if acao == "outra":  # próxima opção da mesma busca
+        cena["variante"] = int(cena.get("variante", 0)) + 1
+        cena.pop("arquivo", None)
+    elif acao == "banco":  # volta a usar a busca em vez do arquivo enviado
+        cena.pop("arquivo", None)
+    arquivo = request.files.get("arquivo")
+    if arquivo and arquivo.filename:
+        extensao = Path(arquivo.filename).suffix.lower()
+        if extensao not in (".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov"):
+            flash("Envie uma imagem (jpg, png, webp) ou um vídeo (mp4, mov).", "erro")
+            return redirect(url_for("ver", pid=pid, nome=nome) + f"#cena{i}")
+        pasta = p.fila / "midia"
+        pasta.mkdir(parents=True, exist_ok=True)
+        destino = pasta / f"{Path(nome).stem}-{i:02d}{extensao}"
+        arquivo.save(destino)
+        cena["arquivo"] = f"midia/{destino.name}"
+    dados["aprovado"] = False  # mudou: precisa de prévia nova e aprovação de novo
+    _gravar(caminho, dados)
+    flash(f"Cena {i} atualizada. Gere a prévia de novo: só as cenas alteradas são refeitas.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=nome) + f"#cena{i}")
+
+
+@app.post("/p/<pid>/fila/<nome>/legenda")
+def alternar_legenda(pid, nome):
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    dados = _ler(caminho)
+    dados["legenda"] = not dados.get("legenda", p.dados.get("legenda", True))
+    dados["aprovado"] = False
+    _gravar(caminho, dados)
+    flash(f"Legenda {'ligada' if dados['legenda'] else 'desligada'} neste vídeo. Gere a prévia de novo.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=nome))
+
+
+def _descoberta(p) -> dict:
+    """Última busca de assuntos fortes deste perfil: termo, pasta e os vídeos achados (se já terminou)."""
+    marca = p.controle / "descobrir.json"
+    if not marca.exists():
+        return {}
+    dados = json.loads(marca.read_text(encoding="utf-8"))
+    arquivo = Path(dados["pasta"]) / "outliers.json"
+    dados["videos"] = json.loads(arquivo.read_text(encoding="utf-8"))[:12] if arquivo.exists() else []
+    return dados
+
+
+@app.post("/p/<pid>/descobrir")
+def descobrir(pid):
+    from ..pesquisa import pasta_do_dia
+    p = _perfil(pid)
+    termo = request.form.get("termo", "").strip()[:80]
+    if not termo:
+        flash("Escreva o nicho ou o assunto para pesquisar.", "erro")
+        return redirect(url_for("novo", pid=pid))
+    nome = f"estudio-{slug(termo)}"
+    pasta = pasta_do_dia(nome)
+    (pasta / "outliers.json").unlink(missing_ok=True)  # resultado velho do mesmo dia não se mistura
+    p.controle.mkdir(parents=True, exist_ok=True)
+    (p.controle / "descobrir.json").write_text(json.dumps({"termo": termo, "pasta": str(pasta)}, ensure_ascii=False),
+                                               encoding="utf-8")
+    job = _iniciar_job(p, f"Assuntos fortes: {termo}",
+                       [["outliers", "--busca", termo, "--idioma", p.dados.get("idioma", "pt"), "--nome", nome,
+                         "--por-busca", "25", "--top", "12", "--detalhar", "6"]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("novo", pid=pid) + "#assuntos"))
+
+
 @app.route("/p/<pid>/novo", methods=["GET", "POST"])
 def novo(pid):
     p = _perfil(pid)
@@ -560,7 +709,7 @@ def novo(pid):
             cenas.append(cena)
         if not manchete or not cenas:
             flash("Preencha a manchete e pelo menos uma cena.", "erro")
-            return render_template("novo.html", p=p, d=p.dados, f=f)
+            return render_template("novo.html", p=p, d=p.dados, f=f, descoberta=_descoberta(p))
         numeros = [int(c.name[:3]) for c in fila_mod.roteiros(p) if c.name[:3].isdigit()]
         numero = max(numeros + [0]) + 1
         s = slug(f.get("titulo") or manchete)
@@ -580,7 +729,12 @@ def novo(pid):
         _gravar(destino, roteiro)
         flash("Roteiro criado no fim da fila. Revise e gere a prévia.", "ok")
         return redirect(url_for("ver", pid=pid, nome=destino.name))
-    return render_template("novo.html", p=p, d=p.dados, f={})
+    return render_template("novo.html", p=p, d=p.dados, f={}, descoberta=_descoberta(p))
+
+
+def _referencias(p) -> dict:
+    from .. import referencia
+    return referencia.ler(p)
 
 
 # ---------- vídeos, tarefas e histórico ----------

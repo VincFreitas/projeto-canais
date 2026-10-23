@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-> **Projeto Canais v0.9.1 (beta)** · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.10.0 (beta)** · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -34,9 +34,11 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 
 | Etapa | Onde |
 |---|---|
-| Achar temas que bombaram no nicho | `/pesquisar-nicho <nicho>` (Claude Code) |
+| Achar temas que bombaram no nicho | Estúdio > Novo vídeo > **Descobrir assuntos fortes**, ou `/pesquisar-nicho <nicho>` (Claude Code) |
+| Aprender o estilo de vídeos de referência | Estúdio > Perfil > **Aprender com referência** (mede cortes, palavras por minuto e duração; nunca copia o texto), ou `python -m darkops referencia <links>` |
+| Definir o padrão do canal | Estúdio > Perfil > **Padrão dos vídeos**: motor da voz, imagens/vídeos e proporção, ritmo dos cortes, legenda (tamanho, fonte e cor) |
 | Escrever o roteiro com fontes, ganchos e animações | `/escrever-roteiro <ideia>`, banco de ganchos em [docs/ganchos.md](docs/ganchos.md) |
-| Gerar a prévia, assistir e aprovar | Estúdio > Fila |
+| Gerar a prévia, ajustar e aprovar | Estúdio > Fila: **editor de cenas** (outra imagem, nova busca, arquivo do PC, movimento), legenda liga/desliga, baixar o vídeo |
 | Postar às 12h e às 19h | n8n (workflow gerado por `python -m darkops n8n-workflow --importar`) |
 | Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
 | Medir e decidir | `/revisar-desempenho` |

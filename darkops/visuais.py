@@ -207,26 +207,34 @@ def visual_da_cena(cena: dict, indice: int, pasta_roteiro: Path, pasta_visuais: 
     if marca.exists():
         anterior = json.loads(marca.read_text(encoding="utf-8"))
         if (anterior.get("consulta") == consulta and anterior.get("tipo", "foto") == cena.get("tipo_visual", tipo)
-                and anterior.get("versao") == VERSAO_BUSCA
+                and anterior.get("versao") == VERSAO_BUSCA and anterior.get("variante", 0) == cena.get("variante", 0)
                 and Path(anterior.get("arquivo", "")).exists()):
             return Path(anterior["arquivo"])
-    achado = _buscar_em_bancos(consulta, indice, largura, altura, cena.get("tipo_visual", tipo), base, usados)
+    achado = _buscar_em_bancos(consulta, indice, largura, altura, cena.get("tipo_visual", tipo), base, usados,
+                               int(cena.get("variante", 0)))
     marca.write_text(json.dumps({"consulta": consulta, "tipo": cena.get("tipo_visual", tipo), "versao": VERSAO_BUSCA,
-                                 "arquivo": str(achado)}),
+                                 "variante": cena.get("variante", 0), "arquivo": str(achado)}),
                      encoding="utf-8")
     return achado
 
 
 def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tipo: str,
-                      base: Path, usados: set) -> Path:
-    """Tipo 'video' tenta clipe em cada banco e, se não achar, foto (que ganha movimento no render)."""
+                      base: Path, usados: set, variante: int = 0) -> Path:
+    """Tipo 'video' tenta clipe em cada banco e, se não achar, foto (que ganha movimento no render).
+    variante > 0 pula as primeiras opções (marcadas como usadas) para trazer outra imagem."""
     bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
     for tentativa in (["video", "foto"] if tipo == "video" else [tipo]):
         for nome, chave, buscar in bancos:
             if not (consulta and chave):
                 continue
             try:
-                achado = buscar(consulta, largura, altura, tentativa, base, usados)
+                pulados = set(usados)
+                for _ in range(variante):  # baixa e descarta as opções anteriores só para marcá-las
+                    anterior = buscar(consulta, largura, altura, tentativa, base.with_name(base.name + "-pulado"), pulados)
+                    if anterior:
+                        anterior.unlink(missing_ok=True)
+                achado = buscar(consulta, largura, altura, tentativa, base, pulados)
+                usados |= pulados
                 if achado:
                     return achado
                 print(f"  cena {indice}: {nome} sem {tentativa} para '{consulta}'")

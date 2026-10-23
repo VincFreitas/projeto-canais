@@ -22,6 +22,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 .\dark.ps1 transcrever pesquisa\<nicho>\<data>\outliers.json --top 5
 .\dark.ps1 produzir roteiros\<arquivo>.json [outro.json ...]
 .\dark.ps1 vozes pt-BR
+.\dark.ps1 referencia <link> [<link> ...]      # mede o estilo de vídeos de referência e propõe o padrão do perfil
 ```
 - Rode `produzir` pelo PowerShell, não pelo Bash: o sandbox do Bash às vezes derruba a conexão com o serviço de voz.
 - Formato do roteiro: [docs/roteiro.md](docs/roteiro.md).

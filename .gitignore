@@ -33,3 +33,9 @@ n8n/workflow.json
 
 # modelos locais de IA (pesados)
 modelos/
+
+# Estúdio: arquivos enviados no editor de cenas, medições de referências e buscas de assuntos ficam no PC
+perfis/*/fila/midia/
+perfis/*/controle/referencias.json
+perfis/*/controle/descobrir.json
+perfis/*/controle/pulga-avatar-pixel.png
