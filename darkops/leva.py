@@ -85,18 +85,28 @@ def _escrever_roteiro(perfil) -> Path | None:
         f"(já existem: {', '.join(existentes[-40:]) or 'nenhum'}). Pesquise os fatos e guarde as fontes. "
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
-        f"Salve só o arquivo perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
-        "com \"aprovado\": false. Não produza o vídeo, não publique nada e não faça commit."
+        f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
+        "com \"aprovado\": false, e, se a skill pedir o palco, também o módulo cenas/<slug>.py; nesse caso, teste "
+        "o desenho de cada cena com o Python do .venv antes de terminar. Não produza o vídeo, não publique nada "
+        "e não faça commit."
     )
     proc = subprocess.run([claude, "-p", pedido, "--permission-mode", "acceptEdits",
-                           "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Skill"],
+                           "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
+                           "Bash(.venv/Scripts/python.exe:*)", r"Bash(.venv\Scripts\python.exe:*)"],
                           cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace",
                           timeout=30 * 60)
     novos = sorted(set(perfil.fila.glob("*.json")) - antes)
     if not novos:
         print(f"  o Claude não criou roteiro: {(proc.stdout + proc.stderr).strip()[-400:]}")
         return None
-    return novos[0]
+    roteiro = novos[0]
+    dados = json.loads(roteiro.read_text(encoding="utf-8"))
+    if dados.get("palco") and not (config.RAIZ / dados["palco"]).exists():
+        # sem o módulo da cena programada, o vídeo sai com a cena viva (desenho por IA) em vez de quebrar
+        print(f"  {dados['palco']} não foi criado; o vídeo usa a cena viva")
+        dados.pop("palco")
+        roteiro.write_text(json.dumps(dados, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return roteiro
 
 
 def _produzir(perfil, roteiro: Path) -> bool:
