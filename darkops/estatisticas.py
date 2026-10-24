@@ -65,8 +65,22 @@ def _youtube(perfil) -> dict:
                               "retencao_pct": round(a["averageViewPercentage"], 1), "compartilhamentos": int(a["shares"]),
                               "inscritos_ganhos": int(a["subscribersGained"])})
         except Exception as erro:  # API não ativada no Google Cloud, cota etc.
-            saida["avisos"].append(f"YouTube Analytics: {str(erro)[:200]} (ative a YouTube Analytics API no Google Cloud)")
+            saida["avisos"].append(_explicar_erro_analytics(erro))
     return saida
+
+
+def _explicar_erro_analytics(erro) -> str:
+    """Troca a resposta crua da API por uma instrução do que fazer (com o link certo, quando vier)."""
+    import re
+    texto = str(getattr(erro, "content", b"").decode("utf-8", "replace") if hasattr(erro, "content") else erro)
+    if "accessNotConfigured" in texto or "has not been used in project" in texto:
+        link = re.search(r"https://console\.developers\.google\.com/apis/api/youtubeanalytics\.googleapis\.com/overview\?project=\d+", texto)
+        return ("YouTube Analytics: a API ainda não está ativada no seu projeto do Google Cloud. Abra "
+                f"{link.group(0) if link else 'console.cloud.google.com > APIs e serviços > Biblioteca > YouTube Analytics API'}"
+                ", clique em Ativar, espere uns minutos e clique em Atualizar dados.")
+    if "insufficientPermissions" in texto or "ACCESS_TOKEN_SCOPE_INSUFFICIENT" in texto:
+        return "YouTube Analytics: falta a permissão de leitura; clique em Liberar retenção do YouTube de novo."
+    return f"YouTube Analytics: {texto[:200]}"
 
 
 def _instagram(perfil) -> dict:
