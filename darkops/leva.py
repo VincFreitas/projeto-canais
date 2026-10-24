@@ -26,7 +26,10 @@ LIMITE_LEVA = 14
 
 
 def _cenas(dados: dict) -> int:
-    """Quantas cenas um vídeo do perfil costuma ter: a duração dividida pelo tempo de cada cena."""
+    """Quantas cenas um vídeo do perfil costuma ter: a duração dividida pelo tempo de cada cena
+    (ou o número real, quando o roteiro já existe)."""
+    if dados.get("cenas_reais"):
+        return int(dados["cenas_reais"])
     return max(math.ceil(dados.get("duracao_s", 60) / max(dados.get("ritmo_corte_s", 4), 6)), 3)
 
 
@@ -70,7 +73,9 @@ def _escrever_roteiro(perfil) -> Path | None:
     claude = _claude()
     if not claude:
         raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code para criar levas")
+    from .perfis import resumo_persona
     d = perfil.dados
+    persona = resumo_persona(d)
     antes = set(perfil.fila.glob("*.json"))
     existentes = sorted(p.stem for p in [*antes, *perfil.publicados.glob("*.json")])
     pedido = (
@@ -78,6 +83,8 @@ def _escrever_roteiro(perfil) -> Path | None:
         f"(canal {d['nome']}, nicho: {d.get('nicho') or 'curiosidades'}, formato {d.get('formato', 'vertical')}, "
         f"cerca de {d.get('duracao_s', 60)} segundos). Escolha sozinho um tema forte que ainda não exista no canal "
         f"(já existem: {', '.join(existentes[-40:]) or 'nenhum'}). Pesquise os fatos e guarde as fontes. "
+        + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
+        + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
         f"Salve só o arquivo perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
         "com \"aprovado\": false. Não produza o vídeo, não publique nada e não faça commit."
     )

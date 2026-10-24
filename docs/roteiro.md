@@ -63,6 +63,9 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `cenas[].palavras` | não | Com `audio`: lista `{texto, inicio, fim}` (segundos desde o começo da cena) para a legenda sincronizada |
 | `cenas[].visual_idioma` | não | Língua da busca de imagem (`en` padrão; `pt` nas buscas montadas de roteiro ou narração prontos) |
 | `estilo` | não | Desenho feito no PC a partir de `ilustracao` e `personagem`: `pixel`, `desenho2d`, `pintura`, `foto_antiga`, `anime`, `3d`, `sombrio`, `realista`. `foto_antiga` e `realista` exigem marcar conteúdo sintético |
+| `edicao` | não | `simples` (sem elementos na tela), `leve` (palavra-herói e até 2 cards) ou `pro` (tudo; padrão). Vem do perfil |
+| `acervo_nasa` | não | `true` usa também o acervo de imagens da NASA (fotos, buscas em inglês) e põe o crédito nos metadados |
+| `notas_roteiro` | não | Lista curta com o que o roteiro escolheu e por quê (gancho, ângulo, fontes); aparece na revisão antes de gerar |
 | `tema_cards` | não | Tema de edição dos cards de animação: `padrao` (vidro escuro), `arquivo_frio`, `jornal_antigo` ou `moderno_limpo`. Vem do perfil; `animacao.tema` muda só uma cena |
 | `sintetico` | não | `true` quando há imagem realista feita por IA (os metadados avisam para marcar no YouTube e no Instagram) |
 | `cenas[].variante` | não | Pula as N primeiras opções da busca (o botão **Outra opção** do editor de cenas soma 1) |

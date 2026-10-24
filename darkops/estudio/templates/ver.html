@@ -47,6 +47,23 @@
       <p class="dica">É uma segunda olhada; assista inteiro antes de aprovar.</p>
     </div>
     {% endif %}
+    {% if not s.video %}
+    <div class="cartao revisao" style="margin-top:12px">
+      <h3 style="margin-top:0">Revisão antes de gerar</h3>
+      <ul class="resumo">
+        <li><b>Canal:</b> {{ d.nome }} · {{ revisao.formato }}</li>
+        <li><b>Visual:</b> {{ revisao.estilo }} · edição {{ revisao.edicao | lower }}{{ ' · acervo da NASA' if revisao.nasa }}</li>
+        <li><b>Voz:</b> {{ revisao.voz }}</li>
+        <li><b>Tamanho:</b> {{ revisao.cenas }} cenas, {{ revisao.palavras }} palavras, cerca de {{ revisao.duracao }} s</li>
+        <li><b>Fontes:</b> {{ revisao.fontes }}{{ ' (nenhuma: confira os fatos antes de aprovar)' if not revisao.fontes }}</li>
+        <li><b>Tempo para gerar:</b> {{ revisao.tempo }}</li>
+      </ul>
+      {% if revisao.notas %}<b>O que o roteiro escolheu e por quê</b>
+      <ul>{% for n in revisao.notas %}<li>{{ n }}</li>{% endfor %}</ul>{% endif %}
+      <p class="dica">{{ revisao.aviso }}</p>
+      <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao">Está certo: gerar a prévia</button></form>
+    </div>
+    {% endif %}
     <h2 style="margin-top:22px">Cenas</h2>
     <p class="dica">Editor de cenas: troque a imagem (outra opção da busca, nova busca ou arquivo do seu PC) e o movimento.
       Depois, gere a prévia de novo; só as cenas alteradas são refeitas.</p>

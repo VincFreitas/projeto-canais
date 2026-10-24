@@ -98,6 +98,8 @@ def _batimento(t: float) -> float:
 
 
 def _numero(v: float, casas: int = 0) -> str:
+    if casas == 0 and 0 < abs(v) < 1:  # 0,3 µm não pode virar "0": mostra as casas que o número tem
+        casas = 1 if round(v, 1) else 2
     return f"{v:,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 

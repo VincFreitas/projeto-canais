@@ -128,6 +128,39 @@ def buscar_pixabay(consulta: str, largura: int, altura: int, tipo: str, destino:
     return None
 
 
+# ---------- acervo da NASA (domínio público, com crédito) ----------
+
+ACERVO_NASA = False      # ligado pela produção quando o perfil ou o roteiro pede ("acervo_nasa")
+CREDITOS: set[str] = set()  # créditos das imagens usadas no vídeo (vão para os metadados)
+# material de terceiros que aparece no acervo e não é domínio público
+_NAO_LIVRE = ("©", "copyright", "getty", "reuters", "associated press", "courtesy of", "used with permission")
+
+
+def buscar_nasa(consulta: str, largura: int, altura: int, tipo: str, destino: Path, usados: set,
+                idioma: str = "en") -> Path | None:
+    """Foto do acervo images.nasa.gov (a NASA não tem direitos autorais sobre a maioria do material; exige crédito
+    e não pode sugerir apoio da NASA). Pula itens com sinal de material de terceiros. Só fotos."""
+    if tipo != "foto" or idioma != "en":
+        return None  # o acervo só responde bem a buscas em inglês
+    r = requests.get("https://images-api.nasa.gov/search", timeout=30,
+                     params={"q": consulta, "media_type": "image", "page_size": 25})
+    r.raise_for_status()
+    for item in r.json().get("collection", {}).get("items", []):
+        dados = (item.get("data") or [{}])[0]
+        nasa_id = dados.get("nasa_id", "")
+        texto = " ".join(str(dados.get(k) or "") for k in ("description", "photographer", "secondary_creator", "title")).lower()
+        if not nasa_id or f"nasa{nasa_id}" in usados or any(x in texto for x in _NAO_LIVRE):
+            continue
+        arquivos = requests.get(f"https://images-api.nasa.gov/asset/{nasa_id}", timeout=30).json()
+        links = [x["href"] for x in arquivos.get("collection", {}).get("items", [])]
+        escolhido = next((l for marca in ("~large.jpg", "~orig.jpg", "~medium.jpg") for l in links if l.endswith(marca)), None)
+        if escolhido:
+            usados.add(f"nasa{nasa_id}")
+            CREDITOS.add(f"Imagem: NASA ({dados.get('center') or 'images.nasa.gov'}, {nasa_id})")
+            return _baixar(escolhido.replace("http://", "https://"), destino.with_suffix(".jpg"))
+    return None
+
+
 # ---------- fundo gerado (sem chave) ----------
 
 def fundo_gerado(largura: int, altura: int, semente: int, destino: Path) -> Path:
@@ -293,6 +326,8 @@ def _buscar_em_bancos(consulta: str, indice: int, largura: int, altura: int, tip
     """Tipo 'video' tenta clipe em cada banco e, se não achar, foto (que ganha movimento no render).
     variante > 0 pula as primeiras opções (marcadas como usadas) para trazer outra imagem."""
     bancos = [("Pexels", config.PEXELS_API_KEY, buscar_pexels), ("Pixabay", config.PIXABAY_API_KEY, buscar_pixabay)]
+    if ACERVO_NASA:
+        bancos.append(("NASA", "sem chave", buscar_nasa))
     for tentativa in (["video", "foto"] if tipo == "video" else [tipo]):
         for nome, chave, buscar in bancos:
             if not (consulta and chave):

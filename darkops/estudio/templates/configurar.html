@@ -35,6 +35,13 @@
     “conteúdo alterado ou sintético” no YouTube Studio.</p>
   <p class="dica">Os horários de postagem que valem são os do workflow do n8n (12h e 19h); este campo mostra a agenda no Início.</p>
   {{ canal.campos(d, status) }}
+  <h2 style="margin-top:20px">Personalidade do canal</h2>
+  <p class="dica">O Claude segue isso em todo roteiro (no /escrever-roteiro e nas levas). Deixe em branco o que não quiser fixar.</p>
+  <div class="grade">
+    {% for chave, rotulo, exemplo in persona %}
+    <div><label>{{ rotulo }}</label><input type="text" name="{{ chave }}" value="{{ d[chave] }}" placeholder="{{ exemplo }}" maxlength="300"></div>
+    {% endfor %}
+  </div>
   <h2 style="margin-top:20px">Padrão dos vídeos</h2>
   <p class="dica">Vale para todos os vídeos deste canal; um roteiro pode mudar qualquer item só para ele.</p>
   <div class="grade">
@@ -59,6 +66,10 @@
     <div><label>Cor da palavra falada</label><input type="color" name="legenda_cor" value="{{ d.legenda_cor }}"></div>
   </div>
   <div class="previa-legenda" style="font-family:'{{ d.legenda_fonte }}'">ESSA <span style="color:{{ d.legenda_cor }}">PALAVRA</span> AQUI</div>
+  <label>Nível de edição</label>
+  <select name="edicao">{% for k, t in edicoes.items() %}<option value="{{ k }}" {{ 'selected' if d.edicao == k }}>{{ t }}</option>{% endfor %}</select>
+  <label style="font-weight:400;margin-top:8px"><input type="checkbox" name="acervo_nasa" {{ 'checked' if d.acervo_nasa }}>
+    Usar também o acervo de imagens da NASA (domínio público; o crédito “NASA” vai na descrição)</label>
   <label>Tema dos cards (números, comparações e linhas do tempo na tela)</label>
   <div class="temas-cards">
     {% for k, t in temas_cards.items() %}

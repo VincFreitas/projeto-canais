@@ -23,7 +23,7 @@ from .. import config
 from .. import fila as fila_mod
 from .. import autoria, plataformas
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
-                      TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, campos_canal, campos_padrao, carregar, criar, listar,
+                      TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
@@ -326,7 +326,7 @@ def configurar(pid):
         return redirect(url_for("configurar", pid=pid))
     return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p),
                            motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
-                           tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS,
+                           tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS, edicoes=EDICOES, persona=PERSONA,
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p))
 
 
@@ -575,7 +575,8 @@ def ver(pid, nome):
     p = _perfil(pid)
     from .. import conferir
     s = _situacao(_arquivo_fila(p, nome))
-    return render_template("ver.html", p=p, d=p.dados, s=s, conferencia=conferir.ler(p, s["video"]) if s.get("video") else {})
+    return render_template("ver.html", p=p, d=p.dados, s=s, conferencia=conferir.ler(p, s["video"]) if s.get("video") else {},
+                           revisao=_revisao(p, s["dados"]))
 
 
 @app.route("/p/<pid>/fila/<nome>/editar", methods=["GET", "POST"])
@@ -795,6 +796,23 @@ def lotes_importar(pid, nome):
     flash(f"{usadas} imagem(ns) importada(s) para as cenas." + (f" Faltam {restam}." if restam > 0 else
           " Todas as cenas têm imagem: gere a prévia."), "ok" if usadas else "erro")
     return redirect(url_for("lotes", pid=pid, nome=nome))
+
+
+def _revisao(p, r: dict) -> dict:
+    """Resumo do que vai ser produzido, para conferir antes de gerar a prévia."""
+    from ..leva import estimar
+    from ..perfis import EDICOES
+    d = {**p.dados, **{k: v for k, v in r.items() if k in ("estilo", "formato", "velocidade", "edicao", "layout")}}
+    palavras = sum(len(c.get("texto", "").split()) for c in r.get("cenas", []))
+    rapidez = 1 + int(str(d.get("velocidade", "+0%")).strip("+%") or 0) / 100
+    duracao = round(palavras / (2.5 * rapidez))
+    est = estimar({**d, "duracao_s": duracao, "cenas_reais": len(r.get("cenas", []))}, 1)
+    return {"cenas": len(r.get("cenas", [])), "palavras": palavras, "duracao": duracao,
+            "voz": r.get("voz") or d.get("voz"), "estilo": d.get("estilo") or "clipes reais",
+            "formato": "Shorts/Reels 9:16" if d.get("formato", "vertical") == "vertical" else "16:9",
+            "edicao": EDICOES.get(d.get("edicao", "pro"), "").split(":")[0], "fontes": len(r.get("fontes", [])),
+            "notas": r.get("notas_roteiro") or [], "tempo": est["texto"].replace(" para 1 vídeo(s)", ""),
+            "aviso": est["aviso"], "nasa": bool(d.get("acervo_nasa"))}
 
 
 def _descoberta(p) -> dict:

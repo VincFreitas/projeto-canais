@@ -77,6 +77,9 @@ def _metadados(roteiro: dict, duracoes: list[float], destino: Path) -> None:
             partes.append(f"**{chave}:**\n\n{valor}\n")
         if plataforma == "youtube" and capitulos:
             partes.append("**capítulos (colar na descrição):**\n\n" + "\n".join(capitulos) + "\n")
+    if roteiro.get("creditos_imagens"):
+        partes += ["## Créditos das imagens (colar na descrição)",
+                   "\n".join(roteiro["creditos_imagens"]) + "\nA NASA não endossa este vídeo.", ""]
     if roteiro.get("estilo") in visuais.ESTILOS_SINTETICOS or roteiro.get("sintetico"):
         partes += ["## ATENÇÃO: conteúdo sintético",
                    "Este vídeo tem imagens realistas feitas por IA. No upload, marque 'conteúdo alterado ou sintético' "
@@ -86,6 +89,23 @@ def _metadados(roteiro: dict, duracoes: list[float], destino: Path) -> None:
                "- Se houver imagem ou vídeo realista gerado por IA, marque 'conteúdo alterado ou sintético' no YouTube Studio.",
                "- Confirme a licença de todas as imagens, clipes e músicas."]
     destino.write_text("\n".join(partes) + "\n", encoding="utf-8")
+
+
+def _aplicar_edicao(roteiro: dict) -> None:
+    """Nível de edição do canal: 'simples' tira os elementos da tela (cards, palavra-herói, termo e etiquetas);
+    'leve' deixa a palavra-herói e só os 2 primeiros cards; 'pro' (padrão) usa tudo que o roteiro trouxer."""
+    edicao = roteiro.get("edicao", "pro")
+    if edicao == "pro":
+        return
+    cards = 0
+    for c in roteiro["cenas"]:
+        if edicao == "simples":
+            for campo in ("animacao", "destaque", "termo", "rotulos"):
+                c.pop(campo, None)
+        elif c.get("animacao"):
+            cards += 1
+            if cards > 2:
+                c.pop("animacao")
 
 
 def _tipo_da_cena(roteiro: dict, indice: int) -> str:
@@ -112,8 +132,11 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
               "tipo_visual": perfil.dados.get("tipo_visual"), "proporcao_video": perfil.dados.get("proporcao_video"),
               "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
               "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade"),
-              "tema_cards": perfil.dados.get("tema_cards")}
+              "tema_cards": perfil.dados.get("tema_cards"), "edicao": perfil.dados.get("edicao")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
+    _aplicar_edicao(roteiro)
+    visuais.ACERVO_NASA = bool(roteiro.get("acervo_nasa", perfil.dados.get("acervo_nasa")))
+    visuais.CREDITOS.clear()
     if "legenda" not in roteiro and perfil.arquivo.exists():
         roteiro["legenda"] = perfil.dados.get("legenda", True)
     formato = roteiro.get("formato", "longo")
@@ -288,6 +311,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         texto = thumb.get("texto") or roteiro.get("titulo", slug)
         visuais.thumbnail(imagem, texto, config.SAIDA / f"{slug}-thumb.jpg")
 
+    roteiro["creditos_imagens"] = sorted(visuais.CREDITOS)
     _metadados(roteiro, duracoes, config.SAIDA / f"{slug}-{formato}-metadados.md")
     print(f"pronto: {video} ({sum(duracoes):.0f}s)")
     return video

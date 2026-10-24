@@ -57,7 +57,31 @@ MODELO = {
     "legenda_cor": "#FFE500",
     "legenda_fonte": "Arial Black",
     "tema_cards": "padrao",
+    "edicao": "pro",            # quantos elementos na tela: simples, leve ou pro (pro = tudo que o roteiro trouxer)
+    "acervo_nasa": False,       # usar o acervo de imagens da NASA (domínio público, com crédito)
+    # personalidade do canal: o /escrever-roteiro e a leva seguem isso em todo roteiro
+    "persona_narrador": "",
+    "persona_tom": "",
+    "persona_publico": "",
+    "persona_abertura": "",
+    "persona_linguagem": "",
+    "persona_titulos": "",
 }
+
+EDICOES = {"simples": "Simples: só imagem, narração e legenda",
+           "leve": "Leve: palavra-herói e até 2 cards com dados por vídeo",
+           "pro": "Pro: card ou etiqueta em toda cena com número, data ou comparação"}
+PERSONA = [("persona_narrador", "Quem narra", "Ex.: uma pulga curiosa e animada que fala com o público como amigo"),
+           ("persona_tom", "Tom", "Ex.: divertido e espantado, sem exagero"),
+           ("persona_publico", "Público", "Ex.: adolescentes e adultos curiosos, 13 a 35 anos"),
+           ("persona_abertura", "Como os vídeos começam", "Ex.: com uma pergunta ou um fato que parece impossível"),
+           ("persona_linguagem", "Linguagem", "Ex.: português do dia a dia, frases curtas, sem gíria pesada"),
+           ("persona_titulos", "Títulos e capa", "Ex.: título curto com número; capa com 2 a 4 palavras em amarelo")]
+
+
+def resumo_persona(dados: dict) -> str:
+    """A personalidade do canal em texto corrido, para pedir roteiros ao Claude."""
+    return " ".join(f"{rotulo}: {dados[chave].strip()}." for chave, rotulo, _ in PERSONA if dados.get(chave, "").strip())
 
 MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azure": "Azure Speech (grátis até 500 mil caracteres)",
                "elevenlabs": "ElevenLabs (pago; precisa da chave)"}
@@ -85,7 +109,10 @@ def campos_padrao(form) -> dict:
             "legenda_tamanho": form.get("legenda_tamanho") if form.get("legenda_tamanho") in TAMANHOS_LEGENDA else "media",
             "legenda_cor": cor.upper() if re.match(r"^#[0-9a-fA-F]{6}$", cor) else "#FFE500",
             "legenda_fonte": form.get("legenda_fonte") if form.get("legenda_fonte") in FONTES_LEGENDA else "Arial Black",
-            "tema_cards": form.get("tema_cards") if form.get("tema_cards") in TEMAS_CARDS else "padrao"}
+            "tema_cards": form.get("tema_cards") if form.get("tema_cards") in TEMAS_CARDS else "padrao",
+            "edicao": form.get("edicao") if form.get("edicao") in EDICOES else "pro",
+            "acervo_nasa": bool(form.get("acervo_nasa")),
+            **{chave: form.get(chave, "").strip()[:300] for chave, _, _ in PERSONA}}
 
 # onde o canal existe; só YouTube e Instagram têm postagem automática, as outras ficam como referência
 PLATAFORMAS = [("youtube", "YouTube"), ("instagram", "Instagram"), ("facebook", "Facebook"),

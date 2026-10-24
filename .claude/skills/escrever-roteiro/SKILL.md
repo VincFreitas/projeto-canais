@@ -11,6 +11,12 @@ Formato do arquivo: [docs/roteiro.md](../../../docs/roteiro.md). Leia antes de e
 
 Perfil do canal (`perfis/<perfil>/perfil.json`, padrão `pulga-do-saber`): quando o usuário não disser outra coisa, use o `formato` (`vertical` ou `longo`) e a `duracao_s` dele como formato e duração alvo (~150 palavras/min a `+0%`, ~165 a `+10%`). Se houver `video_exemplo`, estude o ritmo, a estrutura e o tom dele (transcreva com `.\dark.ps1 transcrever` se precisar), **nunca o texto**. Use também o `ritmo_corte_s` do perfil: cada cena dura mais ou menos isso (cerca de 2,6 palavras por segundo), e a `velocidade` do perfil. Se existir `perfis/<perfil>/controle/referencias.json` (feito em Aprender com referência), siga as palavras por minuto e o ritmo medidos ali. Voz, visual, legenda e música já vêm do padrão do canal; só ponha esses campos no roteiro quando o vídeo precisar ser diferente.
 
+Personalidade do canal: se o perfil tiver `persona_narrador`, `persona_tom`, `persona_publico`, `persona_abertura`, `persona_linguagem` ou `persona_titulos`, siga cada um em todo o roteiro (quem fala, tom, para quem, como a 1ª frase abre, vocabulário e o padrão de título e de texto da capa).
+
+Nível de edição (`edicao` do perfil): `pro` = ponha `animacao` em toda cena com número, data ou comparação e `destaque` nas outras; `leve` = no máximo 2 `animacao` por vídeo, `destaque` onde ajudar; `simples` = nenhum elemento na tela (sem `animacao`, `destaque`, `termo` ou `rotulos`).
+
+Notas para a revisão: grave em `notas_roteiro` (uma lista curta de frases) o que você escolheu e por quê: a fórmula do gancho, o ângulo que o vídeo traz de novo, de onde vêm os fatos principais e qualquer simplificação feita. O Estúdio mostra isso na revisão antes de gerar.
+
 ## 1. Pesquisar
 - Se a ideia veio de um `analise.md`, releia o mecanismo e a transcrição do outlier de origem. Use-os como referência de estrutura e ritmo, **nunca de texto**.
 - Levante os fatos com WebSearch/WebFetch. Guarde de 3 a 8 links confiáveis em `fontes`.

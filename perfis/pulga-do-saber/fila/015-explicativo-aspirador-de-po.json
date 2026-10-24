@@ -1,0 +1,365 @@
+{
+  "slug": "explicativo-aspirador-de-po",
+  "titulo": "Como funciona o aspirador de pó",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "legenda": true,
+  "sintetico": false,
+  "aprovado": false,
+  "personagem": "A cozy living room interior seen from a low angle, wooden floor, a beige rug, soft warm lamp light, a window with daylight, a sleek modern vacuum cleaner body being assembled piece by piece in the center of the room.",
+  "fontes": [
+    "https://home.howstuffworks.com/vacuum-cleaner.htm",
+    "https://home.howstuffworks.com/vacuum-cleaner3.htm",
+    "https://explainthatstuff.com/vacuumcleaner.html",
+    "https://www.dreametech.com/blogs/blog/what-is-cyclone-vacuum-cleaner",
+    "https://www.samsung.com/africa_en/support/home-appliances/what-are-the-benefits-a-cyclone-filter-vacuum-cleaner",
+    "https://www.hoover-home.com/en_GB/blogs/news/how-vacuum-cleaner-work"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você varre o chão com uma vassoura, a sujeira grossa sai do lugar.",
+      "visual": "sweeping broom wooden floor",
+      "ilustracao": "a wooden broom sweeping visible dirt and crumbs off a wooden floor, a beige rug nearby",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.4,
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Mas a poeira fina só levanta voo, flutua no ar e volta a cair no mesmo lugar.",
+      "visual": "dust floating in sunlight",
+      "ilustracao": "fine dust particles floating in a beam of window light above the wooden floor",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você troca a ideia: em vez de empurrar a sujeira, você puxa o ar com força para sugar ela.",
+      "visual": "vacuum nozzle suction concept",
+      "ilustracao": "a sleek vacuum cleaner nozzle hovering just above the floor with small arrows showing air flowing inward",
+      "rotulos": [
+        {
+          "texto": "ar entrando",
+          "x": 0.5,
+          "y": 0.55,
+          "em": "sugar"
+        }
+      ],
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "fluxo",
+          "caminho": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.5,
+              0.42
+            ],
+            [
+              0.55,
+              0.62
+            ],
+            [
+              0.78,
+              0.72
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "texto": "Sabe quando você bebe com canudo? Sua boca baixa a pressão lá dentro, e o suco sobe sozinho.",
+      "visual": "drinking straw juice glass",
+      "ilustracao": "a glass of juice with a straw, juice rising up inside the straw",
+      "efeitos": [
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "fluxo",
+          "caminho": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.5,
+              0.42
+            ],
+            [
+              0.55,
+              0.62
+            ],
+            [
+              0.78,
+              0.72
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "texto": "Dentro do aspirador, um motor gira uma ventoinha bem rápido, e isso baixa a pressão do ar lá dentro.",
+      "termo": "ventoinha",
+      "visual": "spinning fan blades motor",
+      "ilustracao": "inside the vacuum body, a spinning fan with curved blades connected to a small electric motor, motion blur lines",
+      "efeitos": [
+        {
+          "tipo": "fluxo",
+          "caminho": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.5,
+              0.42
+            ],
+            [
+              0.55,
+              0.62
+            ],
+            [
+              0.78,
+              0.72
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "texto": "Como lá fora a pressão é maior, o ar empurra ele mesmo para dentro do bico, puxando poeira e migalhas junto.",
+      "visual": "air flow into vacuum nozzle",
+      "ilustracao": "the vacuum nozzle on the floor with dust and crumbs being pulled inside through swirling air lines",
+      "efeitos": [
+        {
+          "tipo": "fluxo",
+          "caminho": [
+            [
+              0.25,
+              0.3
+            ],
+            [
+              0.5,
+              0.42
+            ],
+            [
+              0.55,
+              0.62
+            ],
+            [
+              0.78,
+              0.72
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "texto": "Mas esse ar sujo não pode voltar direto para o quarto. Primeiro você precisa separar a poeira do ar.",
+      "visual": "dusty air inside tube",
+      "ilustracao": "a clear plastic tube showing dusty grey air moving through it inside the vacuum body",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Nos aspiradores antigos, o ar passava por um saco de pano. A poeira ficava presa, mas o saco entupia e a sucção ia enfraquecendo.",
+      "visual": "old vacuum cloth bag clogged",
+      "ilustracao": "an old fabric vacuum bag inside the machine, visibly puffed up and clogged with dust",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então alguém teve uma ideia: fazer o ar girar rápido em espiral, como um furacão em miniatura.",
+      "termo": "ciclone",
+      "visual": "cyclone vortex air spiral",
+      "ilustracao": "a transparent cylindrical chamber with a fast spinning grey vortex of air and dust inside, like a tiny tornado",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "A força do giro joga a poeira pesada para fora, contra a parede do pote, e o ar limpo sobe sozinho pelo centro.",
+      "visual": "cyclone dust separation chamber",
+      "ilustracao": "inside the transparent cyclone chamber, heavy dust particles flung against the outer wall while clean air spirals up the center",
+      "rotulos": [
+        {
+          "texto": "poeira pesada",
+          "x": 0.75,
+          "y": 0.6,
+          "em": "pesada"
+        },
+        {
+          "texto": "ar limpo",
+          "x": 0.3,
+          "y": 0.3,
+          "em": "limpo"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Antes de sair, esse ar ainda passa por um papel dobrado centenas de vezes, cheio de buracos microscópicos.",
+      "termo": "filtro HEPA",
+      "visual": "pleated paper air filter",
+      "ilustracao": "a white pleated paper filter cylinder with hundreds of tiny folds, air passing through it",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Esse filtro prende partículas duzentas vezes mais finas que um fio de cabelo, e o ar que sai fica mais limpo que o da sala.",
+      "visual": "hair strand dust speck comparison",
+      "ilustracao": "a split illustration comparing a thick hair strand to a tiny dust speck, both beside the filter",
+      "animacao": {
+        "tipo": "comparacao",
+        "itens": [
+          {
+            "rotulo": "Fio de cabelo",
+            "valor": 70
+          },
+          {
+            "rotulo": "Partícula presa",
+            "valor": 0.3
+          }
+        ],
+        "unidade": " µm",
+        "titulo": "Tamanho em mícrons",
+        "em": [
+          "cabelo"
+        ]
+      },
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas no tapete, o ar sozinho não arranca a sujeira grudada. Por isso uma escovinha giratória na ponta do bico descola tudo antes de sugar.",
+      "termo": "escova giratória",
+      "visual": "vacuum rotating brush carpet",
+      "ilustracao": "a small rotating brush roller at the base of the vacuum nozzle, spinning over a textured rug, loosening dust",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.45,
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um aspirador de pó. Comenta PÓ se você não sabia que ele não suga sozinho: é o ar de fora que empurra a sujeira para dentro.",
+      "visual": "finished modern vacuum cleaner",
+      "ilustracao": "a complete sleek modern vacuum cleaner standing in the clean living room, sparkles around it, happy mood",
+      "destaque": "comenta PÓ",
+      "destaque_em": "comenta",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "eletricidade",
+          "caminho": [
+            [
+              0.35,
+              0.22
+            ],
+            [
+              0.5,
+              0.45
+            ],
+            [
+              0.62,
+              0.68
+            ]
+          ]
+        },
+        {
+          "tipo": "brilhos",
+          "x": 0.5,
+          "y": 0.4,
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o aspirador de pó (ele não suga sozinho) #shorts",
+      "descricao": "O aspirador não cria sucção do nada: a ventoinha baixa a pressão lá dentro e o ar de fora empurra a sujeira para dentro. Monte um com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#ciencia",
+        "#aspirador"
+      ]
+    },
+    "instagram": {
+      "legenda": "O aspirador não suga: o ar de fora é que empurra a sujeira para dentro. Comenta PÓ se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#ciencia",
+        "#reels",
+        "#aspiradordepo",
+        "#vocesabia"
+      ]
+    }
+  }
+}
