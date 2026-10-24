@@ -258,6 +258,30 @@ def cmd_descricao(a):
         print(f"  aviso: {aviso}")
 
 
+def cmd_palco_testar(a):
+    """Desenha alguns quadros de cada cena do palco, sem gravar vídeo: acusa erro no módulo antes da produção.
+    É o único comando Python que a leva automática pode rodar (em vez de qualquer código)."""
+    import numpy as np
+    from .palco import Contexto, _carregar, _historia
+    roteiro = json.loads(Path(a.roteiro).read_text(encoding="utf-8"))
+    modulo = (config.RAIZ / roteiro["palco"]).resolve()
+    if not modulo.is_relative_to((config.RAIZ / "cenas").resolve()):
+        sys.exit("o palco precisa estar em cenas/")
+    mod = _carregar(modulo)
+    mundo = tuple(getattr(mod, "MUNDO", (216, 384)))
+    erros = 0
+    for i, _ in enumerate(roteiro["cenas"], 1):
+        antes, entradas, acoes = _historia(roteiro["cenas"], i, [], 4.0)
+        try:
+            for t in (0.0, 1.5, 3.5):
+                mod.desenhar(Contexto(np.zeros((mundo[1], mundo[0], 3), np.float32), t, t, i, entradas, acoes, antes))
+            print(f"cena {i}: ok")
+        except Exception as erro:
+            erros += 1
+            print(f"cena {i}: ERRO {type(erro).__name__}: {erro}")
+    sys.exit(1 if erros else 0)
+
+
 def cmd_estatisticas(_):
     from .estatisticas import coletar, totais
     from .perfis import carregar
@@ -443,6 +467,10 @@ def main():
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")
     s.set_defaults(fn=cmd_autorizar_youtube)
+
+    s = sub.add_parser("palco-testar", help="desenha alguns quadros de cada cena do palco de um roteiro (sem gravar)")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_palco_testar)
 
     s = sub.add_parser("estatisticas", help="busca nas plataformas os números do canal e de cada vídeo")
     s.set_defaults(fn=cmd_estatisticas)

@@ -101,10 +101,9 @@ def _regras(roteiro: dict, perfil) -> dict:
 
 
 def _com_ia(roteiro: dict, perfil) -> dict | None:
-    from .leva import _claude
+    from .leva import _claude, rodar_claude
     from .perfis import resumo_persona
-    claude = _claude()
-    if not claude:
+    if not _claude():
         return None
     falas = "\n".join(c.get("texto", "") for c in roteiro.get("cenas", []))
     pedido = (
@@ -121,8 +120,7 @@ def _com_ia(roteiro: dict, perfil) -> dict | None:
         f"Título: {roteiro.get('titulo')}\nNarração:\n{falas}\nFontes: {', '.join(roteiro.get('fontes') or []) or 'nenhuma'}"
     )
     try:
-        proc = subprocess.run([claude, "-p", pedido], cwd=config.RAIZ, capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", timeout=5 * 60)
+        proc = rodar_claude(pedido, timeout=5 * 60)  # sem ferramentas: só escreve o texto
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         dados = json.loads(bloco.group(0)) if bloco else None
     except (subprocess.TimeoutExpired, json.JSONDecodeError):

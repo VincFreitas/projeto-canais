@@ -59,9 +59,8 @@ CAMPOS = ("duracao_s, ritmo_corte_s, velocidade (ex.: +10%), edicao (simples/lev
 
 
 def _pedir_ia(perfil, estat: dict) -> dict | None:
-    from .leva import _claude
-    claude = _claude()
-    if not claude:
+    from .leva import _claude, rodar_claude
+    if not _claude():
         return None
     d = perfil.dados
     config_canal = {k: d.get(k) for k in ("nicho", "formato", "duracao_s", "ritmo_corte_s", "velocidade", "edicao",
@@ -79,8 +78,7 @@ def _pedir_ia(perfil, estat: dict) -> dict | None:
         f"Estatísticas: {json.dumps(estat, ensure_ascii=False)[:12000]}"
     )
     try:
-        proc = subprocess.run([claude, "-p", pedido], cwd=config.RAIZ, capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", timeout=6 * 60)
+        proc = rodar_claude(pedido, timeout=6 * 60)  # sem ferramentas: só lê os números que vão no pedido
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         return json.loads(bloco.group(0)) if bloco else None
     except (subprocess.TimeoutExpired, json.JSONDecodeError):

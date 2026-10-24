@@ -63,16 +63,26 @@ def _tempo(minutos: float) -> str:
 
 
 def _claude() -> str | None:
-    return shutil.which("claude") or next((str(c) for c in (
-        Path(os.environ.get("APPDATA", "")) / "npm" / "claude.cmd",
-        Path.home() / ".local" / "bin" / "claude.exe") if c.exists()), None)
+    # o .exe vem antes do .cmd: um .cmd passa pelo cmd.exe, que interpreta & | ^ nos argumentos (BatBadBut)
+    return next((str(c) for c in (Path.home() / ".local" / "bin" / "claude.exe",) if c.exists()), None) \
+        or shutil.which("claude") \
+        or next((str(c) for c in (Path(os.environ.get("APPDATA", "")) / "npm" / "claude.cmd",) if c.exists()), None)
+
+
+def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 300) -> subprocess.CompletedProcess:
+    """Roda o Claude Code sem interação. O pedido vai pela entrada padrão (nunca como argumento: textos vindos da
+    internet ou do roteiro não viram comando no cmd.exe). Só as ferramentas listadas são permitidas; o resto é
+    negado sozinho no modo -p, sem aceitar edições em qualquer pasta."""
+    claude = _claude()
+    if not claude:
+        raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code")
+    args = [claude, "-p"] + (["--allowedTools", *ferramentas] if ferramentas else [])
+    return subprocess.run(args, input=pedido, cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8",
+                          errors="replace", timeout=timeout)
 
 
 def _escrever_roteiro(perfil) -> Path | None:
     """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila."""
-    claude = _claude()
-    if not claude:
-        raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code para criar levas")
     from .perfis import resumo_persona
     d = perfil.dados
     persona = resumo_persona(d)
@@ -87,14 +97,16 @@ def _escrever_roteiro(perfil) -> Path | None:
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
         f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
         "com \"aprovado\": false, e, se a skill pedir o palco, também o módulo cenas/<slug>.py; nesse caso, teste "
-        "o desenho de cada cena com o Python do .venv antes de terminar. Não produza o vídeo, não publique nada "
-        "e não faça commit."
+        f"com: .venv\\Scripts\\python.exe -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "
+        "antes de terminar. Não produza o vídeo, não publique nada e não faça commit."
     )
-    proc = subprocess.run([claude, "-p", pedido, "--permission-mode", "acceptEdits",
-                           "--allowedTools", "Read", "Write", "Edit", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
-                           "Bash(.venv/Scripts/python.exe:*)", r"Bash(.venv\Scripts\python.exe:*)"],
-                          cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                          timeout=30 * 60)
+    # o Claude lê páginas da internet: só pode gravar na fila do perfil e em cenas/, e só roda o teste do palco
+    fila = f"perfis/{perfil.id}/fila"
+    proc = rodar_claude(pedido, (
+        "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
+        f"Write({fila}/**)", f"Edit({fila}/**)", "Write(cenas/**)", "Edit(cenas/**)",
+        "Bash(.venv/Scripts/python.exe -m darkops palco-testar:*)",
+        r"Bash(.venv\Scripts\python.exe -m darkops palco-testar:*)"), timeout=30 * 60)
     novos = sorted(set(perfil.fila.glob("*.json")) - antes)
     if not novos:
         print(f"  o Claude não criou roteiro: {(proc.stdout + proc.stderr).strip()[-400:]}")

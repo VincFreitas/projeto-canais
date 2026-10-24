@@ -116,7 +116,8 @@ def registrar_falha(etapa: str, mensagem: str, perfil=None) -> None:
     p = _perfil(perfil)
     p.controle.mkdir(parents=True, exist_ok=True)
     with (p.controle / "falhas.log").open("a", encoding="utf-8") as f:
-        f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S} [{etapa}] {mensagem.strip()}\n")
+        from .seguranca import ocultar
+        f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S} [{etapa}] {ocultar(mensagem.strip())}\n")
 
 
 def historico(perfil=None) -> list[dict]:

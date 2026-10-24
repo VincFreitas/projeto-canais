@@ -41,18 +41,49 @@ JOBS: dict[str, dict] = {}
 
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
+app.config.update(
+    MAX_CONTENT_LENGTH=512 * 1024 * 1024,  # maior envio aceito (vídeo ou narração): 512 MB
+    SESSION_COOKIE_SAMESITE="Strict",      # o cookie de sessão não vai em pedidos vindos de outros sites
+    SESSION_COOKIE_HTTPONLY=True,
+)
+LOCAL = re.compile(r"^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$")
 
 
 # ---------- segurança: só o próprio PC ----------
 
 @app.before_request
 def _so_local():
+    # 1) só conexões do próprio PC
     if request.remote_addr not in ("127.0.0.1", "::1"):
         abort(403)
+    # 2) DNS rebinding: um site pode apontar o próprio domínio para 127.0.0.1; o Host denuncia
+    if not LOCAL.match(request.host or ""):
+        abort(403)
+    # 3) CSRF: toda ação (POST) precisa vir de uma página do próprio Estúdio
     if request.method == "POST":
         origem = request.headers.get("Origin") or request.headers.get("Referer") or ""
-        if origem and not re.match(r"^https?://(127\.0\.0\.1|localhost)(:\d+)?(/|$)", origem):
+        if not re.match(r"^https?://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(/|$)", origem):
             abort(403)
+
+
+@app.after_request
+def _cabecalhos(resposta):
+    """Cabeçalhos do OWASP: sem moldura em outro site (clickjacking), sem adivinhar tipo de arquivo, sem vazar o
+    endereço em links externos e sem carregar scripts de fora."""
+    resposta.headers.setdefault("X-Frame-Options", "DENY")
+    resposta.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resposta.headers.setdefault("Referrer-Policy", "same-origin")  # no-referrer faria o navegador mandar Origin: null
+    resposta.headers.setdefault("Content-Security-Policy",
+                                "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; "
+                                "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+                                "frame-ancestors 'none'; form-action 'self' https://github.com; base-uri 'none'")
+    return resposta
+
+
+@app.errorhandler(413)
+def _grande_demais(_):
+    flash("Arquivo grande demais: o limite de envio é 512 MB.", "erro")
+    return redirect(request.referrer or url_for("inicio"))
 
 
 # ---------- modo guiado: enquanto a configuração não termina, só as telas de configurar ----------

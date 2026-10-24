@@ -132,7 +132,11 @@ def coletar(perfil) -> dict:
         try:
             resultado["plataformas"][nome] = funcao(perfil)
         except BaseException as erro:  # SystemExit dos helpers também: uma plataforma não derruba a outra
-            resultado["plataformas"][nome] = {"conta": {}, "videos": [], "avisos": [f"não deu para ler: {str(erro)[:200]}"]}
+            from .seguranca import ocultar
+            resultado["plataformas"][nome] = {"conta": {}, "videos": [], "avisos": [f"não deu para ler: {ocultar(erro)[:200]}"]}
+    from .seguranca import ocultar
+    for dados in resultado["plataformas"].values():  # nenhum token vai parar no arquivo ou na tela
+        dados["avisos"] = [ocultar(x) for x in dados["avisos"]]
     _ligar_roteiros(perfil, resultado)
     perfil.controle.mkdir(parents=True, exist_ok=True)
     (perfil.controle / "estatisticas.json").write_text(json.dumps(resultado, ensure_ascii=False, indent=2), encoding="utf-8")
