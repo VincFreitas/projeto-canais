@@ -18,13 +18,15 @@ def _token_youtube() -> Path:
 CATEGORIA_EDUCACAO = "27"
 
 
-def autorizar_youtube() -> Path:
-    """Abre o navegador uma vez para o dono do canal permitir o acesso e salva o token local."""
+def autorizar_youtube(analytics: bool = False) -> Path:
+    """Abre o navegador uma vez para o dono do canal permitir o acesso e salva o token local.
+    analytics=True pede também a leitura do YouTube Analytics (minutos assistidos e retenção)."""
+    from .estatisticas import ESCOPO_ANALYTICS
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     if not CLIENT_SECRET.exists():
         raise SystemExit(f"falta {CLIENT_SECRET} (baixe o JSON do cliente OAuth no Google Cloud)")
-    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS)
+    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS + ([ESCOPO_ANALYTICS] if analytics else []))
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
     # select_account: deixa escolher a conta do Google do canal deste perfil
     cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")
@@ -46,7 +48,8 @@ def _credenciais():
         info = json.loads(_token_youtube().read_text(encoding="utf-8"))
     else:
         raise SystemExit("sem token do YouTube: rode '.\\dark.ps1 autorizar-youtube' ou defina YOUTUBE_TOKEN")
-    cred = Credentials.from_authorized_user_info(info, ESCOPOS)
+    # usa as permissões que o token tem (com a do Analytics, se foi liberada); pedir menos tiraria a do Analytics
+    cred = Credentials.from_authorized_user_info(info, info.get("scopes") or ESCOPOS)
     if not cred.valid:
         cred.refresh(Request())
     return cred

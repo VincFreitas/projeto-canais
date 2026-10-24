@@ -1002,6 +1002,50 @@ def _referencias(p) -> dict:
     return referencia.ler(p)
 
 
+# ---------- estatísticas e análise da IA ----------
+
+@app.get("/p/<pid>/estatisticas")
+def estatisticas(pid):
+    from .. import analise
+    from .. import estatisticas as est
+    p = _perfil(pid)
+    dados = est.ler(p)
+    return render_template("estatisticas.html", p=p, d=p.dados, dados=dados, totais=est.totais(dados),
+                           sugestoes=analise.ler_sugestoes(p))
+
+
+@app.post("/p/<pid>/estatisticas/<acao>")
+def estatisticas_acao(pid, acao):
+    p = _perfil(pid)
+    voltar = url_for("estatisticas", pid=pid)
+    comandos = {"atualizar": ("Atualizar estatísticas", [["estatisticas"]]),
+                "analisar": ("Análise da IA", [["estatisticas"], ["analisar"]]),
+                "retencao": ("Liberar retenção do YouTube", [["autorizar-youtube", "--analytics"], ["estatisticas"]])}
+    if acao not in comandos:
+        abort(404)
+    titulo, lista = comandos[acao]
+    if acao == "retencao":
+        flash("Abrimos o login do Google: escolha a conta do canal e permita também a leitura do YouTube Analytics.", "ok")
+    job = _iniciar_job(p, titulo, lista)
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=voltar))
+
+
+@app.post("/p/<pid>/sugestao/<sid>/<decisao>")
+def decidir_sugestao(pid, sid, decisao):
+    from ..analise import decidir
+    p = _perfil(pid)
+    if decisao not in ("aprovar", "recusar"):
+        abort(404)
+    item = decidir(p, sid, decisao == "aprovar")
+    if not item:
+        flash("Essa sugestão já foi decidida ou não é mais válida.", "erro")
+    elif item["estado"] == "aprovada":
+        flash(f"Aprovada e aplicada: {item['titulo']}", "ok")
+    else:
+        flash(f"Recusada: {item['titulo']}", "ok")
+    return redirect(url_for("estatisticas", pid=pid) + "#sugestoes")
+
+
 # ---------- vídeos, tarefas e histórico ----------
 
 @app.get("/midia/<nome>")

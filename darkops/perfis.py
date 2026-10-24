@@ -81,7 +81,10 @@ PERSONA = [("persona_narrador", "Quem narra", "Ex.: uma pulga curiosa e animada 
 
 def resumo_persona(dados: dict) -> str:
     """A personalidade do canal em texto corrido, para pedir roteiros ao Claude."""
-    return " ".join(f"{rotulo}: {dados[chave].strip()}." for chave, rotulo, _ in PERSONA if dados.get(chave, "").strip())
+    texto = " ".join(f"{rotulo}: {dados[chave].strip()}." for chave, rotulo, _ in PERSONA if dados.get(chave, "").strip())
+    if dados.get("diretrizes"):  # orientações aprovadas na análise das estatísticas
+        texto += " Diretrizes do canal (aprovadas pelo dono): " + "; ".join(x.rstrip(". ") for x in dados["diretrizes"]) + "."
+    return texto.strip()
 
 MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azure": "Azure Speech (grátis até 500 mil caracteres)",
                "elevenlabs": "ElevenLabs (pago; precisa da chave)"}

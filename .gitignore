@@ -48,3 +48,6 @@ perfis/*/marca/pacote.json
 perfis/*/controle/leva.trava
 perfis/*/controle/leva-pendentes.json
 perfis/*/controle/leva-ultima.log
+perfis/*/controle/estatisticas.json
+perfis/*/controle/estatisticas-historico.jsonl
+perfis/*/controle/sugestoes.json

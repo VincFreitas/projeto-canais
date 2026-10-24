@@ -50,6 +50,8 @@
     <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo{{ trava }}</a>
     <a href="{{ url_for('conexoes', pid=p.id) }}" class="{{ 'atual' if aba == 'conexoes' }}">Conexões</a>
     <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico{{ trava }}</a>
+
+    <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba == 'estatisticas' }}">Estatísticas</a>
     <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' }}">Perfil</a>
     <a href="{{ url_for('identidade_pagina', pid=p.id) }}" class="{{ 'atual' if aba == 'identidade_pagina' }}">Identidade</a>
   </nav>

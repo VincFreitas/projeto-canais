@@ -184,3 +184,13 @@ pre.prompt { white-space: pre-wrap; background: #f3efe8; border: 1px solid var(-
 .tipo-video { border: 1px solid var(--linha); border-radius: 10px; padding: 10px 12px; margin: 10px 0; background: #fffdf6; }
 .tipo-video select { padding: 6px 8px; }
 .selo.formato { background: #e8eefc; color: var(--azul); }
+.numeros { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 8px 0; }
+.numeros div { background: #fffdf6; border: 1px solid var(--linha); border-radius: 10px; padding: 8px 10px; }
+.numeros b { display: block; font-size: 22px; }
+.numeros span { font-size: 12px; color: var(--suave); }
+.tabela-estat { font-size: 13px; }
+.tabela-estat th, .tabela-estat td { padding: 6px 8px; border-bottom: 1px solid var(--linha); text-align: right; white-space: nowrap; }
+.tabela-estat th:first-child, .tabela-estat td:first-child { text-align: left; white-space: normal; }
+.sugestao { border: 1px solid var(--linha); border-left: 4px solid var(--amarelo); border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+.sugestao.aprovada { border-left-color: var(--verde); }
+.sugestao.recusada { border-left-color: var(--linha); opacity: .7; }

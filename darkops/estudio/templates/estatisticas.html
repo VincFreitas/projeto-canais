@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}Estatísticas · {{ d.nome }}{% endblock %}
+{# número com ponto de milhar; "—" quando a plataforma não informou (sem permissão ou ainda sem dados) #}
+{% macro numero(v, sufixo='') %}{{ '—' if v is not defined or v is none else ('{:,}'.format(v).replace(',', '.') ~ sufixo) }}{% endmacro %}
+{% block corpo %}
+<div class="acoes" style="margin-bottom:12px">
+  <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='atualizar') }}"><button class="botao">Atualizar dados</button></form>
+  <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='analisar') }}"><button class="botao secundario">Analisar com a IA</button></form>
+  <span class="suave">{{ 'Atualizado em ' ~ dados.atualizado if dados.atualizado else 'Ainda sem dados: clique em Atualizar dados.' }}</span>
+</div>
+
+{% for plataforma, t in totais.items() %}
+{% set info = dados.plataformas[plataforma] %}
+<section class="cartao" style="margin-bottom:16px">
+  <h2>{{ 'YouTube' if plataforma == 'youtube' else 'Instagram' }} · {{ t.nome }}</h2>
+  <div class="numeros">
+    <div><b>{{ numero(t.seguidores) }}</b><span>{{ 'inscritos' if plataforma == 'youtube' else 'seguidores' }}</span></div>
+    <div><b>{{ numero(t.n_videos) }}</b><span>vídeos</span></div>
+    <div><b>{{ numero(t.visualizacoes_videos) }}</b><span>visualizações</span></div>
+    <div><b>{{ numero(t.curtidas) }}</b><span>curtidas</span></div>
+    <div><b>{{ numero(t.comentarios) }}</b><span>comentários</span></div>
+    <div><b>{{ numero(t.compartilhamentos) }}</b><span>compartilhamentos</span></div>
+    <div><b>{{ numero(t.minutos) }}</b><span>minutos assistidos</span></div>
+    <div><b>{{ numero(t.retencao_media, '%') }}</b><span>retenção média</span></div>
+  </div>
+  {% for a in info.avisos %}<p class="aviso erro" style="margin:8px 0 0">{{ a }}
+    {% if 'permissão extra' in a %}<form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='retencao') }}" style="display:inline">
+      <button class="botao claro">Liberar retenção do YouTube</button></form>{% endif %}</p>{% endfor %}
+  {% if info.videos %}
+  <div style="overflow-x:auto;margin-top:10px">
+  <table class="tabela-estat">
+    <tr><th>Vídeo</th><th>Data</th><th>Visualizações</th>{% if plataforma == 'instagram' %}<th>Alcance</th>{% endif %}
+      <th>Curtidas</th><th>Comentários</th><th>Compart.</th>{% if plataforma == 'instagram' %}<th>Salvos</th>{% endif %}
+      <th>Minutos</th><th>Duração média</th>{% if plataforma == 'youtube' %}<th>Retenção</th>{% endif %}</tr>
+    {% for v in info.videos %}
+    <tr><td><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
+      <td>{{ v.publicado }}</td><td>{{ numero(v.visualizacoes) }}</td>{% if plataforma == 'instagram' %}<td>{{ numero(v.alcance) }}</td>{% endif %}
+      <td>{{ numero(v.curtidas) }}</td><td>{{ numero(v.comentarios) }}</td><td>{{ numero(v.compartilhamentos) }}</td>
+      {% if plataforma == 'instagram' %}<td>{{ numero(v.salvos) }}</td>{% endif %}
+      <td>{{ numero(v.minutos) }}</td><td>{{ numero(v.duracao_media_s, ' s') }}</td>
+      {% if plataforma == 'youtube' %}<td>{{ numero(v.retencao_pct, '%') }}</td>{% endif %}</tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}<p class="suave">Nenhum vídeo publicado ainda nesta plataforma.</p>{% endif %}
+</section>
+{% else %}
+<p class="suave">Nenhuma plataforma conectada com dados. Conecte o YouTube ou o Instagram em Conexões e clique em Atualizar dados.</p>
+{% endfor %}
+
+<section class="cartao" id="sugestoes">
+  <h2>Análise da IA</h2>
+  {% if sugestoes.resumo %}<p>{{ sugestoes.resumo }}</p><p class="dica">Gerada em {{ sugestoes.gerado }}.</p>
+  {% else %}<p class="suave">Clique em “Analisar com a IA”: ela lê os números e sugere mudanças. Nada muda sem a sua aprovação.</p>{% endif %}
+  {% for s in sugestoes.sugestoes %}
+  <div class="sugestao {{ s.estado }}">
+    <b>{{ s.titulo }}</b> <span class="selo {{ 'pronta' if s.estado == 'aprovada' else 'manual' if s.estado == 'recusada' else 'falta' }}">{{ s.estado }}</span>
+    <p>{{ s.motivo }}</p>
+    {% if s.tipo == 'perfil' %}<p class="dica">Muda no perfil: <code>{{ s.campo }}</code> de <b>{{ s.valor_atual }}</b> para <b>{{ s.valor }}</b>.</p>
+    {% else %}<p class="dica">Nova diretriz para os próximos roteiros: “{{ s.valor }}”.</p>{% endif %}
+    {% if s.estado == 'pendente' %}
+    <div class="acoes">
+      <form method="post" action="{{ url_for('decidir_sugestao', pid=p.id, sid=s.id, decisao='aprovar') }}"><button class="botao">Aprovar</button></form>
+      <form method="post" action="{{ url_for('decidir_sugestao', pid=p.id, sid=s.id, decisao='recusar') }}"><button class="botao claro">Recusar</button></form>
+    </div>{% endif %}
+  </div>
+  {% endfor %}
+  {% if d.diretrizes %}<h3>Diretrizes do canal (aprovadas)</h3><ul>{% for x in d.diretrizes %}<li>{{ x }}</li>{% endfor %}</ul>
+  <p class="dica">O /escrever-roteiro e as levas seguem essas diretrizes.</p>{% endif %}
+</section>
+{% endblock %}

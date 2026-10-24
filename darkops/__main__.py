@@ -67,9 +67,9 @@ def cmd_vozes(a):
         print(v)
 
 
-def cmd_autorizar_youtube(_):
+def cmd_autorizar_youtube(a):
     from .publicar import autorizar_youtube, canal
-    arquivo = autorizar_youtube()
+    arquivo = autorizar_youtube(analytics=getattr(a, "analytics", False))
     print(f"token salvo em {arquivo}")
     c = canal()
     print(f"canal autorizado: {c['nome']} ({c['id']})")
@@ -258,6 +258,27 @@ def cmd_descricao(a):
         print(f"  aviso: {aviso}")
 
 
+def cmd_estatisticas(_):
+    from .estatisticas import coletar, totais
+    from .perfis import carregar
+    r = coletar(carregar())
+    for plataforma, t in totais(r).items():
+        print(f"{plataforma}: {t.get('nome')} · seguidores {t.get('seguidores')} · {t['n_videos']} vídeos · "
+              f"{t['visualizacoes_videos']} visualizações · {t['curtidas']} curtidas · {t['comentarios']} comentários")
+    for d in r["plataformas"].values():
+        for aviso in d["avisos"]:
+            print(f"  aviso: {aviso}")
+
+
+def cmd_analisar(_):
+    from .analise import analisar
+    from .perfis import carregar
+    r = analisar(carregar())
+    print(r.get("resumo", ""))
+    for s in r.get("sugestoes", []):
+        print(f"- [{s['estado']}] {s['titulo']}: {s['motivo']}")
+
+
 def cmd_conferir(a):
     from .conferir import conferir, salvar
     from .perfis import carregar
@@ -420,7 +441,14 @@ def main():
     s.set_defaults(fn=cmd_vozes)
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
+    s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")
     s.set_defaults(fn=cmd_autorizar_youtube)
+
+    s = sub.add_parser("estatisticas", help="busca nas plataformas os números do canal e de cada vídeo")
+    s.set_defaults(fn=cmd_estatisticas)
+
+    s = sub.add_parser("analisar", help="a IA analisa as estatísticas e sugere mudanças (cada uma pede aprovação)")
+    s.set_defaults(fn=cmd_analisar)
 
     s = sub.add_parser("publicar-youtube", help="envia o vídeo produzido de um roteiro ao YouTube")
     s.add_argument("roteiro")

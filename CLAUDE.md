@@ -44,6 +44,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - Autor: Vinicius Freitas. Licença PolyForm Noncommercial (`LICENSE`); nunca remova o `LICENSE` nem o crédito do README (o Estúdio confere em `darkops/autoria.py` e avisa "cópia modificada").
 - Versão em `darkops/__init__.py` (`__version__`, aparece no Estúdio e em `--version`). Suba a versão a cada entrega que muda o comportamento (correção: 0.9.x; recurso novo: 0.x.0).
 - Modo guiado: enquanto `plataformas.pendencias()` não estiver vazia, o Estúdio trava Fila, Novo vídeo e Histórico e mostra o próximo passo em Progresso (`DARKOPS_MODO_GUIADO=0` no `.env` desliga).
+- Guia **Estatísticas** (`/p/<perfil>/estatisticas`, `darkops/estatisticas.py` e `darkops/analise.py`): números do canal e de cada vídeo pelas APIs oficiais e análise da IA. Toda sugestão fica pendente até o usuário aprovar; só campos permitidos do perfil mudam, e diretrizes aprovadas (`diretrizes` no perfil) entram no pedido de roteiros. Nunca aplique sugestão sem aprovação.
 - Guia **Sobre o projeto** (`/sobre`): apresentação, apoio (estrela, seguir, compartilhar, LinkedIn) e **Enviar sugestão**, que abre uma issue pré-preenchida em VincFreitas/projeto-canais.
 
 ## Estrutura
