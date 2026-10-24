@@ -1,0 +1,232 @@
+{
+  "slug": "explicativo-elevador",
+  "titulo": "Como funciona o elevador",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A cutaway view of a tall apartment building shaft with a small elevator car, steel cables and a motor room at the top, city night outside.",
+  "fontes": [
+    "https://www.madehow.com/Volume-2/Elevator.html",
+    "https://elevatorworld.com/article/elevators-tend-to-fall-upward-too",
+    "https://www.britannica.com/technology/elevator-vertical-transport"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer subir coisas até o último andar, o jeito mais simples é uma corda com uma caixa na ponta.",
+      "visual": "rope pulley box",
+      "ilustracao": "a wooden box hanging on a rope over a pulley at the top of the building",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas puxar uma caixa com gente dentro é pesado demais.",
+      "visual": "heavy box",
+      "ilustracao": "the box full of people and a tired rope",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você põe um motor lá em cima que enrola o cabo de aço.",
+      "visual": "elevator motor",
+      "ilustracao": "a big electric motor with a grooved wheel at the top of the shaft pulling steel cables",
+      "rotulos": [
+        {
+          "texto": "motor",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "motor"
+        },
+        {
+          "texto": "cabo de aço",
+          "x": 0.5,
+          "y": 0.56,
+          "em": "cabo"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas o motor teria que levantar a caixa inteira toda vez.",
+      "visual": "elevator car",
+      "ilustracao": "the elevator car hanging heavy under the motor",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então do outro lado do cabo você pendura um bloco pesado, que desce quando a caixa sobe. Esse é o contrapeso.",
+      "visual": "counterweight",
+      "ilustracao": "a cutaway with the car on one side of the wheel and a heavy block on the other side",
+      "termo": "contrapeso",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ],
+      "ilustracao_depois": "the same shaft with the car going up and the heavy counterweight going down, arrows",
+      "depois_em": "desce"
+    },
+    {
+      "texto": "Ele pesa o mesmo que a caixa vazia, mais uns 40 por cento da carga máxima. O motor só move a diferença.",
+      "visual": "balance",
+      "ilustracao": "a balance scale with the car on one side and the counterweight on the other",
+      "animacao": {
+        "tipo": "barra",
+        "valor": 40,
+        "titulo": "Contrapeso = cabine +",
+        "rotulo": "da carga máxima"
+      },
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas e se o cabo arrebentar?",
+      "visual": "broken cable",
+      "ilustracao": "a steel cable snapping with a scared spark",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Então você coloca garras de metal na caixa, que agarram os trilhos da parede. Esse é o freio de segurança.",
+      "visual": "elevator safety brake",
+      "ilustracao": "metal jaws on the sides of the car gripping the vertical guide rails",
+      "termo": "freio de segurança",
+      "rotulos": [
+        {
+          "texto": "trilho",
+          "x": 0.2,
+          "y": 0.4,
+          "em": "trilhos"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ],
+      "ilustracao_depois": "the same car with metal jaws now clamped tight on the guide rails, sparks, car stopped",
+      "depois_em": "agarram"
+    },
+    {
+      "texto": "E quem dispara as garras é um sensor de velocidade. Se a caixa desce rápido demais, ele trava tudo. Esse é o limitador de velocidade.",
+      "visual": "speed governor",
+      "ilustracao": "a spinning wheel device with flyweights at the top of the shaft triggering a lever",
+      "termo": "limitador de velocidade",
+      "efeitos": [
+        {
+          "tipo": "frio"
+        }
+      ]
+    },
+    {
+      "texto": "Em 1854, em Nova York, Elisha Otis subiu numa plataforma e mandou cortar a corda na frente do público.",
+      "visual": "vintage elevator demonstration",
+      "ilustracao": "a man in a top hat standing on an open platform high up, crowd below, a rope being cut",
+      "rotulos": [
+        {
+          "texto": "Elisha Otis",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "Otis"
+        }
+      ],
+      "destaque": "1854",
+      "destaque_em": "1854",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "A plataforma travou, e o elevador de passageiro virou possível.",
+      "visual": "platform stops",
+      "ilustracao": "the platform stopped safely on the rails, the crowd cheering",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um elevador. Comenta contrapeso se você não sabia que ele existe.",
+      "visual": "modern elevator",
+      "ilustracao": "the finished elevator car arriving at a floor with doors opening, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta CONTRAPESO",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o elevador #shorts",
+      "descricao": "O elevador tem um contrapeso do outro lado do cabo e garras que travam nos trilhos. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#elevador",
+        "#engenharia"
+      ]
+    },
+    "instagram": {
+      "legenda": "O elevador tem um contrapeso do outro lado do cabo e garras que travam nos trilhos. Comenta CONTRAPESO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#elevador",
+        "#engenharia"
+      ]
+    }
+  }
+}

@@ -1,0 +1,204 @@
+{
+  "slug": "explicativo-caneta",
+  "titulo": "Como funciona a caneta",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A school desk with white paper sheets under warm lamp light, a clear plastic ballpoint pen with blue ink lying on the paper.",
+  "fontes": [
+    "https://en.wikipedia.org/wiki/Ballpoint_pen",
+    "https://www.edinformatics.com/inventions_inventors/ballpoint_pen.htm",
+    "https://contentstaging12.asme.org/about-asme/engineering-history/landmarks/236-birome-ballpoint-pen-collection"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer escrever com tinta, o jeito mais simples é molhar uma pena no tinteiro.",
+      "visual": "quill inkwell",
+      "ilustracao": "a feather quill dipped into a small ink pot on the desk",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Mas a cada palavra você molha de novo, e a tinta mancha a folha.",
+      "visual": "ink stain",
+      "ilustracao": "a big blue ink blot on the paper and drips from the quill",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Então você guarda a tinta dentro de um tubo. Mas se o tubo tiver um furo na ponta, a tinta vaza toda.",
+      "visual": "ink tube",
+      "ilustracao": "a clear tube of blue ink with a hole at the tip leaking a puddle",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same ink tube now with a big blue puddle leaking under it",
+      "depois_em": "vaza"
+    },
+    {
+      "texto": "Então você tampa a ponta com uma bolinha de metal, que encaixa certinho num buraco.",
+      "visual": "ballpoint tip",
+      "ilustracao": "a giant close-up of the pen tip with a tiny metal ball sitting in a socket",
+      "termo": "esfera",
+      "rotulos": [
+        {
+          "texto": "bolinha",
+          "x": 0.5,
+          "y": 0.36,
+          "em": "bolinha"
+        }
+      ],
+      "termo_em": "bolinha",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "A bolinha gira no papel, pega tinta de um lado e deixa a tinta do outro.",
+      "visual": "ball rolling ink",
+      "ilustracao": "the tiny metal ball rolling on paper with blue ink on its surface leaving a line",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same tiny ball now leaving a long smooth blue line on the paper",
+      "depois_em": "deixa"
+    },
+    {
+      "texto": "Mas se a tinta for rala, escorre pelos lados. Se for grossa demais, nem sai.",
+      "visual": "ink thick thin",
+      "ilustracao": "two pen tips side by side, one dripping thin ink and one dry",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "O jornalista húngaro László Bíró reparou que a tinta de jornal secava rapidinho.",
+      "visual": "newspaper printing",
+      "ilustracao": "a vintage newspaper printing press with fresh pages",
+      "rotulos": [
+        {
+          "texto": "tinta de jornal",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "jornal"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Então ele usou uma tinta grossa, que seca quase na hora, junto com a bolinha. E patenteou a ideia em 1938.",
+      "visual": "vintage pen patent",
+      "ilustracao": "an old desk with a vintage pen prototype and paper documents",
+      "termo": "esferográfica",
+      "rotulos": [
+        {
+          "texto": "1938",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "1938"
+        }
+      ],
+      "termo_em": "patenteou",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Essa é a caneta esferográfica: o nome vem da esfera na ponta.",
+      "visual": "ballpoint pen",
+      "ilustracao": "the clear ballpoint pen standing proudly on the paper with a shiny tip",
+      "termo": "esferográfica",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Por isso a caneta falha quando você escreve de cabeça para baixo: a tinta precisa descer até a bolinha.",
+      "visual": "writing upside down",
+      "ilustracao": "the pen held upside down writing on the ceiling paper with a faded line",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar uma caneta. Comenta Bíró se você não sabia que caneta tem uma bolinha na ponta.",
+      "visual": "pen writing",
+      "ilustracao": "the pen writing a smooth blue line on the paper, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta BÍRÓ",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona a caneta #shorts",
+      "descricao": "A caneta esferográfica tem esse nome por causa da bolinha de metal na ponta. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#caneta",
+        "#invencoes"
+      ]
+    },
+    "instagram": {
+      "legenda": "A caneta esferográfica tem esse nome por causa da bolinha de metal na ponta. Comenta BÍRÓ se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#caneta",
+        "#invencoes"
+      ]
+    }
+  }
+}

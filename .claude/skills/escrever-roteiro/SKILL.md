@@ -45,6 +45,7 @@ Quando a ideia é explicar como algo funciona, use o formato explicativo de [doc
 - Ponha uma `expressao` na pulga quando a fala pedir: `preocupada` no problema, `surpresa` na virada, `feliz` na solução e no fim.
 - O `personagem` descreve o cenário fixo, e cada `ilustracao` descreve o mesmo objeto no estado daquele passo.
 - O CTA vai só na última frase e é um pedido de comentário com uma palavra ("Comenta GELO se...").
+- **Cena viva** ([docs/roteiro.md](../../../docs/roteiro.md#cena-viva-câmera-partículas-e-antesdepois)): cada cena tem de 1 a 3 `efeitos` ligados à física do passo (`fluxo` para corrente, água ou gás; `calor`, `vapor`, `frio`, `faiscas`, `bolhas`, `ondas`, `eletricidade`; `brilhos` no fim). Ponha `ilustracao_depois` + `depois_em` em 2 ou 3 cenas em que o objeto muda de estado, e `alvo` nas etiquetas que apontam uma peça. Use `focos` quando o close precisar cair numa peça específica.
 - Simplificar pode, inventar não: cada passo tem fonte em `fontes`.
 
 ## 4. Verticais derivados (2 ou 3)

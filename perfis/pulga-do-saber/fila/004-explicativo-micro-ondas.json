@@ -1,0 +1,300 @@
+{
+  "slug": "explicativo-micro-ondas",
+  "titulo": "Como funciona o micro-ondas",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A cozy kitchen at night with warm lights, a white microwave oven on the counter, a plate of food and a glass of water nearby.",
+  "fontes": [
+    "https://www.todayifoundout.com/index.php/2012/02/how-a-microwave-oven-works/",
+    "https://rfessentials.com/resources/rf-glossary/microwave-oven/",
+    "https://www.straightdope.com/21343269/what-keeps-microwave-radiation-from-leaking-out-the-oven-door",
+    "https://www.scienceabc.com/innovation/how-does-a-microwave-oven-work"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer esquentar comida, o jeito mais simples é pôr no fogo.",
+      "visual": "pan on stove",
+      "ilustracao": "a frying pan on a stove flame with food inside",
+      "rotulos": [
+        {
+          "texto": "fogo",
+          "x": 0.5,
+          "y": 0.62,
+          "em": "fogo"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "Mas o fogo esquenta a panela, a panela esquenta a comida, e você espera um tempão.",
+      "visual": "waiting stove",
+      "ilustracao": "a clock and a pan heating slowly on the stove, sleepy steam",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "Então você esquenta direto o que tem dentro da comida: a água.",
+      "visual": "water droplets food",
+      "ilustracao": "a giant close-up of a piece of food with tiny water droplets inside glowing",
+      "rotulos": [
+        {
+          "texto": "água",
+          "x": 0.5,
+          "y": 0.34,
+          "em": "água"
+        }
+      ],
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Cada molécula de água tem um lado positivo e um lado negativo, como um imãzinho.",
+      "visual": "water molecule",
+      "ilustracao": "a big cartoon water molecule with a plus side and a minus side",
+      "rotulos": [
+        {
+          "texto": "+",
+          "x": 0.36,
+          "y": 0.38,
+          "em": "positivo"
+        },
+        {
+          "texto": "−",
+          "x": 0.64,
+          "y": 0.38,
+          "em": "negativo"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Então você cria uma onda invisível que vira de lado 2 bilhões e 450 milhões de vezes por segundo.",
+      "visual": "microwave waves",
+      "ilustracao": "invisible wavy lines filling the oven cavity, tiny molecules spinning",
+      "animacao": {
+        "tipo": "contador",
+        "ate": 2.45,
+        "casas": 2,
+        "sufixo": " bi",
+        "rotulo": "viradas por segundo",
+        "em": [
+          "bilhões"
+        ]
+      },
+      "efeitos": [
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        }
+      ]
+    },
+    {
+      "texto": "As moléculas tentam acompanhar, giram sem parar, esbarram nas vizinhas e esquentam. Essas são as micro-ondas.",
+      "visual": "molecules spinning",
+      "ilustracao": "many tiny water molecules spinning and bumping into each other with heat sparkles",
+      "termo": "micro-ondas",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same water molecules now glowing red hot and spinning fast with heat lines",
+      "depois_em": "esquentam"
+    },
+    {
+      "texto": "Quem cria essas ondas é uma peça escondida do lado da caixa. Esse é o magnetron.",
+      "visual": "magnetron",
+      "ilustracao": "a cutaway of the side of the microwave showing a metal cylinder device sending wavy lines through a tube",
+      "termo": "magnetron",
+      "rotulos": [
+        {
+          "texto": "tubo de ondas",
+          "x": 0.5,
+          "y": 0.64,
+          "em": "escondida"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        }
+      ]
+    },
+    {
+      "texto": "Mas as ondas não podem escapar. Então a caixa é toda de metal, que rebate as ondas para dentro.",
+      "visual": "metal box",
+      "ilustracao": "wavy lines bouncing off the metal walls inside the oven like a ping-pong",
+      "rotulos": [
+        {
+          "texto": "metal",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "metal"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        }
+      ]
+    },
+    {
+      "texto": "E a porta tem uma grade com furinhos de 1 ou 2 milímetros, pequenos demais para a onda, que mede uns 12 centímetros.",
+      "visual": "microwave door mesh",
+      "ilustracao": "close-up of the microwave door with a dark metal grid of tiny holes, light passing through",
+      "rotulos": [
+        {
+          "texto": "furinhos",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "furinhos"
+        }
+      ],
+      "destaque": "onda: 12 cm",
+      "destaque_em": "12",
+      "efeitos": [
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        }
+      ]
+    },
+    {
+      "texto": "A luz passa, porque é muito menor, e você vê a comida sem a onda sair.",
+      "visual": "microwave light inside",
+      "ilustracao": "the food glowing inside the oven seen through the door grid",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Mas a onda forma pontos quentes e pontos frios lá dentro. Então você coloca o prato para girar.",
+      "visual": "microwave turntable",
+      "ilustracao": "the glass plate spinning inside with food, curved arrows",
+      "termo": "prato giratório",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "ondas",
+          "raio": 0.25
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um micro-ondas. Comenta onda se você não sabia que ele esquenta a água da comida.",
+      "visual": "microwave beep",
+      "ilustracao": "the finished microwave with its light on and a steaming plate inside, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta ONDA",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        }
+      ],
+      "ilustracao_depois": "the same microwave with its door open and a steaming hot plate of food",
+      "depois_em": "montar"
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o micro-ondas #shorts",
+      "descricao": "O micro-ondas faz a água da comida girar bilhões de vezes por segundo. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#microondas",
+        "#ciencia"
+      ]
+    },
+    "instagram": {
+      "legenda": "O micro-ondas faz a água da comida girar bilhões de vezes por segundo. Comenta ONDA se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#microondas",
+        "#ciencia"
+      ]
+    }
+  }
+}

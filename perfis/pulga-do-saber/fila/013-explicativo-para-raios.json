@@ -1,0 +1,206 @@
+{
+  "slug": "explicativo-para-raios",
+  "titulo": "Como funciona o para-raios",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A tall old church-like building on a hill under a dark stormy sky with clouds, a city at the bottom, rain.",
+  "fontes": [
+    "https://physicstoday.aip.org/features/benjamin-franklin-and-lightning-rods",
+    "https://www.designingbuildings.co.uk/wiki/Lightning_conductor",
+    "https://journal.meteohistory.org/index.php/hom/article/view/8"
+  ],
+  "cenas": [
+    {
+      "texto": "Se um raio cai num prédio, a eletricidade procura o caminho mais fácil até o chão.",
+      "visual": "lightning building",
+      "ilustracao": "a lightning bolt hitting the top of the tall building, zigzag sparks down the walls",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "E esse caminho pode ser a parede, a madeira ou a fiação. Aí vem o fogo e o estrago.",
+      "visual": "fire",
+      "ilustracao": "small fires and cracks on the building from the strike",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "Então você põe uma ponta de metal no lugar mais alto do prédio.",
+      "visual": "lightning rod",
+      "ilustracao": "a pointed metal rod standing on the tip of the roof",
+      "termo": "captor",
+      "termo_em": "ponta",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Benjamin Franklin achava que a ponta ia descarregar a nuvem aos poucos e impedir o raio.",
+      "visual": "Benjamin Franklin",
+      "ilustracao": "a man with glasses and a kite looking at storm clouds, vintage style",
+      "rotulos": [
+        {
+          "texto": "Benjamin Franklin",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "Franklin"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Mas não funciona assim: a ponta não impede o raio.",
+      "visual": "storm",
+      "ilustracao": "lightning still striking the rod",
+      "expressao": "surpresa",
+      "destaque": "não impede",
+      "destaque_em": "impede",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "O que ela faz é virar o ponto de chegada preferido do raio.",
+      "visual": "rod strike",
+      "ilustracao": "the lightning bolt hitting exactly the metal tip",
+      "rotulos": [
+        {
+          "texto": "ponto de chegada",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "chegada"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ],
+      "ilustracao_depois": "the same metal tip now hit by a bright lightning bolt",
+      "depois_em": "chegada"
+    },
+    {
+      "texto": "Então você liga a ponta a um cabo grosso que desce pelo lado de fora do prédio.",
+      "visual": "down conductor",
+      "ilustracao": "a thick metal cable running from the rod down the outside wall",
+      "termo": "cabo de descida",
+      "termo_em": "cabo",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "E lá embaixo, o cabo entra em hastes de metal enterradas no chão. Esse é o aterramento.",
+      "visual": "grounding rods",
+      "ilustracao": "a cutaway of the ground showing metal rods buried in the soil connected to the cable",
+      "termo": "aterramento",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "O raio desce pelo cabo e se espalha na terra, sem passar por dentro da casa.",
+      "visual": "lightning grounded",
+      "ilustracao": "the lightning energy flowing down the cable and spreading into the earth as glowing lines",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ],
+      "ilustracao_depois": "the same building with the lightning energy flowing down the cable into the ground as glowing lines",
+      "depois_em": "desce"
+    },
+    {
+      "texto": "Por isso, um para-raios sem aterramento bom é quase pior que nenhum.",
+      "visual": "bad grounding",
+      "ilustracao": "a broken cable not touching the ground with a red warning",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um para-raios. Comenta raio se você achava que ele impedia o raio.",
+      "visual": "safe building",
+      "ilustracao": "the building safe under the storm with the rod glowing and sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta RAIO",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o para-raios #shorts",
+      "descricao": "O para-raios não impede o raio: ele dá um caminho seguro até o chão. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#pararaios",
+        "#ciencia"
+      ]
+    },
+    "instagram": {
+      "legenda": "O para-raios não impede o raio: ele dá um caminho seguro até o chão. Comenta RAIO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#pararaios",
+        "#ciencia"
+      ]
+    }
+  }
+}

@@ -116,6 +116,27 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 - Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e a pulga desce para o canto de baixo.
 - Animação nova, `barra`: `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}`. A barra enche até `valor`% no segundo em que o número é falado.
 
+### Cena viva (câmera, partículas e antes/depois)
+No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops/cinema.py`). Para desligar, use `"cena_viva": false` no roteiro.
+- **Câmera**:
+  - Entrada com zoom rápido, chicote lateral ou clarão, alternando entre as cenas.
+  - Deriva lenta, para a imagem nunca parar.
+  - Cortes entre o quadro aberto e closes de 1,5x a 2x.
+  - Soco de câmera com tremor no `termo` e na palavra-herói.
+- **`focos`** (cena): `[{"x": 0.5, "y": 0.6, "zoom": 2, "em": "palavra"}]` diz onde e quando a câmera faz o close. Sem `focos`, ela escolhe sozinha (etiquetas, depois efeitos, depois o centro).
+- **`efeitos`** (cena): partículas em pixel art desenhadas por cima da imagem, sempre em movimento. A `poeira` entra em toda cena.
+
+| Tipo | Campos | Uso |
+|---|---|---|
+| `fluxo` | `caminho` [[x,y], ...], `cor` | pontos de luz correndo num caminho (corrente, água, gás, tinta) |
+| `eletricidade` | `caminho` | faísca em zigue-zague que pisca |
+| `vapor`, `bolhas`, `calor`, `faiscas`, `ondas` | `x`, `y`, `raio`, `cor` | sobem, borbulham, tremem, espirram ou se espalham a partir do ponto |
+| `frio`, `poeira` | `cor` | cristais caindo ou partículas flutuando na tela toda |
+| `brilhos` | `x`, `y`, `raio` | estrelinhas que piscam em volta do objeto |
+
+- **Antes/depois** (cena): `"ilustracao_depois"` (o mesmo objeto depois da mudança, em inglês) e `"depois_em"` (a palavra falada que faz a troca, com clarão e whoosh). A segunda imagem usa a mesma semente, então a composição fica parecida. Cada uma custa mais um desenho, de 2 a 5 min.
+- **Etiquetas**: as `rotulos` passam a andar com a câmera, presas ao objeto. Com `"alvo": [x, y]`, a etiqueta ganha uma linha até a peça, com um ponto que pulsa.
+
 ## Estilo cartoon
 
 - `"estilo": "cartoon"`: a legenda vai para baixo da imagem, para não cobrir o personagem.

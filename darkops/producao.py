@@ -150,10 +150,16 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             audio, palavras = narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
                                               obra / "audio" / f"{i:02d}")
         pausa = float(c.get("pausa", PAUSA_PADRAO))
-        visual = None
+        visual, depois_img = None, None
         if estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):  # desenhada no PC
             visual = visuais.ilustracao_local(c["ilustracao"], roteiro.get("personagem", ""), i, obra / "visuais",
                                               largura, altura, estilo, slug, pixel)
+            if visual is not None and c.get("ilustracao_depois"):  # o mesmo objeto depois da mudança
+                depois_img = visuais.ilustracao_local(c["ilustracao_depois"], roteiro.get("personagem", ""), i,
+                                                      obra / "visuais", largura, altura, estilo, slug, pixel)
+        # cena viva: câmera, partículas e etiquetas presas ao objeto (pixel art em tela cheia)
+        viva = (visual is not None and pixel and not post and roteiro.get("cena_viva", True)
+                and visual.suffix.lower() in visuais.EXT_IMAGEM)
         if visual is None:
             visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
                                             _tipo_da_cena(roteiro, i), usados)
@@ -197,7 +203,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             if t is not None:
                 destaque = (texto, t)
                 efeitos.append((inicio_cena + t, "thud"))
-        termo, rotulos = None, []
+        termo, rotulos, rotulos_vivos = None, [], []
         if c.get("termo"):  # "Esse é o tungstênio": o nome técnico fica no topo até o fim da cena
             from .sincronia import momento
             t = momento(palavras, c.get("termo_em") or c["termo"])
@@ -207,8 +213,21 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             from .sincronia import momento
             t = momento(palavras, r.get("em") or r["texto"])
             rotulos.append((r["texto"], float(r.get("x", 0.5)), float(r.get("y", 0.4)), t if t is not None else 0.3))
+            rotulos_vivos.append((*rotulos[-1], r.get("alvo")))
             efeitos.append((inicio_cena + rotulos[-1][3], "pop"))
         visuais_usados.append(visual)
+        if viva:
+            from .cinema import gerar as gerar_cena_viva
+            from .sincronia import momento
+            t_depois = None
+            if depois_img is not None:
+                t_depois = momento(palavras, c.get("depois_em") or "") if c.get("depois_em") else None
+                t_depois = t_depois if t_depois is not None else dur_cena * 0.5
+                efeitos.append((inicio_cena + t_depois, "whoosh"))
+            impactos = [t for t in (termo[1] if termo else None, destaque[1] if destaque else None) if t is not None]
+            visual = gerar_cena_viva(visual, depois_img, t_depois, dur_cena, largura, altura, pixel, i, c, palavras,
+                                     rotulos_vivos, impactos, obra / "visuais" / f"{i:02d}-viva.mp4")
+            rotulos = []  # as etiquetas agora andam com a câmera, dentro da cena viva
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
         ass = None
@@ -233,7 +252,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             duracoes.append(render.duracao(saida_cena))
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
-                                        narrador, pixel, c.get("movimento")))
+                                        narrador, pixel, c.get("movimento"), transicao=not viva))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 

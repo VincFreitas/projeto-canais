@@ -1,0 +1,287 @@
+{
+  "slug": "explicativo-extintor",
+  "titulo": "Como funciona o extintor",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A small office corridor with a red fire extinguisher hanging on the wall next to a sign, a wastebasket and a desk nearby, daylight.",
+  "fontes": [
+    "https://www.scienceabc.com/innovation/how-fire-extinguisher-works",
+    "https://www.freeporttx.gov/page/open/2729/0/The%20ABCs%20of%20Fire%20Extinguishers%202021.12.pdf",
+    "https://isu.pressbooks.pub/app/uploads/sites/38/2024/04/5-Fire-Extinguisher.pdf",
+    "https://in.ewu.edu/ehs/wp-content/uploads/sites/116/2022/12/2023-Fire-Extinguishers.pdf"
+  ],
+  "cenas": [
+    {
+      "texto": "O fogo precisa de três coisas: algo para queimar, oxigênio e calor. Tira uma delas e ele apaga.",
+      "visual": "fire triangle",
+      "ilustracao": "a small fire in a wastebasket with three floating icons around it: wood, air and heat",
+      "termo": "triângulo do fogo",
+      "rotulos": [
+        {
+          "texto": "combustível",
+          "x": 0.25,
+          "y": 0.3,
+          "em": "queimar"
+        },
+        {
+          "texto": "oxigênio",
+          "x": 0.75,
+          "y": 0.3,
+          "em": "oxigênio"
+        },
+        {
+          "texto": "calor",
+          "x": 0.5,
+          "y": 0.62,
+          "em": "calor"
+        }
+      ],
+      "termo_em": "três",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "Se você joga água, ela tira o calor. Funciona com papel e madeira.",
+      "visual": "water on fire",
+      "ilustracao": "a bucket of water putting out the wastebasket fire with steam",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same wastebasket now with the fire out and white steam rising",
+      "depois_em": "tira"
+    },
+    {
+      "texto": "Mas jogar água em óleo quente espalha o fogo. E em aparelho ligado, a água conduz o choque.",
+      "visual": "oil fire",
+      "ilustracao": "a pan of oil with flames jumping and an electric spark sign",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Então você enche um cilindro com um pó que cobre o fogo e separa o combustível do oxigênio.",
+      "visual": "fire extinguisher powder",
+      "ilustracao": "a cutaway of the red cylinder full of fine yellow powder",
+      "termo": "pó químico",
+      "rotulos": [
+        {
+          "texto": "pó",
+          "x": 0.5,
+          "y": 0.4,
+          "em": "pó"
+        }
+      ],
+      "termo_em": "pó",
+      "efeitos": [
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "Mas como esse pó sai lá de dentro com força?",
+      "visual": "extinguisher",
+      "ilustracao": "the red cylinder standing with a question mark",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você coloca dentro um gás apertado, que empurra o pó para fora quando a válvula abre.",
+      "visual": "pressurized gas",
+      "ilustracao": "a cutaway with compressed gas pushing the powder up a tube to the nozzle",
+      "termo": "gás pressurizado",
+      "rotulos": [
+        {
+          "texto": "manômetro",
+          "x": 0.5,
+          "y": 0.28,
+          "em": "apertado"
+        }
+      ],
+      "termo_em": "gás",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Mas um esbarrão podia disparar o extintor sem querer. Então você põe um pino de trava no gatilho.",
+      "visual": "extinguisher pin",
+      "ilustracao": "a close-up of the handle with a metal pin and a small plastic seal",
+      "termo": "pino de trava",
+      "termo_em": "pino",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Outro tipo usa gás carbônico, que empurra o oxigênio para longe e ainda gela.",
+      "visual": "CO2 extinguisher",
+      "ilustracao": "a black-nozzle extinguisher spraying a white cold cloud",
+      "termo": "gás carbônico",
+      "efeitos": [
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Por isso o rótulo tem letras: A para papel e madeira, B para líquidos que pegam fogo, C para aparelhos elétricos.",
+      "visual": "extinguisher label",
+      "ilustracao": "a big label with letters A, B and C and simple icons",
+      "rotulos": [
+        {
+          "texto": "A",
+          "x": 0.25,
+          "y": 0.4,
+          "em": "papel"
+        },
+        {
+          "texto": "B",
+          "x": 0.5,
+          "y": 0.4,
+          "em": "líquidos"
+        },
+        {
+          "texto": "C",
+          "x": 0.75,
+          "y": 0.4,
+          "em": "elétricos"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        },
+        {
+          "tipo": "faiscas"
+        }
+      ]
+    },
+    {
+      "texto": "E para usar: puxa o pino, mira na base do fogo, aperta o gatilho e varre de um lado para o outro.",
+      "visual": "using extinguisher",
+      "ilustracao": "the extinguisher spraying powder at the base of the wastebasket fire in a sweeping motion",
+      "rotulos": [
+        {
+          "texto": "base do fogo",
+          "x": 0.5,
+          "y": 0.6,
+          "em": "base"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "faiscas"
+        }
+      ],
+      "ilustracao_depois": "the same scene with a big cloud of powder covering the fire at its base, fire going out",
+      "depois_em": "varre"
+    },
+    {
+      "texto": "Mas antes de tudo, avisa todo mundo e garante uma saída.",
+      "visual": "exit sign",
+      "ilustracao": "a green exit sign glowing over a door",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um extintor. Comenta pino se você não sabia para que serve aquele pino.",
+      "visual": "fire out",
+      "ilustracao": "the fire out with a little smoke and the extinguisher back on the wall, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta PINO",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "faiscas"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o extintor #shorts",
+      "descricao": "O extintor tem gás apertado que empurra o pó para fora, e o pino é a trava do gatilho. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#extintor",
+        "#seguranca"
+      ]
+    },
+    "instagram": {
+      "legenda": "O extintor tem gás apertado que empurra o pó para fora, e o pino é a trava do gatilho. Comenta PINO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#extintor",
+        "#seguranca"
+      ]
+    }
+  }
+}

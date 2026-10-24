@@ -1,0 +1,235 @@
+{
+  "slug": "explicativo-freio-do-carro",
+  "titulo": "Como funciona o freio do carro",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A small garage with a red car, side view, one front wheel visible with its metal brake disc, warm workshop light.",
+  "fontes": [
+    "https://www.autotrainingcentre.com/blog/intro-hydraulic-brakes-interested-auto-mechanic-training/",
+    "https://oponeo.co.uk/blog/hydraulic-brakes",
+    "https://blog.frenkit.es/en/what-is-a-brake-pump-or-master-cylinder-and-what-is-it-used-for",
+    "https://instruction.meridenk12.org/courses/335/7/2/"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer parar uma roda que está girando, o jeito mais simples é apertar ela com a mão.",
+      "visual": "spinning wheel",
+      "ilustracao": "a big spinning car wheel with motion lines and a cartoon glove reaching it",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas um carro pesa mais de uma tonelada, e a sua mão não é tão forte.",
+      "visual": "heavy car",
+      "ilustracao": "the red car with a huge weight sign above it",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você prende na roda um disco de metal e põe duas plaquinhas que apertam esse disco.",
+      "visual": "brake disc",
+      "ilustracao": "a shiny metal brake disc on the wheel with two small pads on each side",
+      "termo": "pastilhas",
+      "rotulos": [
+        {
+          "texto": "disco",
+          "x": 0.5,
+          "y": 0.62,
+          "em": "disco"
+        }
+      ],
+      "termo_em": "plaquinhas",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Elas raspam no disco, e o atrito transforma o movimento em calor. Por isso o freio esquenta.",
+      "visual": "hot brake disc",
+      "ilustracao": "the brake disc glowing orange hot with sparks from the pads",
+      "rotulos": [
+        {
+          "texto": "calor",
+          "x": 0.5,
+          "y": 0.32,
+          "em": "calor"
+        }
+      ],
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "faiscas"
+        }
+      ],
+      "ilustracao_depois": "the same brake disc now glowing bright orange hot with sparks flying",
+      "depois_em": "calor"
+    },
+    {
+      "texto": "Mas como levar a força do seu pé até as quatro rodas?",
+      "visual": "car pedal",
+      "ilustracao": "the brake pedal inside the car with dotted lines towards the four wheels",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você enche um cano com um líquido, porque líquido quase não se comprime. Esse é o fluido de freio.",
+      "visual": "brake fluid",
+      "ilustracao": "a cutaway of a thin pipe filled with yellow liquid running from the pedal to the wheel",
+      "termo": "fluido de freio",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "O pedal empurra um pistão. A pressão vai igualzinha pelo líquido todo, até a roda. Esse é o cilindro mestre.",
+      "visual": "master cylinder",
+      "ilustracao": "a cutaway of a metal cylinder with a piston pushed by the pedal and pressure arrows in the liquid",
+      "termo": "cilindro mestre",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "E lá na roda, o pistão é mais largo. Mesma pressão numa área maior dá uma força maior.",
+      "visual": "brake caliper",
+      "ilustracao": "a wide piston at the wheel pushing the pads with big force arrows",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Num exemplo, você empurra com 10 e a roda aperta com 40.",
+      "visual": "force",
+      "ilustracao": "a small arrow at the pedal and a huge arrow at the wheel",
+      "animacao": {
+        "tipo": "comparacao",
+        "titulo": "Força",
+        "itens": [
+          {
+            "rotulo": "Pé",
+            "valor": 10
+          },
+          {
+            "rotulo": "Roda",
+            "valor": 40
+          }
+        ]
+      },
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "A peça que abraça o disco com as pastilhas é a pinça.",
+      "visual": "caliper",
+      "ilustracao": "a red metal clamp hugging the disc with the pads inside",
+      "termo": "pinça",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ],
+      "ilustracao_depois": "the same red clamp now squeezing the disc tight, the wheel stopped",
+      "depois_em": "abraça"
+    },
+    {
+      "texto": "Por isso, se entrar ar no cano, o pedal fica mole: o ar se espreme e a força se perde.",
+      "visual": "spongy pedal",
+      "ilustracao": "air bubbles inside the yellow liquid pipe and a soft squishy pedal",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        },
+        {
+          "tipo": "bolhas"
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um freio. Comenta pinça se você não sabia que o freio vira calor.",
+      "visual": "car stopping",
+      "ilustracao": "the red car stopped safely with the wheel still, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta PINÇA",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o freio do carro #shorts",
+      "descricao": "O freio do carro multiplica a força do seu pé com um líquido e transforma o movimento em calor. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#carros",
+        "#freio"
+      ]
+    },
+    "instagram": {
+      "legenda": "O freio do carro multiplica a força do seu pé com um líquido e transforma o movimento em calor. Comenta PINÇA se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#carros",
+        "#freio"
+      ]
+    }
+  }
+}

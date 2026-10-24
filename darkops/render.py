@@ -52,7 +52,7 @@ def _movimento(indice: int, quadros: int, escolhido: str | None = None) -> str:
 def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
          largura: int, altura: int, indice: int, pausa: float,
          card: tuple[Path, int, int] | None = None, narrador: tuple[Path, int, int] | None = None,
-         pixel: int = 0, movimento: str | None = None) -> float:
+         pixel: int = 0, movimento: str | None = None, transicao: bool = True) -> float:
     """Renderiza uma cena com a duração da narração + pausa. Devolve a duração.
 
     card = (vídeo com transparência, x, y): infográfico por cima do clipe, que fica desfocado e
@@ -85,7 +85,8 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
         video = (f"[0:v]scale={largura * 2}:{altura * 2}:force_original_aspect_ratio=increase,"
                  f"crop={largura * 2}:{altura * 2},{_movimento(indice, quadros, movimento)}:s={largura}x{altura}:fps={FPS},"
                  f"setsar=1")
-    entrada_suave = f",fade=t=in:st=0:d={TRANSICAO}"
+    # a cena viva (cinema.py) já traz a própria transição de entrada
+    entrada_suave = f",fade=t=in:st=0:d={TRANSICAO}" if transicao else ""
     extra = []
     if card:
         arquivo, x, y = card

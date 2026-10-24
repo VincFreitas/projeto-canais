@@ -1,0 +1,237 @@
+{
+  "slug": "explicativo-fechadura",
+  "titulo": "Como funciona a fechadura",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "The front door of a small house seen from the hallway, a brass door lock and a key ring hanging nearby, warm light.",
+  "fontes": [
+    "https://lockwiki.com/index.php/Pin-tumbler",
+    "https://www.firgelliauto.com/blogs/mechanisms/pin-tumbler-lock",
+    "https://www.scienceabc.com/innovation/pick-door-locks-pin-tumbler-sherlock-doors-open"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer trancar uma porta, o jeito mais simples é uma tranca de madeira por dentro.",
+      "visual": "wooden door bar",
+      "ilustracao": "a wooden bar across the inside of the door in metal brackets",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas aí você só tranca de dentro. E quando sair de casa?",
+      "visual": "door outside",
+      "ilustracao": "the door seen from outside with a question mark",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você põe um ferrinho que entra no batente, e um cilindro que gira para mover esse ferro.",
+      "visual": "lock cylinder",
+      "ilustracao": "a cutaway of the lock showing a metal bolt and a round cylinder that rotates",
+      "termo": "lingueta",
+      "rotulos": [
+        {
+          "texto": "cilindro",
+          "x": 0.5,
+          "y": 0.62,
+          "em": "cilindro"
+        }
+      ],
+      "termo_em": "ferrinho",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Mas se qualquer coisa gira o cilindro, qualquer um abre.",
+      "visual": "screwdriver",
+      "ilustracao": "a screwdriver turning the cylinder easily",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você fura o cilindro de cima a baixo e coloca colunas de pinos com uma molinha em cima.",
+      "visual": "lock pins",
+      "ilustracao": "a cutaway showing five columns of small pins with springs on top crossing the cylinder",
+      "termo": "pinos",
+      "rotulos": [
+        {
+          "texto": "mola",
+          "x": 0.5,
+          "y": 0.3,
+          "em": "molinha"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Cada coluna tem dois pinos. A mola empurra, e o pino de cima fica atravessado na linha do cilindro, travando tudo.",
+      "visual": "pin stack",
+      "ilustracao": "close-up of one column: a top pin crossing the gap between cylinder and body, blocking it",
+      "rotulos": [
+        {
+          "texto": "pino de cima",
+          "x": 0.5,
+          "y": 0.32,
+          "em": "cima"
+        },
+        {
+          "texto": "linha",
+          "x": 0.5,
+          "y": 0.5,
+          "em": "linha"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Os pinos de baixo têm tamanhos diferentes.",
+      "visual": "pins sizes",
+      "ilustracao": "the bottom pins in a row with different lengths",
+      "rotulos": [
+        {
+          "texto": "tamanhos",
+          "x": 0.5,
+          "y": 0.34,
+          "em": "tamanhos"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então a chave tem dentes na altura certa de cada pino. Ela empurra cada par até a emenda ficar bem na linha.",
+      "visual": "key pins align",
+      "ilustracao": "a key inserted lifting each pin pair so all the gaps line up perfectly",
+      "termo": "linha de corte",
+      "termo_em": "linha",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ],
+      "ilustracao_depois": "the same cutaway with the key fully inserted and all the pin gaps lined up in one straight line",
+      "depois_em": "linha"
+    },
+    {
+      "texto": "Todos alinhados, nada mais trava, e o cilindro gira.",
+      "visual": "lock opening",
+      "ilustracao": "the cylinder rotating freely and the bolt sliding back",
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ],
+      "ilustracao_depois": "the same lock with the cylinder turned and the bolt pulled back, door unlocked",
+      "depois_em": "gira"
+    },
+    {
+      "texto": "Com a chave errada, basta um pino fora do lugar para tudo continuar travado.",
+      "visual": "wrong key",
+      "ilustracao": "a wrong key with one pin still crossing the line, a red X",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Esse é o cilindro de pinos, patenteado por Linus Yale Júnior, nos Estados Unidos.",
+      "visual": "vintage lock",
+      "ilustracao": "a vintage brass pin lock on an old workbench",
+      "termo": "cilindro de pinos",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar uma fechadura. Comenta chave se você não sabia que ela só alinha pinos.",
+      "visual": "unlocked door",
+      "ilustracao": "the front door opening with warm light and sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta CHAVE",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona a fechadura #shorts",
+      "descricao": "A chave só alinha uma fileira de pinos de tamanhos diferentes. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#fechadura",
+        "#chave"
+      ]
+    },
+    "instagram": {
+      "legenda": "A chave só alinha uma fileira de pinos de tamanhos diferentes. Comenta CHAVE se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#fechadura",
+        "#chave"
+      ]
+    }
+  }
+}

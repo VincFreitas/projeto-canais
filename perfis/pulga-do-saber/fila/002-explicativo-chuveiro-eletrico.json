@@ -1,0 +1,291 @@
+{
+  "slug": "explicativo-chuveiro-eletrico",
+  "titulo": "Como funciona o chuveiro elétrico",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A small bright bathroom with white and teal tiles, a wall-mounted white electric shower head on a pipe, warm morning light.",
+  "fontes": [
+    "https://fep.if.usp.br/~profis/arquivo/gref/eletro07-2.pdf",
+    "https://www.promobit.com.br/blog/o-que-e-e-como-funciona-a-torneira-eletrica/",
+    "https://ric.cps.sp.gov.br/bitstream/123456789/28372/1/eletromecanica_2024_2%c2%basemestre_mariosergio_dualresistor.pdf"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer um banho quente, o jeito mais simples é esquentar a água numa panela e jogar na cabeça.",
+      "visual": "bucket shower",
+      "ilustracao": "a person-free scene: a metal pot of steaming water next to a bucket in the bathroom",
+      "rotulos": [
+        {
+          "texto": "água quente",
+          "x": 0.5,
+          "y": 0.32,
+          "em": "panela"
+        }
+      ],
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Mas isso dá um trabalhão, e a água esfria antes de você terminar.",
+      "visual": "cold water",
+      "ilustracao": "the bucket of water with blue cold sparkles and no steam, a shivering towel",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Então você faz a água passar por um fio que esquenta quando a eletricidade atravessa ele.",
+      "visual": "heating wire",
+      "ilustracao": "a cutaway of the shower head showing a glowing orange coiled wire with water flowing around it",
+      "rotulos": [
+        {
+          "texto": "fio quente",
+          "x": 0.5,
+          "y": 0.36,
+          "em": "fio"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Esse fio é uma liga de níquel e cromo que aguenta muito calor. Essa é a resistência.",
+      "visual": "nichrome wire",
+      "ilustracao": "close-up of the glowing orange coiled wire inside the shower head, sparkles of heat",
+      "termo": "resistência",
+      "rotulos": [
+        {
+          "texto": "níquel e cromo",
+          "x": 0.5,
+          "y": 0.62,
+          "em": "níquel"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Mas se a resistência ficar ligada sem água, ela esquenta demais e se rompe.",
+      "visual": "burnt wire",
+      "ilustracao": "the coiled wire glowing red hot with no water around it, a small puff of smoke",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same coiled wire now snapped in two pieces, black and burnt, a puff of smoke",
+      "depois_em": "rompe"
+    },
+    {
+      "texto": "Então você coloca dentro do chuveiro uma pele de borracha que só encosta no contato elétrico quando a água empurra.",
+      "visual": "rubber membrane",
+      "ilustracao": "a cutaway: a round rubber membrane pushed up by flowing water, touching a small metal contact",
+      "rotulos": [
+        {
+          "texto": "borracha",
+          "x": 0.5,
+          "y": 0.34,
+          "em": "borracha"
+        },
+        {
+          "texto": "contato",
+          "x": 0.5,
+          "y": 0.6,
+          "em": "contato"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Abriu o registro, a pressão da água empurra a borracha, fecha o contato e a resistência liga. Esse é o diafragma.",
+      "visual": "shower valve",
+      "ilustracao": "water rushing into the shower head, the rubber membrane bulging and a tiny spark at the contact",
+      "termo": "diafragma",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same cutaway, the rubber membrane now pushed up touching the metal contact, a bright spark, the wire glowing orange",
+      "depois_em": "liga"
+    },
+    {
+      "texto": "Por isso, com pouca água, muitos chuveiros nem esquentam.",
+      "visual": "weak shower",
+      "ilustracao": "the shower head with only a few weak drops falling, the wire inside dark and cold",
+      "expressao": "preocupada",
+      "destaque": "pouca água",
+      "destaque_em": "pouca",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "frio"
+        },
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "E a chave de verão e inverno? No inverno, a corrente passa por um pedaço menor da resistência.",
+      "visual": "shower switch",
+      "ilustracao": "a big switch knob on the shower with a sun icon and a snowflake icon, the wire inside split in two parts",
+      "rotulos": [
+        {
+          "texto": "verão",
+          "x": 0.32,
+          "y": 0.3,
+          "em": "verão"
+        },
+        {
+          "texto": "inverno",
+          "x": 0.68,
+          "y": 0.3,
+          "em": "inverno"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Parece ao contrário, mas um fio mais curto deixa passar mais corrente, e mais corrente esquenta mais.",
+      "visual": "electric current",
+      "ilustracao": "the shorter glowing wire shining brighter and hotter than a long dim wire next to it",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        }
+      ]
+    },
+    {
+      "texto": "Pronto: você acabou de montar um chuveiro elétrico. Comenta inverno se você não sabia que o fio menor é o que esquenta mais.",
+      "visual": "hot shower steam",
+      "ilustracao": "the finished white electric shower pouring warm water with lots of steam, cozy bathroom, sparkles",
+      "expressao": "feliz",
+      "destaque": "comenta INVERNO",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "vapor",
+          "cor": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "tipo": "calor"
+        },
+        {
+          "tipo": "eletricidade"
+        }
+      ],
+      "ilustracao_depois": "the same shower now pouring hot water with lots of steam",
+      "depois_em": "montar"
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona o chuveiro elétrico #shorts",
+      "descricao": "No chuveiro elétrico, o fio mais curto é o que esquenta mais. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#chuveiro",
+        "#eletricidade"
+      ]
+    },
+    "instagram": {
+      "legenda": "No chuveiro elétrico, o fio mais curto é o que esquenta mais. Comenta INVERNO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#chuveiro",
+        "#eletricidade"
+      ]
+    }
+  }
+}

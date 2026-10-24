@@ -1,0 +1,222 @@
+{
+  "slug": "explicativo-descarga",
+  "titulo": "Como funciona a descarga",
+  "idioma": "pt",
+  "formato": "vertical",
+  "layout": "cheio",
+  "legenda_modo": "palavra",
+  "legenda_cor": "#FF9F1C",
+  "velocidade": "+15%",
+  "volume_musica": 0.08,
+  "legenda": true,
+  "sintetico": false,
+  "personagem": "A clean bathroom with light green tiles, a white toilet with a tank on the back, soft daylight.",
+  "fontes": [
+    "https://assist.kohler.com/en/toilets-and-seats/How-a-Toilet-Flushes",
+    "https://www.familyhandyman.com/list/how-a-toilet-works/",
+    "https://trueflowplumbing.net.au/how-does-toilet-work/",
+    "https://en.wikipedia.org/wiki/Flush_toilet"
+  ],
+  "cenas": [
+    {
+      "texto": "Se você quer limpar o vaso, o jeito mais simples é jogar um balde de água lá dentro.",
+      "visual": "bucket of water",
+      "ilustracao": "a blue bucket of water tilted over the toilet bowl, splash",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Mas aí tem que encher o balde toda vez.",
+      "visual": "empty bucket",
+      "ilustracao": "an empty bucket next to the toilet, a tired drop of sweat",
+      "expressao": "preocupada",
+      "efeitos": [
+        {
+          "tipo": "brilhos",
+          "raio": 0.18
+        }
+      ]
+    },
+    {
+      "texto": "Então você coloca uma caixa cheia de água atrás do vaso, com uma tampa de borracha no fundo.",
+      "visual": "toilet tank",
+      "ilustracao": "a cutaway of the toilet tank full of water with a rubber flap at the bottom",
+      "rotulos": [
+        {
+          "texto": "caixa",
+          "x": 0.5,
+          "y": 0.28,
+          "em": "caixa"
+        },
+        {
+          "texto": "tampa de borracha",
+          "x": 0.5,
+          "y": 0.6,
+          "em": "borracha"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Apertou o botão, a tampa sobe e a água desce de uma vez.",
+      "visual": "toilet flush",
+      "ilustracao": "the rubber flap lifted and water rushing down from the tank into the bowl",
+      "expressao": "surpresa",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same toilet tank now almost empty, water rushing down into the bowl in a swirl",
+      "depois_em": "desce"
+    },
+    {
+      "texto": "Só que o segredo está no cano curvo do vaso. A água enche a curva toda e puxa tudo junto, como um canudo.",
+      "visual": "toilet trap",
+      "ilustracao": "a cutaway of the toilet showing a curved pipe completely full of rushing water pulling everything",
+      "termo": "sifão",
+      "termo_em": "canudo",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Esse é o sifão. Quando entra ar na curva, o sifão quebra. É aquele barulhinho de gargarejo no fim.",
+      "visual": "gurgle",
+      "ilustracao": "air bubbles entering the curved pipe with a gurgle sound mark",
+      "termo": "sifão",
+      "rotulos": [
+        {
+          "texto": "ar",
+          "x": 0.5,
+          "y": 0.36,
+          "em": "ar"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        },
+        {
+          "tipo": "bolhas"
+        }
+      ]
+    },
+    {
+      "texto": "Mas um pouco de água fica parada na curva. E ela é de propósito: segura o cheiro do esgoto lá embaixo.",
+      "visual": "water seal",
+      "ilustracao": "a small pool of still water sitting in the bottom of the curve, a stinky cloud blocked below it",
+      "rotulos": [
+        {
+          "texto": "água parada",
+          "x": 0.5,
+          "y": 0.4,
+          "em": "parada"
+        }
+      ],
+      "expressao": "feliz",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    },
+    {
+      "texto": "Agora a caixa está vazia. Então você põe uma bola que boia na água, presa numa torneirinha.",
+      "visual": "toilet float",
+      "ilustracao": "inside the tank, a floating ball on a lever connected to a small valve",
+      "termo": "boia",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "Quando a água desce, a boia desce junto e abre a torneira.",
+      "visual": "float down",
+      "ilustracao": "the float ball low in an empty tank and water spraying in from the valve",
+      "rotulos": [
+        {
+          "texto": "aberta",
+          "x": 0.5,
+          "y": 0.34,
+          "em": "abre"
+        }
+      ],
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ]
+    },
+    {
+      "texto": "A água sobe, a boia sobe, e lá em cima ela fecha a torneira sozinha.",
+      "visual": "float up",
+      "ilustracao": "the float ball high in a full tank and the valve closed, calm water",
+      "efeitos": [
+        {
+          "tipo": "fluxo"
+        }
+      ],
+      "ilustracao_depois": "the same tank now full of water, the floating ball high, the valve closed",
+      "depois_em": "fecha"
+    },
+    {
+      "texto": "Pronto: você acabou de montar uma descarga. Comenta sifão se você não sabia que é ele que faz o barulho.",
+      "visual": "toilet clean",
+      "ilustracao": "the finished clean white toilet with sparkles, happy bathroom",
+      "expressao": "feliz",
+      "destaque": "comenta SIFÃO",
+      "destaque_em": "comenta",
+      "efeitos": [
+        {
+          "tipo": "eletricidade"
+        },
+        {
+          "tipo": "brilhos",
+          "raio": 0.2
+        }
+      ]
+    }
+  ],
+  "metadados": {
+    "youtube_shorts": {
+      "titulo": "Como funciona a descarga #shorts",
+      "descricao": "A descarga funciona como um canudo gigante, e o barulho no fim é o sifão quebrando. Monte com a gente, peça por peça.",
+      "hashtags": [
+        "#shorts",
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#descarga",
+        "#banheiro"
+      ]
+    },
+    "instagram": {
+      "legenda": "A descarga funciona como um canudo gigante, e o barulho no fim é o sifão quebrando. Comenta SIFÃO se você não sabia. Segue a @pulgadosaber para mais.",
+      "hashtags": [
+        "#curiosidades",
+        "#comofunciona",
+        "#pulgadosaber",
+        "#reels",
+        "#vocesabia",
+        "#descarga",
+        "#banheiro"
+      ]
+    }
+  }
+}
