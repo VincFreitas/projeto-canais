@@ -45,3 +45,6 @@ roteiros/midia/
 # identidade visual: fundo bruto (pesado, refeito pelo gerador) e pacote de envio
 perfis/*/marca/fundo-capa.png
 perfis/*/marca/pacote.json
+perfis/*/controle/leva.trava
+perfis/*/controle/leva-pendentes.json
+perfis/*/controle/leva-ultima.log

@@ -25,6 +25,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 .\dark.ps1 vozes pt-BR
 .\dark.ps1 referencia <link> [<link> ...]      # mede o estilo de vídeos de referência e propõe o padrão do perfil
 .\dark.ps1 conferir saida\<slug>-vertical.mp4  # tela preta, silêncio, volume, duração e resolução do vídeo pronto
+.\dark.ps1 leva --quantidade 7                  # escreve N roteiros com o Claude Code e gera as prévias (--se-faltar --fundo: reabastecimento pelo n8n)
 ```
 - Rode `produzir` pelo PowerShell, não pelo Bash: o sandbox do Bash às vezes derruba a conexão com o serviço de voz.
 - Formato do roteiro: [docs/roteiro.md](docs/roteiro.md).

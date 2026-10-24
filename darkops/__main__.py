@@ -221,6 +221,23 @@ def cmd_referencia(a):
     print(f"proposta: {referencia.proposta(analises)}\nsalvo em {destino}")
 
 
+def cmd_leva(a):
+    from . import leva
+    from .perfis import carregar
+    perfil = carregar()
+    quantidade = min(a.quantidade or int(perfil.dados.get("leva_quantidade", 7)), leva.LIMITE_LEVA)
+    if a.se_faltar and not leva.precisa_reabastecer(perfil):
+        print(f"fila com {len(list(perfil.fila.glob('*.json')))} vídeo(s); reabastecimento não necessário")
+        return
+    est = leva.estimar(perfil.dados, quantidade)
+    print(f"leva de {quantidade} vídeo(s): {est['texto']}. {est['aviso']}")
+    if a.fundo:
+        leva.em_segundo_plano(perfil, quantidade)
+        print("leva iniciada em segundo plano (log em controle/leva-ultima.log)")
+        return
+    leva.criar(perfil, quantidade)
+
+
 def cmd_conferir(a):
     from .conferir import conferir, salvar
     from .perfis import carregar
@@ -305,6 +322,12 @@ def main():
 
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
     s.set_defaults(fn=cmd_diagnostico)
+
+    s = sub.add_parser("leva", help="cria vários vídeos de uma vez (roteiro pelo Claude Code + prévia)")
+    s.add_argument("--quantidade", type=int)
+    s.add_argument("--se-faltar", action="store_true", help="só cria se a fila estiver no mínimo do perfil")
+    s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
+    s.set_defaults(fn=cmd_leva)
 
     s = sub.add_parser("conferir", help="confere o vídeo pronto: tela preta, silêncio, volume, duração e resolução")
     s.add_argument("video")

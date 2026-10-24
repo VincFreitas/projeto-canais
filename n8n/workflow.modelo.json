@@ -213,6 +213,20 @@
         440,
         300
       ]
+    },
+    {
+      "parameters": {
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} leva --se-faltar --fundo"
+      },
+      "id": "a1f0c001-0000-4000-8000-000000000020",
+      "name": "Reabastecer fila",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        260
+      ],
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -330,7 +344,13 @@
     },
     "Registrar publicação": {
       "main": [
-        [],
+        [
+          {
+            "node": "Reabastecer fila",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Registrar falha",

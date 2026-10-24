@@ -211,7 +211,7 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
-            "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
+            "estimar_leva": _estimar_leva, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS}
 
 
@@ -361,6 +361,28 @@ def referencia_folha(pid, vid):
     if not re.match(r"^[\w-]{3,40}$", vid) or not folha.exists():
         abort(404)
     return send_file(folha, mimetype="image/jpeg")
+
+
+def _estimar_leva(dados: dict, quantidade: int) -> dict:
+    from ..leva import estimar
+    return estimar(dados, quantidade)
+
+
+@app.post("/p/<pid>/leva")
+def criar_leva(pid):
+    """Salva a quantidade escolhida e cria a leva num processo de fundo (pode levar horas)."""
+    from ..leva import LIMITE_LEVA, _claude
+    p = _perfil(pid)
+    try:
+        quantidade = min(max(int(request.form.get("leva_quantidade", 7)), 1), LIMITE_LEVA)
+    except ValueError:
+        quantidade = 7
+    if not _claude():
+        flash("A leva precisa do Claude Code instalado neste PC (claude.com/claude-code).", "erro")
+        return redirect(url_for("configurar", pid=pid))
+    p.salvar({"leva_quantidade": quantidade})
+    job = _iniciar_job(p, f"Leva de {quantidade} vídeo(s)", [["leva", "--quantidade", str(quantidade)]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("fila", pid=pid)))
 
 
 @app.get("/tema-card/<nome>.png")

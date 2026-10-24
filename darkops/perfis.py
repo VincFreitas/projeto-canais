@@ -43,6 +43,9 @@ MODELO = {
     "formato": "vertical",
     "duracao_s": 60,
     "video_exemplo": "",
+    "leva_quantidade": 7,       # vídeos criados de uma vez
+    "leva_reabastecer": False,  # criar outra leva sozinho quando a fila ficar curta
+    "leva_minimo": 3,           # ... quando sobrarem esta quantidade de vídeos ou menos
     # padrão dos vídeos (o roteiro pode sobrescrever cada um)
     "motor_voz": "auto",
     "tipo_visual": "video",
@@ -111,9 +114,17 @@ def campos_canal(form) -> dict:
     if duracao not in DURACOES[formato]:
         duracao = 60 if formato == "vertical" else 600
     exemplo = form.get("video_exemplo", "").strip()
+
+    def inteiro(chave: str, padrao: int, minimo: int, maximo: int) -> int:
+        try:
+            return min(max(int(form.get(chave, padrao)), minimo), maximo)
+        except ValueError:
+            return padrao
     return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS},
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
-            "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else ""}
+            "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
+            "leva_quantidade": inteiro("leva_quantidade", 7, 1, 14), "leva_reabastecer": bool(form.get("leva_reabastecer")),
+            "leva_minimo": inteiro("leva_minimo", 3, 0, 13)}
 
 
 def atual() -> str:
