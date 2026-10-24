@@ -112,7 +112,8 @@ def cmd_publicar_youtube(a):
     if video_id:
         print(f"já publicado antes: https://youtu.be/{video_id}")
     else:
-        meta = metadados_youtube(roteiro, video)
+        from .descricao import para_publicar
+        meta = metadados_youtube(roteiro, video, para_publicar(carregar(), Path(a.roteiro).resolve()))
         if not a.privacidade:
             from .perfis import carregar
             a.privacidade = carregar().dados.get("privacidade_youtube", "private")
@@ -147,7 +148,8 @@ def cmd_publicar_instagram(a):
         print(f"já publicado antes: mídia {midia_id}")
     else:
         print(f"publicando Reel de {video.name}")
-        midia_id = publicar_reel(video, legenda_instagram(roteiro, video))
+        from .descricao import para_publicar
+        midia_id = publicar_reel(video, legenda_instagram(roteiro, video, para_publicar(carregar(), Path(a.roteiro).resolve())))
         marcar(slug, "instagram", midia_id)
         print(f"pronto: mídia {midia_id}")
     _resultado({"slug": slug, "instagram": midia_id})
@@ -246,6 +248,16 @@ def cmd_leva(a):
     leva.criar(perfil, quantidade)
 
 
+def cmd_descricao(a):
+    from .descricao import checar, gerar
+    from .perfis import carregar
+    d = gerar(carregar(), Path(a.roteiro).resolve(), refazer=a.refazer)
+    print(f"descrição ({d['descricao_modo']}, {d.get('gerado_por', 'manual')}):\n{d['descricao']}\n")
+    print(f"tags ({d['tags_modo']}): {', '.join(d['tags'])}\nhashtags: {' '.join(d['hashtags'])}")
+    for aviso in checar(d["descricao"], d["tags"], d["hashtags"]):
+        print(f"  aviso: {aviso}")
+
+
 def cmd_conferir(a):
     from .conferir import conferir, salvar
     from .perfis import carregar
@@ -336,6 +348,11 @@ def main():
     s.add_argument("--se-faltar", action="store_true", help="só cria se a fila estiver no mínimo do perfil")
     s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
     s.set_defaults(fn=cmd_leva)
+
+    s = sub.add_parser("descricao", help="cria pela IA a descrição e as tags do vídeo que estiverem no modo automático")
+    s.add_argument("roteiro")
+    s.add_argument("--refazer", action="store_true")
+    s.set_defaults(fn=cmd_descricao)
 
     s = sub.add_parser("conferir", help="confere o vídeo pronto: tela preta, silêncio, volume, duração e resolução")
     s.add_argument("video")

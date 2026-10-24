@@ -159,6 +159,8 @@ def criar(perfil, quantidade: int) -> list[Path]:
                     continue
                 pendentes.append(roteiro)
                 anotar()
+                from .descricao import gerar as gerar_textos
+                gerar_textos(perfil, roteiro)  # descrição e tags pela IA, para a revisão já mostrar
                 print(f"  roteiro {roteiro.name}; gerando a prévia", flush=True)
             if _produzir(perfil, roteiro):
                 feitos.append(roteiro)

@@ -6,7 +6,7 @@
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.18.0 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.19.0 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -52,6 +52,8 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 | Dar personalidade ao canal | Estúdio > Perfil > **Personalidade do canal**: quem narra, tom, público, como os vídeos começam, linguagem e padrão de título e capa; o /escrever-roteiro e as levas seguem isso |
 | Revisar antes de gerar | A tela do vídeo sem prévia mostra a **Revisão antes de gerar**: canal, visual, voz, cenas, duração, fontes, tempo para gerar e as notas do roteiro sobre o que ele escolheu |
 | Escrever o roteiro com fontes, ganchos e animações | `/escrever-roteiro <ideia>`, banco de ganchos em [docs/ganchos.md](docs/ganchos.md) |
+| Descrição e tags de cada vídeo | No Novo vídeo e na tela do vídeo: **a IA cria** (Claude, com as regras de alcance) ou **você escreve**; a publicação usa esse texto no YouTube e na legenda do Instagram (`python -m darkops descricao <roteiro>`) |
+| Fazer o vídeo render mais | As regras da pesquisa em [docs/viralizacao.md](docs/viralizacao.md) viram checagens na revisão e no Conferir vídeo: gancho, título, chamada para comentar ou mandar, hashtags e 1ª linha da descrição |
 | Escolher o tipo de cada vídeo | Estúdio > Novo vídeo, em todos os jeitos de criar: **curto** (Shorts/Reels 9:16) ou **longo** (YouTube 16:9), a duração e as plataformas de destino. Começa no padrão do perfil; a publicação só manda o vídeo para as plataformas marcadas, e vídeo longo nunca vai para o Reels |
 | Começar de um roteiro ou de uma narração prontos | Estúdio > Novo vídeo > **Já tenho o roteiro ou a narração**: cola o texto (vira cenas pelo ritmo do canal) ou envia o áudio gravado (transcreve com o Azure e usa a sua voz, com legenda sincronizada) |
 | Estilo das imagens | Estúdio > Perfil > Estilo visual: pixel art, desenho 2D, pintura histórica, foto antiga, anime, 3D, sombrio ou realista, todos desenhados no PC; ou clipes reais (Pexels/Pixabay) |

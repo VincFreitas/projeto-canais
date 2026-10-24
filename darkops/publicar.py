@@ -66,25 +66,27 @@ def canal() -> dict:
     return {"id": itens[0]["id"], "nome": itens[0]["snippet"]["title"]}
 
 
-def metadados_youtube(roteiro: dict, video: Path | None = None) -> dict:
-    """Título, descrição e tags a partir do bloco 'metadados' do roteiro."""
+def metadados_youtube(roteiro: dict, video: Path | None = None, texto: dict | None = None) -> dict:
+    """Título, descrição e tags a partir do bloco 'metadados' do roteiro. 'texto' (descricao.para_publicar) traz a
+    descrição, as tags e as hashtags do vídeo, escritas por você ou pela IA, e tem prioridade."""
     vertical = roteiro.get("formato", "longo") == "vertical"
     meta = (roteiro.get("metadados") or {}).get("youtube_shorts" if vertical else "youtube") or {}
     titulo = meta.get("titulo") or roteiro.get("titulo", roteiro.get("slug", "vídeo"))
     if vertical and "#shorts" not in titulo.lower():
         titulo = f"{titulo} #shorts"
-    hashtags = meta.get("hashtags") or []
-    descricao = meta.get("descricao") or roteiro.get("titulo", "")
+    texto = texto or {}
+    hashtags = texto.get("hashtags") or meta.get("hashtags") or []
+    descricao = texto.get("descricao") or meta.get("descricao") or roteiro.get("titulo", "")
     if hashtags:
         descricao = f"{descricao}\n\n{' '.join(hashtags)}"
     fontes = roteiro.get("fontes") or []
-    if fontes:
+    if fontes and not all(f in descricao for f in fontes):  # a IA já costuma pôr as fontes no texto
         descricao += "\n\nFontes:\n" + "\n".join(f"- {f}" for f in fontes)
     if video:
         from .musica import credito
         if credito(video):
             descricao += f"\n\n{credito(video)}"
-    tags = meta.get("tags") or [h.lstrip("#") for h in hashtags]
+    tags = texto.get("tags") or meta.get("tags") or [h.lstrip("#") for h in hashtags]
     return {"titulo": titulo[:100], "descricao": descricao[:5000], "tags": tags}
 
 

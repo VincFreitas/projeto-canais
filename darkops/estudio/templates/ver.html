@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_canal.html" as canal with context %}
 {% set r = s.dados %}
 {% block titulo %}{{ r.manchete or r.titulo }}{% endblock %}
 {% block corpo %}
@@ -61,10 +62,21 @@
       </ul>
       {% if revisao.notas %}<b>O que o roteiro escolheu e por quê</b>
       <ul>{% for n in revisao.notas %}<li>{{ n }}</li>{% endfor %}</ul>{% endif %}
+      {% if revisao.alcance %}<b>Alcance (docs/viralizacao.md)</b>
+      <ul class="achados">{% for a in revisao.alcance %}<li class="{{ a.nivel }}">{{ '✗' if a.nivel == 'erro' else '!' }} {{ a.texto }}</li>{% endfor %}</ul>{% endif %}
       <p class="dica">{{ revisao.aviso }}</p>
       <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao">Está certo: gerar a prévia</button></form>
     </div>
     {% endif %}
+    <form method="post" action="{{ url_for('textos_video', pid=p.id, nome=s.arquivo) }}" class="cartao" id="textos" style="margin-top:12px">
+      <h3 style="margin-top:0">Descrição e tags</h3>
+      {% if textos.descricao_modo == 'ia' and not textos.descricao %}<p class="dica">A IA ainda está escrevendo (ou não rodou). Recarregue em instantes ou clique em “Criar com a IA de novo”.</p>{% endif %}
+      {% if textos.gerado_por %}<p class="dica">Última versão automática: {{ 'Claude' if textos.gerado_por == 'claude' else 'regras simples (Claude indisponível)' }}.</p>{% endif %}
+      {{ canal.textos_campos(textos) }}
+      {% if textos.avisos %}<ul class="achados">{% for a in textos.avisos %}<li class="aviso">! {{ a }}</li>{% endfor %}</ul>{% endif %}
+      <div class="acoes"><button class="botao claro" name="acao" value="salvar">Salvar</button>
+        <button class="botao claro" name="acao" value="refazer">Criar com a IA de novo</button></div>
+    </form>
     <h2 style="margin-top:22px">Cenas</h2>
     <p class="dica">Editor de cenas: troque a imagem (outra opção da busca, nova busca ou arquivo do seu PC) e o movimento.
       Depois, gere a prévia de novo; só as cenas alteradas são refeitas.</p>

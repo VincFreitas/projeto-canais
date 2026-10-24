@@ -88,7 +88,10 @@ def concluir(caminho: Path, roteiro: dict, duracao_s: float | None = None, perfi
     p = _perfil(perfil)
     slug = roteiro.get("slug") or caminho.stem
     ids = ler_estado(p).get(slug, {})
-    faltando = [x for x in plataformas_ativas(p) if not ids.get(x)]
+    # só contam as plataformas deste vídeo (escolhidas no Novo vídeo) e o Instagram só em vídeo vertical
+    alvo = [x for x in plataformas_ativas(p) if x in roteiro.get("plataformas", [x])
+            and not (x == "instagram" and roteiro.get("formato", "longo") != "vertical")]
+    faltando = [x for x in alvo if not ids.get(x)]
     if faltando:
         raise SystemExit(f"{slug} ainda não foi publicado em: {', '.join(faltando)}")
     testes = p.controle / "testes.csv"
@@ -98,7 +101,7 @@ def concluir(caminho: Path, roteiro: dict, duracao_s: float | None = None, perfi
         if novo:
             f.write(CABECALHO + "\n")
         escritor = csv.writer(f, delimiter=";")
-        for plataforma in plataformas_ativas(p):
+        for plataforma in alvo:
             escritor.writerow([hoje, plataforma, p.dados.get("nome"), roteiro.get("titulo", slug),
                                url(plataforma, ids[plataforma], p), caminho.name, p.dados.get("nicho", ""),
                                "", roteiro.get("formato", "vertical"),

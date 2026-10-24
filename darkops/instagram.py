@@ -50,13 +50,15 @@ def renovar_token() -> str:
     return dados["access_token"]
 
 
-def legenda_instagram(roteiro: dict, video: Path | None = None) -> str:
+def legenda_instagram(roteiro: dict, video: Path | None = None, publicacao: dict | None = None) -> str:
+    """Legenda do Reel. 'publicacao' (descricao.para_publicar) traz a descrição e as hashtags do vídeo."""
     from .musica import credito
+    publicacao = publicacao or {}
     meta = (roteiro.get("metadados") or {}).get("instagram") or {}
-    texto = meta.get("legenda") or roteiro.get("titulo", "")
+    texto = publicacao.get("descricao") or meta.get("legenda") or roteiro.get("titulo", "")
     if video and credito(video):
         texto = f"{texto}\n\n{credito(video)}"
-    hashtags = (meta.get("hashtags") or [])[:30]
+    hashtags = (publicacao.get("hashtags") or meta.get("hashtags") or [])[:5]  # o Instagram aceita até 5
     return (f"{texto}\n\n{' '.join(hashtags)}" if hashtags else texto)[:2200]
 
 

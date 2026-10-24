@@ -16,3 +16,6 @@ Argumento: o roteiro (`perfis/<perfil>/fila/NNN-*.json`) ou o tema. Argumentos r
 4. **Thumbnail** (só para vídeos longos): de 2 a 4 palavras que **complementam** o título, sem repetir ("SANGUE AZUL?" para o título do polvo). Sugira a imagem de fundo como busca em inglês para o Pixabay.
 5. **Instagram**: legenda de 1 frase com o gancho + "Você sabia?" + chamada para seguir, e até 10 hashtags (3 amplas, 4 do tema, 3 do canal).
 6. Mostre a tabela com os 8 títulos e as notas, a escolha e o porquê. Só grave no roteiro (`metadados.youtube_shorts.titulo`, `metadados.instagram`) depois que o usuário aprovar.
+
+## Alcance
+Siga [docs/viralizacao.md](../../../docs/viralizacao.md): palavra principal nos 40 primeiros caracteres do título, de 3 a 5 hashtags (o Instagram aceita no máximo 5), 1ª linha da legenda com até ~125 caracteres e sem lista de palavras-chave. A descrição e as tags de cada vídeo ficam em Estúdio > vídeo > Descrição e tags (manual ou pela IA).

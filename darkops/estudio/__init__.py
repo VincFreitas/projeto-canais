@@ -587,7 +587,7 @@ def ver(pid, nome):
     from .. import conferir
     s = _situacao(_arquivo_fila(p, nome))
     return render_template("ver.html", p=p, d=p.dados, s=s, conferencia=conferir.ler(p, s["video"]) if s.get("video") else {},
-                           revisao=_revisao(p, s["dados"]))
+                           revisao=_revisao(p, s["dados"]), textos=_textos(p, s["arquivo"]))
 
 
 @app.route("/p/<pid>/fila/<nome>/editar", methods=["GET", "POST"])
@@ -711,6 +711,9 @@ def conferir_video(pid, nome):
         flash("Gere a prévia antes de conferir.", "erro")
         return redirect(url_for("ver", pid=pid, nome=nome))
     resultado = conferir.conferir(config.SAIDA / s["video"], s["dados"].get("duracao_alvo_s") or p.dados.get("duracao_s"))
+    from ..descricao import ler as ler_textos
+    extras = conferir.alcance(s["dados"], ler_textos(p, s["arquivo"]))
+    resultado["achados"] = [a for a in resultado["achados"] if a["nivel"] != "ok" or not extras] + extras
     conferir.salvar(resultado, p)
     return redirect(url_for("ver", pid=pid, nome=nome) + "#conferencia")
 
@@ -809,6 +812,12 @@ def lotes_importar(pid, nome):
     return redirect(url_for("lotes", pid=pid, nome=nome))
 
 
+def _textos(p, nome: str) -> dict:
+    from ..descricao import checar, ler
+    t = ler(p, nome)
+    return {**t, "avisos": checar(t["descricao"], t["tags"], t["hashtags"]) if t["descricao"] or t["tags"] else []}
+
+
 def _revisao(p, r: dict) -> dict:
     """Resumo do que vai ser produzido, para conferir antes de gerar a prévia."""
     from ..leva import estimar
@@ -823,7 +832,12 @@ def _revisao(p, r: dict) -> dict:
             "formato": "Shorts/Reels 9:16" if d.get("formato", "vertical") == "vertical" else "16:9",
             "edicao": EDICOES.get(d.get("edicao", "pro"), "").split(":")[0], "fontes": len(r.get("fontes", [])),
             "notas": r.get("notas_roteiro") or [], "tempo": est["texto"].replace(" para 1 vídeo(s)", ""),
-            "aviso": est["aviso"], "nasa": bool(d.get("acervo_nasa"))}
+            "aviso": est["aviso"], "nasa": bool(d.get("acervo_nasa")), "alcance": _alcance(p, r)}
+
+
+def _alcance(p, r: dict) -> list:
+    from .. import conferir
+    return conferir.alcance(r)
 
 
 def _descoberta(p) -> dict:
@@ -878,7 +892,39 @@ def _criar_roteiro(p, manchete: str, titulo: str, cenas: list[dict], fontes: str
     }
     destino = p.fila / f"{numero:03d}-{s}.json"
     _gravar(destino, roteiro)
+    _salvar_textos(p, destino.name, request.form)
+    from ..descricao import ler as ler_textos
+    t = ler_textos(p, destino.name)
+    if "ia" in (t["descricao_modo"], t["tags_modo"]):  # a IA escreve em segundo plano enquanto você revisa
+        _iniciar_job(p, f"Descrição e tags de {destino.name}", [["descricao", str(destino)]])
     return destino
+
+
+def _salvar_textos(p, nome: str, f) -> None:
+    from ..descricao import _limpar_hashtags, _limpar_tags, salvar
+    if "descricao_modo" not in f:
+        return
+    dados = {"descricao_modo": f.get("descricao_modo") if f.get("descricao_modo") in ("ia", "manual") else "ia",
+             "tags_modo": f.get("tags_modo") if f.get("tags_modo") in ("ia", "manual") else "ia"}
+    if f.get("descricao", "").strip() or dados["descricao_modo"] == "manual":
+        dados["descricao"] = f.get("descricao", "").strip()[:4900]
+    if f.get("tags", "").strip() or f.get("hashtags", "").strip() or dados["tags_modo"] == "manual":
+        dados["tags"] = _limpar_tags(f.get("tags", ""))
+        dados["hashtags"] = _limpar_hashtags(f.get("hashtags", "").replace(",", " ").split())
+    salvar(p, nome, dados)
+
+
+@app.post("/p/<pid>/fila/<nome>/textos")
+def textos_video(pid, nome):
+    """Salva a descrição e as tags do vídeo ou pede à IA para escrever de novo."""
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    _salvar_textos(p, caminho.name, request.form)
+    if request.form.get("acao") == "refazer":
+        job = _iniciar_job(p, f"Descrição e tags de {caminho.name}", [["descricao", str(caminho), "--refazer"]])
+        return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("ver", pid=pid, nome=nome) + "#textos"))
+    flash("Descrição e tags salvas.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=nome) + "#textos")
 
 
 @app.post("/p/<pid>/novo/roteiro")

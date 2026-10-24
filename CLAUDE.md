@@ -13,7 +13,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 7. `/responder-comentarios`: lê comentários e rascunha respostas para o usuário aprovar (nunca publica)
 8. `/identidade-visual <perfil>`: foto de perfil, capa, marca d'água, bio e descrição das contas; gera, pede aprovação e só então aplica pelo navegador (Estúdio > Identidade para revisar)
 - **Estúdio** (`python -m darkops estudio`): perfis, conexões (YouTube por OAuth, token do Instagram), chaves, fila com prévia e aprovação, novo vídeo e histórico. Comandos da CLI aceitam `--perfil <id>` (padrão `pulga-do-saber`).
-- Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Postagem automática: modelo do workflow em `n8n/workflow.modelo.json` (gere com `python -m darkops n8n-workflow --importar`). Instalação do zero: skill `/configurar`, que começa perguntando quais plataformas a pessoa quer testar e segue só os tutoriais delas; confira com `python -m darkops diagnostico` e `python -m darkops progresso` (tela **Progresso da configuração** no Estúdio). Se a pasta ainda não tem `.venv` (repositório recém-clonado), ofereça o `/configurar` antes de qualquer outra coisa.
+- Ganchos: [docs/ganchos.md](docs/ganchos.md) (21 fórmulas). Alcance e viralização: [docs/viralizacao.md](docs/viralizacao.md) (regras aplicadas na descrição, nas tags e nas checagens). Postagem automática: modelo do workflow em `n8n/workflow.modelo.json` (gere com `python -m darkops n8n-workflow --importar`). Instalação do zero: skill `/configurar`, que começa perguntando quais plataformas a pessoa quer testar e segue só os tutoriais delas; confira com `python -m darkops diagnostico` e `python -m darkops progresso` (tela **Progresso da configuração** no Estúdio). Se a pasta ainda não tem `.venv` (repositório recém-clonado), ofereça o `/configurar` antes de qualquer outra coisa.
 
 ## Comandos (sempre pelo PowerShell, na raiz do projeto)
 ```
@@ -25,6 +25,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 .\dark.ps1 vozes pt-BR
 .\dark.ps1 referencia <link> [<link> ...]      # mede o estilo de vídeos de referência e propõe o padrão do perfil
 .\dark.ps1 conferir saida\<slug>-vertical.mp4  # tela preta, silêncio, volume, duração e resolução do vídeo pronto
+.\dark.ps1 descricao perfis\<perfil>\fila\<roteiro>.json [--refazer]  # descrição e tags pela IA (manual ou automático por vídeo)
 .\dark.ps1 leva --quantidade 7                  # escreve N roteiros com o Claude Code e gera as prévias (--se-faltar --fundo: reabastecimento pelo n8n)
 ```
 - Rode `produzir` pelo PowerShell, não pelo Bash: o sandbox do Bash às vezes derruba a conexão com o serviço de voz.

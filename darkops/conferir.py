@@ -81,3 +81,43 @@ def salvar(resultado: dict, perfil) -> Path:
 def ler(perfil, video: str) -> dict:
     destino = perfil.controle / "conferencias" / (Path(video).stem + ".json")
     return json.loads(destino.read_text(encoding="utf-8")) if destino.exists() else {}
+
+
+SAUDACOES = ("olá", "ola", "oi pessoal", "fala galera", "bem-vindo", "bem vindo", "neste vídeo", "nesse vídeo",
+             "hoje eu vou", "hoje vamos")
+CHAMADAS = ("comenta", "comente", "manda", "mande", "compartilh", "envia", "marca alguém", "marque alguém", "salva")
+
+
+def alcance(roteiro: dict, textos: dict | None = None) -> list[dict]:
+    """Regras de alcance de docs/viralizacao.md aplicadas ao roteiro, ao título e ao texto da publicação."""
+    import re as _re
+    achados = []
+    cenas = roteiro.get("cenas") or []
+    falas = " ".join(c.get("texto", "") for c in cenas)
+    primeira = _re.split(r"(?<=[.!?…])\s+", (cenas[0].get("texto", "") if cenas else "").strip())[0]
+    if len(primeira.split()) > 16:
+        segundos = round(len(primeira.split()) / 2.6)
+        achados.append({"nivel": "aviso", "texto": f"a 1ª frase leva ~{segundos} s ({len(primeira.split())} palavras); "
+                                                   "garanta que as 4 ou 5 primeiras palavras já prendam (o gancho decide em 1 a 2 s)"})
+    if primeira.lower().startswith(SAUDACOES):
+        achados.append({"nivel": "aviso", "texto": "o vídeo abre com saudação ou apresentação; comece direto no assunto"})
+    titulo = roteiro.get("titulo") or roteiro.get("manchete") or ""
+    from collections import Counter
+    from .descricao import GENERICAS
+    from .entrada import _conteudo
+    # o começo do título (o que o feed mostra) precisa ter ao menos uma palavra de conteúdo dita no vídeo
+    ditas = {w[:-1] for w in _conteudo(falas) if w not in GENERICAS}  # sem a última letra: singular e plural
+    no_inicio = [w for w in _conteudo(titulo[:40]) if w not in GENERICAS]
+    if no_inicio and not any(w[:-1] in ditas for w in no_inicio):
+        principais = [p for p, _ in Counter(w for w in _conteudo(falas) if w not in GENERICAS).most_common(3)]
+        achados.append({"nivel": "aviso", "texto": f"o começo do título não tem nenhuma palavra dita no vídeo; use o assunto (ex.: {', '.join(principais)})"})
+    if len(titulo) > 100:
+        achados.append({"nivel": "erro", "texto": "o título passa de 100 caracteres (limite do YouTube)"})
+    final = (cenas[-1].get("texto", "") if cenas else "").lower()
+    if not any(c in final for c in CHAMADAS):
+        achados.append({"nivel": "aviso", "texto": "a última cena não convida a comentar ou mandar para alguém (envios contam muito no Reels)"})
+    if textos:
+        from .descricao import checar
+        achados += [{"nivel": "aviso", "texto": a} for a in checar(textos.get("descricao", ""), textos.get("tags", []),
+                                                                 textos.get("hashtags", []))]
+    return achados

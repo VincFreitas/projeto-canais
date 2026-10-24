@@ -1,4 +1,33 @@
 {# Plataformas, formato, duração e vídeo de exemplo do canal; usado em Novo perfil e na aba Perfil. #}
+{# Descrição e tags que vão para o público: a IA cria ou você escreve #}
+{% macro textos_campos(t) %}
+<div class="textos-video">
+  <label style="margin-top:8px">Descrição (o que aparece embaixo do vídeo)</label>
+  <div class="acoes">
+    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="ia" {{ 'checked' if (t.descricao_modo or 'ia') == 'ia' }} onchange="modoTexto(this)"> A IA cria automaticamente</label>
+    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="manual" {{ 'checked' if t.descricao_modo == 'manual' }} onchange="modoTexto(this)"> Eu escrevo</label>
+  </div>
+  <textarea name="descricao" rows="5" data-modo="descricao_modo" placeholder="1ª linha: a palavra que as pessoas buscariam e o gancho (até ~125 caracteres). Depois 2 ou 3 frases sobre o vídeo, um convite para comentar ou mandar para alguém e as fontes."
+    {{ 'hidden' if (t.descricao_modo or 'ia') == 'ia' and not t.descricao }}>{{ t.descricao or '' }}</textarea>
+  <label>Tags e hashtags (ajudam a busca e a recomendação)</label>
+  <div class="acoes">
+    <label style="font-weight:400"><input type="radio" name="tags_modo" value="ia" {{ 'checked' if (t.tags_modo or 'ia') == 'ia' }} onchange="modoTexto(this)"> A IA cria automaticamente</label>
+    <label style="font-weight:400"><input type="radio" name="tags_modo" value="manual" {{ 'checked' if t.tags_modo == 'manual' }} onchange="modoTexto(this)"> Eu escrevo</label>
+  </div>
+  <div data-modo="tags_modo" {{ 'hidden' if (t.tags_modo or 'ia') == 'ia' and not t.tags }}>
+    <input type="text" name="tags" value="{{ (t.tags or []) | join(', ') }}" placeholder="tags do YouTube, separadas por vírgula: do mais específico ao mais geral">
+    <input type="text" name="hashtags" value="{{ (t.hashtags or []) | join(' ') }}" placeholder="#hashtag1 #hashtag2 #hashtag3 (de 3 a 5)" style="margin-top:6px">
+  </div>
+  <p class="dica">No modo automático, a IA escreve com as regras de alcance de cada plataforma (veja docs/viralizacao.md) e você pode editar depois, na tela do vídeo.</p>
+</div>
+<script>
+function modoTexto(radio) {
+  const caixa = radio.closest('.textos-video').querySelector(`[data-modo="${radio.name}"]`);
+  if (radio.value === 'manual') caixa.hidden = false;
+}
+</script>
+{% endmacro %}
+
 {# Tipo, duração e plataformas de um vídeo (Novo vídeo): começa no padrão do perfil #}
 {% macro video(d, sufixo) %}
 <div class="tipo-video">
@@ -24,6 +53,7 @@
   </div>
   <p class="dica">O Reels só aceita vídeo vertical: num vídeo longo o Instagram fica de fora. Facebook, TikTok e Kwai
     ficam marcados para postar à mão.</p>
+  {{ textos_campos({}) }}
 </div>
 <script>
 function formatoDoVideo(form) {
