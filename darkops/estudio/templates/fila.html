@@ -16,6 +16,7 @@
       {% elif i.estado == 'desatualizada' %}<span class="selo desatualizada">roteiro mudou: gere a prévia de novo</span>
       {% else %}<span class="selo sem-previa">sem prévia</span>{% endif %}
       <span class="suave" style="font-size:13px"> · {{ i.dados.cenas|length }} cenas</span>
+      <span class="selo formato">{{ rotulo_video(i.dados, d) }}</span>
     </div>
     <div class="acoes">
       <form method="post" action="{{ url_for('mover', pid=p.id, nome=i.arquivo, direcao='cima') }}"><button class="botao pequeno secundario" title="subir">↑</button></form>

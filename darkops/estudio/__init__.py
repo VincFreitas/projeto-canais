@@ -23,7 +23,7 @@ from .. import config
 from .. import fila as fila_mod
 from .. import autoria, plataformas
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
-                      TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, campos_canal, campos_padrao, carregar, criar, listar,
+                      TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
 
 PYTHON = sys.executable
@@ -211,7 +211,7 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
-            "estimar_leva": _estimar_leva, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
+            "estimar_leva": _estimar_leva, "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS}
 
 
@@ -361,6 +361,17 @@ def referencia_folha(pid, vid):
     if not re.match(r"^[\w-]{3,40}$", vid) or not folha.exists():
         abort(404)
     return send_file(folha, mimetype="image/jpeg")
+
+
+def _rotulo_video(r: dict, d: dict) -> str:
+    """'Curto · 60s · YouTube, Instagram': o tipo, a duração e as plataformas de um vídeo da fila."""
+    formato = r.get("formato") or d.get("formato", "vertical")
+    partes = ["Curto" if formato == "vertical" else "Longo"]
+    if r.get("duracao_alvo_s"):
+        partes.append(rotulo_duracao(int(r["duracao_alvo_s"])))
+    escolhidas = r["plataformas"] if "plataformas" in r else [k for k, _ in PLATAFORMAS if d.get(k)]
+    partes.append(", ".join(n for k, n in PLATAFORMAS if k in escolhidas) or "sem plataforma")
+    return " · ".join(partes)
 
 
 def _estimar_leva(dados: dict, quantidade: int) -> dict:
@@ -699,7 +710,7 @@ def conferir_video(pid, nome):
     if not s.get("video"):
         flash("Gere a prévia antes de conferir.", "erro")
         return redirect(url_for("ver", pid=pid, nome=nome))
-    resultado = conferir.conferir(config.SAIDA / s["video"], p.dados.get("duracao_s"))
+    resultado = conferir.conferir(config.SAIDA / s["video"], s["dados"].get("duracao_alvo_s") or p.dados.get("duracao_s"))
     conferir.salvar(resultado, p)
     return redirect(url_for("ver", pid=pid, nome=nome) + "#conferencia")
 
@@ -847,12 +858,14 @@ def descobrir(pid):
 
 
 def _criar_roteiro(p, manchete: str, titulo: str, cenas: list[dict], fontes: str, **extra) -> Path:
-    """Grava um roteiro novo no fim da fila do perfil (sem aprovação) e devolve o caminho."""
+    """Grava um roteiro novo no fim da fila do perfil (sem aprovação) e devolve o caminho.
+    O tipo, a duração e as plataformas do vídeo vêm do formulário (campos_video); sem eles, do perfil."""
+    extra = {**campos_video(request.form, p.dados), **extra}
     numeros = [int(c.name[:3]) for c in fila_mod.roteiros(p) if c.name[:3].isdigit()]
     numero = max(numeros + [0]) + 1
     titulo = titulo.strip() or manchete
     s = slug(titulo)
-    formato = p.dados.get("formato", "vertical")
+    formato = extra.get("formato") or p.dados.get("formato", "vertical")
     roteiro = {
         "slug": s, "titulo": titulo, "manchete": manchete,
         "idioma": p.dados.get("idioma", "pt"), "formato": formato, "velocidade": "+10%",
@@ -861,7 +874,7 @@ def _criar_roteiro(p, manchete: str, titulo: str, cenas: list[dict], fontes: str
         "metadados": {("youtube_shorts" if formato == "vertical" else "youtube"): {"titulo": titulo},
                       "instagram": {"legenda": f"{manchete}. Você sabia? Segue a {p.dados['arroba']} para mais.",
                                     "hashtags": ["#curiosidades", "#vocesabia"]}},
-        "aprovado": False, **extra,
+        **extra, "aprovado": False,
     }
     destino = p.fila / f"{numero:03d}-{s}.json"
     _gravar(destino, roteiro)

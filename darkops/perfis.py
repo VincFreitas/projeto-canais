@@ -126,6 +126,24 @@ def rotulo_duracao(segundos: int) -> str:
     return f"{segundos}s" if segundos < 120 else f"{segundos // 60} min"
 
 
+def campos_video(form, dados: dict) -> dict:
+    """Tipo, duração e plataformas de UM vídeo (Novo vídeo); o que faltar vem do perfil.
+    O Reels só aceita vídeo vertical: num vídeo longo o Instagram sai da lista."""
+    formato = form.get("formato") if form.get("formato") in FORMATOS else dados.get("formato", "vertical")
+    try:
+        duracao = int(form.get("duracao_s", ""))
+    except ValueError:
+        duracao = 0
+    if duracao not in DURACOES[formato]:
+        duracao = dados.get("duracao_s") if dados.get("duracao_s") in DURACOES[formato] else DURACOES[formato][3]
+    # o formulário manda "plataformas_enviadas" junto com as caixas; sem ele (CLI, leva), valem as do perfil
+    origem = (lambda k: form.get(f"video_{k}")) if form.get("plataformas_enviadas") else dados.get
+    escolhidas = [k for k, _ in PLATAFORMAS if origem(k)]
+    if formato == "longo":
+        escolhidas = [k for k in escolhidas if k != "instagram"]
+    return {"formato": formato, "duracao_alvo_s": duracao, "plataformas": escolhidas}
+
+
 def nomes_plataformas(dados: dict) -> str:
     nomes = [nome for chave, nome in PLATAFORMAS if dados.get(chave)]
     return ", ".join(nomes + ([dados["outra_plataforma"]] if dados.get("outra_plataforma") else []))

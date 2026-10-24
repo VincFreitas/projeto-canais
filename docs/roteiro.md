@@ -63,6 +63,8 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `cenas[].palavras` | não | Com `audio`: lista `{texto, inicio, fim}` (segundos desde o começo da cena) para a legenda sincronizada |
 | `cenas[].visual_idioma` | não | Língua da busca de imagem (`en` padrão; `pt` nas buscas montadas de roteiro ou narração prontos) |
 | `estilo` | não | Desenho feito no PC a partir de `ilustracao` e `personagem`: `pixel`, `desenho2d`, `pintura`, `foto_antiga`, `anime`, `3d`, `sombrio`, `realista`. `foto_antiga` e `realista` exigem marcar conteúdo sintético |
+| `duracao_alvo_s` | não | Duração escolhida para este vídeo no Novo vídeo; a conferência compara o vídeo pronto com ela |
+| `plataformas` | não | Para onde este vídeo vai: `youtube`, `instagram`, `facebook`, `tiktok`, `kwai`. A publicação pula as que não estão na lista (sem a lista, vale o perfil). Vídeo `longo` não vai para o Instagram |
 | `edicao` | não | `simples` (sem elementos na tela), `leve` (palavra-herói e até 2 cards) ou `pro` (tudo; padrão). Vem do perfil |
 | `acervo_nasa` | não | `true` usa também o acervo de imagens da NASA (fotos, buscas em inglês) e põe o crédito nos metadados |
 | `notas_roteiro` | não | Lista curta com o que o roteiro escolheu e por quê (gancho, ângulo, fontes); aparece na revisão antes de gerar |

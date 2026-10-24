@@ -181,3 +181,6 @@ pre.prompt { white-space: pre-wrap; background: #f3efe8; border: 1px solid var(-
 .revisao { border-left: 4px solid var(--amarelo); }
 .resumo { list-style: none; padding: 0; margin: 6px 0 10px; }
 .resumo li { padding: 2px 0; }
+.tipo-video { border: 1px solid var(--linha); border-radius: 10px; padding: 10px 12px; margin: 10px 0; background: #fffdf6; }
+.tipo-video select { padding: 6px 8px; }
+.selo.formato { background: #e8eefc; color: var(--azul); }

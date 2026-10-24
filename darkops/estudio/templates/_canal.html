@@ -1,4 +1,40 @@
 {# Plataformas, formato, duração e vídeo de exemplo do canal; usado em Novo perfil e na aba Perfil. #}
+{# Tipo, duração e plataformas de um vídeo (Novo vídeo): começa no padrão do perfil #}
+{% macro video(d, sufixo) %}
+<div class="tipo-video">
+  <b>Este vídeo</b>
+  <div class="acoes">
+    {% for chave, nome in formatos.items() %}
+    <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
+      onchange="formatoDoVideo(this.form)"> {{ 'Curto (Shorts/Reels 9:16)' if chave == 'vertical' else 'Longo (YouTube 16:9)' }}</label>
+    {% endfor %}
+    {% for chave, opcoes in duracoes.items() %}
+    <select name="duracao_s" data-formato="{{ chave }}" {{ 'hidden disabled' if d.formato != chave }} style="width:auto">
+      {% set padrao = d.duracao_s if d.duracao_s in opcoes else opcoes[3] %}
+      {% for s in opcoes %}<option value="{{ s }}" {{ 'selected' if padrao == s }}>{{ rotulo_duracao(s) }}</option>{% endfor %}
+    </select>
+    {% endfor %}
+  </div>
+  <input type="hidden" name="plataformas_enviadas" value="1">
+  <div class="acoes" style="margin-top:6px">Vai para:
+    {% for k, nome in lista_plataformas %}
+    <label style="font-weight:400"><input type="checkbox" name="video_{{ k }}" {{ 'checked' if d[k] }}
+      {% if k == 'instagram' %}data-so-vertical{% endif %}> {{ nome }}</label>
+    {% endfor %}
+  </div>
+  <p class="dica">O Reels só aceita vídeo vertical: num vídeo longo o Instagram fica de fora. Facebook, TikTok e Kwai
+    ficam marcados para postar à mão.</p>
+</div>
+<script>
+function formatoDoVideo(form) {
+  const formato = form.querySelector('input[name=formato]:checked').value;
+  form.querySelectorAll('select[name=duracao_s]').forEach(s => { s.hidden = s.disabled = s.dataset.formato !== formato; });
+  form.querySelectorAll('[data-so-vertical]').forEach(c => { c.disabled = formato !== 'vertical'; if (c.disabled) c.checked = false; });
+}
+document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('form')));
+</script>
+{% endmacro %}
+
 {# status: lista de plataformas.Plataforma (de plataformas.calcular); novo=True no formulário de criação #}
 {% macro campos(d, status, novo=False) %}
 <label>Plataformas do canal</label>

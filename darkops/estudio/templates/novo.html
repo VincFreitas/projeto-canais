@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_canal.html" as canal with context %}
 {% block titulo %}Novo vídeo · {{ d.nome }}{% endblock %}
 {% block corpo %}
 <section class="cartao" id="assuntos" style="margin-bottom:16px">
@@ -58,6 +59,7 @@ function usarTema(botao) {
     </div>
     <label>Roteiro</label><textarea name="texto" rows="8" required placeholder="Cole aqui o texto inteiro da narração."></textarea>
     <label>Fontes (uma por linha)</label><textarea name="fontes" rows="2"></textarea>
+    {{ canal.video(d, 'roteiro') }}
     <p><button class="botao">Dividir em cenas e criar na fila</button></p>
   </form>
   <form method="post" action="{{ url_for('novo_de_narracao', pid=p.id) }}" enctype="multipart/form-data" id="pronto-narracao" hidden
@@ -70,6 +72,7 @@ function usarTema(botao) {
     </div>
     <label>Arquivo de áudio</label><input type="file" name="audio" accept="audio/*,.m4a" required>
     <label>Fontes (uma por linha)</label><textarea name="fontes" rows="2"></textarea>
+    {{ canal.video(d, 'narracao') }}
     <p><button class="botao">Transcrever e criar na fila</button></p>
   </form>
 </section>
@@ -92,6 +95,7 @@ Dois deles bombeiam o sangue pelas brânquias. | octopus tentacles">{{ f.cenas o
   <p class="dica">De 4 a 6 cenas, 1 ou 2 frases cada, dá um Short de 30 a 45 segundos.</p>
   <label>Fontes (uma por linha)</label>
   <textarea name="fontes">{{ f.fontes or '' }}</textarea>
+  {{ canal.video(d, 'manual') }}
   <p style="margin-top:16px"><button class="botao">Criar na fila</button></p>
 </form>
 {% endblock %}

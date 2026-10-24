@@ -94,13 +94,18 @@ def _roteiro_e_video(arquivo: str, formato_exigido: str | None = None):
     return caminho, roteiro, slug, video
 
 
+def _vai_para(roteiro: dict, plataforma: str) -> bool:
+    """O vídeo escolheu as plataformas no Novo vídeo? Sem a lista (roteiros antigos), vale o perfil."""
+    return plataforma in roteiro["plataformas"] if "plataformas" in roteiro else True
+
+
 def cmd_publicar_youtube(a):
     from .fila import ja_publicado, marcar
     from .publicar import enviar_youtube, metadados_youtube
     _, roteiro, slug, video = _roteiro_e_video(a.roteiro)
     from .perfis import carregar
-    if not carregar().dados.get("youtube", True):
-        print("youtube desligado neste perfil: pulando")
+    if not carregar().dados.get("youtube", True) or not _vai_para(roteiro, "youtube"):
+        print("youtube desligado neste perfil ou fora das plataformas deste vídeo: pulando")
         _resultado({"slug": slug, "youtube": None, "pulado": True})
         return
     video_id = ja_publicado(slug, "youtube")
@@ -128,12 +133,15 @@ def cmd_conta_instagram(_):
 def cmd_publicar_instagram(a):
     from .fila import ja_publicado, marcar
     from .instagram import legenda_instagram, publicar_reel
-    _, roteiro, slug, video = _roteiro_e_video(a.roteiro, "vertical")
     from .perfis import carregar
-    if not carregar().dados.get("instagram", True):
-        print("instagram desligado neste perfil: pulando")
-        _resultado({"slug": slug, "instagram": None, "pulado": True})
+    from .producao import carregar as carregar_roteiro
+    previo = carregar_roteiro(Path(a.roteiro).resolve())
+    # vídeo longo ou sem o Instagram na lista: pula sem erro (antes de exigir o vertical)
+    if not carregar().dados.get("instagram", True) or not _vai_para(previo, "instagram")             or previo.get("formato", "longo") != "vertical":
+        print("instagram desligado, fora das plataformas deste vídeo ou vídeo longo: pulando")
+        _resultado({"slug": previo.get("slug") or Path(a.roteiro).stem, "instagram": None, "pulado": True})
         return
+    _, roteiro, slug, video = _roteiro_e_video(a.roteiro, "vertical")
     midia_id = ja_publicado(slug, "instagram")
     if midia_id:
         print(f"já publicado antes: mídia {midia_id}")
@@ -242,7 +250,7 @@ def cmd_conferir(a):
     from .conferir import conferir, salvar
     from .perfis import carregar
     perfil = carregar()
-    resultado = conferir(Path(a.video), perfil.dados.get("duracao_s"))
+    resultado = conferir(Path(a.video), perfil.dados.get("duracao_s"))  # o botão do Estúdio usa a duração do vídeo
     print(f"{resultado['video']}: {resultado['duracao_s']} s, {resultado['resolucao']}")
     for x in resultado["achados"]:
         print(f"  {x['nivel'].upper():5} {x['texto']}")

@@ -15,6 +15,7 @@
   <div>
     <p class="suave" style="margin:0">{{ s.arquivo }}</p>
     <h2 style="font-size:22px">{{ r.manchete or r.titulo }}</h2>
+    <p><span class="selo formato">{{ rotulo_video(r, d) }}</span></p>
     <p>
       {% if s.aprovado %}<span class="selo aprovado">✓ aprovado para postar</span>
       {% elif s.estado == 'pronta' %}<span class="selo pronta">prévia pronta</span>
@@ -51,7 +52,7 @@
     <div class="cartao revisao" style="margin-top:12px">
       <h3 style="margin-top:0">Revisão antes de gerar</h3>
       <ul class="resumo">
-        <li><b>Canal:</b> {{ d.nome }} · {{ revisao.formato }}</li>
+        <li><b>Canal:</b> {{ d.nome }} · {{ rotulo_video(r, d) }}</li>
         <li><b>Visual:</b> {{ revisao.estilo }} · edição {{ revisao.edicao | lower }}{{ ' · acervo da NASA' if revisao.nasa }}</li>
         <li><b>Voz:</b> {{ revisao.voz }}</li>
         <li><b>Tamanho:</b> {{ revisao.cenas }} cenas, {{ revisao.palavras }} palavras, cerca de {{ revisao.duracao }} s</li>
