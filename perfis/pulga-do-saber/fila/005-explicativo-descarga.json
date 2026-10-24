@@ -22,45 +22,40 @@
       "texto": "Se você quer limpar o vaso, o jeito mais simples é jogar um balde de água lá dentro.",
       "visual": "bucket of water",
       "ilustracao": "a blue bucket of water tilted over the toilet bowl, splash",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "balde",
+      "acao_em": "balde",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas aí tem que encher o balde toda vez.",
       "visual": "empty bucket",
       "ilustracao": "an empty bucket next to the toilet, a tired drop of sweat",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "vazio",
+      "acao_em": "encher",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você coloca uma caixa cheia de água atrás do vaso, com uma tampa de borracha no fundo.",
       "visual": "toilet tank",
       "ilustracao": "a cutaway of the toilet tank full of water with a rubber flap at the bottom",
+      "nova_peca": "caixa",
+      "nova_em": "caixa",
       "rotulos": [
         {
           "texto": "caixa",
-          "x": 0.5,
-          "y": 0.28,
-          "em": "caixa"
+          "em": "caixa",
+          "peca": "caixa"
         },
         {
           "texto": "tampa de borracha",
-          "x": 0.5,
-          "y": 0.6,
-          "em": "borracha"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "fluxo"
+          "em": "borracha",
+          "ponto": [
+            56,
+            200
+          ]
         }
       ]
     },
@@ -69,13 +64,10 @@
       "visual": "toilet flush",
       "ilustracao": "the rubber flap lifted and water rushing down from the tank into the bowl",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same toilet tank now almost empty, water rushing down into the bowl in a swirl",
-      "depois_em": "desce"
+      "acao": "descarga",
+      "acao_em": "botão",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Só que o segredo está no cano curvo do vaso. A água enche a curva toda e puxa tudo junto, como um canudo.",
@@ -83,97 +75,85 @@
       "ilustracao": "a cutaway of the toilet showing a curved pipe completely full of rushing water pulling everything",
       "termo": "sifão",
       "termo_em": "canudo",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "nova_peca": "sifao",
+      "nova_em": "curvo",
+      "rotulos": [],
+      "acao": "puxa",
+      "acao_em": "puxa"
     },
     {
       "texto": "Esse é o sifão. Quando entra ar na curva, o sifão quebra. É aquele barulhinho de gargarejo no fim.",
       "visual": "gurgle",
       "ilustracao": "air bubbles entering the curved pipe with a gurgle sound mark",
       "termo": "sifão",
+      "acao": "ar",
+      "acao_em": "ar",
       "rotulos": [
         {
           "texto": "ar",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "ar"
+          "em": "ar",
+          "ponto": [
+            150,
+            300
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "bolhas"
-        }
-      ]
+      "foco": "sifao"
     },
     {
       "texto": "Mas um pouco de água fica parada na curva. E ela é de propósito: segura o cheiro do esgoto lá embaixo.",
       "visual": "water seal",
       "ilustracao": "a small pool of still water sitting in the bottom of the curve, a stinky cloud blocked below it",
+      "expressao": "feliz",
+      "acao": "selo",
+      "acao_em": "parada",
       "rotulos": [
         {
           "texto": "água parada",
-          "x": 0.5,
-          "y": 0.4,
-          "em": "parada"
+          "em": "parada",
+          "ponto": [
+            110,
+            290
+          ]
         }
       ],
-      "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "foco": "sifao"
     },
     {
       "texto": "Agora a caixa está vazia. Então você põe uma bola que boia na água, presa numa torneirinha.",
       "visual": "toilet float",
       "ilustracao": "inside the tank, a floating ball on a lever connected to a small valve",
       "termo": "boia",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "nova_peca": "boia",
+      "nova_em": "bola",
+      "rotulos": []
     },
     {
       "texto": "Quando a água desce, a boia desce junto e abre a torneira.",
       "visual": "float down",
       "ilustracao": "the float ball low in an empty tank and water spraying in from the valve",
+      "acao": "enche",
+      "acao_em": "abre",
       "rotulos": [
         {
           "texto": "aberta",
-          "x": 0.5,
-          "y": 0.34,
-          "em": "abre"
+          "em": "abre",
+          "ponto": [
+            38,
+            134
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "foco": "boia"
     },
     {
       "texto": "A água sobe, a boia sobe, e lá em cima ela fecha a torneira sozinha.",
       "visual": "float up",
       "ilustracao": "the float ball high in a full tank and the valve closed, calm water",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same tank now full of water, the floating ball high, the valve closed",
-      "depois_em": "fecha"
+      "acao": "fecha",
+      "acao_em": "fecha",
+      "rotulos": [],
+      "foco": "boia"
     },
     {
       "texto": "Pronto: você acabou de montar uma descarga. Comenta sifão se você não sabia que é ele que faz o barulho.",
@@ -182,15 +162,10 @@
       "expressao": "feliz",
       "destaque": "comenta SIFÃO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -218,5 +193,6 @@
         "#banheiro"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-descarga.py"
 }

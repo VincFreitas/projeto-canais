@@ -21,115 +21,93 @@
       "texto": "Se você quer escrever com tinta, o jeito mais simples é molhar uma pena no tinteiro.",
       "visual": "quill inkwell",
       "ilustracao": "a feather quill dipped into a small ink pot on the desk",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "pena",
+      "acao_em": "pena",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas a cada palavra você molha de novo, e a tinta mancha a folha.",
       "visual": "ink stain",
       "ilustracao": "a big blue ink blot on the paper and drips from the quill",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "mancha",
+      "acao_em": "mancha",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você guarda a tinta dentro de um tubo. Mas se o tubo tiver um furo na ponta, a tinta vaza toda.",
       "visual": "ink tube",
       "ilustracao": "a clear tube of blue ink with a hole at the tip leaking a puddle",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same ink tube now with a big blue puddle leaking under it",
-      "depois_em": "vaza"
+      "nova_peca": "tubo",
+      "nova_em": "tubo",
+      "rotulos": [],
+      "acao": "vaza",
+      "acao_em": "vaza"
     },
     {
       "texto": "Então você tampa a ponta com uma bolinha de metal, que encaixa certinho num buraco.",
       "visual": "ballpoint tip",
       "ilustracao": "a giant close-up of the pen tip with a tiny metal ball sitting in a socket",
       "termo": "esfera",
-      "rotulos": [
-        {
-          "texto": "bolinha",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "bolinha"
-        }
-      ],
       "termo_em": "bolinha",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "esfera",
+      "nova_em": "bolinha",
+      "rotulos": [],
+      "foco": "ponta"
     },
     {
       "texto": "A bolinha gira no papel, pega tinta de um lado e deixa a tinta do outro.",
       "visual": "ball rolling ink",
       "ilustracao": "the tiny metal ball rolling on paper with blue ink on its surface leaving a line",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same tiny ball now leaving a long smooth blue line on the paper",
-      "depois_em": "deixa"
+      "acao": "escreve",
+      "acao_em": "gira",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas se a tinta for rala, escorre pelos lados. Se for grossa demais, nem sai.",
       "visual": "ink thick thin",
       "ilustracao": "two pen tips side by side, one dripping thin ink and one dry",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "rala",
+      "acao_em": "rala",
+      "rotulos": [],
+      "foco": "ponta"
     },
     {
       "texto": "O jornalista húngaro László Bíró reparou que a tinta de jornal secava rapidinho.",
       "visual": "newspaper printing",
       "ilustracao": "a vintage newspaper printing press with fresh pages",
+      "acao": "jornal",
+      "acao_em": "jornal",
       "rotulos": [
         {
           "texto": "tinta de jornal",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "jornal"
+          "em": "jornal",
+          "peca": "jornal"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "foco": "jornal"
     },
     {
       "texto": "Então ele usou uma tinta grossa, que seca quase na hora, junto com a bolinha. E patenteou a ideia em 1938.",
       "visual": "vintage pen patent",
       "ilustracao": "an old desk with a vintage pen prototype and paper documents",
       "termo": "esferográfica",
+      "termo_em": "patenteou",
+      "nova_peca": "tinta",
+      "nova_em": "grossa",
       "rotulos": [
         {
           "texto": "1938",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "1938"
-        }
-      ],
-      "termo_em": "patenteou",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
+          "em": "1938",
+          "ponto": [
+            170,
+            105
+          ]
         }
       ]
     },
@@ -139,23 +117,19 @@
       "ilustracao": "the clear ballpoint pen standing proudly on the paper with a shiny tip",
       "termo": "esferográfica",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "nova_peca": "corpo",
+      "nova_em": "caneta",
+      "rotulos": []
     },
     {
       "texto": "Por isso a caneta falha quando você escreve de cabeça para baixo: a tinta precisa descer até a bolinha.",
       "visual": "writing upside down",
       "ilustracao": "the pen held upside down writing on the ceiling paper with a faded line",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "virar",
+      "acao_em": "cabeça",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Pronto: você acabou de montar uma caneta. Comenta Bíró se você não sabia que caneta tem uma bolinha na ponta.",
@@ -164,15 +138,10 @@
       "expressao": "feliz",
       "destaque": "comenta BÍRÓ",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -200,5 +169,6 @@
         "#invencoes"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-caneta.py"
 }

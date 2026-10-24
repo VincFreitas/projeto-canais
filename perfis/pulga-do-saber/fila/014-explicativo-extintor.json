@@ -23,93 +23,72 @@
       "visual": "fire triangle",
       "ilustracao": "a small fire in a wastebasket with three floating icons around it: wood, air and heat",
       "termo": "triângulo do fogo",
+      "termo_em": "três",
+      "acao": "triangulo",
+      "acao_em": "três",
       "rotulos": [
         {
           "texto": "combustível",
-          "x": 0.25,
-          "y": 0.3,
-          "em": "queimar"
+          "em": "queimar",
+          "ponto": [
+            12,
+            212
+          ]
         },
         {
           "texto": "oxigênio",
-          "x": 0.75,
-          "y": 0.3,
-          "em": "oxigênio"
+          "em": "oxigênio",
+          "ponto": [
+            70,
+            212
+          ]
         },
         {
           "texto": "calor",
-          "x": 0.5,
-          "y": 0.62,
-          "em": "calor"
+          "em": "calor",
+          "ponto": [
+            40,
+            150
+          ]
         }
       ],
-      "termo_em": "três",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "foco": "fogo"
     },
     {
       "texto": "Se você joga água, ela tira o calor. Funciona com papel e madeira.",
       "visual": "water on fire",
       "ilustracao": "a bucket of water putting out the wastebasket fire with steam",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same wastebasket now with the fire out and white steam rising",
-      "depois_em": "tira"
+      "acao": "agua",
+      "acao_em": "água",
+      "rotulos": [],
+      "foco": "fogo"
     },
     {
       "texto": "Mas jogar água em óleo quente espalha o fogo. E em aparelho ligado, a água conduz o choque.",
       "visual": "oil fire",
       "ilustracao": "a pan of oil with flames jumping and an electric spark sign",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "oleo",
+      "acao_em": "óleo",
+      "rotulos": [],
+      "foco": "fogo"
     },
     {
       "texto": "Então você enche um cilindro com um pó que cobre o fogo e separa o combustível do oxigênio.",
       "visual": "fire extinguisher powder",
       "ilustracao": "a cutaway of the red cylinder full of fine yellow powder",
       "termo": "pó químico",
+      "termo_em": "pó",
+      "nova_peca": "cilindro",
+      "nova_em": "cilindro",
       "rotulos": [
         {
           "texto": "pó",
-          "x": 0.5,
-          "y": 0.4,
-          "em": "pó"
-        }
-      ],
-      "termo_em": "pó",
-      "efeitos": [
-        {
-          "tipo": "faiscas"
+          "em": "pó",
+          "ponto": [
+            140,
+            240
+          ]
         }
       ]
     },
@@ -118,30 +97,27 @@
       "visual": "extinguisher",
       "ilustracao": "the red cylinder standing with a question mark",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "duvida",
+      "acao_em": "força",
+      "rotulos": [],
+      "foco": "cilindro"
     },
     {
       "texto": "Então você coloca dentro um gás apertado, que empurra o pó para fora quando a válvula abre.",
       "visual": "pressurized gas",
       "ilustracao": "a cutaway with compressed gas pushing the powder up a tube to the nozzle",
       "termo": "gás pressurizado",
+      "termo_em": "gás",
+      "nova_peca": "gas",
+      "nova_em": "gás",
       "rotulos": [
         {
           "texto": "manômetro",
-          "x": 0.5,
-          "y": 0.28,
-          "em": "apertado"
-        }
-      ],
-      "termo_em": "gás",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
+          "em": "apertado",
+          "ponto": [
+            158,
+            106
+          ]
         }
       ]
     },
@@ -151,57 +127,50 @@
       "ilustracao": "a close-up of the handle with a metal pin and a small plastic seal",
       "termo": "pino de trava",
       "termo_em": "pino",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "pino",
+      "nova_em": "pino",
+      "rotulos": []
     },
     {
       "texto": "Outro tipo usa gás carbônico, que empurra o oxigênio para longe e ainda gela.",
       "visual": "CO2 extinguisher",
       "ilustracao": "a black-nozzle extinguisher spraying a white cold cloud",
       "termo": "gás carbônico",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "co2",
+      "acao_em": "carbônico",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Por isso o rótulo tem letras: A para papel e madeira, B para líquidos que pegam fogo, C para aparelhos elétricos.",
       "visual": "extinguisher label",
       "ilustracao": "a big label with letters A, B and C and simple icons",
+      "nova_peca": "rotulo",
+      "nova_em": "rótulo",
       "rotulos": [
         {
           "texto": "A",
-          "x": 0.25,
-          "y": 0.4,
-          "em": "papel"
+          "em": "papel",
+          "ponto": [
+            129,
+            208
+          ]
         },
         {
           "texto": "B",
-          "x": 0.5,
-          "y": 0.4,
-          "em": "líquidos"
+          "em": "líquidos",
+          "ponto": [
+            141,
+            208
+          ]
         },
         {
           "texto": "C",
-          "x": 0.75,
-          "y": 0.4,
-          "em": "elétricos"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "faiscas"
+          "em": "elétricos",
+          "ponto": [
+            153,
+            208
+          ]
         }
       ]
     },
@@ -209,33 +178,29 @@
       "texto": "E para usar: puxa o pino, mira na base do fogo, aperta o gatilho e varre de um lado para o outro.",
       "visual": "using extinguisher",
       "ilustracao": "the extinguisher spraying powder at the base of the wastebasket fire in a sweeping motion",
+      "acao": "usar",
+      "acao_em": "puxa",
       "rotulos": [
         {
           "texto": "base do fogo",
-          "x": 0.5,
-          "y": 0.6,
-          "em": "base"
+          "em": "base",
+          "ponto": [
+            40,
+            270
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "faiscas"
-        }
-      ],
-      "ilustracao_depois": "the same scene with a big cloud of powder covering the fire at its base, fire going out",
-      "depois_em": "varre"
+      "foco": "tudo"
     },
     {
       "texto": "Mas antes de tudo, avisa todo mundo e garante uma saída.",
       "visual": "exit sign",
       "ilustracao": "a green exit sign glowing over a door",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "saida",
+      "acao_em": "saída",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Pronto: você acabou de montar um extintor. Comenta pino se você não sabia para que serve aquele pino.",
@@ -244,18 +209,10 @@
       "expressao": "feliz",
       "destaque": "comenta PINO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "faiscas"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -283,5 +240,6 @@
         "#seguranca"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-extintor.py"
 }

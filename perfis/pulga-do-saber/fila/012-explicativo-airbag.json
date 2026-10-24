@@ -23,41 +23,32 @@
       "visual": "crash test",
       "ilustracao": "the crash test dummy leaning forward toward the steering wheel with motion lines",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "bate",
+      "acao_em": "bate",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "O cinto segura o corpo, mas a cabeça ainda pode bater no volante.",
       "visual": "seat belt",
       "ilustracao": "the dummy held by a seat belt with its head close to the wheel",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "cabeca",
+      "acao_em": "cabeça",
+      "rotulos": [],
+      "foco": "boneco"
     },
     {
       "texto": "Então você esconde no volante um saco de tecido dobrado.",
       "visual": "steering wheel airbag",
       "ilustracao": "a cutaway of the steering wheel showing a folded fabric bag inside",
+      "nova_peca": "saco",
+      "nova_em": "saco",
       "rotulos": [
         {
           "texto": "saco dobrado",
-          "x": 0.5,
-          "y": 0.4,
-          "em": "saco"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
+          "em": "dobrado",
+          "peca": "saco"
         }
       ]
     },
@@ -66,11 +57,10 @@
       "visual": "blink",
       "ilustracao": "a giant eye mid-blink next to a clock",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "piscar",
+      "acao_em": "piscar",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você coloca um sensor que mede quanto o carro desacelera. Freada forte não dispara, só batida.",
@@ -78,28 +68,21 @@
       "ilustracao": "a small chip in the car with a needle gauge going into the red zone",
       "termo": "acelerômetro",
       "termo_em": "sensor",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "sensor",
+      "nova_em": "sensor",
+      "rotulos": []
     },
     {
       "texto": "Na batida, ele manda um choquinho para uma cápsula com um combustível sólido.",
       "visual": "capsule spark",
       "ilustracao": "a small metal capsule with a spark igniting it",
+      "nova_peca": "capsula",
+      "nova_em": "cápsula",
       "rotulos": [
         {
           "texto": "cápsula",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "cápsula"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
+          "em": "cápsula",
+          "peca": "capsula"
         }
       ]
     },
@@ -120,28 +103,20 @@
           "5"
         ]
       },
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "faiscas"
-        }
-      ],
-      "ilustracao_depois": "the same steering wheel now with a huge fully inflated white airbag",
-      "depois_em": "enche"
+      "acao": "enche",
+      "acao_em": "enche",
+      "rotulos": [],
+      "foco": "furos"
     },
     {
       "texto": "Mas um saco duro como uma bola seria como bater numa parede.",
       "visual": "hard ball",
       "ilustracao": "a rock-hard ball bouncing off the dummy",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "duro",
+      "acao_em": "duro",
+      "rotulos": [],
+      "foco": "boneco"
     },
     {
       "texto": "Então o tecido tem furinhos. Quando a cabeça encosta, o gás vai saindo e o saco murcha devagar, segurando o tranco.",
@@ -149,45 +124,40 @@
       "ilustracao": "the airbag softly deflating with small puffs of gas from little holes as the dummy leans in",
       "termo": "furos de saída",
       "termo_em": "furinhos",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same airbag now half deflated with puffs of gas escaping from small holes",
-      "depois_em": "murcha"
+      "nova_peca": "furos",
+      "nova_em": "furinhos",
+      "rotulos": [],
+      "acao": "murcha",
+      "acao_em": "murcha"
     },
     {
       "texto": "Esse é o airbag: em inglês, bolsa de ar.",
       "visual": "airbag deployed",
       "ilustracao": "the full airbag in front of the safe dummy",
       "termo": "airbag",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "airbag",
+      "acao_em": "airbag",
+      "rotulos": [],
+      "foco": "boneco"
     },
     {
       "texto": "Por isso ele só funciona direito com o cinto: o cinto segura, o airbag amortece.",
       "visual": "seat belt and airbag",
       "ilustracao": "the dummy wearing a seat belt resting on the airbag, a green check",
+      "expressao": "feliz",
+      "acao": "cinto",
+      "acao_em": "cinto",
       "rotulos": [
         {
           "texto": "cinto",
-          "x": 0.3,
-          "y": 0.6,
-          "em": "cinto"
+          "em": "cinto",
+          "ponto": [
+            60,
+            160
+          ]
         }
       ],
-      "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "foco": "boneco"
     },
     {
       "texto": "Pronto: você acabou de montar um airbag. Comenta cinto se você não sabia que o airbag murcha de propósito.",
@@ -196,15 +166,10 @@
       "expressao": "feliz",
       "destaque": "comenta CINTO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -232,5 +197,6 @@
         "#seguranca"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-airbag.py"
 }

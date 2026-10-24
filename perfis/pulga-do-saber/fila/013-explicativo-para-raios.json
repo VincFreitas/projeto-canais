@@ -22,22 +22,20 @@
       "visual": "lightning building",
       "ilustracao": "a lightning bolt hitting the top of the tall building, zigzag sparks down the walls",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "raio",
+      "acao_em": "raio",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "E esse caminho pode ser a parede, a madeira ou a fiação. Aí vem o fogo e o estrago.",
       "visual": "fire",
       "ilustracao": "small fires and cracks on the building from the strike",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "acao": "fogo",
+      "acao_em": "fogo",
+      "rotulos": [],
+      "foco": "predio"
     },
     {
       "texto": "Então você põe uma ponta de metal no lugar mais alto do prédio.",
@@ -45,30 +43,27 @@
       "ilustracao": "a pointed metal rod standing on the tip of the roof",
       "termo": "captor",
       "termo_em": "ponta",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "captor",
+      "nova_em": "ponta",
+      "rotulos": []
     },
     {
       "texto": "Benjamin Franklin achava que a ponta ia descarregar a nuvem aos poucos e impedir o raio.",
       "visual": "Benjamin Franklin",
       "ilustracao": "a man with glasses and a kite looking at storm clouds, vintage style",
+      "acao": "franklin",
+      "acao_em": "Franklin",
       "rotulos": [
         {
           "texto": "Benjamin Franklin",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "Franklin"
+          "em": "Franklin",
+          "ponto": [
+            23,
+            262
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "foco": "tudo"
     },
     {
       "texto": "Mas não funciona assim: a ponta não impede o raio.",
@@ -77,31 +72,25 @@
       "expressao": "surpresa",
       "destaque": "não impede",
       "destaque_em": "impede",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "impede",
+      "acao_em": "impede",
+      "rotulos": [],
+      "foco": "captor"
     },
     {
       "texto": "O que ela faz é virar o ponto de chegada preferido do raio.",
       "visual": "rod strike",
       "ilustracao": "the lightning bolt hitting exactly the metal tip",
+      "acao": "chegada",
+      "acao_em": "chegada",
       "rotulos": [
         {
           "texto": "ponto de chegada",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "chegada"
+          "em": "chegada",
+          "peca": "captor"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ],
-      "ilustracao_depois": "the same metal tip now hit by a bright lightning bolt",
-      "depois_em": "chegada"
+      "foco": "captor"
     },
     {
       "texto": "Então você liga a ponta a um cabo grosso que desce pelo lado de fora do prédio.",
@@ -109,55 +98,38 @@
       "ilustracao": "a thick metal cable running from the rod down the outside wall",
       "termo": "cabo de descida",
       "termo_em": "cabo",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "cabo",
+      "nova_em": "cabo",
+      "rotulos": []
     },
     {
       "texto": "E lá embaixo, o cabo entra em hastes de metal enterradas no chão. Esse é o aterramento.",
       "visual": "grounding rods",
       "ilustracao": "a cutaway of the ground showing metal rods buried in the soil connected to the cable",
       "termo": "aterramento",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "aterramento",
+      "nova_em": "hastes",
+      "rotulos": []
     },
     {
       "texto": "O raio desce pelo cabo e se espalha na terra, sem passar por dentro da casa.",
       "visual": "lightning grounded",
       "ilustracao": "the lightning energy flowing down the cable and spreading into the earth as glowing lines",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ],
-      "ilustracao_depois": "the same building with the lightning energy flowing down the cable into the ground as glowing lines",
-      "depois_em": "desce"
+      "acao": "desce",
+      "acao_em": "desce",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Por isso, um para-raios sem aterramento bom é quase pior que nenhum.",
       "visual": "bad grounding",
       "ilustracao": "a broken cable not touching the ground with a red warning",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "ruim",
+      "acao_em": "sem",
+      "rotulos": [],
+      "foco": "cabo"
     },
     {
       "texto": "Pronto: você acabou de montar um para-raios. Comenta raio se você achava que ele impedia o raio.",
@@ -166,15 +138,10 @@
       "expressao": "feliz",
       "destaque": "comenta RAIO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -202,5 +169,6 @@
         "#ciencia"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-para-raios.py"
 }

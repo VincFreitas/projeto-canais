@@ -22,51 +22,41 @@
       "texto": "Se você liga aparelhos demais na mesma tomada, a corrente no fio aumenta.",
       "visual": "overloaded outlet",
       "ilustracao": "a wall outlet with too many plugs and cables, glowing wire inside the wall",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "tomada",
+      "acao_em": "aparelhos",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "E fio com corrente demais esquenta, derrete a capa e pode pegar fogo.",
       "visual": "melting wire",
       "ilustracao": "a wire inside the wall glowing red with melting plastic and a small flame",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "acao": "fogo",
+      "acao_em": "esquenta",
+      "rotulos": [],
+      "foco": "fio"
     },
     {
       "texto": "Então você coloca no caminho um fiozinho fino, que derrete antes do fio da casa. Esse é o fusível.",
       "visual": "fuse",
       "ilustracao": "a small glass fuse with a thin wire inside melting and breaking",
       "termo": "fusível",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "fusivel",
+      "nova_em": "fiozinho",
+      "rotulos": [],
+      "acao": "derrete",
+      "acao_em": "derrete"
     },
     {
       "texto": "Mas fusível queimado é jogado fora, e você tem que trocar.",
       "visual": "blown fuse",
       "ilustracao": "a burnt fuse in a trash bin",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "acao": "lixo",
+      "acao_em": "jogado",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você usa uma lâmina feita de dois metais grudados, que esticam diferente quando esquentam.",
@@ -74,104 +64,83 @@
       "ilustracao": "a cutaway showing a strip made of two colored metal layers bending when hot",
       "termo": "lâmina bimetálica",
       "termo_em": "lâmina",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        }
-      ]
+      "nova_peca": "lamina",
+      "nova_em": "lâmina",
+      "rotulos": []
     },
     {
       "texto": "Com corrente demais, ela esquenta, entorta e solta uma mola que abre o contato.",
       "visual": "breaker trip",
       "ilustracao": "the bent strip pushing a latch, a spring snapping a contact open",
+      "acao": "entorta",
+      "acao_em": "entorta",
       "rotulos": [
         {
           "texto": "mola",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "mola"
+          "em": "mola",
+          "ponto": [
+            124,
+            124
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ],
-      "ilustracao_depois": "the same breaker cutaway, the strip now bent, the spring released and the contact snapped open",
-      "depois_em": "abre"
+      "foco": "lamina"
     },
     {
       "texto": "Mas num curto-circuito, a corrente dispara de uma vez, e esperar esquentar é tarde demais.",
       "visual": "short circuit",
       "ilustracao": "two wires touching with a big bright spark",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "curto",
+      "acao_em": "dispara",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você enrola um fio numa peça de ferro. Corrente alta vira um ímã forte que puxa a trava na hora.",
       "visual": "electromagnet",
       "ilustracao": "a coil of copper wire around an iron core pulling a small lever instantly",
       "termo": "eletroímã",
+      "nova_peca": "eletroima",
+      "nova_em": "ferro",
       "rotulos": [
         {
           "texto": "bobina",
-          "x": 0.5,
-          "y": 0.6,
-          "em": "fio"
+          "em": "fio",
+          "peca": "eletroima"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ],
-      "ilustracao_depois": "the same coil now glowing as a strong magnet pulling the lever down",
-      "depois_em": "puxa"
+      "acao": "puxa",
+      "acao_em": "puxa"
     },
     {
       "texto": "Dois sensores numa caixinha: um para excesso aos poucos, outro para curto. Esse é o disjuntor.",
       "visual": "circuit breaker",
       "ilustracao": "the black circuit breaker switch in the panel with a cutaway of its two parts",
       "termo": "disjuntor",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "nova_peca": "disjuntor",
+      "nova_em": "caixinha",
+      "rotulos": []
     },
     {
       "texto": "E quando ele cai, não precisa trocar nada: é só levantar a alavanca de novo.",
       "visual": "reset breaker",
       "ilustracao": "a cartoon hand flipping the breaker lever back up, light bulbs turning on",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "rearma",
+      "acao_em": "levantar",
+      "rotulos": [],
+      "foco": "disjuntor"
     },
     {
       "texto": "Por isso, se ele cai toda hora, é aviso: tem aparelho demais ou um defeito no fio.",
       "visual": "warning",
       "ilustracao": "the breaker panel with a warning triangle sign",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "aviso",
+      "acao_em": "aviso",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Pronto: você acabou de montar um disjuntor. Comenta disjuntor se você não sabia que ele tem dois sensores.",
@@ -180,15 +149,10 @@
       "expressao": "feliz",
       "destaque": "comenta DISJUNTOR",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -216,5 +180,6 @@
         "#casa"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-disjuntor.py"
 }

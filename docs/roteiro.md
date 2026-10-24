@@ -119,6 +119,19 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 - Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e a pulga desce para o canto de baixo.
 - Animação nova, `barra`: `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}`. A barra enche até `valor`% no segundo em que o número é falado.
 
+### Palco: animação feita em código (recomendado para o explicativo)
+Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O módulo `cenas/<slug>.py` programa o mundo em pixel art, e `darkops/palco.py` cuida da montagem, da câmera e da interface. O exemplo é `cenas/explicativo-geladeira.py` com `roteiros/explicativo-geladeira.json`. Cada vídeo leva cerca de 5 min para renderizar, sem placa de vídeo.
+- **Módulo**:
+  - `SERIE` (texto da barra de cima) e `MUNDO` (tamanho na grade, 216x384).
+  - `PECAS`, com `titulo`, `caixa` (para a câmera), `ancora` (ponta da etiqueta) e `conta` (entra na barra "PEÇAS n/N").
+  - `desenhar(ctx)`: usa `ctx.peca(nome)` (de 0 a 1 enquanto encaixa), `ctx.acao(nome)` (segundos desde a ação) e `ctx.T` (relógio do vídeo, para movimentos contínuos), com os ajudantes `ret`, `circulo`, `polilinha`, `sprite`, `fluxo`, `ondas_calor`, `vapor` e `brilhos`.
+- **Campos da cena**:
+  - `nova_peca` + `nova_em`: a peça encaixa na palavra, com aviso "NOVA PEÇA!" e um pop.
+  - `acao` + `acao_em`: liga um comportamento do módulo.
+  - `foco` (peça ou `tudo`) e `foco_em`: para onde a câmera viaja.
+  - `rotulos` com `peca` ou `ponto`: a etiqueta fica presa à peça, com linha.
+- No palco, o selo `@pulgadosaber` sai, e o nome do canal vai na barra de peças.
+
 ### Cena viva (câmera, partículas e antes/depois)
 No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops/cinema.py`). Para desligar, use `"cena_viva": false` no roteiro.
 - **Câmera**:

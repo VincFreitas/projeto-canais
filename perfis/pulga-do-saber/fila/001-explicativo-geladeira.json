@@ -27,21 +27,14 @@
       "rotulos": [
         {
           "texto": "bloco de gelo",
-          "x": 0.5,
-          "y": 0.3,
+          "peca": "gelo",
           "em": "gelo"
         }
       ],
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "nova_peca": "caixa",
+      "nova_em": "caixa",
+      "foco": "tudo"
     },
     {
       "texto": "Era assim antes da geladeira elétrica: um entregador passava de casa em casa vendendo gelo.",
@@ -50,32 +43,23 @@
       "rotulos": [
         {
           "texto": "entregador de gelo",
-          "x": 0.5,
-          "y": 0.28,
-          "em": "entregador"
+          "peca": "entregador",
+          "em": "gelo"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "frio"
-        }
-      ]
+      "acao": "entregar",
+      "acao_em": "entregador",
+      "foco": "tudo"
     },
     {
       "texto": "Mas o gelo derrete, vira uma poça, e no dia seguinte você tem que comprar mais.",
       "visual": "melting ice",
       "ilustracao": "the wooden box with a small melting ice block and a puddle of water dripping on the floor",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same wooden box, the ice block now melted into a big puddle of water on the floor",
-      "depois_em": "derrete"
+      "acao": "derreter",
+      "acao_em": "derrete",
+      "foco": "gelo",
+      "rotulos": []
     },
     {
       "texto": "Então você inverte a ideia: em vez de colocar frio lá dentro, você tira o calor de lá.",
@@ -84,23 +68,17 @@
       "rotulos": [
         {
           "texto": "calor saindo",
-          "x": 0.5,
-          "y": 0.32,
+          "ponto": [
+            150,
+            72
+          ],
           "em": "calor"
         }
       ],
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "calor_sai",
+      "acao_em": "calor",
+      "foco": "tudo"
     },
     {
       "texto": "Sabe o álcool na mão? Ele evapora e a pele gela, porque o líquido rouba calor para virar gás.",
@@ -109,27 +87,16 @@
       "rotulos": [
         {
           "texto": "evapora",
-          "x": 0.5,
-          "y": 0.3,
+          "ponto": [
+            116,
+            70
+          ],
           "em": "evapora"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        }
-      ]
+      "acao": "alcool",
+      "acao_em": "álcool",
+      "foco": "bolha"
     },
     {
       "texto": "Então você passa um cano fino por dentro da caixa, com um líquido que ferve a 12 graus abaixo de zero.",
@@ -145,24 +112,9 @@
           "12"
         ]
       },
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same box interior, the copper pipe now covered in thick white frost and blue cold sparkles",
-      "depois_em": "ferve"
+      "nova_peca": "evaporador",
+      "nova_em": "cano",
+      "rotulos": []
     },
     {
       "texto": "Lá dentro, ele ferve, rouba o calor da comida e vira gás. Esse é o gás refrigerante, e esse cano gelado é o evaporador.",
@@ -172,27 +124,13 @@
       "rotulos": [
         {
           "texto": "gás refrigerante",
-          "x": 0.5,
-          "y": 0.62,
+          "peca": "evaporador",
           "em": "refrigerante"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        }
-      ]
+      "acao": "evapora",
+      "acao_em": "ferve",
+      "foco": "evaporador"
     },
     {
       "texto": "Mas agora o gás saiu da caixa cheio de calor. Então você coloca um motor que espreme esse gás com força, e espremido ele esquenta. Esse é o compressor.",
@@ -202,37 +140,21 @@
       "rotulos": [
         {
           "texto": "motor",
-          "x": 0.5,
-          "y": 0.6,
-          "em": "motor"
+          "peca": "compressor",
+          "em": "espreme"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "nova_peca": "compressor",
+      "nova_em": "motor"
     },
     {
       "texto": "Aí o gás quente passa por uma grade de canos atrás da caixa, solta o calor na cozinha e volta a ser líquido. Esse é o condensador.",
       "visual": "refrigerator coils",
       "ilustracao": "the back of the box with a black grid of zigzag pipes glowing warm orange, heat waves going into the kitchen",
       "termo": "condensador",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "ondas",
-          "raio": 0.25
-        }
-      ]
+      "nova_peca": "condensador",
+      "nova_em": "grade",
+      "rotulos": []
     },
     {
       "texto": "Por isso a parte de trás da geladeira é quente.",
@@ -241,32 +163,19 @@
       "destaque": "atrás é quente",
       "destaque_em": "quente",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "ondas",
-          "raio": 0.25
-        }
-      ]
+      "acao": "termometro",
+      "acao_em": "quente",
+      "foco": "termometro",
+      "rotulos": []
     },
     {
       "texto": "Antes de voltar para dentro, o líquido passa por um tubo bem fininho, a pressão cai e ele gela de novo. Esse é o tubo capilar.",
       "visual": "thin copper tube",
       "ilustracao": "a very thin coiled copper tube between the warm back grid and the cold pipe inside the box, blue frost at its end",
       "termo": "tubo capilar",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "nova_peca": "capilar",
+      "nova_em": "tubo",
+      "rotulos": []
     },
     {
       "texto": "Mas o motor não precisa ficar ligado o tempo todo. Então você põe um sensor que liga quando esquenta e desliga quando esfria. Esse é o termostato.",
@@ -276,19 +185,12 @@
       "rotulos": [
         {
           "texto": "sensor",
-          "x": 0.5,
-          "y": 0.32,
+          "peca": "termostato",
           "em": "sensor"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        }
-      ]
+      "nova_peca": "termostato",
+      "nova_em": "sensor"
     },
     {
       "texto": "E para o frio não escapar, a borracha da porta tem um ímã que puxa a porta e fecha sozinha.",
@@ -297,25 +199,15 @@
       "rotulos": [
         {
           "texto": "ímã na borracha",
-          "x": 0.5,
-          "y": 0.3,
+          "peca": "vedacao",
           "em": "ímã"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ],
-      "ilustracao_depois": "the same box with its door shut tight, a glowing magnetic seal along the edge",
-      "depois_em": "fecha"
+      "nova_peca": "vedacao",
+      "nova_em": "borracha",
+      "acao": "fechar",
+      "acao_em": "fecha",
+      "foco": "caixa"
     },
     {
       "texto": "Pronto: você acabou de montar uma geladeira. Comenta gelo se você não sabia que ela não faz frio, ela tira o calor.",
@@ -324,17 +216,10 @@
       "destaque": "comenta GELO",
       "destaque_em": "comenta",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "foco": "tudo",
+      "rotulos": []
     }
   ],
   "metadados": {
@@ -362,5 +247,6 @@
         "#vocesabia"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-geladeira.py"
 }

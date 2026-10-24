@@ -174,7 +174,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                               obra / "audio" / f"{i:02d}")
         pausa = float(c.get("pausa", PAUSA_PADRAO))
         visual, depois_img = None, None
-        if estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):  # desenhada no PC
+        # palco: a cena é programada em código (cenas/<slug>.py), sem desenho de IA nem busca de mídia
+        palco = (config.RAIZ / roteiro["palco"]) if roteiro.get("palco") and pixel and not post else None
+        if palco is None and estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):
             visual = visuais.ilustracao_local(c["ilustracao"], roteiro.get("personagem", ""), i, obra / "visuais",
                                               largura, altura, estilo, slug, pixel)
             if visual is not None and c.get("ilustracao_depois"):  # o mesmo objeto depois da mudança
@@ -183,7 +185,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         # cena viva: câmera, partículas e etiquetas presas ao objeto (pixel art em tela cheia)
         viva = (visual is not None and pixel and not post and roteiro.get("cena_viva", True)
                 and visual.suffix.lower() in visuais.EXT_IMAGEM)
-        if visual is None:
+        if visual is None and palco is None:
             visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
                                             _tipo_da_cena(roteiro, i), usados)
         dur_cena = render.duracao(audio) + pausa
@@ -251,6 +253,17 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             visual = gerar_cena_viva(visual, depois_img, t_depois, dur_cena, largura, altura, pixel, i, c, palavras,
                                      rotulos_vivos, impactos, obra / "visuais" / f"{i:02d}-viva.mp4")
             rotulos = []  # as etiquetas agora andam com a câmera, dentro da cena viva
+        elif palco is not None:
+            from .palco import gerar as gerar_palco
+            if c.get("nova_peca"):
+                from .sincronia import momento
+                t = momento(palavras, c.get("nova_em") or c["nova_peca"])
+                efeitos.append((inicio_cena + (t if t is not None else 0.4), "pop"))
+            impactos = [t for t in (termo[1] if termo else None, destaque[1] if destaque else None) if t is not None]
+            visual = gerar_palco(palco, roteiro["cenas"], i, dur_cena, palavras, largura, altura, pixel, inicio_cena,
+                                 impactos, obra / "visuais" / f"{i:02d}-palco.mp4")
+            rotulos = []  # o palco desenha as etiquetas presas às peças
+            viva = True  # o palco traz a própria transição
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
         ass = None
@@ -287,7 +300,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav") \
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
-                  selo=roteiro.get("selo"), efeitos=sfx,
+                  # no palco, o nome do canal já vai na barra de peças, no lugar do selo
+                  selo=None if roteiro.get("palco") else roteiro.get("selo"), efeitos=sfx,
                   # a pulga narradora já faz o papel do mascote do canto
                   mascote=roteiro.get("mascote", not roteiro.get("narrador")),
                   post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),

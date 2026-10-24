@@ -21,43 +21,37 @@
       "texto": "Se você quer trancar uma porta, o jeito mais simples é uma tranca de madeira por dentro.",
       "visual": "wooden door bar",
       "ilustracao": "a wooden bar across the inside of the door in metal brackets",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "tranca",
+      "acao_em": "tranca",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas aí você só tranca de dentro. E quando sair de casa?",
       "visual": "door outside",
       "ilustracao": "the door seen from outside with a question mark",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "fora",
+      "acao_em": "sair",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você põe um ferrinho que entra no batente, e um cilindro que gira para mover esse ferro.",
       "visual": "lock cylinder",
       "ilustracao": "a cutaway of the lock showing a metal bolt and a round cylinder that rotates",
       "termo": "lingueta",
+      "termo_em": "ferrinho",
+      "nova_peca": "lingueta",
+      "nova_em": "ferrinho",
       "rotulos": [
         {
           "texto": "cilindro",
-          "x": 0.5,
-          "y": 0.62,
-          "em": "cilindro"
-        }
-      ],
-      "termo_em": "ferrinho",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
+          "em": "cilindro",
+          "ponto": [
+            100,
+            196
+          ]
         }
       ]
     },
@@ -66,30 +60,26 @@
       "visual": "screwdriver",
       "ilustracao": "a screwdriver turning the cylinder easily",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "chave_fenda",
+      "acao_em": "qualquer",
+      "rotulos": [],
+      "foco": "lingueta"
     },
     {
       "texto": "Então você fura o cilindro de cima a baixo e coloca colunas de pinos com uma molinha em cima.",
       "visual": "lock pins",
       "ilustracao": "a cutaway showing five columns of small pins with springs on top crossing the cylinder",
       "termo": "pinos",
+      "nova_peca": "pinos",
+      "nova_em": "pinos",
       "rotulos": [
         {
           "texto": "mola",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "molinha"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
+          "em": "molinha",
+          "ponto": [
+            70,
+            134
+          ]
         }
       ]
     },
@@ -97,45 +87,45 @@
       "texto": "Cada coluna tem dois pinos. A mola empurra, e o pino de cima fica atravessado na linha do cilindro, travando tudo.",
       "visual": "pin stack",
       "ilustracao": "close-up of one column: a top pin crossing the gap between cylinder and body, blocking it",
+      "acao": "trava",
+      "acao_em": "atravessado",
       "rotulos": [
         {
           "texto": "pino de cima",
-          "x": 0.5,
-          "y": 0.32,
-          "em": "cima"
+          "em": "cima",
+          "ponto": [
+            70,
+            160
+          ]
         },
         {
           "texto": "linha",
-          "x": 0.5,
-          "y": 0.5,
-          "em": "linha"
+          "em": "linha",
+          "ponto": [
+            110,
+            180
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "foco": "pinos"
     },
     {
       "texto": "Os pinos de baixo têm tamanhos diferentes.",
       "visual": "pins sizes",
       "ilustracao": "the bottom pins in a row with different lengths",
+      "acao": "tamanhos",
+      "acao_em": "tamanhos",
       "rotulos": [
         {
           "texto": "tamanhos",
-          "x": 0.5,
-          "y": 0.34,
-          "em": "tamanhos"
+          "em": "tamanhos",
+          "ponto": [
+            110,
+            205
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "foco": "pinos"
     },
     {
       "texto": "Então a chave tem dentes na altura certa de cada pino. Ela empurra cada par até a emenda ficar bem na linha.",
@@ -143,52 +133,42 @@
       "ilustracao": "a key inserted lifting each pin pair so all the gaps line up perfectly",
       "termo": "linha de corte",
       "termo_em": "linha",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ],
-      "ilustracao_depois": "the same cutaway with the key fully inserted and all the pin gaps lined up in one straight line",
-      "depois_em": "linha"
+      "nova_peca": "chave",
+      "nova_em": "chave",
+      "rotulos": [],
+      "acao": "alinha",
+      "acao_em": "empurra",
+      "foco": "pinos"
     },
     {
       "texto": "Todos alinhados, nada mais trava, e o cilindro gira.",
       "visual": "lock opening",
       "ilustracao": "the cylinder rotating freely and the bolt sliding back",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ],
-      "ilustracao_depois": "the same lock with the cylinder turned and the bolt pulled back, door unlocked",
-      "depois_em": "gira"
+      "acao": "gira",
+      "acao_em": "gira",
+      "rotulos": [],
+      "foco": "lingueta"
     },
     {
       "texto": "Com a chave errada, basta um pino fora do lugar para tudo continuar travado.",
       "visual": "wrong key",
       "ilustracao": "a wrong key with one pin still crossing the line, a red X",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "errada",
+      "acao_em": "errada",
+      "rotulos": [],
+      "foco": "pinos"
     },
     {
       "texto": "Esse é o cilindro de pinos, patenteado por Linus Yale Júnior, nos Estados Unidos.",
       "visual": "vintage lock",
       "ilustracao": "a vintage brass pin lock on an old workbench",
       "termo": "cilindro de pinos",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "yale",
+      "acao_em": "Yale",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Pronto: você acabou de montar uma fechadura. Comenta chave se você não sabia que ela só alinha pinos.",
@@ -197,15 +177,10 @@
       "expressao": "feliz",
       "destaque": "comenta CHAVE",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -233,5 +208,6 @@
         "#chave"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-fechadura.py"
 }

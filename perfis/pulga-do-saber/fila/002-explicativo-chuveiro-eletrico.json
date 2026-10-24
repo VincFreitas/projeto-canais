@@ -21,75 +21,42 @@
       "texto": "Se você quer um banho quente, o jeito mais simples é esquentar a água numa panela e jogar na cabeça.",
       "visual": "bucket shower",
       "ilustracao": "a person-free scene: a metal pot of steaming water next to a bucket in the bathroom",
+      "expressao": "feliz",
+      "acao": "panela",
+      "acao_em": "panela",
       "rotulos": [
         {
           "texto": "água quente",
-          "x": 0.5,
-          "y": 0.32,
-          "em": "panela"
+          "em": "esquentar",
+          "ponto": [
+            40,
+            236
+          ]
         }
       ],
-      "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "foco": "tudo"
     },
     {
       "texto": "Mas isso dá um trabalhão, e a água esfria antes de você terminar.",
       "visual": "cold water",
       "ilustracao": "the bucket of water with blue cold sparkles and no steam, a shivering towel",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "esfria",
+      "acao_em": "esfria",
+      "rotulos": [],
+      "foco": "panela"
     },
     {
       "texto": "Então você faz a água passar por um fio que esquenta quando a eletricidade atravessa ele.",
       "visual": "heating wire",
       "ilustracao": "a cutaway of the shower head showing a glowing orange coiled wire with water flowing around it",
+      "nova_peca": "chuveiro",
+      "nova_em": "passar",
       "rotulos": [
         {
           "texto": "fio quente",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "fio"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
+          "em": "fio",
+          "peca": "resistencia"
         }
       ]
     },
@@ -98,24 +65,13 @@
       "visual": "nichrome wire",
       "ilustracao": "close-up of the glowing orange coiled wire inside the shower head, sparkles of heat",
       "termo": "resistência",
+      "nova_peca": "resistencia",
+      "nova_em": "liga",
       "rotulos": [
         {
           "texto": "níquel e cromo",
-          "x": 0.5,
-          "y": 0.62,
-          "em": "níquel"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
+          "em": "níquel",
+          "peca": "resistencia"
         }
       ]
     },
@@ -124,41 +80,30 @@
       "visual": "burnt wire",
       "ilustracao": "the coiled wire glowing red hot with no water around it, a small puff of smoke",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same coiled wire now snapped in two pieces, black and burnt, a puff of smoke",
-      "depois_em": "rompe"
+      "acao": "romper",
+      "acao_em": "esquenta",
+      "rotulos": [],
+      "foco": "resistencia"
     },
     {
       "texto": "Então você coloca dentro do chuveiro uma pele de borracha que só encosta no contato elétrico quando a água empurra.",
       "visual": "rubber membrane",
       "ilustracao": "a cutaway: a round rubber membrane pushed up by flowing water, touching a small metal contact",
+      "nova_peca": "diafragma",
+      "nova_em": "borracha",
       "rotulos": [
         {
           "texto": "borracha",
-          "x": 0.5,
-          "y": 0.34,
-          "em": "borracha"
+          "em": "borracha",
+          "peca": "diafragma"
         },
         {
           "texto": "contato",
-          "x": 0.5,
-          "y": 0.6,
-          "em": "contato"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
+          "em": "contato",
+          "ponto": [
+            104,
+            106
+          ]
         }
       ]
     },
@@ -167,16 +112,10 @@
       "visual": "shower valve",
       "ilustracao": "water rushing into the shower head, the rubber membrane bulging and a tiny spark at the contact",
       "termo": "diafragma",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same cutaway, the rubber membrane now pushed up touching the metal contact, a bright spark, the wire glowing orange",
-      "depois_em": "liga"
+      "acao": "ligar",
+      "acao_em": "empurra",
+      "rotulos": [],
+      "foco": "diafragma"
     },
     {
       "texto": "Por isso, com pouca água, muitos chuveiros nem esquentam.",
@@ -185,39 +124,33 @@
       "expressao": "preocupada",
       "destaque": "pouca água",
       "destaque_em": "pouca",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "frio"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "pouca",
+      "acao_em": "pouca",
+      "rotulos": [],
+      "foco": "chuveiro"
     },
     {
       "texto": "E a chave de verão e inverno? No inverno, a corrente passa por um pedaço menor da resistência.",
       "visual": "shower switch",
       "ilustracao": "a big switch knob on the shower with a sun icon and a snowflake icon, the wire inside split in two parts",
+      "nova_peca": "chave",
+      "nova_em": "chave",
       "rotulos": [
         {
           "texto": "verão",
-          "x": 0.32,
-          "y": 0.3,
-          "em": "verão"
+          "em": "verão",
+          "ponto": [
+            144,
+            98
+          ]
         },
         {
           "texto": "inverno",
-          "x": 0.68,
-          "y": 0.3,
-          "em": "inverno"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
+          "em": "inverno",
+          "ponto": [
+            170,
+            98
+          ]
         }
       ]
     },
@@ -226,14 +159,10 @@
       "visual": "electric current",
       "ilustracao": "the shorter glowing wire shining brighter and hotter than a long dim wire next to it",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "inverno",
+      "acao_em": "curto",
+      "rotulos": [],
+      "foco": "resistencia"
     },
     {
       "texto": "Pronto: você acabou de montar um chuveiro elétrico. Comenta inverno se você não sabia que o fio menor é o que esquenta mais.",
@@ -242,24 +171,10 @@
       "expressao": "feliz",
       "destaque": "comenta INVERNO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "eletricidade"
-        }
-      ],
-      "ilustracao_depois": "the same shower now pouring hot water with lots of steam",
-      "depois_em": "montar"
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -287,5 +202,6 @@
         "#eletricidade"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-chuveiro-eletrico.py"
 }

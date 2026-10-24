@@ -22,14 +22,10 @@
       "texto": "Se você quer cozinhar feijão, o jeito mais simples é uma panela com água no fogo.",
       "visual": "beans pot",
       "ilustracao": "an open pot of water and beans boiling on the gas stove",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "acao": "fogo",
+      "acao_em": "fogo",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas a água para de esquentar quando ferve, nos 100 graus. E o feijão leva horas.",
@@ -38,50 +34,29 @@
       "expressao": "preocupada",
       "destaque": "100 °C",
       "destaque_em": "100",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "ferve",
+      "acao_em": "ferve",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você fecha a panela com uma tampa bem presa. O vapor não sai e a pressão lá dentro sobe.",
       "visual": "pressure cooker lid",
       "ilustracao": "the pressure cooker closed with its lid locked, steam trapped inside shown as a cutaway",
+      "nova_peca": "tampa",
+      "nova_em": "tampa",
       "rotulos": [
         {
           "texto": "vapor preso",
-          "x": 0.5,
-          "y": 0.4,
-          "em": "vapor"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
+          "em": "vapor",
+          "ponto": [
+            108,
+            200
           ]
-        },
-        {
-          "tipo": "fluxo"
         }
       ],
-      "ilustracao_depois": "the same pressure cooker now shaking a bit with steam pressure lines inside the cutaway",
-      "depois_em": "sobe"
+      "acao": "pressao",
+      "acao_em": "pressão"
     },
     {
       "texto": "Com mais pressão, a água só ferve mais quente, perto de 120 graus. E cozinha muito mais rápido.",
@@ -102,81 +77,48 @@
           }
         ]
       },
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "calor"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "quente",
+      "acao_em": "120",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas o vapor escapa pela beirada da tampa. Então você coloca um anel de borracha. Essa é a borracha de vedação.",
       "visual": "gasket",
       "ilustracao": "a close-up of a rubber ring around the lid edge sealing it",
       "termo": "vedação",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        }
-      ]
+      "nova_peca": "borracha",
+      "nova_em": "anel",
+      "rotulos": [],
+      "acao": "escapa",
+      "acao_em": "escapa"
     },
     {
       "texto": "Mas se a pressão subir sem parar, a panela explode.",
       "visual": "danger",
       "ilustracao": "the cooker shaking with big pressure lines",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        },
-        {
-          "tipo": "faiscas"
-        }
-      ]
+      "acao": "treme",
+      "acao_em": "explode",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você põe na tampa um peso em cima de um furinho. Quando a pressão passa do ponto, ela levanta o peso e o vapor sai.",
       "visual": "pressure valve",
       "ilustracao": "a small metal weight on top of the lid lifting and letting a jet of steam out",
       "termo": "válvula",
+      "nova_peca": "valvula",
+      "nova_em": "peso",
       "rotulos": [
         {
           "texto": "peso",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "peso"
+          "em": "peso",
+          "peca": "valvula"
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ],
-      "ilustracao_depois": "the same weight on the lid now lifted up with a strong jet of steam escaping",
-      "depois_em": "levanta"
+      "acao": "levanta",
+      "acao_em": "levanta"
     },
     {
       "texto": "É esse o chiado da panela.",
@@ -184,47 +126,30 @@
       "ilustracao": "the weight wobbling with a whistle sound mark and steam puffs",
       "expressao": "feliz",
       "destaque": "chiado",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "chiado",
+      "acao_em": "chiado",
+      "rotulos": [],
+      "foco": "valvula"
     },
     {
       "texto": "E se o furinho entupir? Tem uma segunda peça na tampa que solta o vapor de emergência. Essa é a válvula de segurança.",
       "visual": "safety valve",
       "ilustracao": "a second small rubber plug on the lid popping out with steam",
       "termo": "válvula de segurança",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        }
-      ]
+      "nova_peca": "seguranca",
+      "nova_em": "segunda",
+      "rotulos": [],
+      "acao": "emergencia",
+      "acao_em": "emergência"
     },
     {
       "texto": "Por isso nunca abra a panela com pressão: muitas têm uma trava que nem deixa.",
       "visual": "lid lock",
       "ilustracao": "a lid with a lock symbol and pressure inside, a cartoon hand stopped",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "nova_peca": "trava",
+      "nova_em": "trava",
+      "rotulos": []
     },
     {
       "texto": "A ideia é antiga: em 1679, o francês Denis Papin apresentou um digestor a vapor.",
@@ -249,16 +174,10 @@
           "digestor"
         ]
       },
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        }
-      ]
+      "acao": "antigo",
+      "acao_em": "1679",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Pronto: você acabou de montar uma panela de pressão. Comenta chiado se você não sabia por que ela chia.",
@@ -267,22 +186,10 @@
       "expressao": "feliz",
       "destaque": "comenta CHIADO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "vapor",
-          "cor": [
-            255,
-            255,
-            255
-          ]
-        },
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "fluxo"
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -310,5 +217,6 @@
         "#cozinha"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-panela-de-pressao.py"
 }

@@ -21,47 +21,35 @@
       "texto": "Se você quer subir coisas até o último andar, o jeito mais simples é uma corda com uma caixa na ponta.",
       "visual": "rope pulley box",
       "ilustracao": "a wooden box hanging on a rope over a pulley at the top of the building",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "corda",
+      "acao_em": "corda",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas puxar uma caixa com gente dentro é pesado demais.",
       "visual": "heavy box",
       "ilustracao": "the box full of people and a tired rope",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "pesado",
+      "acao_em": "pesado",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Então você põe um motor lá em cima que enrola o cabo de aço.",
       "visual": "elevator motor",
       "ilustracao": "a big electric motor with a grooved wheel at the top of the shaft pulling steel cables",
+      "nova_peca": "motor",
+      "nova_em": "motor",
       "rotulos": [
         {
-          "texto": "motor",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "motor"
-        },
-        {
           "texto": "cabo de aço",
-          "x": 0.5,
-          "y": 0.56,
-          "em": "cabo"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
+          "em": "cabo",
+          "ponto": [
+            110,
+            90
+          ]
         }
       ]
     },
@@ -70,26 +58,20 @@
       "visual": "elevator car",
       "ilustracao": "the elevator car hanging heavy under the motor",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "esforco",
+      "acao_em": "levantar",
+      "rotulos": [],
+      "foco": "motor"
     },
     {
       "texto": "Então do outro lado do cabo você pendura um bloco pesado, que desce quando a caixa sobe. Esse é o contrapeso.",
       "visual": "counterweight",
       "ilustracao": "a cutaway with the car on one side of the wheel and a heavy block on the other side",
       "termo": "contrapeso",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ],
-      "ilustracao_depois": "the same shaft with the car going up and the heavy counterweight going down, arrows",
-      "depois_em": "desce"
+      "nova_peca": "contrapeso",
+      "nova_em": "bloco",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Ele pesa o mesmo que a caixa vazia, mais uns 40 por cento da carga máxima. O motor só move a diferença.",
@@ -101,89 +83,79 @@
         "titulo": "Contrapeso = cabine +",
         "rotulo": "da carga máxima"
       },
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "diferenca",
+      "acao_em": "diferença",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas e se o cabo arrebentar?",
       "visual": "broken cable",
       "ilustracao": "a steel cable snapping with a scared spark",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        }
-      ]
+      "acao": "arrebenta",
+      "acao_em": "arrebentar",
+      "rotulos": [],
+      "foco": "cabine"
     },
     {
       "texto": "Então você coloca garras de metal na caixa, que agarram os trilhos da parede. Esse é o freio de segurança.",
       "visual": "elevator safety brake",
       "ilustracao": "metal jaws on the sides of the car gripping the vertical guide rails",
       "termo": "freio de segurança",
+      "nova_peca": "freio",
+      "nova_em": "garras",
       "rotulos": [
         {
           "texto": "trilho",
-          "x": 0.2,
-          "y": 0.4,
-          "em": "trilhos"
+          "em": "trilhos",
+          "ponto": [
+            63,
+            200
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ],
-      "ilustracao_depois": "the same car with metal jaws now clamped tight on the guide rails, sparks, car stopped",
-      "depois_em": "agarram"
+      "acao": "agarra",
+      "acao_em": "agarram"
     },
     {
       "texto": "E quem dispara as garras é um sensor de velocidade. Se a caixa desce rápido demais, ele trava tudo. Esse é o limitador de velocidade.",
       "visual": "speed governor",
       "ilustracao": "a spinning wheel device with flyweights at the top of the shaft triggering a lever",
       "termo": "limitador de velocidade",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        }
-      ]
+      "nova_peca": "limitador",
+      "nova_em": "sensor",
+      "rotulos": []
     },
     {
       "texto": "Em 1854, em Nova York, Elisha Otis subiu numa plataforma e mandou cortar a corda na frente do público.",
       "visual": "vintage elevator demonstration",
       "ilustracao": "a man in a top hat standing on an open platform high up, crowd below, a rope being cut",
+      "destaque": "1854",
+      "destaque_em": "1854",
+      "acao": "otis",
+      "acao_em": "cortar",
       "rotulos": [
         {
           "texto": "Elisha Otis",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "Otis"
+          "em": "Otis",
+          "ponto": [
+            110,
+            140
+          ]
         }
       ],
-      "destaque": "1854",
-      "destaque_em": "1854",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "foco": "tudo"
     },
     {
       "texto": "A plataforma travou, e o elevador de passageiro virou possível.",
       "visual": "platform stops",
       "ilustracao": "the platform stopped safely on the rails, the crowd cheering",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "travou",
+      "acao_em": "travou",
+      "rotulos": [],
+      "foco": "cabine"
     },
     {
       "texto": "Pronto: você acabou de montar um elevador. Comenta contrapeso se você não sabia que ele existe.",
@@ -192,15 +164,10 @@
       "expressao": "feliz",
       "destaque": "comenta CONTRAPESO",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -228,5 +195,6 @@
         "#engenharia"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-elevador.py"
 }

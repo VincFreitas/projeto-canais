@@ -21,48 +21,32 @@
       "texto": "Se você quer fechar uma jaqueta, o jeito mais simples é usar botões.",
       "visual": "jacket buttons",
       "ilustracao": "the blue jacket closed with a row of big round buttons",
-      "rotulos": [
-        {
-          "texto": "botões",
-          "x": 0.5,
-          "y": 0.32,
-          "em": "botões"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "botoes",
+      "acao_em": "botões",
+      "rotulos": [],
+      "foco": "tudo"
     },
     {
       "texto": "Mas são muitos botões, demora, e sempre sobra uma fresta entre eles.",
       "visual": "unbuttoned jacket",
       "ilustracao": "the jacket with gaps between the buttons and cold wind lines passing through",
       "expressao": "preocupada",
-      "efeitos": [
-        {
-          "tipo": "frio"
-        }
-      ]
+      "acao": "vento",
+      "acao_em": "fresta",
+      "rotulos": [],
+      "foco": "jaqueta"
     },
     {
       "texto": "Então você costura duas fileiras de dentinhos de metal, uma de cada lado da abertura.",
       "visual": "zipper teeth",
       "ilustracao": "two rows of small shiny metal teeth sewn along the two edges of the jacket opening",
+      "nova_peca": "dentes",
+      "nova_em": "dentinhos",
       "rotulos": [
         {
           "texto": "dentes",
-          "x": 0.5,
-          "y": 0.36,
-          "em": "dentinhos"
-        }
-      ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
+          "em": "dentinhos",
+          "peca": "dentes"
         }
       ]
     },
@@ -70,74 +54,64 @@
       "texto": "Cada dente tem um calombinho em cima e um buraquinho embaixo.",
       "visual": "zipper tooth macro",
       "ilustracao": "a giant close-up of one metal tooth showing a bump on top and a hollow underneath",
+      "acao": "zoom_dente",
+      "acao_em": "dente",
       "rotulos": [
         {
           "texto": "calombo",
-          "x": 0.5,
-          "y": 0.3,
-          "em": "calombinho"
+          "em": "calombinho",
+          "ponto": [
+            152,
+            142
+          ]
         },
         {
           "texto": "buraco",
-          "x": 0.5,
-          "y": 0.62,
-          "em": "buraquinho"
+          "em": "buraquinho",
+          "ponto": [
+            152,
+            182
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "foco": "dente"
     },
     {
       "texto": "Mas encaixar dente por dente com a mão é impossível.",
       "visual": "zipper teeth macro",
       "ilustracao": "a cartoon hand struggling to match two tiny metal teeth together",
       "expressao": "surpresa",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "mao",
+      "acao_em": "mão",
+      "rotulos": [],
+      "foco": "dente"
     },
     {
       "texto": "Então você põe uma pecinha com um canal em forma de Y que junta as duas fileiras num ângulo certinho. Esse é o cursor.",
       "visual": "zipper slider",
       "ilustracao": "a metal slider shaped like a Y channel pulling two rows of teeth together into one closed line",
       "termo": "cursor",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "nova_peca": "cursor",
+      "nova_em": "pecinha",
+      "rotulos": []
     },
     {
       "texto": "Ao subir, ele inclina os dentes, e o calombo de um entra no buraco do outro, travando tudo.",
       "visual": "zipper closing",
       "ilustracao": "close-up of teeth interlocking one by one as the slider moves up, small click sparkles",
+      "acao": "subir",
+      "acao_em": "subir",
       "rotulos": [
         {
           "texto": "trava",
-          "x": 0.5,
-          "y": 0.34,
-          "em": "travando"
+          "em": "travando",
+          "ponto": [
+            108,
+            200
+          ]
         }
       ],
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ],
-      "ilustracao_depois": "the same two rows of teeth now fully interlocked into one closed line",
-      "depois_em": "travando"
+      "foco": "dentes"
     },
     {
       "texto": "E para abrir? Lá dentro tem uma cunha que, na descida, força os dentes a se separarem.",
@@ -145,14 +119,12 @@
       "ilustracao": "the slider moving down with a small wedge inside prying the teeth apart",
       "termo": "cunha",
       "termo_em": "cunha",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ],
-      "ilustracao_depois": "the same zipper now opened in a V shape below the slider",
-      "depois_em": "separarem"
+      "nova_peca": "cunha",
+      "nova_em": "cunha",
+      "rotulos": [],
+      "acao": "descer",
+      "acao_em": "descida",
+      "foco": "dentes"
     },
     {
       "texto": "O sueco Gideon Sundback patenteou esse sistema em 1913 e subiu de 4 para 10 dentes por polegada.",
@@ -172,24 +144,20 @@
           }
         ]
       },
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.18
-        }
-      ]
+      "acao": "densa",
+      "acao_em": "10",
+      "rotulos": [],
+      "foco": "dentes"
     },
     {
       "texto": "Mais dentes, mais firme e mais macio de puxar.",
       "visual": "zipper close",
       "ilustracao": "the zipper closed perfectly smooth with a shiny highlight",
       "expressao": "feliz",
-      "efeitos": [
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "fechar2",
+      "acao_em": "firme",
+      "rotulos": [],
+      "foco": "jaqueta"
     },
     {
       "texto": "Pronto: você acabou de montar um zíper. Comenta cursor se você não sabia o nome dessa pecinha.",
@@ -198,15 +166,10 @@
       "expressao": "feliz",
       "destaque": "comenta CURSOR",
       "destaque_em": "comenta",
-      "efeitos": [
-        {
-          "tipo": "eletricidade"
-        },
-        {
-          "tipo": "brilhos",
-          "raio": 0.2
-        }
-      ]
+      "acao": "pronto",
+      "acao_em": "Pronto",
+      "rotulos": [],
+      "foco": "tudo"
     }
   ],
   "metadados": {
@@ -234,5 +197,6 @@
         "#invencoes"
       ]
     }
-  }
+  },
+  "palco": "cenas/explicativo-ziper.py"
 }
