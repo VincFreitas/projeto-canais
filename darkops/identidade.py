@@ -103,11 +103,13 @@ def _fundo_capa(p: Perfil, destino: Path) -> Image.Image:
                       f"panoramic banner. A whimsical colorful world about {nicho}: several small cute scenes side "
                       "by side, cheerful, calm empty sky band across the middle. No text, no letters, no watermark.")
             print("desenhando o fundo da capa no PC (cerca de 3 min)")
-            subprocess.run([str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
-                            "-p", prompt, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
-                            "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", "1280", "-H", "720",
-                            "--seed", str(zlib.crc32(p.id.encode()) % 100000), "-o", str(destino)],
-                           capture_output=True, text=True, errors="replace")
+            from .visuais import _vez_na_placa
+            with _vez_na_placa():
+                subprocess.run([str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
+                                "-p", prompt, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
+                                "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", "1280", "-H", "720",
+                                "--seed", str(zlib.crc32(p.id.encode()) % 100000), "-o", str(destino)],
+                               capture_output=True, text=True, errors="replace")
         if destino.exists():
             return ImageOps.fit(Image.open(destino).convert("RGB"), (320, 180), Image.BOX)
     # sem o gerador local: degradê em faixas com estrelas, já na grade de pixels

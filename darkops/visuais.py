@@ -1,4 +1,5 @@
 """Visuais das cenas (arquivo próprio, Pexels, Pixabay ou fundo gerado) e thumbnail."""
+import contextlib
 import json
 import random
 from pathlib import Path
@@ -180,6 +181,31 @@ def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: P
     return ilustracao_local(prompt, personagem, indice, pasta_visuais, largura, altura, "pixel", semente, pixel)
 
 
+@contextlib.contextmanager
+def _vez_na_placa():
+    """Trava entre processos (vídeos, prévias e a identidade visual podem rodar juntos): espera o outro desenho terminar."""
+    import msvcrt
+    import time
+    config.MODELOS.mkdir(parents=True, exist_ok=True)
+    with open(config.MODELOS / ".desenhando.lock", "a+b") as trava:
+        avisou = False
+        while True:
+            try:
+                trava.seek(0)
+                msvcrt.locking(trava.fileno(), msvcrt.LK_NBLCK, 1)
+                break
+            except OSError:
+                if not avisou:
+                    print("  outro desenho está usando a placa de vídeo; esperando a vez")
+                    avisou = True
+                time.sleep(3)
+        try:
+            yield
+        finally:
+            trava.seek(0)
+            msvcrt.locking(trava.fileno(), msvcrt.LK_UNLCK, 1)
+
+
 def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
                      estilo: str, semente: str, pixel: int = 0) -> Path | None:
     """Desenha a cena no próprio PC (stable-diffusion.cpp + Z-Image-Turbo, grátis) no estilo pedido. No pixel art
@@ -204,11 +230,17 @@ def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: P
     # tela cheia vertical pede desenho em pé; o resto (layout post e 16:9) sai deitado
     w, h = (768, 1344) if altura > largura else (1024, 768)
     print(f"  cena {indice}: desenhando no PC, estilo {estilo} (cerca de 2 a 5 min)")
-    r = subprocess.run([str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
-                        "-p", texto, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
-                        "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", str(w), "-H", str(h),
-                        "--seed", str(zlib.crc32(semente.encode("utf-8")) % 100000), "-o", str(bruto)],
-                       capture_output=True, text=True, errors="replace")
+    comando = [str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
+               "-p", texto, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
+               "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", str(w), "-H", str(h),
+               "--seed", str(zlib.crc32(semente.encode("utf-8")) % 100000), "-o", str(bruto)]
+    # um desenho por vez: dois ao mesmo tempo não cabem numa placa de 4 GB e os dois falham
+    with _vez_na_placa():
+        for tentativa in range(3):
+            r = subprocess.run(comando, capture_output=True, text=True, errors="replace")
+            if r.returncode == 0 and bruto.exists():
+                break
+            print(f"  cena {indice}: o desenho falhou (tentativa {tentativa + 1} de 3)")
     if r.returncode != 0 or not bruto.exists():
         print(f"  cena {indice}: gerador local falhou; usando a busca de mídia\n{r.stderr[-400:]}")
         return None
