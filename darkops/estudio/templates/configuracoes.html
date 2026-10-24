@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block titulo %}Configurações{% endblock %}
+{% block corpo %}
+<h1 style="margin-top:0">Configurações</h1>
+<p class="suave">Projeto Canais v{{ versao }}. Atalhos, atualização automática e dependências.</p>
+
+<form method="post" class="cartao" style="margin-bottom:16px">
+  <h2>Atalhos para abrir com um clique</h2>
+  <p class="suave">O atalho abre o Estúdio sem janela de terminal (ou só o navegador, se ele já estiver aberto).</p>
+  <label style="font-weight:400"><input type="checkbox" name="area" {{ 'checked' if cfg.atalho_area_de_trabalho }}> Área de Trabalho
+    {% if existem.area_de_trabalho %}<span class="selo pronta">criado</span>{% endif %}</label>
+  <label style="font-weight:400"><input type="checkbox" name="menu" {{ 'checked' if cfg.atalho_menu_iniciar }}> Menu Iniciar
+    {% if existem.menu_iniciar %}<span class="selo pronta">criado</span>{% endif %}</label>
+  <label style="font-weight:400"><input type="checkbox" name="barra" {{ 'checked' if cfg.atalho_barra_de_tarefas }}> Barra de tarefas</label>
+  <p class="dica">O Windows não deixa nenhum programa se fixar sozinho na barra de tarefas. Marcando essa opção, o
+    atalho vai para o Menu Iniciar; lá, clique nele com o botão direito e escolha <b>Fixar na barra de tarefas</b>.</p>
+  <p><button class="botao" name="acao" value="atalhos">Aplicar atalhos</button>
+    <span class="dica">Desmarcar e aplicar remove o atalho.</span></p>
+</form>
+
+<form method="post" class="cartao" style="margin-bottom:16px">
+  <h2>Atualização do Projeto Canais</h2>
+  <label style="font-weight:400"><input type="checkbox" name="auto" {{ 'checked' if cfg.atualizar_sozinho }}>
+    Procurar e instalar a versão nova sozinho, a cada
+    <input type="number" name="horas" min="1" max="168" value="{{ cfg.verificar_a_cada_h }}" style="width:70px;display:inline-block"> horas</label>
+  <p class="dica">Quando sai uma versão nova no GitHub, o Estúdio baixa, espera as tarefas em andamento terminarem,
+    fecha e abre de novo sozinho e mostra uma nota com o número da versão e o que mudou. Nada que você mudou nesta
+    pasta é apagado: se a versão nova mexer num arquivo seu, a atualização para e avisa.</p>
+  <div class="acoes">
+    <button class="botao" name="acao" value="atualizacao">Salvar</button>
+    <button class="botao claro" name="acao" value="verificar">Procurar atualização agora</button>
+    <button class="botao claro" name="acao" value="atualizar">Atualizar agora</button>
+  </div>
+</form>
+
+<form method="post" class="cartao">
+  <h2>Dependências</h2>
+  <p class="suave">Programas e bibliotecas que o projeto usa: pacotes Python (o yt-dlp é o que mais precisa, porque o
+    YouTube e o Instagram mudam e versões velhas param de baixar), o n8n e o Claude Code.</p>
+  <div class="acoes">
+    <button class="botao claro" name="acao" value="dependencias">Verificar</button>
+    <button class="botao secundario" name="acao" value="dependencias-aplicar"
+      onclick="return confirm('Atualizar as dependências agora? Pode levar alguns minutos; feche o n8n antes se ele estiver aberto.')">Atualizar tudo</button>
+  </div>
+  <p class="dica">O desenho no PC (stable-diffusion.cpp) e os modelos ficam em <code>modelos/</code> e se atualizam à mão.</p>
+</form>
+{% endblock %}

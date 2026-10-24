@@ -24,6 +24,7 @@
   <nav class="menu">
     <a href="{{ url_for('progresso') }}">Progresso da configuração{% if guiado %} <span class="selo falta">guiado</span>{% endif %}</a>
     <a href="{{ url_for('chaves') }}">Chaves de serviços</a>
+    <a href="{{ url_for('configuracoes') }}">Configurações</a>
     <a href="{{ url_for('sobre') }}">Sobre o projeto</a>
     <a href="{{ url_for('sobre') }}#sugestao">Enviar sugestão</a>
   </nav>
@@ -60,10 +61,30 @@
   <div class="aviso erro">Cópia modificada: {{ creditos_removidos | join(', ') }}. Este projeto foi criado por
     {{ autoria.AUTOR }} e é distribuído sob licença não comercial. Original: <a href="{{ autoria.REPOSITORIO }}">{{ autoria.REPOSITORIO }}</a></div>
   {% endif %}
+  {% if novidade %}
+  <div class="aviso ok novidade">
+    <b>Projeto Canais atualizado: v{{ novidade.de }} → v{{ novidade.para }}</b> ({{ novidade.quando }})
+    <ul>{% for m in novidade.mudancas %}<li>{{ m }}</li>{% endfor %}</ul>
+    <form method="post" action="{{ url_for('novidade_vista') }}"><button class="botao claro">Entendi</button></form>
+  </div>
+  {% endif %}
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% for tipo, texto in mensagens %}<div class="aviso {{ tipo }}">{{ texto }}</div>{% endfor %}
   {% endwith %}
   {% block corpo %}{% endblock %}
 </main>
+<script>
+// quando o Estúdio reinicia com uma versão nova, a aba recarrega sozinha e mostra o que mudou
+(function () {
+  let versao = null;
+  setInterval(async () => {
+    try {
+      const v = (await (await fetch("{{ url_for('versao_json') }}", {cache: "no-store"})).json()).versao;
+      if (versao && v !== versao) location.reload();
+      versao = v;
+    } catch (e) { /* reiniciando: tenta de novo no próximo ciclo */ }
+  }, 10000);
+})();
+</script>
 </body>
 </html>

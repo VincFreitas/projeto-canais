@@ -41,6 +41,13 @@ O Estúdio fica em **modo guiado** até essas etapas terminarem: Fila, Novo víd
   powershell -ExecutionPolicy Bypass -File instalar.ps1
   ```
 
+## 2b. Atalhos para abrir com um clique
+Pergunte com AskUserQuestion (multiSelect) onde a pessoa quer o atalho do Projeto Canais: **Área de Trabalho**, **Menu Iniciar** e/ou **Barra de tarefas**. Explique que o Windows não deixa programas se fixarem sozinhos na barra de tarefas: o atalho vai para o Menu Iniciar e ela clica com o botão direito > Fixar na barra de tarefas. Depois rode, com as opções escolhidas:
+```
+.\.venv\Scripts\python.exe -m darkops atalhos --area-de-trabalho --menu-iniciar --barra-de-tarefas
+```
+A partir daí ela abre tudo pelo atalho, sem PowerShell. Dá para mudar em Estúdio > Configurações, onde também ficam a atualização automática do projeto e a atualização das dependências.
+
 ## 3. Chaves de serviços (valem para todos os perfis)
 Abra o Estúdio e mostre a aba **Conexões**, que explica cada conector:
 ```

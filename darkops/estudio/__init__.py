@@ -242,7 +242,7 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
-            "estimar_leva": _estimar_leva, "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
+            "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS}
 
 
@@ -425,6 +425,59 @@ def criar_leva(pid):
     p.salvar({"leva_quantidade": quantidade})
     job = _iniciar_job(p, f"Leva de {quantidade} vídeo(s)", [["leva", "--quantidade", str(quantidade)]])
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("fila", pid=pid)))
+
+
+def _novidade():
+    from .. import app as app_local
+    return app_local.novidade_pendente()
+
+
+@app.get("/versao.json")
+def versao_json():
+    """A aba aberta pergunta a versão de tempos em tempos e recarrega quando o Estúdio reinicia atualizado."""
+    from .. import __version__
+    return jsonify({"versao": __version__})
+
+
+@app.post("/novidade/vista")
+def novidade_vista():
+    from .. import app as app_local
+    app_local.marcar_novidade_vista()
+    return redirect(request.referrer or url_for("inicio"))
+
+
+@app.route("/configuracoes", methods=["GET", "POST"])
+def configuracoes():
+    from .. import app as app_local
+    if request.method == "POST":
+        f = request.form
+        acao = f.get("acao", "salvar")
+        if acao == "atalhos":
+            try:
+                for linha in app_local.atalhos(bool(f.get("area")), bool(f.get("menu")), bool(f.get("barra"))):
+                    flash(linha, "ok")
+            except Exception as erro:
+                flash(f"Não consegui criar os atalhos: {erro}", "erro")
+        elif acao == "atualizacao":
+            try:
+                horas = min(max(int(f.get("horas", 6)), 1), 168)
+            except ValueError:
+                horas = 6
+            app_local.salvar({"atualizar_sozinho": bool(f.get("auto")), "verificar_a_cada_h": horas})
+            flash("Preferências de atualização salvas.", "ok")
+        elif acao in ("verificar", "atualizar", "dependencias", "dependencias-aplicar"):
+            perfis_ = listar()
+            p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
+            comandos = {"verificar": ["atualizar", "--verificar"], "atualizar": ["atualizar"],
+                        "dependencias": ["atualizar-dependencias"], "dependencias-aplicar": ["atualizar-dependencias", "--aplicar"]}
+            titulos = {"verificar": "Procurar atualização", "atualizar": "Atualizar o Projeto Canais",
+                       "dependencias": "Verificar dependências", "dependencias-aplicar": "Atualizar dependências"}
+            job = _iniciar_job(p, titulos[acao], [comandos[acao]])
+            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("configuracoes")))
+        return redirect(url_for("configuracoes"))
+    from .. import __version__
+    return render_template("configuracoes.html", cfg=app_local.ler(), existem=app_local.estado_atalhos(),
+                           versao=__version__, pastas=app_local._pastas())
 
 
 @app.get("/tema-card/<nome>.png")
@@ -1161,14 +1214,43 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     import socket
     porta = int(os.environ.get("PORT", porta))  # o preview do Claude Code pode escolher a porta
     url = f"http://127.0.0.1:{porta}"
-    # no Windows dois servidores conseguem ocupar a mesma porta e responder misturado: não abre outro
-    with socket.socket() as teste:
-        if teste.connect_ex(("127.0.0.1", porta)) == 0:
-            print(f"O Estúdio já está aberto em {url}")
-            if abrir:
-                webbrowser.open(url)
-            return
+    reinicio = os.environ.pop("DARKOPS_REINICIO", "") == "1"
+    # no Windows dois servidores conseguem ocupar a mesma porta e responder misturado: não abre outro.
+    # Num reinício pela atualização, espera o Estúdio antigo fechar (até 20 s).
+    for _ in range(40 if reinicio else 1):
+        with socket.socket() as teste:
+            livre = teste.connect_ex(("127.0.0.1", porta)) != 0
+        if livre:
+            break
+        time.sleep(0.5)
+    else:
+        print(f"O Estúdio já está aberto em {url}")
+        if abrir:
+            webbrowser.open(url)
+        return
     print(f"Estúdio em {url} (Ctrl+C para fechar)")
-    if abrir:
+    if abrir and not reinicio:  # no reinício a aba aberta só recarrega, sem abrir outra
         threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+    os.environ["PORT"] = str(porta)  # o Estúdio reaberto depois de uma atualização usa a mesma porta
+    threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
     app.run(host="127.0.0.1", port=porta, debug=False, threaded=True)
+
+
+def _vigiar_atualizacao() -> None:
+    """Procura versão nova de tempos em tempos (se ligado em Configurações) e, quando há atualização, reinicia
+    o Estúdio com o código novo, mas só quando nenhuma tarefa (prévia, leva...) estiver rodando."""
+    from .. import app as app_local
+    inicio = time.time()
+    while True:
+        time.sleep(5)
+        cfg = app_local.ler()
+        if cfg["atualizar_sozinho"] and time.time() - cfg["ultima_verificacao"] > cfg["verificar_a_cada_h"] * 3600:
+            try:
+                app_local.atualizar()
+            except Exception as erro:
+                print(f"atualização automática falhou: {erro}")
+        sinal = app_local.SINAL_REINICIO
+        ocupado = any(j["estado"] == "rodando" for j in JOBS.values())
+        if sinal.exists() and sinal.stat().st_mtime > inicio - 1 and not ocupado:
+            print("versão nova instalada: reiniciando o Estúdio")
+            app_local.reiniciar_processo()

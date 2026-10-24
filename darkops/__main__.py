@@ -258,6 +258,51 @@ def cmd_descricao(a):
         print(f"  aviso: {aviso}")
 
 
+def cmd_abrir(_):
+    from .app import abrir
+    abrir()
+
+
+def cmd_atalhos(a):
+    from .app import atalhos
+    for linha in atalhos(a.area_de_trabalho and not a.remover, a.menu_iniciar and not a.remover,
+                         a.barra_de_tarefas and not a.remover):
+        print(linha)
+
+
+def cmd_atualizar(a):
+    from .app import atualizar, verificar
+    if a.verificar:
+        r = verificar()
+        if not r.get("ok"):
+            sys.exit(r["motivo"])
+        print("versão nova disponível:" if r["ha_novidade"] else "o Projeto Canais está atualizado")
+        for m in r.get("novos", []):
+            print(f"  - {m}")
+        return
+    r = atualizar()
+    if r.get("atualizado"):
+        n = r["novidade"]
+        print(f"atualizado: v{n['de']} -> v{n['para']}")
+        for m in n["mudancas"]:
+            print(f"  - {m}")
+        print("se o Estúdio estiver aberto, ele reinicia sozinho")
+    elif r.get("motivo"):
+        sys.exit(r["motivo"])
+    else:
+        print("o Projeto Canais já está na versão mais nova")
+
+
+def cmd_atualizar_dependencias(a):
+    from .app import dependencias
+    for i in dependencias(aplicar=a.aplicar):
+        extra = i.get("resultado") or i.get("obs") or ""
+        nova = f" -> {i['nova']}" if i.get("nova") else ""
+        print(f"{i['tipo']:14} {i['nome']:24} {i['atual']}{nova}  {extra}")
+    if not a.aplicar:
+        print("\npara atualizar: python -m darkops atualizar-dependencias --aplicar")
+
+
 def cmd_palco_testar(a):
     """Desenha alguns quadros de cada cena do palco, sem gravar vídeo: acusa erro no módulo antes da produção.
     É o único comando Python que a leva automática pode rodar (em vez de qualquer código)."""
@@ -468,6 +513,24 @@ def main():
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")
     s.set_defaults(fn=cmd_autorizar_youtube)
 
+    s = sub.add_parser("abrir", help="abre o Estúdio (o que o atalho da Área de Trabalho roda)")
+    s.set_defaults(fn=cmd_abrir)
+
+    s = sub.add_parser("atalhos", help="cria (ou remove) os atalhos do Projeto Canais no Windows")
+    s.add_argument("--area-de-trabalho", action="store_true")
+    s.add_argument("--menu-iniciar", action="store_true")
+    s.add_argument("--barra-de-tarefas", action="store_true", help="cria no Menu Iniciar e explica como fixar")
+    s.add_argument("--remover", action="store_true")
+    s.set_defaults(fn=cmd_atalhos)
+
+    s = sub.add_parser("atualizar", help="busca a versão nova no GitHub e atualiza esta pasta")
+    s.add_argument("--verificar", action="store_true", help="só mostra se há versão nova")
+    s.set_defaults(fn=cmd_atualizar)
+
+    s = sub.add_parser("atualizar-dependencias", help="verifica (e atualiza) pacotes Python, yt-dlp, n8n e Claude Code")
+    s.add_argument("--aplicar", action="store_true")
+    s.set_defaults(fn=cmd_atualizar_dependencias)
+
     s = sub.add_parser("palco-testar", help="desenha alguns quadros de cada cena do palco de um roteiro (sem gravar)")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_palco_testar)
@@ -515,5 +578,10 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.stdout.reconfigure(encoding="utf-8")  # acentos no console do Windows
+    if sys.stdout is None or sys.stderr is None:  # pythonw (atalho, reinício): sem console, vai para um registro
+        registro = config.RAIZ / "dados" / "estudio.log"
+        registro.parent.mkdir(parents=True, exist_ok=True)
+        sys.stdout = sys.stderr = open(registro, "a", encoding="utf-8", buffering=1)
+    else:
+        sys.stdout.reconfigure(encoding="utf-8")  # acentos no console do Windows
     main()
