@@ -65,20 +65,32 @@ def _pastas() -> dict:
     return {"area_de_trabalho": area, "menu_iniciar": menu}
 
 
+def desenhar_icone(destino: Path = ICONE) -> Path:
+    """Ícone da APLICAÇÃO (nunca o de um canal): o logo do Estúdio, a estrela ✦ escura no quadrado amarelo
+    de cantos arredondados. Desenhado em 4x e reduzido, para as bordas saírem lisas."""
+    import math
+    from PIL import Image, ImageDraw
+    lado = 1024
+    img = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle([16, 16, lado - 16, lado - 16], radius=int(lado * 0.27), fill=(255, 196, 0, 255))  # --amarelo
+    cx = cy = lado / 2
+    externo, interno = lado * 0.34, lado * 0.115  # miolo mais grosso: a estrela continua legível em 16 px
+    pontos = []
+    for k in range(8):  # 4 pontas compridas intercaladas com 4 cantos curtos: a estrela de 4 pontas do logo
+        angulo = math.radians(-90 + k * 45)
+        raio = externo if k % 2 == 0 else interno
+        pontos.append((cx + raio * math.cos(angulo), cy + raio * math.sin(angulo)))
+    d.polygon(pontos, fill=(29, 27, 24, 255))  # --texto
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    img.resize((256, 256), Image.LANCZOS).save(destino, sizes=[(256, 256), (64, 64), (48, 48), (32, 32), (16, 16)])
+    return destino
+
+
 def _icone() -> Path | None:
-    """Ícone da pulga (do avatar do perfil padrão ou da pulga desenhada), gerado uma vez."""
-    if ICONE.exists():
-        return ICONE
+    """O atalho sempre usa o ícone da aplicação (assets/icone.ico, versionado no Git)."""
     try:
-        from PIL import Image
-        from .perfis import carregar
-        origem = carregar().avatar or (carregar().controle / "pulga-avatar-pixel.png")
-        if not Path(origem).exists():
-            return None
-        img = Image.open(origem).convert("RGBA")
-        ICONE.parent.mkdir(parents=True, exist_ok=True)
-        img.save(ICONE, sizes=[(256, 256), (64, 64), (48, 48), (32, 32), (16, 16)])
-        return ICONE
+        return ICONE if ICONE.exists() else desenhar_icone()
     except Exception:
         return None
 

@@ -52,9 +52,8 @@ perfis/*/controle/estatisticas.json
 perfis/*/controle/estatisticas-historico.jsonl
 perfis/*/controle/sugestoes.json
 
-# aplicação no PC: preferências, nota da última atualização, sinal de reinício, registro e ícone gerado
+# aplicação no PC: preferências, nota da última atualização, sinal de reinício e registro
 dados/app.json
 dados/ultima_atualizacao.json
 dados/reiniciar
 dados/estudio.log
-assets/icone.ico
