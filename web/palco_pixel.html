@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Palco 3D pixelado</title>
+<style>html, body { margin: 0; background: #000; } canvas { display: block; image-rendering: pixelated; }</style>
+<script type="importmap">
+{ "imports": { "three": "/web/node_modules/three/build/three.module.js",
+               "gsap": "/web/node_modules/gsap/index.js" } }
+</script>
+</head>
+<body>
+<script type="module">
+// Palco 3D pixelado ("visual_3d": "pixel"): a mesma cena de palco.html, desenhada numa grade pequena
+// (largura / pixel) e acabada num shader: contorno pela profundidade, pontilhado Bayer 4x4 e paleta curta.
+// Devolve o quadro pequeno em PNG; o Python amplia sem suavizar. O tempo vem de fora, como em palco.html.
+import * as THREE from "three";
+import { gsap } from "gsap";
+
+const NIVEIS = 6;        // tons por canal de cor
+const EXPOSICAO = 0.78;  // abaixo de 1 para os brancos não estourarem no pontilhado
+const SATURACAO = 1.12;
+const CONTORNO = 0.35;   // salto relativo de profundidade que vira borda escura
+
+let cena = null, renderer = null, alvo = null, acabamento = null;
+
+const SHADER = {
+  uniforms: { tCor: { value: null }, tProf: { value: null }, tam: { value: new THREE.Vector2() },
+              near: { value: 0.05 }, far: { value: 60 } },
+  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tCor; uniform sampler2D tProf; uniform vec2 tam; uniform float near; uniform float far;
+    varying vec2 vUv;
+    float prof(vec2 uv) { return (near * far) / (far - texture2D(tProf, uv).x * (far - near)); }
+    vec3 aces(vec3 c) {  // o mesmo ACES filmic do three.js: o alvo guarda luz linear, sem tone mapping
+      const mat3 entra = mat3(vec3(0.59719, 0.07600, 0.02840), vec3(0.35458, 0.90834, 0.13383),
+                              vec3(0.04823, 0.01566, 0.83777));
+      const mat3 sai = mat3(vec3(1.60475, -0.10208, -0.00327), vec3(-0.53108, 1.10813, -0.07276),
+                            vec3(-0.07367, -0.00605, 1.07602));
+      c = entra * (c * ${EXPOSICAO.toFixed(2)} / 0.6);
+      c = (c * (c + 0.0245786) - 0.000090537) / (c * (0.983729 * c + 0.4329510) + 0.238081);
+      return clamp(sai * c, 0.0, 1.0);
+    }
+    vec3 srgb(vec3 c) { return mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)); }
+    float bayer(vec2 p) {
+      int i = int(mod(p.x, 4.0)) + int(mod(p.y, 4.0)) * 4;
+      float m[16]; m[0]=0.;m[1]=8.;m[2]=2.;m[3]=10.;m[4]=12.;m[5]=4.;m[6]=14.;m[7]=6.;
+      m[8]=3.;m[9]=11.;m[10]=1.;m[11]=9.;m[12]=15.;m[13]=7.;m[14]=13.;m[15]=5.;
+      for (int k = 0; k < 16; k++) if (k == i) return m[k] / 16.0 - 0.5;
+      return 0.0;
+    }
+    void main() {
+      vec3 c = srgb(aces(texture2D(tCor, vUv).rgb));
+      float l = dot(c, vec3(0.299, 0.587, 0.114));
+      c = clamp(mix(vec3(l), c, ${SATURACAO.toFixed(2)}), 0.0, 1.0);
+      vec2 px = 1.0 / tam; float z = prof(vUv);
+      float zmax = max(max(prof(vUv + vec2(px.x, 0.)), prof(vUv - vec2(px.x, 0.))),
+                       max(prof(vUv + vec2(0., px.y)), prof(vUv - vec2(0., px.y))));
+      if (z < far * 0.9 && (zmax - z) / z > ${CONTORNO.toFixed(2)}) c *= 0.35;
+      c += bayer(gl_FragCoord.xy) / ${NIVEIS.toFixed(1)};
+      c = floor(c * ${(NIVEIS - 1).toFixed(1)} + 0.5) / ${(NIVEIS - 1).toFixed(1)};
+      gl_FragColor = vec4(clamp(c, 0.0, 1.0), 1.0);
+    }`,
+};
+
+window.__palco = {
+  async iniciar(url, largura, altura, pixel) {
+    const gw = Math.round(largura / pixel), gh = Math.round(altura / pixel);
+    renderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(gw, gh, false);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.BasicShadowMap;  // sombra dura combina com pixel
+    document.body.appendChild(renderer.domElement);
+    alvo = new THREE.WebGLRenderTarget(gw, gh, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
+      type: THREE.HalfFloatType, depthTexture: new THREE.DepthTexture(gw, gh) });
+    // rampa de 7 tons no lugar da de 3: o pontilhado faz a passagem entre eles
+    const tons = [70, 105, 140, 175, 210, 240, 255];
+    const rampa = new THREE.DataTexture(new Uint8Array(tons.flatMap((v) => [v, v, v, 255])), tons.length, 1);
+    rampa.minFilter = rampa.magFilter = THREE.LinearFilter;
+    rampa.needsUpdate = true;
+    const mod = await import(url);
+    // a cena é criada no tamanho cheio: a câmera e as âncoras das etiquetas continuam em largura x altura
+    cena = mod.criar({ THREE, gsap, renderer, largura, altura });
+    cena.scene.traverse((o) => {
+      if (o.isDirectionalLight) {
+        o.castShadow = true;
+        o.shadow.mapSize.set(1024, 1024);
+        Object.assign(o.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.1, far: 20 });
+        o.shadow.bias = -0.0015;
+      }
+      if (o.isMesh && o.material?.isMeshToonMaterial) o.material.gradientMap = rampa;
+      if (o.isMesh && !o.material?.isMeshBasicMaterial) {
+        o.castShadow = !o.material?.transparent && !o.userData.semSombra;
+        o.receiveShadow = !o.userData.semSombra;
+      }
+    });
+    acabamento = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial(SHADER));
+    acabamento.frustumCulled = false;
+    const u = acabamento.material.uniforms;
+    u.tCor.value = alvo.texture;
+    u.tProf.value = alvo.depthTexture;
+    u.tam.value.set(gw, gh);
+    u.near.value = cena.camera.near;
+    u.far.value = cena.camera.far;
+    return { MUNDO: [largura, altura], PECAS: mod.PECAS, SERIE: mod.SERIE };
+  },
+  quadro(estado) {
+    const ancoras = cena.quadro(estado);
+    renderer.setRenderTarget(alvo);
+    renderer.render(cena.scene, cena.camera);
+    renderer.setRenderTarget(null);
+    renderer.render(acabamento, cena.camera);
+    return { png: renderer.domElement.toDataURL("image/png"), ancoras };
+  },
+};
+window.__pronto = true;
+</script>
+</body>
+</html>

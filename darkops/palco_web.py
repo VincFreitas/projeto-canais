@@ -5,6 +5,9 @@ altura}), que devolve {scene, camera, quadro(estado)}. O Python manda o estado d
 ações, câmera) e recebe a imagem já em 1080x1920 (antialias, sombras, JPEG) e onde cada peça está na tela. Depois
 põe por cima as etiquetas e a barra de peças, iguais às do palco 2D.
 
+Com VISUAL = "pixel" (campo "visual_3d" do perfil ou do roteiro), usa web/palco_pixel.html: a cena sai na grade de
+pixels (largura / pixel) com contorno, pontilhado e paleta curta, e aqui é ampliada sem suavizar.
+
 Precisa de: pip install playwright; python -m playwright install chromium; npm install em web/ (gsap e three).
 """
 import base64
@@ -24,6 +27,7 @@ from .render import FFMPEG, FPS
 
 VERSAO = 2
 ORIGEM = "http://palco.local"
+VISUAL = "liso"  # "liso" (palco.html) ou "pixel" (palco_pixel.html); a produção troca conforme o roteiro
 
 
 def _servir(rota):
@@ -44,8 +48,10 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
     from .sincronia import momento
     destino = destino.with_suffix(".mp4")
     c = cenas[i - 1]
+    pixelado = VISUAL == "pixel" and pixel > 1
+    html = "palco_pixel.html" if pixelado else "palco.html"
     assinatura = {"versao": VERSAO, "modulo": hashlib.md5(modulo.read_bytes()).hexdigest(),
-                  "pagina": hashlib.md5((config.RAIZ / "web" / "palco.html").read_bytes()).hexdigest(),
+                  "pagina": hashlib.md5((config.RAIZ / "web" / html).read_bytes()).hexdigest(),
                   "cenas": hashlib.md5(json.dumps([{k: x.get(k) for k in ("nova_peca", "nova_em", "acao", "acao_em",
                                                                           "foco", "foco_em", "rotulos")}
                                                    for x in cenas[:i]], sort_keys=True,
@@ -53,6 +59,8 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
                   "dur": round(dur, 2), "T0": round(T0, 2), "tela": [largura, altura, pixel],
                   "impactos": [round(x, 2) for x in impactos],
                   "palavras": hashlib.md5(json.dumps(palavras, sort_keys=True).encode()).hexdigest()}
+    if pixelado:  # só entra na assinatura no pixel, para não refazer as cenas lisas já gravadas
+        assinatura["visual"] = "pixel"
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
@@ -73,10 +81,10 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
         erros = []
         pagina.on("pageerror", lambda e: erros.append(str(e)))
         pagina.route(f"{ORIGEM}/**", _servir)
-        pagina.goto(f"{ORIGEM}/web/palco.html")
+        pagina.goto(f"{ORIGEM}/web/{html}")
         pagina.wait_for_function("window.__pronto === true", timeout=20000)
         url = "/" + modulo.resolve().relative_to(config.RAIZ).as_posix()
-        info = pagina.evaluate("([u, w, h]) => window.__palco.iniciar(u, w, h)", [url, gw, gh])
+        info = pagina.evaluate("([u, w, h, p]) => window.__palco.iniciar(u, w, h, p)", [url, gw, gh, pixel])
         if erros:
             raise RuntimeError(f"cena 3D com erro: {erros[0]}")
         mod = SimpleNamespace(PECAS=info["PECAS"], SERIE=info.get("SERIE", "COMO FUNCIONA"))
@@ -111,7 +119,7 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
                     raise RuntimeError(f"cena 3D com erro na cena {i}, {t:.2f}s: {erros[0]}")
                 tela = Image.open(io.BytesIO(base64.b64decode(resposta["png"].split(",", 1)[1]))).convert("RGB")
                 if tela.size != (largura, altura):
-                    tela = tela.resize((largura, altura), Image.LANCZOS)
+                    tela = tela.resize((largura, altura), Image.NEAREST if pixelado else Image.LANCZOS)
                 d = ImageDraw.Draw(tela)
                 for r, ti, spr in rotulos:  # etiquetas presas onde a peça está na tela
                     if t < ti:

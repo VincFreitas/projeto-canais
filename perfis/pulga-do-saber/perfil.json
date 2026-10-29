@@ -33,6 +33,7 @@
   "legenda_fonte": "Arial Black",
   "estilo": "pixel",
   "pixel": 5,
+  "visual_3d": "pixel",
   "narrador": true,
   "identidade": {
     "gerada": "2026-10-23",

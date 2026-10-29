@@ -132,7 +132,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
               "tipo_visual": perfil.dados.get("tipo_visual"), "proporcao_video": perfil.dados.get("proporcao_video"),
               "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
               "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade"),
-              "tema_cards": perfil.dados.get("tema_cards"), "edicao": perfil.dados.get("edicao")}
+              "tema_cards": perfil.dados.get("tema_cards"), "edicao": perfil.dados.get("edicao"),
+              "visual_3d": perfil.dados.get("visual_3d")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     _aplicar_edicao(roteiro)
     visuais.ACERVO_NASA = bool(roteiro.get("acervo_nasa", perfil.dados.get("acervo_nasa")))
@@ -255,6 +256,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             rotulos = []  # as etiquetas agora andam com a câmera, dentro da cena viva
         elif palco is not None:
             from .palco import gerar as gerar_palco
+            if palco.suffix == ".js":
+                from . import palco_web
+                palco_web.VISUAL = roteiro.get("visual_3d") or "liso"
             if c.get("nova_peca"):
                 from .sincronia import momento
                 t = momento(palavras, c.get("nova_em") or c["nova_peca"])
