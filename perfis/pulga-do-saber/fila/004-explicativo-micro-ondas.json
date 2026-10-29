@@ -57,18 +57,12 @@
         {
           "texto": "positivo",
           "em": "positivo",
-          "ponto": [
-            92,
-            150
-          ]
+          "peca": "positivo"
         },
         {
           "texto": "negativo",
           "em": "negativo",
-          "ponto": [
-            128,
-            150
-          ]
+          "peca": "negativo"
         }
       ],
       "foco": "molecula"
@@ -113,10 +107,7 @@
         {
           "texto": "tubo de ondas",
           "em": "escondida",
-          "ponto": [
-            152,
-            215
-          ]
+          "peca": "guia"
         }
       ]
     },
@@ -208,5 +199,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-micro-ondas.py"
+  "palco": "cenas/explicativo-micro-ondas.3d.js"
 }

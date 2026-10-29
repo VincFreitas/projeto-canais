@@ -46,10 +46,7 @@
         {
           "texto": "cabo de aço",
           "em": "cabo",
-          "ponto": [
-            110,
-            90
-          ]
+          "peca": "cabo"
         }
       ]
     },
@@ -109,10 +106,7 @@
         {
           "texto": "trilho",
           "em": "trilhos",
-          "ponto": [
-            63,
-            200
-          ]
+          "peca": "trilho"
         }
       ],
       "acao": "agarra",
@@ -139,10 +133,7 @@
         {
           "texto": "Elisha Otis",
           "em": "Otis",
-          "ponto": [
-            110,
-            140
-          ]
+          "peca": "otis"
         }
       ],
       "foco": "tudo"
@@ -196,5 +187,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-elevador.py"
+  "palco": "cenas/explicativo-elevador.3d.js"
 }

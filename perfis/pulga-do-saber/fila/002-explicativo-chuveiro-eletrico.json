@@ -28,10 +28,7 @@
         {
           "texto": "água quente",
           "em": "esquentar",
-          "ponto": [
-            40,
-            236
-          ]
+          "peca": "agua_quente"
         }
       ],
       "foco": "tudo"
@@ -100,10 +97,7 @@
         {
           "texto": "contato",
           "em": "contato",
-          "ponto": [
-            104,
-            106
-          ]
+          "peca": "contato"
         }
       ]
     },
@@ -139,18 +133,12 @@
         {
           "texto": "verão",
           "em": "verão",
-          "ponto": [
-            144,
-            98
-          ]
+          "peca": "verao"
         },
         {
           "texto": "inverno",
           "em": "inverno",
-          "ponto": [
-            170,
-            98
-          ]
+          "peca": "inverno"
         }
       ]
     },
@@ -203,5 +191,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-chuveiro-eletrico.py"
+  "palco": "cenas/explicativo-chuveiro-eletrico.3d.js"
 }

@@ -64,10 +64,7 @@
         {
           "texto": "calor",
           "em": "calor",
-          "ponto": [
-            150,
-            196
-          ]
+          "peca": "calor"
         }
       ],
       "foco": "disco"
@@ -190,5 +187,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-freio-do-carro.py"
+  "palco": "cenas/explicativo-freio-do-carro.3d.js"
 }

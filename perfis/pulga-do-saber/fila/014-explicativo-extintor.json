@@ -30,26 +30,17 @@
         {
           "texto": "combustível",
           "em": "queimar",
-          "ponto": [
-            12,
-            212
-          ]
+          "peca": "combustivel"
         },
         {
           "texto": "oxigênio",
           "em": "oxigênio",
-          "ponto": [
-            70,
-            212
-          ]
+          "peca": "oxigenio"
         },
         {
           "texto": "calor",
           "em": "calor",
-          "ponto": [
-            40,
-            150
-          ]
+          "peca": "calor"
         }
       ],
       "foco": "fogo"
@@ -85,10 +76,7 @@
         {
           "texto": "pó",
           "em": "pó",
-          "ponto": [
-            140,
-            240
-          ]
+          "peca": "po"
         }
       ]
     },
@@ -114,10 +102,7 @@
         {
           "texto": "manômetro",
           "em": "apertado",
-          "ponto": [
-            158,
-            106
-          ]
+          "peca": "manometro"
         }
       ]
     },
@@ -151,26 +136,17 @@
         {
           "texto": "A",
           "em": "papel",
-          "ponto": [
-            129,
-            208
-          ]
+          "peca": "letra_a"
         },
         {
           "texto": "B",
           "em": "líquidos",
-          "ponto": [
-            141,
-            208
-          ]
+          "peca": "letra_b"
         },
         {
           "texto": "C",
           "em": "elétricos",
-          "ponto": [
-            153,
-            208
-          ]
+          "peca": "letra_c"
         }
       ]
     },
@@ -184,10 +160,7 @@
         {
           "texto": "base do fogo",
           "em": "base",
-          "ponto": [
-            40,
-            270
-          ]
+          "peca": "base"
         }
       ],
       "foco": "tudo"
@@ -241,5 +214,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-extintor.py"
+  "palco": "cenas/explicativo-extintor.3d.js"
 }

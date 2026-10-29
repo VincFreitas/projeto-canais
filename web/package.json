@@ -1,0 +1,1 @@
+{"name":"palco-web","private":true,"description":"Bibliotecas do palco 3D (gsap e three), servidas localmente para o Chromium sem janela","dependencies":{"gsap":"^3.15.0","three":"^0.186.1"}}

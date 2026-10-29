@@ -254,6 +254,22 @@ def _sprite_rotulo(texto: str, k: int, largura: int) -> Image.Image:
     return img
 
 
+def rotulo_na_tela(tela, d, spr, ax, ay, ti, t, largura, altura, pixel):
+    """Etiqueta que pula na tela, com a linha crescendo até a peça (ax, ay em pixels da tela)."""
+    lx = min(max(ax + (largura * 0.18 if ax < largura / 2 else -largura * 0.18), spr.width / 2 + 20),
+             largura - spr.width / 2 - 20)
+    ly = min(max(ay - altura * 0.09, altura * 0.21), altura * 0.6)
+    cresce = suave((t - ti) / 0.25)
+    bx, by = lx + (ax - lx) * cresce, ly + (ay - ly) * cresce
+    d.line([(lx, ly), (bx, by)], fill=TINTA, width=pixel + 6)
+    d.line([(lx, ly), (bx, by)], fill=(255, 255, 255), width=pixel)
+    r = pixel * (1.6 + 0.5 * math.sin(t * 8))
+    d.rectangle([bx - r, by - r, bx + r, by + r], fill=OURO, outline=TINTA, width=3)
+    e = 0.3 + 0.8 * suave((t - ti) / 0.12) - 0.1 * suave((t - ti - 0.12) / 0.1)
+    s = spr if abs(e - 1) < 0.01 else spr.resize((max(int(spr.width * e), 1), max(int(spr.height * e), 1)))
+    tela.paste(s, (int(lx - s.width / 2), int(ly - s.height / 2)), s)
+
+
 def _hud(tela: Image.Image, mod, cenas, i, t, entradas, antes, largura, altura):
     """Série, barra de peças e o aviso de peça nova."""
     d = ImageDraw.Draw(tela)
@@ -307,6 +323,9 @@ def _hud(tela: Image.Image, mod, cenas, i, t, entradas, antes, largura, altura):
 def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, largura: int, altura: int,
           pixel: int, T0: float, impactos: list[float], destino: Path) -> Path:
     """Grava o clipe da cena i (mp4 sem áudio). Reaproveita se nada mudou."""
+    if modulo.suffix == ".js":  # cena 3D (Three.js + GSAP) desenhada pelo Chromium sem janela
+        from .palco_web import gerar as gerar_web
+        return gerar_web(modulo, cenas, i, dur, palavras, largura, altura, pixel, T0, impactos, destino)
     from .sincronia import momento
     destino = destino.with_suffix(".mp4")
     c = cenas[i - 1]
@@ -376,21 +395,9 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
             d = ImageDraw.Draw(tela)
             escala = largura / cw
             for texto, ancora, ti, spr in rotulos:  # etiqueta com linha até a peça
-                if t < ti:
-                    continue
-                ax, ay = (ancora[0] - x0) * escala, (ancora[1] - y0) * escala
-                lx = min(max(ax + (largura * 0.18 if ax < largura / 2 else -largura * 0.18), spr.width / 2 + 20),
-                         largura - spr.width / 2 - 20)
-                ly = min(max(ay - altura * 0.09, altura * 0.21), altura * 0.6)
-                cresce = suave((t - ti) / 0.25)
-                bx, by = lx + (ax - lx) * cresce, ly + (ay - ly) * cresce
-                d.line([(lx, ly), (bx, by)], fill=TINTA, width=pixel + 6)
-                d.line([(lx, ly), (bx, by)], fill=(255, 255, 255), width=pixel)
-                r = pixel * (1.6 + 0.5 * math.sin(t * 8))
-                d.rectangle([bx - r, by - r, bx + r, by + r], fill=OURO, outline=TINTA, width=3)
-                e = 0.3 + 0.8 * suave((t - ti) / 0.12) - 0.1 * suave((t - ti - 0.12) / 0.1)
-                s = spr if abs(e - 1) < 0.01 else spr.resize((max(int(spr.width * e), 1), max(int(spr.height * e), 1)))
-                tela.paste(s, (int(lx - s.width / 2), int(ly - s.height / 2)), s)
+                if t >= ti:
+                    rotulo_na_tela(tela, d, spr, (ancora[0] - x0) * escala, (ancora[1] - y0) * escala, ti, t,
+                                   largura, altura, pixel)
             _hud(tela, mod, cenas, i, t, entradas, antes, largura, altura)
             if t < 0.12 and i > 1:  # corte entre cenas com um clarão curto
                 tela = Image.blend(tela, Image.new("RGB", tela.size, (255, 255, 255)), 0.5 * (1 - t / 0.12))

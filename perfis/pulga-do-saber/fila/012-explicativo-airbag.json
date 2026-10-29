@@ -151,10 +151,7 @@
         {
           "texto": "cinto",
           "em": "cinto",
-          "ponto": [
-            60,
-            160
-          ]
+          "peca": "cinto"
         }
       ],
       "foco": "boneco"
@@ -198,5 +195,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-airbag.py"
+  "palco": "cenas/explicativo-airbag.3d.js"
 }

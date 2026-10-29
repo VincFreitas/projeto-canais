@@ -14,7 +14,7 @@ credenciais/
 token*.json
 
 # repo público: sem vídeos gerados nem transcrições de terceiros
-saida/*.mp4
+saida/**/*.mp4
 pesquisa/*/*/transcricoes/
 
 # músicas baixadas ficam só no PC (licenças variam); só a lista de liberadas vai para o Git
@@ -57,3 +57,6 @@ dados/app.json
 dados/ultima_atualizacao.json
 dados/reiniciar
 dados/estudio.log
+
+# bibliotecas do palco 3D (npm install em web/)
+web/node_modules/

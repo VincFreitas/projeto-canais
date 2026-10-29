@@ -48,10 +48,7 @@
         {
           "texto": "cilindro",
           "em": "cilindro",
-          "ponto": [
-            100,
-            196
-          ]
+          "peca": "cilindro"
         }
       ]
     },
@@ -76,10 +73,7 @@
         {
           "texto": "mola",
           "em": "molinha",
-          "ponto": [
-            70,
-            134
-          ]
+          "peca": "mola"
         }
       ]
     },
@@ -93,18 +87,12 @@
         {
           "texto": "pino de cima",
           "em": "cima",
-          "ponto": [
-            70,
-            160
-          ]
+          "peca": "pino_cima"
         },
         {
           "texto": "linha",
           "em": "linha",
-          "ponto": [
-            110,
-            180
-          ]
+          "peca": "linha"
         }
       ],
       "foco": "pinos"
@@ -119,10 +107,7 @@
         {
           "texto": "tamanhos",
           "em": "tamanhos",
-          "ponto": [
-            110,
-            205
-          ]
+          "peca": "tamanhos"
         }
       ],
       "foco": "pinos"
@@ -209,5 +194,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-fechadura.py"
+  "palco": "cenas/explicativo-fechadura.3d.js"
 }

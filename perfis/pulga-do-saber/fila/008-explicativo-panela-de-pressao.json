@@ -49,10 +49,7 @@
         {
           "texto": "vapor preso",
           "em": "vapor",
-          "ponto": [
-            108,
-            200
-          ]
+          "peca": "vapor"
         }
       ],
       "acao": "pressao",
@@ -218,5 +215,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-panela-de-pressao.py"
+  "palco": "cenas/explicativo-panela-de-pressao.3d.js"
 }

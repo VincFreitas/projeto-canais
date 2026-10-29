@@ -78,10 +78,7 @@
         {
           "texto": "mola",
           "em": "mola",
-          "ponto": [
-            124,
-            124
-          ]
+          "peca": "mola"
         }
       ],
       "foco": "lamina"
@@ -181,5 +178,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-disjuntor.py"
+  "palco": "cenas/explicativo-disjuntor.3d.js"
 }

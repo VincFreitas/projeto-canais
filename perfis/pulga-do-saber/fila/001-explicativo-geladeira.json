@@ -68,11 +68,8 @@
       "rotulos": [
         {
           "texto": "calor saindo",
-          "ponto": [
-            150,
-            72
-          ],
-          "em": "calor"
+          "em": "calor",
+          "peca": "caixa"
         }
       ],
       "expressao": "surpresa",
@@ -87,11 +84,8 @@
       "rotulos": [
         {
           "texto": "evapora",
-          "ponto": [
-            116,
-            70
-          ],
-          "em": "evapora"
+          "em": "evapora",
+          "peca": "bolha"
         }
       ],
       "acao": "alcool",
@@ -248,5 +242,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-geladeira.py"
+  "palco": "cenas/explicativo-geladeira.3d.js"
 }

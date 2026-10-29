@@ -106,7 +106,7 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
                   f"[pre][nar]overlay=x={xn}:y={yn}:eof_action=pass:format=auto")
     filtro = f"{video}{entrada_suave}{legendas},format=yuv420p[v];[1:a]aresample=48000,apad[a]"
     rodar([*entrada, "-i", str(audio), *extra, "-filter_complex", filtro, "-map", "[v]", "-map", "[a]",
-           "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-r", str(FPS),
+           "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "16", "-r", str(FPS),
            "-pix_fmt", "yuv420p", "-color_range", "tv",
            "-c:a", "aac", "-b:a", "192k", "-ac", "2", saida.name], cwd=saida.parent)
     return dur
@@ -366,7 +366,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
                  f"[comvideo][barra]overlay=x='-W+W*t/{total:.3f}':y={TOPO_JANELA_POST + alt - barra}:"
                  f"eval=frame[v]")
         mapa_video = "[v]"
-        codec = ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "5M", "-bufsize", "10M",
+        codec = ["-c:v", "libx264", "-preset", "medium", "-crf", "17", "-maxrate", "12M", "-bufsize", "24M",
                  "-pix_fmt", "yuv420p", "-r", str(FPS)]
         filtro = f"{video};{audio}"
     elif alt > larg:  # vertical: barra amarela que enche até o fim + selo do canal no topo
@@ -386,7 +386,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
                       f"y='H*0.835-abs(sin(t*2.6))*{int(alt * 0.012)}':eval=frame[vm]")
             atual = "vm"
         video += f";[{atual}]null[v]"
-        mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-maxrate", "5M", "-bufsize", "10M", "-pix_fmt", "yuv420p"]
+        mapa_video, codec = "[v]", ["-c:v", "libx264", "-preset", "medium", "-crf", "17", "-maxrate", "12M", "-bufsize", "24M", "-pix_fmt", "yuv420p"]
         filtro = f"{video};{audio}"
     else:
         mapa_video, codec, filtro = "0:v", ["-c:v", "copy"], audio

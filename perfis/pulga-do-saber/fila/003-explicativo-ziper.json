@@ -60,18 +60,12 @@
         {
           "texto": "calombo",
           "em": "calombinho",
-          "ponto": [
-            152,
-            142
-          ]
+          "peca": "calombo"
         },
         {
           "texto": "buraco",
           "em": "buraquinho",
-          "ponto": [
-            152,
-            182
-          ]
+          "peca": "buraco"
         }
       ],
       "foco": "dente"
@@ -105,10 +99,7 @@
         {
           "texto": "trava",
           "em": "travando",
-          "ponto": [
-            108,
-            200
-          ]
+          "peca": "trava"
         }
       ],
       "foco": "dentes"
@@ -198,5 +189,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-ziper.py"
+  "palco": "cenas/explicativo-ziper.3d.js"
 }

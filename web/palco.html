@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Palco 3D</title>
+<style>html, body { margin: 0; background: #000; } canvas { display: block; image-rendering: pixelated; }</style>
+<script type="importmap">
+{ "imports": { "three": "/web/node_modules/three/build/three.module.js",
+               "gsap": "/web/node_modules/gsap/index.js" } }
+</script>
+</head>
+<body>
+<script type="module">
+// Palco 3D: o Python (darkops/palco_web.py) carrega um módulo de cena e pede um quadro por vez.
+// O tempo vem de fora, então a animação é determinística: mesmo estado = mesmo quadro.
+import * as THREE from "three";
+import { gsap } from "gsap";
+
+let cena = null;
+let renderer = null;
+
+window.__palco = {
+  async iniciar(url, largura, altura) {
+    // tela cheia em alta resolução, com bordas suavizadas e sombras
+    renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(largura, altura, false);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+    const mod = await import(url);
+    cena = mod.criar({ THREE, gsap, renderer, largura, altura });
+    // sombras em tudo: o sol de cada cena projeta, e cada peça projeta e recebe
+    cena.scene.traverse((o) => {
+      if (o.isDirectionalLight) {
+        o.castShadow = true;
+        o.shadow.mapSize.set(2048, 2048);
+        Object.assign(o.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.1, far: 20 });
+        o.shadow.bias = -0.0008;
+      }
+      if (o.isMesh && !o.material?.isMeshBasicMaterial) {
+        o.castShadow = !o.material?.transparent && !o.userData.semSombra;  // vidro não faz sombra escura
+        o.receiveShadow = !o.userData.semSombra;
+      }
+    });
+    return { MUNDO: [largura, altura], PECAS: mod.PECAS, SERIE: mod.SERIE };
+  },
+  quadro(estado) {
+    const ancoras = cena.quadro(estado);  // desenha e devolve onde estão as peças na tela
+    renderer.render(cena.scene, cena.camera);
+    return { png: renderer.domElement.toDataURL("image/jpeg", 0.95), ancoras };
+  },
+};
+window.__pronto = true;
+</script>
+</body>
+</html>

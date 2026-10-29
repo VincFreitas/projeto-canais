@@ -104,10 +104,7 @@
         {
           "texto": "1938",
           "em": "1938",
-          "ponto": [
-            170,
-            105
-          ]
+          "peca": "patente"
         }
       ]
     },
@@ -170,5 +167,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-caneta.py"
+  "palco": "cenas/explicativo-caneta.3d.js"
 }

@@ -52,10 +52,7 @@
         {
           "texto": "tampa de borracha",
           "em": "borracha",
-          "ponto": [
-            56,
-            200
-          ]
+          "peca": "tampa"
         }
       ]
     },
@@ -92,10 +89,7 @@
         {
           "texto": "ar",
           "em": "ar",
-          "ponto": [
-            150,
-            300
-          ]
+          "peca": "ar"
         }
       ],
       "foco": "sifao"
@@ -111,10 +105,7 @@
         {
           "texto": "água parada",
           "em": "parada",
-          "ponto": [
-            110,
-            290
-          ]
+          "peca": "selo"
         }
       ],
       "foco": "sifao"
@@ -138,10 +129,7 @@
         {
           "texto": "aberta",
           "em": "abre",
-          "ponto": [
-            38,
-            134
-          ]
+          "peca": "torneira"
         }
       ],
       "foco": "boia"
@@ -194,5 +182,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-descarga.py"
+  "palco": "cenas/explicativo-descarga.3d.js"
 }

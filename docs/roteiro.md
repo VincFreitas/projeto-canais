@@ -133,6 +133,7 @@ Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O
   - `foco` (peça ou `tudo`) e `foco_em`: para onde a câmera viaja.
   - `rotulos` com `peca` ou `ponto`: a etiqueta fica presa à peça, com linha.
 - No palco, o selo `@pulgadosaber` sai, e o nome do canal vai na barra de peças.
+- **Palco 3D**: com `"palco": "cenas/<slug>.3d.js"`, a cena é um módulo JavaScript com Three.js e GSAP (`export SERIE, PECAS, criar(...)`). O Chromium sem janela (`darkops/palco_web.py`, via Playwright) desenha um quadro por vez em 1080x1920, com bordas suavizadas, sombras e luz de cinema, em cerca de 270 ms por quadro (de 12 a 15 min por vídeo). As cenas usam o kit comum `cenas/comum3d.js` (sala, materiais toon, canos que crescem, partículas, câmera e posição das etiquetas na tela) e só descrevem o próprio objeto. Para objetos que não devem fazer nem receber sombra, use `userData.semSombra = true`. O módulo cuida da câmera (enquadramentos por peça, viajando com as curvas do GSAP), das peças e das partículas, e devolve onde cada peça está na tela para as etiquetas. Os campos do roteiro são os mesmos do palco 2D. Exemplo: `cenas/explicativo-geladeira.3d.js` com `roteiros/explicativo-geladeira-3d.json`, 96 s em cerca de 4 min. Para preparar: `pip install playwright`, `python -m playwright install chromium` e `npm install` em `web/`.
 
 ### Cena viva (câmera, partículas e antes/depois)
 No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops/cinema.py`). Para desligar, use `"cena_viva": false` no roteiro.

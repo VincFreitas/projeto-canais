@@ -57,10 +57,7 @@
         {
           "texto": "Benjamin Franklin",
           "em": "Franklin",
-          "ponto": [
-            23,
-            262
-          ]
+          "peca": "franklin"
         }
       ],
       "foco": "tudo"
@@ -170,5 +167,5 @@
       ]
     }
   },
-  "palco": "cenas/explicativo-para-raios.py"
+  "palco": "cenas/explicativo-para-raios.3d.js"
 }
