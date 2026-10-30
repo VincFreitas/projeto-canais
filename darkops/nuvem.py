@@ -264,6 +264,25 @@ def _pronto(caminho: Path) -> tuple[dict, Path] | None:
 
 
 def sincronizar(perfil, enviar_videos: bool = True) -> dict:
+    """Uma sincronização por vez: aprovar vários vídeos seguidos dispara várias, e elas brigariam entre si.
+    Quem chega com outra rodando só pede "de novo"; a que está rodando repete até ninguém mais pedir."""
+    trava, de_novo = perfil.controle / "nuvem.trava", perfil.controle / "nuvem.de-novo"
+    perfil.controle.mkdir(parents=True, exist_ok=True)
+    if trava.exists() and time.time() - trava.stat().st_mtime < 30 * 60:
+        de_novo.touch()
+        return {"concluidos_aqui": [], "enviados": [], "retirados": [], "adiado": True}
+    trava.write_text(str(os.getpid()), encoding="utf-8")
+    try:
+        while True:
+            de_novo.unlink(missing_ok=True)
+            resumo = _sincronizar(perfil, enviar_videos)
+            if not de_novo.exists():
+                return resumo
+    finally:
+        trava.unlink(missing_ok=True)
+
+
+def _sincronizar(perfil, enviar_videos: bool = True) -> dict:
     """Junta o estado do PC com o da nuvem, conclui aqui o que a nuvem já postou e manda os aprovados para lá."""
     from . import fila as fila_mod
     from .render import duracao

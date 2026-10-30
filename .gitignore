@@ -61,3 +61,5 @@ dados/n8n-ligando
 
 # bibliotecas do palco 3D (npm install em web/)
 web/node_modules/
+perfis/*/controle/nuvem.trava
+perfis/*/controle/nuvem.de-novo
