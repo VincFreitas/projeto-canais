@@ -23,7 +23,11 @@
       <p class="suave">Peça um vídeo abaixo{{ ' ou espere a leva terminar' if criando }}.</p>
     {% endif %}
   </div>
-  {% if criando %}<span class="selo pronta">criando vídeos agora…</span>{% endif %}
+  <div class="acoes">
+    {% if criando %}<span class="selo pronta">criando vídeos agora…</span>{% endif %}
+    {% if nuvem_ligada %}<a class="selo aprovado" href="{{ url_for('conexoes', pid=p.id) }}#nuvem" title="O GitHub posta se o PC estiver desligado">☁ nuvem de reserva ligada</a>
+    {% else %}<a class="selo sem-previa" href="{{ url_for('conexoes', pid=p.id) }}#nuvem">☁ ligar a nuvem de reserva</a>{% endif %}
+  </div>
 </section>
 
 {% if faltando %}

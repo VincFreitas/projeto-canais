@@ -73,6 +73,49 @@
   </div>
 </section>
 
+<section class="grupo" id="nuvem">
+  <div class="conectores">
+  <article class="conector {{ 'ok' if nuvem.configurada and not nuvem.erro else 'falta' }}">
+    <header>
+      <div><h3>Nuvem: posta com o PC desligado</h3><span class="escopo">todos os perfis</span></div>
+      <span class="estado {{ 'ok' if nuvem.configurada and not nuvem.erro else 'falta' }}">
+        {% if nuvem.configurada and not nuvem.erro %}✓ ligada{% elif nuvem.configurada %}✗ com erro{% else %}✗ desligada{% endif %}</span>
+    </header>
+    <p class="funcao">Reserva no GitHub Actions (com o n8n rodando lá) às 12:20 e 19:20. Se o PC já postou no horário,
+      ela não faz nada; se o PC estava desligado ou falhou, ela posta o próximo vídeo aprovado. Nunca posta duas vezes.</p>
+    <p class="dica">💲 Grátis (cota do GitHub Actions). Criar vídeos continua no PC: a nuvem posta o que você já aprovou.</p>
+    {% if nuvem.configurada and not nuvem.erro %}
+      <ul class="lista">
+        <li><span>Vídeos aprovados na nuvem</span><b>{{ nuvem.na_fila }} ({{ nuvem.dias }} dia{{ 's' if nuvem.dias != 1 }} sem o PC)</b></li>
+        <li><span>Último horário atendido</span><span>{{ nuvem.ultimo_slot or '—' }}{{ ' pelo ' ~ ('PC' if nuvem.ultimo_por == 'pc' else 'GitHub (nuvem)') if nuvem.ultimo_por }}</span></li>
+        <li><span>Repositório de fila</span><a href="https://github.com/{{ nuvem.repo }}/actions" target="_blank" rel="noopener">{{ nuvem.repo }} ↗</a></li>
+      </ul>
+      <div class="acoes" style="margin-top:10px">
+        <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='sincronizar') }}"><button class="botao pequeno">Sincronizar agora</button></form>
+        <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='testar') }}"><button class="botao pequeno secundario">Testar (simulação, não publica)</button></form>
+        <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='configurar') }}"><button class="botao pequeno claro">Refazer a preparação</button></form>
+      </div>
+    {% else %}
+      {% if nuvem.erro %}<p class="aviso erro">{{ nuvem.erro }}</p>{% endif %}
+      <ol class="passos">
+        <li>No GitHub, crie um repositório <b>privado</b> e vazio (ex.: <code>projeto-canais-fila</code>).
+          <a href="https://github.com/new" target="_blank" rel="noopener">Criar repositório ↗</a></li>
+        <li>Crie um token "fine-grained" só para esse repositório, com permissão de leitura e escrita em
+          <b>Contents</b>, <b>Secrets</b>, <b>Actions</b> e <b>Workflows</b>.
+          <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Criar token ↗</a></li>
+        <li>Cole os dois abaixo. O Estúdio confere o acesso, envia o workflow, as credenciais (criptografadas como
+          Secrets) e os vídeos aprovados.</li>
+      </ol>
+      <form method="post" action="{{ url_for('nuvem_salvar', pid=p.id) }}" class="campos-chave">
+        <input type="text" name="repo" value="{{ nuvem_repo }}" placeholder="dono/repositório (ex.: VincFreitas/projeto-canais-fila)" required>
+        <input type="password" name="token" placeholder="token do GitHub (github_pat_...)" autocomplete="off">
+        <button class="botao pequeno">Conferir e preparar a nuvem</button>
+      </form>
+    {% endif %}
+  </article>
+  </div>
+</section>
+
 <details class="mais" {{ 'open' if avancado }}>
   <summary>Mostrar todos os conectores (voz, imagens, música, automação)</summary>
   {% for bloco in grupos %}

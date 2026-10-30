@@ -30,6 +30,7 @@ Estas são as proteções em vigor e o motivo de cada uma.
 - Na leva, o Claude lê páginas da internet, então só pode **gravar na fila do perfil e em `cenas/`** e só roda **um** comando (`darkops palco-testar`), não qualquer Python. Sem `acceptEdits`: o resto é negado.
 - Descrição, análise e ajuste do canal ("Como você quer o canal?") rodam sem ferramentas: só devolvem texto.
 - Sugestões da análise e propostas do ajuste do canal só mudam campos permitidos do perfil, e só com a sua aprovação.
+- Nuvem de reserva: a fila fica num repositório **privado** seu; o token do GitHub (`NUVEM_TOKEN`, criado por você com acesso só a esse repositório) fica no `.env`; os tokens do YouTube e do Instagram vão como Secrets criptografados (sealed box do GitHub) e só existem dentro do job do Actions.
 - Chaves coladas no Estúdio são testadas no próprio serviço antes de salvar; a recusada não entra no `.env`, e a mensagem passa por `seguranca.ocultar()`.
 
 ## Automação (n8n)

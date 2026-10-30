@@ -21,7 +21,8 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import autoria, canal_ia, plataformas
+from .. import autoria, canal_ia, plataformas, seguranca
+from .. import nuvem as canal_nuvem
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
@@ -352,7 +353,7 @@ def painel(pid):
                            resumo=resumo(p, _conexoes(p), online),
                            aprovados=sum(1 for i in itens if i["aprovado"]), n8n=online,
                            horarios=_proximos_horarios(p), historico=fila_mod.historico(p)[-6:][::-1],
-                           falhas=fila_mod.falhas(p, 5)[::-1], env=_env(),
+                           falhas=fila_mod.falhas(p, 5)[::-1], env=_env(), nuvem_ligada=canal_nuvem.configurada(),
                            criando=(p.controle / "leva.trava").exists() or any(
                                j["perfil"] == p.id and j["estado"] == "rodando" for j in JOBS.values()))
 
@@ -597,7 +598,8 @@ def conexoes(pid):
                                   "salvas": {k: bool(env.get(k)) for k, _, _ in c.chaves}}
                                  for c in g.conectores]} for g in GRUPOS]
     return render_template("conexoes.html", p=p, d=p.dados, conexoes=con, grupos=grupos,
-                           tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists())
+                           tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists(),
+                           nuvem=_status_nuvem(p), nuvem_repo=_env().get("NUVEM_REPO", ""))
 
 
 @app.post("/p/<pid>/conexoes/chaves")
@@ -658,6 +660,7 @@ def testar_conexoes(pid):
     p.controle.mkdir(parents=True, exist_ok=True)
     (p.controle / "conexoes.json").write_text(json.dumps(estado, ensure_ascii=False), encoding="utf-8")
     flash("Conexões testadas.", "ok")
+    _nuvem_em_fundo(p, "segredos")  # token novo do YouTube ou do Instagram vale também na nuvem
     return redirect(url_for("conexoes", pid=pid))
 
 
@@ -700,7 +703,51 @@ def aprovar(pid, nome):
         _gravar(caminho, dados)
         os.utime(config.SAIDA / situacao["video"]) if situacao["video"] else None  # prévia continua em dia
         flash("Aprovado: entra na postagem automática." if dados["aprovado"] else "Aprovação retirada.", "ok")
+        _nuvem_em_fundo(p, "sincronizar")  # a reserva na nuvem passa a ter (ou deixa de ter) este vídeo
     return redirect(request.referrer or url_for("fila", pid=pid))
+
+
+def _nuvem_em_fundo(p, acao: str) -> None:
+    if canal_nuvem.configurada():
+        _iniciar_job(p, f"Nuvem: {acao}", [[f"nuvem-{acao}"]])
+
+
+def _status_nuvem(p) -> dict:
+    try:
+        return canal_nuvem.status(p)
+    except (SystemExit, OSError) as erro:
+        return {"configurada": True, "erro": str(erro)}
+
+
+@app.post("/p/<pid>/nuvem/salvar")
+def nuvem_salvar(pid):
+    """Guarda o repositório privado e o token do GitHub (só no .env deste PC) e prepara a nuvem."""
+    p = _perfil(pid)
+    repo = request.form.get("repo", "").strip().removeprefix("https://github.com/").strip("/")
+    token = request.form.get("token", "").strip() or _env().get("NUVEM_TOKEN", "")
+    antigos = {k: os.environ.get(k) for k in ("NUVEM_REPO", "NUVEM_TOKEN")}
+    os.environ.update({"NUVEM_REPO": repo, "NUVEM_TOKEN": token})
+    try:
+        canal_nuvem.conferir_acesso()
+    except SystemExit as erro:
+        for k, v in antigos.items():  # volta como estava: o que falhou não fica valendo
+            os.environ.pop(k, None) if v is None else os.environ.update({k: v})
+        flash(seguranca.ocultar(str(erro)), "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#nuvem")
+    _salvar_env({"NUVEM_REPO": repo, "NUVEM_TOKEN": token})
+    job = _iniciar_job(p, "Preparar a nuvem", [["nuvem-configurar"]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#nuvem"))
+
+
+@app.post("/p/<pid>/nuvem/<acao>")
+def nuvem_acao(pid, acao):
+    p = _perfil(pid)
+    if acao not in ("sincronizar", "testar", "configurar", "segredos"):
+        abort(404)
+    titulos = {"sincronizar": "Sincronizar com a nuvem", "testar": "Testar a nuvem (simulação)",
+               "configurar": "Preparar a nuvem", "segredos": "Atualizar as credenciais na nuvem"}
+    job = _iniciar_job(p, titulos[acao], [[f"nuvem-{acao}"]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#nuvem"))
 
 
 @app.post("/p/<pid>/fila/<nome>/arquivar")
@@ -1293,6 +1340,15 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     # Num reinício pela atualização, espera o Estúdio antigo fechar (até 20 s).
     from ..app import ligar_n8n
     ligar_n8n()  # a postagem das 12h e 19h depende do n8n; rápido (só confere e dispara), vale até com o Estúdio já aberto
+    if canal_nuvem.configurada():  # traz o que a nuvem postou com o PC desligado e manda os aprovados novos
+        def _sincronizar_nuvem():
+            for p in listar():
+                if p.dados.get("ativo"):
+                    try:
+                        canal_nuvem.sincronizar(p)
+                    except (SystemExit, OSError) as erro:
+                        print(seguranca.ocultar(f"nuvem: {erro}"))
+        threading.Thread(target=_sincronizar_nuvem, daemon=True).start()
     for _ in range(40 if reinicio else 1):
         with socket.socket() as teste:
             livre = teste.connect_ex(("127.0.0.1", porta)) != 0

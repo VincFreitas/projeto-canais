@@ -1,12 +1,12 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.25.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.26.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.25.1 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.26.0 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -70,6 +70,7 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 | Criar vários vídeos de uma vez | Estúdio > Perfil > **Quantos vídeos criar de uma vez**: mostra o tempo estimado e o aviso de deixar o PC ligado; **Criar a leva agora** escreve cada roteiro com o Claude Code e gera a prévia (ou `python -m darkops leva --quantidade N`) |
 | Reabastecer a fila sozinho | Marque **Criar outra leva quando sobrarem N vídeos**: depois de cada postagem o n8n roda `leva --se-faltar --fundo`, que cria uma leva nova quando a fila chega no mínimo (nada vai ao ar sem aprovação) |
 | Postar às 12h e às 19h | n8n (workflow gerado por `python -m darkops n8n-workflow --importar`) |
+| Postar com o PC desligado | Estúdio > Ajustes > Contas > **Nuvem**: um repositório privado de fila no seu GitHub roda o mesmo workflow do n8n no GitHub Actions às 12:20 e 19:20. Se o PC já postou no horário, a nuvem não faz nada; se não, ela posta o próximo aprovado. Os dois lados conferem o estado compartilhado (e a nuvem, a própria plataforma) e nunca postam duas vezes. Criar vídeos continua no PC (`python -m darkops nuvem-status`) |
 | Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
 | Medir e decidir | `/revisar-desempenho` |
 

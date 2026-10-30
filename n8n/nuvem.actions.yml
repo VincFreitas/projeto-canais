@@ -1,0 +1,76 @@
+# Reserva da postagem na nuvem (gerado pelo Estúdio do Projeto Canais; não edite à mão).
+# Roda 20 minutos depois do PC: se o PC já postou no horário, não faz nada; se não, posta o próximo aprovado.
+# O código vem do repositório público do projeto; a fila, os vídeos e as credenciais ficam só neste repositório privado.
+name: postar
+
+on:
+  schedule:
+    - cron: "20 15,22 * * *"   # 12:20 e 19:20 em Brasília (UTC-3)
+  workflow_dispatch:
+    inputs:
+      simular:
+        description: "Simular (não publica nada, só mostra o que faria)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: postar
+  cancel-in-progress: false
+
+jobs:
+  postar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DARKOPS_NUVEM: "1"
+      DARKOPS_SIMULAR: ${{ inputs.simular && '1' || '0' }}
+      PYTHONIOENCODING: utf-8
+      GH_TOKEN: ${{ github.token }}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      NODES_EXCLUDE: '["n8n-nodes-base.localFileTrigger"]'
+      GENERIC_TIMEZONE: America/Sao_Paulo
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: VincFreitas/projeto-canais
+          path: codigo
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: codigo/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Instalar o projeto e o n8n
+        run: |
+          pip install --progress-bar off -r codigo/requirements.txt
+          npm install -g --no-audit --no-fund --loglevel=error n8n@2.43.4
+          n8n --version
+      - name: Preparar fila, vídeos e credenciais
+        working-directory: codigo
+        env:
+          SEGREDOS: ${{ toJSON(secrets) }}
+        run: python -m darkops nuvem-preparar --fila "$GITHUB_WORKSPACE"
+      - name: Postar pelo n8n (o mesmo workflow do PC)
+        run: |
+          n8n import:workflow --input=n8n-nuvem.json
+          n8n execute --id=nuvemcanais0001
+      - name: Devolver estado para a fila
+        if: always()
+        working-directory: codigo
+        run: python -m darkops nuvem-devolver --fila "$GITHUB_WORKSPACE"
+      - name: Gravar no repositório
+        if: always()
+        run: |
+          git config user.name "projeto-canais"
+          git config user.email "projeto-canais@users.noreply.github.com"
+          git add perfis
+          git diff --cached --quiet || git commit -m "nuvem: postagem $(date +'%Y-%m-%d %H:%M')"
+          git push

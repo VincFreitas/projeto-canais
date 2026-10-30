@@ -117,9 +117,19 @@ def cmd_publicar_youtube(a):
         if not a.privacidade:
             from .perfis import carregar
             a.privacidade = carregar().dados.get("privacidade_youtube", "private")
-        print(f"publicando '{meta['titulo']}' ({a.privacidade})")
-        video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
-                                  a.privacidade, bool(roteiro.get("sintetico")))
+        from . import nuvem
+        if nuvem.simulando():
+            print(f"[simulação] publicaria no YouTube: '{meta['titulo']}' ({a.privacidade})")
+            _resultado({"slug": slug, "youtube": None, "simulado": True})
+            return
+        # na nuvem, segunda trava: o PC pode ter postado sem conseguir avisar a fila
+        video_id = nuvem.ja_no_youtube(meta["titulo"]) if nuvem.na_nuvem() else None
+        if video_id:
+            print(f"já está no canal (postado pelo PC): https://youtu.be/{video_id}")
+        else:
+            print(f"publicando '{meta['titulo']}' ({a.privacidade})")
+            video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
+                                      a.privacidade, bool(roteiro.get("sintetico")))
         marcar(slug, "youtube", video_id)
         print(f"pronto: https://youtu.be/{video_id}")
     _resultado({"slug": slug, "youtube": video_id, "url": f"https://youtu.be/{video_id}"})
@@ -147,17 +157,39 @@ def cmd_publicar_instagram(a):
     if midia_id:
         print(f"já publicado antes: mídia {midia_id}")
     else:
-        print(f"publicando Reel de {video.name}")
+        from . import nuvem
         from .descricao import para_publicar
-        midia_id = publicar_reel(video, legenda_instagram(roteiro, video, para_publicar(carregar(), Path(a.roteiro).resolve())))
+        legenda = legenda_instagram(roteiro, video, para_publicar(carregar(), Path(a.roteiro).resolve()))
+        if nuvem.simulando():
+            print(f"[simulação] publicaria o Reel {video.name}: {legenda.splitlines()[0] if legenda else ''}")
+            _resultado({"slug": slug, "instagram": None, "simulado": True})
+            return
+        midia_id = nuvem.ja_no_instagram(legenda) if nuvem.na_nuvem() else None
+        if midia_id:
+            print(f"já está no perfil (postado pelo PC): mídia {midia_id}")
+        else:
+            print(f"publicando Reel de {video.name}")
+            midia_id = publicar_reel(video, legenda)
         marcar(slug, "instagram", midia_id)
         print(f"pronto: mídia {midia_id}")
     _resultado({"slug": slug, "instagram": midia_id})
 
 
 def cmd_fila_proximo(_):
+    from . import nuvem
     from .fila import proximo, restantes
-    from .perfis import atual
+    from .perfis import atual, carregar
+    perfil = carregar()
+    if nuvem.configurada() and not nuvem.na_nuvem():
+        try:
+            nuvem.sincronizar(perfil, enviar_videos=False)  # pega o que a nuvem postou enquanto o PC estava desligado
+        except (SystemExit, OSError) as erro:
+            print(f"aviso: sem contato com a nuvem agora ({erro}); seguindo só com o PC")
+    quem = nuvem.slot_atendido(perfil)
+    if quem:
+        print(f"este horário já foi atendido ({quem}): nada a postar")
+        _resultado({"perfil": atual(), "vazia": True, "restantes": restantes(), "atendido_por": quem})
+        return
     caminho = proximo()
     if not caminho:
         _resultado({"perfil": atual(), "vazia": True, "restantes": 0})
@@ -387,10 +419,51 @@ def cmd_fila_produzir(a):
 
 
 def cmd_fila_concluir(a):
+    from . import nuvem
     from .fila import concluir
+    from .perfis import carregar
     from .render import duracao
-    caminho, roteiro, _, video = _roteiro_e_video(a.roteiro)
-    _resultado(concluir(caminho, roteiro, duracao(video)))
+    caminho, roteiro, slug, video = _roteiro_e_video(a.roteiro)
+    if nuvem.simulando():
+        print(f"[simulação] {caminho.name} sairia da fila e ocuparia este horário")
+        _resultado({"slug": slug, "simulado": True})
+        return
+    resultado = concluir(caminho, roteiro, duracao(video))
+    perfil = carregar()
+    nuvem.registrar_slot(perfil, slug)
+    if nuvem.configurada() and not nuvem.na_nuvem():
+        try:
+            nuvem.sincronizar(perfil)  # avisa a nuvem já, para ela não repetir este horário
+        except (SystemExit, OSError) as erro:
+            print(f"aviso: não consegui avisar a nuvem agora ({erro}); ela confere na plataforma antes de postar")
+    _resultado(resultado)
+
+
+def cmd_nuvem(a):
+    from . import nuvem
+    from .perfis import carregar, listar
+    if a.acao == "preparar":
+        print("perfis prontos:", ", ".join(nuvem.preparar_actions(Path(a.fila).resolve())) or "nenhum")
+        return
+    if a.acao == "devolver":
+        print("devolvidos:", ", ".join(nuvem.devolver_actions(Path(a.fila).resolve())) or "nenhum")
+        return
+    if not nuvem.configurada():
+        sys.exit("a nuvem não está configurada: preencha NUVEM_REPO e NUVEM_TOKEN (Estúdio > Ajustes > Contas)")
+    if a.acao == "configurar":
+        r = nuvem.configurar([p for p in listar() if p.dados.get("ativo")] or [carregar()])
+        print(f"nuvem pronta em {r['repo']}; segredos: {', '.join(r['segredos'])}")
+        for pid, f in r["filas"].items():
+            print(f"  {pid}: {len(f['enviados'])} vídeo(s) enviado(s), {len(f['concluidos_aqui'])} concluído(s) aqui")
+    elif a.acao == "sincronizar":
+        print(json.dumps(nuvem.sincronizar(carregar()), ensure_ascii=False))
+    elif a.acao == "segredos":
+        print("segredos atualizados:", ", ".join(nuvem.enviar_segredos(listar())))
+    elif a.acao == "testar":
+        nuvem.disparar(simular=True)
+        print("workflow da nuvem iniciado em simulação; veja em Actions no repositório de fila")
+    else:
+        print(json.dumps(nuvem.status(carregar()), ensure_ascii=False))
 
 
 def cmd_registrar_falha(a):
@@ -548,6 +621,17 @@ def main():
 
     s = sub.add_parser("estatisticas", help="busca nas plataformas os números do canal e de cada vídeo")
     s.set_defaults(fn=cmd_estatisticas)
+
+    for acao, ajuda in [("configurar", "prepara o repositório privado de fila (workflow, segredos e vídeos)"),
+                        ("sincronizar", "troca o estado com a nuvem e envia os vídeos aprovados"),
+                        ("segredos", "reenvia os tokens do YouTube e do Instagram para a nuvem"),
+                        ("status", "quantos vídeos a nuvem tem e quem postou por último"),
+                        ("testar", "roda o workflow da nuvem agora, em simulação (não publica)"),
+                        ("preparar", "(usado no GitHub Actions) monta a fila, os vídeos e as credenciais"),
+                        ("devolver", "(usado no GitHub Actions) devolve o estado para o repositório de fila")]:
+        s = sub.add_parser(f"nuvem-{acao}", help=ajuda)
+        s.add_argument("--fila", default=".", help="pasta do repositório de fila (só no Actions)")
+        s.set_defaults(fn=cmd_nuvem, acao=acao)
 
     s = sub.add_parser("ajustar-canal", help="a IA transforma a descrição do canal em mudanças do perfil (pede aprovação)")
     s.add_argument("pedido")
