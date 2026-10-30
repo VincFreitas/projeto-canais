@@ -47,10 +47,10 @@ jobs:
           cache-dependency-path: codigo/requirements.txt
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"  # o n8n 2.x exige Node 24 ou mais novo
       - name: Instalar o projeto e o n8n
         run: |
-          pip install --progress-bar off -r codigo/requirements.txt
+          pip install --progress-bar off -r codigo/requirements.txt setuptools  # o node-gyp do n8n usa distutils (fora do Python 3.12)
           npm install -g --no-audit --no-fund --loglevel=error n8n@2.43.4
           n8n --version
       - name: Preparar fila, vídeos e credenciais
