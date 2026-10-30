@@ -70,7 +70,7 @@ window.__palco = {
     renderer.setPixelRatio(1);
     renderer.setSize(gw, gh, false);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.BasicShadowMap;  // sombra dura combina com pixel
+    renderer.shadowMap.type = THREE.PCFShadowMap;  // borda filtrada: a sombra dura serrilhava em degraus nos closes
     document.body.appendChild(renderer.domElement);
     alvo = new THREE.WebGLRenderTarget(gw, gh, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter,
       type: THREE.HalfFloatType, depthTexture: new THREE.DepthTexture(gw, gh) });
@@ -85,9 +85,9 @@ window.__palco = {
     cena.scene.traverse((o) => {
       if (o.isDirectionalLight) {
         o.castShadow = true;
-        o.shadow.mapSize.set(1024, 1024);
+        o.shadow.mapSize.set(2048, 2048);
         Object.assign(o.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.1, far: 20 });
-        o.shadow.bias = -0.0015;
+        o.shadow.bias = -0.0008;
       }
       if (o.isMesh && o.material?.isMeshToonMaterial) o.material.gradientMap = rampa;
       if (o.isMesh && !o.material?.isMeshBasicMaterial) {
