@@ -1,12 +1,12 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.24.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.25.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.24.1 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.25.0 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -46,6 +46,9 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 
 | Etapa | Onde |
 |---|---|
+| Pedir um vídeo | Estúdio > Início ou Novo vídeo: escreva o assunto (ou deixe em branco) e clique em **Criar vídeo**; a IA pesquisa, escreve, narra e anima, e o vídeo aparece no Início para aprovar |
+| Dizer como quer o canal | Estúdio > Ajustes > **Como você quer o canal?**: escreva em texto livre; a IA mostra o que muda (antes e depois) e você aplica ou descarta |
+| Ver todas as opções | Botão **Modo avançado** no rodapé da lateral, ou **Mostrar mais opções** em cada tela |
 | Achar temas que bombaram no nicho | Estúdio > Novo vídeo > **Descobrir assuntos fortes**, ou `/pesquisar-nicho <nicho>` (Claude Code) |
 | Aprender o estilo de vídeos de referência | Estúdio > Perfil > **Aprender com referência** (mede cortes, palavras por minuto e duração; nunca copia o texto), ou `python -m darkops referencia <links>` |
 | Definir o padrão do canal | Estúdio > Perfil > **Padrão dos vídeos**: motor da voz, imagens/vídeos e proporção, ritmo dos cortes, legenda (tamanho, fonte e cor) tema dos cards na tela (vidro escuro, arquivo frio, jornal antigo ou moderno limpo), nível de edição (simples, leve ou pro) e acervo da NASA |

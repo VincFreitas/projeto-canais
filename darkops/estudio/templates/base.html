@@ -9,7 +9,7 @@
 <body>
 <aside class="lateral">
   <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Projeto Canais</a>
-  <p class="rotulo">Perfis</p>
+  <p class="rotulo">Canais</p>
   <nav class="perfis">
     {% for item in perfis %}
     <a href="{{ url_for('painel', pid=item.id) }}" class="perfil {% if p and p.id == item.id %}ativo{% endif %}">
@@ -18,17 +18,26 @@
       <i class="bolinha {% if item.dados.ativo %}ligado{% endif %}" title="{{ 'postando' if item.dados.ativo else 'pausado' }}"></i>
     </a>
     {% endfor %}
-    <a href="{{ url_for('perfis_pagina') }}" class="novo-perfil">+ Novo perfil</a>
+    <a href="{{ url_for('perfis_pagina') }}" class="novo-perfil">+ Novo canal</a>
   </nav>
+  {% if avancado or guiado %}
   <p class="rotulo">Geral</p>
   <nav class="menu">
     <a href="{{ url_for('progresso') }}">Progresso da configuração{% if guiado %} <span class="selo falta">guiado</span>{% endif %}</a>
+    {% if avancado %}
     <a href="{{ url_for('chaves') }}">Chaves de serviços</a>
     <a href="{{ url_for('configuracoes') }}">Configurações</a>
-    <a href="{{ url_for('sobre') }}">Sobre o projeto</a>
-    <a href="{{ url_for('sobre') }}#sugestao">Enviar sugestão</a>
+    {% endif %}
   </nav>
-  <p class="versao">v{{ autoria.VERSAO }}</p>
+  {% endif %}
+  <div class="rodape-lateral">
+    <form method="post" action="{{ url_for('alternar_avancado') }}">
+      <button class="chave-avancado {{ 'ligado' if avancado }}" title="Mostra todas as telas e opções para quem quer ajustar cada detalhe">
+        <span></span>Modo avançado</button>
+    </form>
+    <a href="{{ url_for('sobre') }}">Sobre o projeto</a>
+    <p class="versao">v{{ autoria.VERSAO }}</p>
+  </div>
 </aside>
 <main class="conteudo">
   {% if p %}
@@ -39,22 +48,24 @@
     </div>
     <form method="post" action="{{ url_for('ativar', pid=p.id) }}">
       <button class="interruptor {% if d.ativo %}ligado{% endif %}">
-        <span></span>{{ 'Postagem automática ligada' if d.ativo else 'Postagem automática pausada' }}
+        <span></span>{{ 'No ar: postando sozinho' if d.ativo else 'Pausado' }}
       </button>
     </form>
   </header>
   <nav class="abas">
     {% set aba = request.endpoint %}
     {% set trava = ' 🔒' if guiado else '' %}
-    <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' }}">Início{{ trava }}</a>
-    <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar') }}">Fila{{ trava }}</a>
+    <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' or (aba in ('ver','editar','lotes') and not avancado) }}">Início{{ trava }}</a>
     <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo{{ trava }}</a>
+    <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba in ('estatisticas',) or (aba == 'historico' and not avancado) }}">Resultados</a>
+    <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' or (aba in ('conexoes','identidade_pagina') and not avancado) }}">Ajustes</a>
+    {% if avancado %}
+    <span class="abas-separador" title="Modo avançado"></span>
+    <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar','lotes') }}">Fila{{ trava }}</a>
     <a href="{{ url_for('conexoes', pid=p.id) }}" class="{{ 'atual' if aba == 'conexoes' }}">Conexões</a>
     <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico{{ trava }}</a>
-
-    <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba == 'estatisticas' }}">Estatísticas</a>
-    <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' }}">Perfil</a>
     <a href="{{ url_for('identidade_pagina', pid=p.id) }}" class="{{ 'atual' if aba == 'identidade_pagina' }}">Identidade</a>
+    {% endif %}
   </nav>
   {% endif %}
   {% if creditos_removidos %}

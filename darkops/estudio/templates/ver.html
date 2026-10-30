@@ -25,13 +25,15 @@
     </p>
     <div class="acoes">
       <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao secundario">{{ 'Gerar prévia de novo' if s.video else 'Gerar prévia' }}</button></form>
-      <a class="botao secundario" href="{{ url_for('editar', pid=p.id, nome=s.arquivo) }}">Editar</a>
+      {% if avancado %}<a class="botao secundario" href="{{ url_for('editar', pid=p.id, nome=s.arquivo) }}">Editar</a>{% endif %}
       <form method="post" action="{{ url_for('aprovar', pid=p.id, nome=s.arquivo) }}"><button class="botao">{{ 'Retirar aprovação' if s.aprovado else 'Aprovar' }}</button></form>
       {% if s.aprovado %}
       <form method="post" action="{{ url_for('publicar_agora', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Publicar agora no YouTube e no Instagram?')"><button class="botao secundario">Publicar agora</button></form>
       {% endif %}
       <form method="post" action="{{ url_for('arquivar', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Tirar este vídeo da fila?')"><button class="botao perigo">Tirar da fila</button></form>
     </div>
+    <details class="mais" {{ 'open' if avancado }}>
+    <summary>Mais opções: legenda, baixar e conferir</summary>
     <div class="acoes" style="margin-top:8px">
       {% set com_legenda = r.legenda if r.legenda is defined else d.legenda %}
       <form method="post" action="{{ url_for('alternar_legenda', pid=p.id, nome=s.arquivo) }}">
@@ -40,6 +42,7 @@
       <a class="botao claro" href="{{ url_for('lotes', pid=p.id, nome=s.arquivo) }}">Imagens num gerador externo</a>
       {% if s.video %}<form method="post" action="{{ url_for('conferir_video', pid=p.id, nome=s.arquivo) }}"><button class="botao claro">Conferir vídeo</button></form>{% endif %}
     </div>
+    </details>
     {% if conferencia.achados %}
     <div class="cartao" id="conferencia" style="margin-top:10px">
       <b>Conferência automática</b> <span class="suave">· {{ conferencia.duracao_s }} s · {{ conferencia.resolucao }}</span>
@@ -68,6 +71,8 @@
       <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao">Está certo: gerar a prévia</button></form>
     </div>
     {% endif %}
+    <details class="mais" {{ 'open' if avancado }}>
+    <summary>Descrição, tags e cenas</summary>
     <form method="post" action="{{ url_for('textos_video', pid=p.id, nome=s.arquivo) }}" class="cartao" id="textos" style="margin-top:12px">
       <h3 style="margin-top:0">Descrição e tags</h3>
       {% if textos.descricao_modo == 'ia' and not textos.descricao %}<p class="dica">A IA ainda está escrevendo (ou não rodou). Recarregue em instantes ou clique em “Criar com a IA de novo”.</p>{% endif %}
@@ -115,6 +120,7 @@
         </div>
       </div>
     {% endfor %}
+    </details>
     {% if r.fontes %}<h2>Fontes</h2><ul>{% for f in r.fontes %}<li><a href="{{ f }}" target="_blank">{{ f }}</a></li>{% endfor %}</ul>{% endif %}
   </div>
 </div>

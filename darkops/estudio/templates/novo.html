@@ -2,6 +2,18 @@
 {% import "_canal.html" as canal with context %}
 {% block titulo %}Novo vídeo · {{ d.nome }}{% endblock %}
 {% block corpo %}
+<section class="cartao" style="margin-bottom:16px">
+  <h2 style="margin-top:0">Sobre o que é o vídeo?</h2>
+  <form method="post" action="{{ url_for('criar_video', pid=p.id) }}" class="pedido-video">
+    <input type="text" name="tema" maxlength="200" autofocus placeholder="Ex.: como funciona o motor de um avião (em branco, a IA escolhe)">
+    <button class="botao">Criar vídeo</button>
+  </form>
+  <p class="dica">A IA pesquisa os fatos com fontes, escreve no jeito do canal, narra, anima e deixa o vídeo no Início para você aprovar.
+    Nada vai ao ar sem a sua aprovação.</p>
+</section>
+
+<details class="mais" id="mais-opcoes" {{ 'open' if descoberta.termo or avancado }}>
+<summary>Mais opções: ideias de tema, roteiro ou narração prontos</summary>
 <section class="cartao" id="assuntos" style="margin-bottom:16px">
   <h2>Descobrir assuntos fortes</h2>
   <p class="suave" style="margin-top:0">Escreva o nicho ou um assunto. O Estúdio procura no YouTube os vídeos que tiveram
@@ -28,20 +40,14 @@
   {% elif descoberta.termo %}
   <p class="dica">A pesquisa por “{{ descoberta.termo }}” ainda está rodando ou não achou vídeos. Recarregue em instantes.</p>
   {% endif %}
-  <div id="tema-escolhido" hidden class="aviso ok" style="margin-top:12px">
-    <b>Tema escolhido.</b> Para o Claude pesquisar os fatos e escrever o roteiro com um ângulo novo, cole no Claude Code:
-    <pre id="comando-roteiro" style="white-space:pre-wrap;margin:8px 0"></pre>
-    <button type="button" class="botao claro" onclick="navigator.clipboard.writeText(document.getElementById('comando-roteiro').textContent); this.textContent='Copiado!'">Copiar</button>
-    Ou escreva as cenas você mesmo no formulário abaixo.
-  </div>
 </section>
 <script>
+// "Usar este tema" leva o assunto para a caixa do topo: a IA cria o vídeo com um ângulo próprio
 function usarTema(botao) {
-  const caixa = document.getElementById('tema-escolhido');
-  document.getElementById('comando-roteiro').textContent =
-    `/escrever-roteiro tema inspirado em "${botao.dataset.titulo}" (referência: ${botao.dataset.url}), perfil {{ p.id }}, com ângulo próprio e fontes checadas`;
-  caixa.hidden = false;
+  const caixa = document.querySelector('.pedido-video input[name=tema]');
+  caixa.value = `${botao.dataset.titulo}`.slice(0, 200);
   caixa.scrollIntoView({behavior: 'smooth', block: 'center'});
+  caixa.focus();
 }
 </script>
 <section class="cartao" id="pronto" style="margin-bottom:16px">
@@ -82,6 +88,7 @@ function trocarPronto(botao, id) {
   document.querySelectorAll('.abas-mini .botao').forEach(b => b.classList.toggle('ativo', b === botao));
 }
 </script>
+{% if avancado %}
 <form method="post" class="cartao">
   <p class="suave" style="margin-top:0">O vídeo entra no fim da fila, sem aprovação. Use só fatos que você conferiu, e coloque os links nas fontes.
     Para o Claude escrever o roteiro com pesquisa, use <code>/escrever-roteiro</code> no Claude Code.</p>
@@ -98,4 +105,6 @@ Dois deles bombeiam o sangue pelas brânquias. | octopus tentacles">{{ f.cenas o
   {{ canal.video(d, 'manual') }}
   <p style="margin-top:16px"><button class="botao">Criar na fila</button></p>
 </form>
+{% endif %}
+</details>
 {% endblock %}

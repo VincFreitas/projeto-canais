@@ -24,12 +24,13 @@ Estas são as proteções em vigor e o motivo de cada uma.
 - A tela de chaves só mostra o valor das variáveis que não são segredo.
 - Logins e autorizações OAuth são sempre feitos por você, no navegador.
 
-## Claude Code chamado pelo projeto (leva, descrição, análise)
+## Claude Code chamado pelo projeto (leva, descrição, análise, ajuste do canal)
 
 - O pedido vai pela **entrada padrão**, nunca como argumento: no Windows, um `.cmd` passa os argumentos pelo cmd.exe, que interpreta `&`, `|` e `^` (falha **BatBadBut**, [SecurityWeek](https://www.securityweek.com/batbadbut-command-injection-vulnerability-affects-multiple-programming-languages/)). O `claude.exe` é preferido ao `claude.cmd`.
 - Na leva, o Claude lê páginas da internet, então só pode **gravar na fila do perfil e em `cenas/`** e só roda **um** comando (`darkops palco-testar`), não qualquer Python. Sem `acceptEdits`: o resto é negado.
-- Descrição e análise rodam sem ferramentas: só devolvem texto.
-- Sugestões da análise só mudam campos permitidos do perfil, e só com a sua aprovação.
+- Descrição, análise e ajuste do canal ("Como você quer o canal?") rodam sem ferramentas: só devolvem texto.
+- Sugestões da análise e propostas do ajuste do canal só mudam campos permitidos do perfil, e só com a sua aprovação.
+- Chaves coladas no Estúdio são testadas no próprio serviço antes de salvar; a recusada não entra no `.env`, e a mensagem passa por `seguranca.ocultar()`.
 
 ## Automação (n8n)
 

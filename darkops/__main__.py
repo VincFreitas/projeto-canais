@@ -245,7 +245,7 @@ def cmd_leva(a):
         leva.em_segundo_plano(perfil, quantidade)
         print("leva iniciada em segundo plano (log em controle/leva-ultima.log)")
         return
-    leva.criar(perfil, quantidade)
+    leva.criar(perfil, quantidade, a.tema or "")
 
 
 def cmd_descricao(a):
@@ -348,6 +348,16 @@ def cmd_analisar(_):
         print(f"- [{s['estado']}] {s['titulo']}: {s['motivo']}")
 
 
+def cmd_ajustar_canal(a):
+    from .canal_ia import propor
+    from .perfis import carregar
+    proposta = propor(carregar(), a.pedido)
+    print(proposta["resumo"])
+    for m in proposta["mudancas"]:
+        print(f"- {m['campo']}: {m['antes']!r} -> {m['depois']!r}")
+    print("proposta pendente: aplique ou descarte no Estúdio (Ajustes)")
+
+
 def cmd_conferir(a):
     from .conferir import conferir, salvar
     from .perfis import carregar
@@ -437,6 +447,7 @@ def main():
     s.add_argument("--quantidade", type=int)
     s.add_argument("--se-faltar", action="store_true", help="só cria se a fila estiver no mínimo do perfil")
     s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
+    s.add_argument("--tema", help="assunto do vídeo (sem ele, o Claude escolhe um tema forte)")
     s.set_defaults(fn=cmd_leva)
 
     s = sub.add_parser("descricao", help="cria pela IA a descrição e as tags do vídeo que estiverem no modo automático")
@@ -537,6 +548,10 @@ def main():
 
     s = sub.add_parser("estatisticas", help="busca nas plataformas os números do canal e de cada vídeo")
     s.set_defaults(fn=cmd_estatisticas)
+
+    s = sub.add_parser("ajustar-canal", help="a IA transforma a descrição do canal em mudanças do perfil (pede aprovação)")
+    s.add_argument("pedido")
+    s.set_defaults(fn=cmd_ajustar_canal)
 
     s = sub.add_parser("analisar", help="a IA analisa as estatísticas e sugere mudanças (cada uma pede aprovação)")
     s.set_defaults(fn=cmd_analisar)

@@ -2,6 +2,50 @@
 {% import "_canal.html" as canal with context %}
 {% block titulo %}Perfil · {{ d.nome }}{% endblock %}
 {% block corpo %}
+{% if proposta %}
+<section class="cartao aviso-proposta" id="proposta" style="margin-bottom:16px">
+  <h2 style="margin-top:0">A IA propõe estes ajustes</h2>
+  <p>{{ proposta.resumo }}</p>
+  <p class="dica">Seu pedido: “{{ proposta.pedido }}”</p>
+  {% if proposta.mudancas %}
+  <table class="tabela">
+    <tr><th>O quê</th><th>Agora</th><th>Fica</th></tr>
+    {% for m in proposta.mudancas %}
+    <tr><td>{{ rotulos.get(m.campo, m.campo) }}</td><td class="suave">{{ m.antes if m.antes not in (none, '', []) else '—' }}</td><td><b>{{ m.depois }}</b></td></tr>
+    {% endfor %}
+  </table>
+  <div class="acoes" style="margin-top:12px">
+    <form method="post" action="{{ url_for('decidir_ajuste', pid=p.id, decisao='aplicar') }}"><button class="botao">Aplicar</button></form>
+    <form method="post" action="{{ url_for('decidir_ajuste', pid=p.id, decisao='descartar') }}"><button class="botao secundario">Descartar</button></form>
+  </div>
+  {% else %}
+  <p class="suave">Nada precisa mudar para esse pedido.</p>
+  <form method="post" action="{{ url_for('decidir_ajuste', pid=p.id, decisao='descartar') }}"><button class="botao secundario">Ok</button></form>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2 style="margin-top:0">Como você quer o canal?</h2>
+  <form method="post" action="{{ url_for('ajustar_canal', pid=p.id) }}">
+    <textarea name="pedido" rows="3" maxlength="1500" placeholder="Ex.: vídeos de 45 segundos, tom divertido para adolescentes, sempre abrindo com uma pergunta e falando de ciência do dia a dia"></textarea>
+    <p><button class="botao">Ajustar com a IA</button> <span class="dica">A IA mostra o que muda antes; você aplica ou descarta.</span></p>
+  </form>
+</section>
+
+<section class="cartao" style="margin-bottom:16px">
+  <h2 style="margin-top:0">Contas</h2>
+  <ul class="lista">
+    {% for r in resumo %}
+    <li><span>{{ r.grupo.nome }}</span><span class="ok-x {{ 'sim' if r.nivel == 'ok' else 'nao' }}">{{ '✓ pronto' if r.nivel == 'ok' else '✗ falta conectar' }}</span></li>
+    {% endfor %}
+  </ul>
+  <div class="acoes" style="margin-top:10px">
+    <a class="botao pequeno secundario" href="{{ url_for('conexoes', pid=p.id) }}">Conectar ou trocar contas</a>
+    <a class="botao pequeno secundario" href="{{ url_for('identidade_pagina', pid=p.id) }}">Foto, capa e bio das contas</a>
+  </div>
+</section>
+
 <form method="post" enctype="multipart/form-data" class="cartao">
   <div class="grade">
     <div><label>Nome do canal</label><input type="text" name="nome" value="{{ d.nome }}"></div>
@@ -10,6 +54,8 @@
   </div>
   <label>Descrição</label>
   <textarea name="descricao">{{ d.descricao }}</textarea>
+  <details class="mais" {{ 'open' if avancado }}>
+  <summary>Mostrar mais opções (voz, visual, formato, plataformas, legenda, personalidade)</summary>
   <div class="grade">
     <div><label>Voz</label><select name="voz">{% for v in vozes %}<option {{ 'selected' if v == d.voz }}>{{ v }}</option>{% endfor %}</select></div>
     <div><label>Layout</label><select name="layout">
@@ -79,10 +125,13 @@
   </div>
   <label>Foto do perfil (aparece no topo dos vídeos)</label>
   <div class="acoes"><img src="{{ url_for('avatar', pid=p.id) }}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#ffc400;image-rendering:pixelated"><input type="file" name="avatar" accept="image/*"></div>
-  <p style="margin-top:16px"><button class="botao">Salvar perfil</button></p>
+  </details>
+  <p style="margin-top:16px"><button class="botao">Salvar</button></p>
 </form>
 
-<section class="cartao" id="referencia" style="margin-top:16px">
+<details class="mais" {{ 'open' if avancado or ref.analises }}>
+<summary>Aprender o estilo com vídeos de referência</summary>
+<section class="cartao" id="referencia" style="margin-top:8px">
   <h2>Aprender com referência</h2>
   <p class="suave">Cole até 5 links de vídeos com o estilo que você quer (YouTube, Shorts, Instagram). O Estúdio mede
     a duração, o ritmo dos cortes e as palavras por minuto, e tira prints para mostrar o tipo de imagem. Ele aprende
@@ -116,4 +165,5 @@
   {% endif %}
   {% endif %}
 </section>
+</details>
 {% endblock %}

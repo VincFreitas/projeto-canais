@@ -1,64 +1,88 @@
 {% extends "base.html" %}
-{% block titulo %}Conexões · {{ d.nome }}{% endblock %}
+{% block titulo %}Contas · {{ d.nome }}{% endblock %}
+
+{% macro conector(item) %}{% set c = item.c %}{% set situacao, texto = item.estado %}
+<article class="conector {{ situacao }}" id="{{ c.id }}">
+  <header>
+    <div>
+      <h3>{{ c.nome }}</h3>
+      <span class="escopo {{ c.escopo }}">{{ 'deste perfil' if c.escopo == 'perfil' else 'todos os perfis' }}</span>
+    </div>
+    <span class="estado {{ situacao }}">{% if situacao in ('ok','sempre') %}✓ {% elif situacao == 'falta' %}✗ {% endif %}{{ texto }}</span>
+  </header>
+  <p class="funcao">{{ c.funcao }}</p>
+  {% if c.custo %}<p class="dica">💲 {{ c.custo }}</p>{% endif %}
+
+  {% if c.tipo == 'oauth' %}
+    {% if tem_client %}
+      {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
+      <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao pequeno">{{ 'Reconectar' if situacao == 'ok' else 'Conectar YouTube' }}</button></form>
+    {% else %}
+      <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O <code>/configurar</code> do Claude guia o passo a passo.</p>
+    {% endif %}
+  {% elif c.tipo == 'token' %}
+    {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
+    <form method="post" action="{{ url_for('conectar_instagram', pid=p.id) }}" class="linha-form">
+      <input type="password" name="token" placeholder="{{ 'cole outro token para trocar' if situacao == 'ok' else 'cole o token aqui' }}" autocomplete="off"
+             onpaste="setTimeout(() => this.form.requestSubmit(), 50)">
+      <button class="botao pequeno">Salvar e testar</button>
+    </form>
+  {% elif c.tipo == 'chave' %}
+    {% if situacao not in ('ok',) and c.passos %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
+    {% if c.link and situacao != 'ok' %}<p><a class="botao pequeno secundario" href="{{ c.link }}" target="_blank" rel="noopener">1. Abrir a página da chave ↗</a></p>{% endif %}
+    <form method="post" action="{{ url_for('salvar_chaves_conector', pid=p.id) }}" class="campos-chave">
+      <input type="hidden" name="ancora" value="{{ c.id }}">
+      {% for chave, rotulo, segredo in c.chaves %}
+        <input type="{{ 'password' if segredo else 'text' }}" name="{{ chave }}" value="{{ item.valores[chave] }}"
+               placeholder="{{ ('2. Cole a chave aqui: ela é testada e salva sozinha' if segredo and situacao != 'ok' else rotulo) }}{{ ' (salva, deixe vazio para manter)' if item.salvas[chave] and segredo }}" autocomplete="off"
+               {% if segredo and loop.first %}onpaste="setTimeout(() => this.form.requestSubmit(), 50)"{% endif %}>
+      {% endfor %}
+      <button class="botao pequeno">Salvar</button>
+    </form>
+  {% elif c.tipo == 'em_breve' %}
+    {% if c.passos %}<p class="dica">{{ c.passos[0] }}</p>{% endif %}
+  {% elif c.passos and situacao != 'ok' %}
+    <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>
+  {% endif %}
+  {% if c.link and c.tipo != 'embutido' and not (c.tipo == 'chave' and situacao != 'ok') %}<a class="link" href="{{ c.link }}" target="_blank" rel="noopener">{{ 'Saiba mais' if c.tipo == 'em_breve' else 'Onde conseguir' }} ↗</a>{% endif %}
+</article>
+{% endmacro %}
+
 {% block corpo %}
+{# o essencial: as contas que postam e o que ainda falta; o resto fica em "mostrar todos" #}
+{% set essenciais = [] %}{% set outros = [] %}
+{% for bloco in grupos %}{% for item in bloco.itens %}
+  {% if item.c.tipo in ('oauth', 'token') or item.estado[0] == 'falta' %}{% set _ = essenciais.append(item) %}{% else %}{% set _ = outros.append((bloco.g, item)) %}{% endif %}
+{% endfor %}{% endfor %}
+
 <div class="acoes" style="justify-content: space-between; margin-bottom: 18px">
-  <p class="suave" style="margin:0; max-width: 680px">Os conectores estão separados pela função que cumprem no vídeo.
-    Os marcados com <span class="escopo perfil">deste perfil</span> são de cada canal; os demais valem para todos os perfis.</p>
+  <p class="suave" style="margin:0; max-width: 680px">Conecte as contas onde o canal posta. Nas chaves, abra a página do
+    serviço, copie a chave e cole aqui: o Estúdio testa e salva sozinho. Logins e autorizações são sempre feitos por você.</p>
   <form method="post" action="{{ url_for('testar_conexoes', pid=p.id) }}"><button class="botao secundario">Testar conexões</button></form>
 </div>
 {% if conexoes.testado_em %}<p class="dica" style="margin-top:-8px">Último teste: {{ conexoes.testado_em }}</p>{% endif %}
 
-{% for bloco in grupos %}
-<section class="grupo" id="{{ bloco.g.id }}">
-  <div class="grupo-topo">
-    <h2>{{ bloco.g.nome }}</h2>
-    <p>{{ bloco.g.legenda }}</p>
-  </div>
+<section class="grupo">
   <div class="conectores">
-    {% for item in bloco.itens %}{% set c = item.c %}{% set situacao, texto = item.estado %}
-    <article class="conector {{ situacao }}" id="{{ c.id }}">
-      <header>
-        <div>
-          <h3>{{ c.nome }}</h3>
-          <span class="escopo {{ c.escopo }}">{{ 'deste perfil' if c.escopo == 'perfil' else 'todos os perfis' }}</span>
-        </div>
-        <span class="estado {{ situacao }}">{% if situacao in ('ok','sempre') %}✓ {% elif situacao == 'falta' %}✗ {% endif %}{{ texto }}</span>
-      </header>
-      <p class="funcao">{{ c.funcao }}</p>
-      {% if c.custo %}<p class="dica">💲 {{ c.custo }}</p>{% endif %}
-
-      {% if c.tipo == 'oauth' %}
-        {% if tem_client %}
-          {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
-          <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao pequeno">{{ 'Reconectar' if situacao == 'ok' else 'Conectar YouTube' }}</button></form>
-        {% else %}
-          <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O <code>/configurar</code> do Claude guia o passo a passo.</p>
-        {% endif %}
-      {% elif c.tipo == 'token' %}
-        {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
-        <form method="post" action="{{ url_for('conectar_instagram', pid=p.id) }}" class="linha-form">
-          <input type="password" name="token" placeholder="{{ 'cole outro token para trocar' if situacao == 'ok' else 'cole o token aqui' }}" autocomplete="off">
-          <button class="botao pequeno">Salvar e testar</button>
-        </form>
-      {% elif c.tipo == 'chave' %}
-        {% if situacao not in ('ok',) and c.passos %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
-        <form method="post" action="{{ url_for('salvar_chaves_conector', pid=p.id) }}" class="campos-chave">
-          <input type="hidden" name="ancora" value="{{ c.id }}">
-          {% for chave, rotulo, segredo in c.chaves %}
-            <input type="{{ 'password' if segredo else 'text' }}" name="{{ chave }}" value="{{ item.valores[chave] }}"
-                   placeholder="{{ rotulo }}{{ ' (salva, deixe vazio para manter)' if item.salvas[chave] and segredo }}" autocomplete="off">
-          {% endfor %}
-          <button class="botao pequeno">Salvar</button>
-        </form>
-      {% elif c.tipo == 'em_breve' %}
-        {% if c.passos %}<p class="dica">{{ c.passos[0] }}</p>{% endif %}
-      {% elif c.passos and situacao != 'ok' %}
-        <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>
-      {% endif %}
-      {% if c.link and c.tipo != 'embutido' %}<a class="link" href="{{ c.link }}" target="_blank">{{ 'Saiba mais' if c.tipo == 'em_breve' else 'Onde conseguir' }} ↗</a>{% endif %}
-    </article>
-    {% endfor %}
+    {% for item in essenciais %}{{ conector(item) }}{% endfor %}
   </div>
 </section>
-{% endfor %}
+
+<details class="mais" {{ 'open' if avancado }}>
+  <summary>Mostrar todos os conectores (voz, imagens, música, automação)</summary>
+  {% for bloco in grupos %}
+  {% set itens = outros | selectattr('0', 'equalto', bloco.g) | map(attribute='1') | list %}
+  {% if itens %}
+  <section class="grupo" id="{{ bloco.g.id }}">
+    <div class="grupo-topo">
+      <h2>{{ bloco.g.nome }}</h2>
+      <p>{{ bloco.g.legenda }}</p>
+    </div>
+    <div class="conectores">
+      {% for item in itens %}{{ conector(item) }}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% endfor %}
+</details>
 {% endblock %}

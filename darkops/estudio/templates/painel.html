@@ -1,44 +1,109 @@
 {% extends "base.html" %}
 {% block titulo %}{{ d.nome }}{% endblock %}
 {% block corpo %}
-<div class="grade">
-  <section class="cartao">
-    <p class="suave">Na fila</p>
-    <div class="numero">{{ itens|length }}</div>
-    <p class="suave">{{ aprovados }} aprovado{{ 's' if aprovados != 1 }} para postar</p>
-    <a class="botao pequeno secundario" href="{{ url_for('fila', pid=p.id) }}">Abrir fila</a>
-  </section>
-  <section class="cartao">
-    <p class="suave">Próximas postagens</p>
-    {% if d.ativo and aprovados %}
-      <ul class="lista">{% for h in horarios %}<li><span>{{ h }}</span><span class="suave">{{ 'aprovado nº ' ~ loop.index if loop.index <= aprovados else 'sem vídeo aprovado' }}</span></li>{% endfor %}</ul>
-    {% elif not d.ativo %}
-      <p>Postagem pausada. Ligue no botão do topo quando quiser.</p>
+{% set esperando = itens | selectattr('estado', 'equalto', 'pronta') | rejectattr('aprovado') | list %}
+{% set aprovados_lista = itens | selectattr('aprovado') | list %}
+{% set produzindo = itens | rejectattr('aprovado') | rejectattr('estado', 'equalto', 'pronta') | list %}
+{% set faltando = resumo | rejectattr('nivel', 'equalto', 'ok') | list %}
+
+<section class="cartao destaque-status">
+  <div>
+    {% if not d.ativo %}
+      <h2>Canal pausado</h2>
+      <p class="suave">Nada é postado até você ligar no botão do topo.</p>
+    {% elif aprovados %}
+      <h2>No ar · próximo post {{ horarios[0] if horarios else '' }}</h2>
+      <p class="suave">{{ aprovados }} vídeo{{ 's' if aprovados != 1 }} aprovado{{ 's' if aprovados != 1 }} na vez de postar.
+        {% if esperando %}{{ esperando|length }} esperando você.{% endif %}</p>
+    {% elif esperando %}
+      <h2>{{ esperando|length }} vídeo{{ 's' if esperando|length != 1 }} esperando sua aprovação</h2>
+      <p class="suave">Assista e aprove: só o que você aprova vai ao ar.</p>
     {% else %}
-      <p>Nenhum vídeo aprovado. Gere a prévia e aprove na fila.</p>
+      <h2>Nenhum vídeo pronto para postar</h2>
+      <p class="suave">Peça um vídeo abaixo{{ ' ou espere a leva terminar' if criando }}.</p>
     {% endif %}
-  </section>
+  </div>
+  {% if criando %}<span class="selo pronta">criando vídeos agora…</span>{% endif %}
+</section>
+
+{% if faltando %}
+<div class="aviso erro" style="margin-top:14px">Falta conectar: {{ faltando | map(attribute='grupo.nome') | join(', ') }}.
+  <a href="{{ url_for('conexoes', pid=p.id) }}">Conectar agora</a></div>
+{% endif %}
+
+<section class="cartao" style="margin-top:16px">
+  <h2 style="margin-top:0">Novo vídeo</h2>
+  <form method="post" action="{{ url_for('criar_video', pid=p.id) }}" class="pedido-video">
+    <input type="text" name="tema" maxlength="200" placeholder="Sobre o que é o vídeo? (em branco, a IA escolhe um tema forte)">
+    <button class="botao">Criar vídeo</button>
+  </form>
+  <p class="dica">A IA pesquisa os fatos, escreve, narra e anima. Leva alguns minutos; o vídeo aparece aqui para você aprovar.</p>
+</section>
+
+{% if esperando %}
+<section style="margin-top:22px">
+  <h2>Esperando sua aprovação</h2>
+  <div class="aprovar-lista">
+    {% for i in esperando %}
+    <div class="aprovar-item">
+      <video src="{{ url_for('midia', nome=i.video) }}" controls playsinline preload="metadata"></video>
+      <div class="corpo">
+        <h3>{{ i.dados.manchete or i.dados.titulo }}</h3>
+        <div class="acoes">
+          <form method="post" action="{{ url_for('aprovar', pid=p.id, nome=i.arquivo) }}"><button class="botao pequeno">Aprovar</button></form>
+          <a class="botao pequeno secundario" href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">Detalhes</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<div class="grade" style="margin-top:22px">
   <section class="cartao">
-    <p class="suave">Conexões por função</p>
-    <ul class="lista">
-      {% for r in resumo %}
-      <li><a href="{{ url_for('conexoes', pid=p.id) }}#{{ r.grupo.id }}">{{ r.grupo.nome }}</a>
-        <span class="ok-x {{ 'sim' if r.nivel == 'ok' else 'nao' }}">{{ '✓' if r.nivel == 'ok' else '✗' }} {{ r.prontos }}/{{ r.total }}</span></li>
-      {% endfor %}
-    </ul>
-    <a class="botao pequeno secundario" href="{{ url_for('conexoes', pid=p.id) }}">Ver conexões</a>
+    <h2 style="margin-top:0">Na vez de postar</h2>
+    {% if aprovados_lista %}
+      <ul class="lista">{% for i in aprovados_lista[:5] %}<li><a href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">{{ i.dados.manchete or i.dados.titulo }}</a>
+        <span class="suave">{{ horarios[loop.index0] if d.ativo and loop.index0 < horarios|length else '' }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="suave">Nenhum vídeo aprovado ainda.</p>{% endif %}
   </section>
-  <section class="cartao largo">
-    <h2>Últimos publicados</h2>
-    {% if historico %}
-      <ul class="lista">{% for h in historico %}<li><span>{{ h.data_publicacao }} · {{ h.video }}</span><a href="{{ h.url }}" target="_blank">{{ h.plataforma }} ↗</a></li>{% endfor %}</ul>
-    {% else %}<p class="suave">Nada publicado ainda neste perfil.</p>{% endif %}
-  </section>
-  {% if falhas %}
-  <section class="cartao largo">
-    <h2>Últimas falhas</h2>
-    <ul class="lista">{% for f in falhas %}<li><span>{{ f }}</span></li>{% endfor %}</ul>
+  {% if produzindo %}
+  <section class="cartao">
+    <h2 style="margin-top:0">Em preparo</h2>
+    <ul class="lista">{% for i in produzindo[:5] %}<li><a href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">{{ i.dados.manchete or i.dados.titulo }}</a>
+      <form method="post" action="{{ url_for('previa', pid=p.id, nome=i.arquivo) }}"><button class="botao pequeno claro">Gerar vídeo</button></form></li>{% endfor %}</ul>
   </section>
   {% endif %}
+  <section class="cartao">
+    <h2 style="margin-top:0">Últimos publicados</h2>
+    {% if historico %}
+      <ul class="lista">{% for h in historico %}<li><span>{{ h.data_publicacao }} · {{ h.video }}</span><a href="{{ h.url }}" target="_blank" rel="noopener">{{ h.plataforma }} ↗</a></li>{% endfor %}</ul>
+    {% else %}<p class="suave">Nada publicado ainda.</p>{% endif %}
+  </section>
 </div>
+
+{% if avancado %}
+<details class="mais" open>
+  <summary>Detalhes técnicos</summary>
+  <div class="grade">
+    <section class="cartao">
+      <p class="suave">Conexões por função</p>
+      <ul class="lista">
+        {% for r in resumo %}
+        <li><a href="{{ url_for('conexoes', pid=p.id) }}#{{ r.grupo.id }}">{{ r.grupo.nome }}</a>
+          <span class="ok-x {{ 'sim' if r.nivel == 'ok' else 'nao' }}">{{ '✓' if r.nivel == 'ok' else '✗' }} {{ r.prontos }}/{{ r.total }}</span></li>
+        {% endfor %}
+      </ul>
+      <p class="dica">Automação (n8n): {{ 'ligada' if n8n else 'desligada' }}</p>
+    </section>
+    {% if falhas %}
+    <section class="cartao">
+      <p class="suave">Últimas falhas</p>
+      <ul class="lista">{% for f in falhas %}<li><span>{{ f }}</span></li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+  </div>
+</details>
+{% endif %}
 {% endblock %}

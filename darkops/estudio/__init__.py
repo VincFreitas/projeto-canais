@@ -21,7 +21,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import autoria, plataformas
+from .. import autoria, canal_ia, plataformas
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
                       nomes_plataformas, rotulo_duracao, slug)
@@ -175,6 +175,21 @@ def _salvar_env(novos: dict) -> None:
     arquivo.write_text("\n".join(linhas) + "\n", encoding="utf-8")
 
 
+def _salvar_conferindo(novos: dict) -> None:
+    """Testa cada chave no serviço antes de salvar: a recusada não entra no .env, e a pessoa vê o motivo na hora."""
+    from ..chaves import validar
+    env = {**_env(), **{k: v for k, v in novos.items() if not k.endswith("_KEY")}}  # região vale para o teste
+    for nome in [k for k in novos if k.endswith("_KEY")]:
+        ok, texto = validar(nome, novos[nome], env)
+        if ok is False:
+            novos.pop(nome)
+            flash(texto, "erro")
+        elif texto:
+            flash(texto, "ok" if ok else "aviso")
+    if novos:
+        _salvar_env(novos)
+
+
 def _n8n_online() -> bool:
     try:
         with urllib.request.urlopen("http://127.0.0.1:5678/healthz", timeout=0.6) as r:
@@ -243,7 +258,18 @@ def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
-            "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS}
+            "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado()}
+
+
+def _avancado() -> bool:
+    """Modo avançado: mostra todas as telas e opções. Desligado, o Estúdio fica só com o essencial."""
+    return _env().get("DARKOPS_AVANCADO") == "1"
+
+
+@app.post("/avancado")
+def alternar_avancado():
+    _salvar_env({"DARKOPS_AVANCADO": "0" if _avancado() else "1"})
+    return redirect(request.referrer or url_for("inicio"))
 
 
 # ---------- perfis e chaves ----------
@@ -307,10 +333,7 @@ def perfil_novo():
 @app.route("/chaves", methods=["GET", "POST"])
 def chaves():
     if request.method == "POST":
-        novos = {k: request.form[k].strip() for k, _, _ in CHAVES if request.form.get(k, "").strip()}
-        if novos:
-            _salvar_env(novos)
-            flash(f"Salvo: {', '.join(novos)}. Vale para os próximos vídeos.", "ok")
+        _salvar_conferindo({k: request.form[k].strip() for k, _, _ in CHAVES if request.form.get(k, "").strip()})
         return redirect(url_for("chaves"))
     env = _env()
     return render_template("chaves.html", chaves=[(k, rotulo, segredo, k in env,
@@ -329,7 +352,9 @@ def painel(pid):
                            resumo=resumo(p, _conexoes(p), online),
                            aprovados=sum(1 for i in itens if i["aprovado"]), n8n=online,
                            horarios=_proximos_horarios(p), historico=fila_mod.historico(p)[-6:][::-1],
-                           falhas=fila_mod.falhas(p, 5)[::-1], env=_env())
+                           falhas=fila_mod.falhas(p, 5)[::-1], env=_env(),
+                           criando=(p.controle / "leva.trava").exists() or any(
+                               j["perfil"] == p.id and j["estado"] == "rodando" for j in JOBS.values()))
 
 
 @app.route("/p/<pid>/configurar", methods=["GET", "POST"])
@@ -358,7 +383,33 @@ def configurar(pid):
     return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p),
                            motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
                            tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS, edicoes=EDICOES, persona=PERSONA,
-                           tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p))
+                           tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p),
+                           proposta=canal_ia.ler(p), rotulos=canal_ia.ROTULOS, resumo=_resumo_contas(p))
+
+
+def _resumo_contas(p) -> list:
+    from .conectores import resumo
+    return resumo(p, _conexoes(p), _n8n_online())
+
+
+@app.post("/p/<pid>/ajustar")
+def ajustar_canal(pid):
+    """"Mude o canal falando": a IA propõe as mudanças em segundo plano; a pessoa aplica ou descarta."""
+    p = _perfil(pid)
+    pedido = request.form.get("pedido", "").strip()[:1500]
+    if not pedido:
+        flash("Escreva como você quer o canal.", "erro")
+        return redirect(url_for("configurar", pid=pid))
+    job = _iniciar_job(p, "A IA está ajustando o canal", [["ajustar-canal", "--", pedido]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("configurar", pid=pid) + "#proposta"))
+
+
+@app.post("/p/<pid>/ajustar/<decisao>")
+def decidir_ajuste(pid, decisao):
+    p = _perfil(pid)
+    n = canal_ia.decidir(p, decisao == "aplicar")
+    flash(f"Pronto: {n} ajuste(s) aplicado(s) no canal." if decisao == "aplicar" else "Proposta descartada.", "ok")
+    return redirect(url_for("configurar", pid=pid))
 
 
 @app.post("/p/<pid>/referencia")
@@ -425,6 +476,20 @@ def criar_leva(pid):
     p.salvar({"leva_quantidade": quantidade})
     job = _iniciar_job(p, f"Leva de {quantidade} vídeo(s)", [["leva", "--quantidade", str(quantidade)]])
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("fila", pid=pid)))
+
+
+@app.post("/p/<pid>/criar")
+def criar_video(pid):
+    """Novo vídeo em uma linha: o Claude escreve o roteiro sobre o tema (ou escolhe um) e gera a prévia."""
+    from ..leva import _claude
+    p = _perfil(pid)
+    if not _claude():
+        flash("Para criar vídeos sozinho, instale o Claude Code neste PC (claude.com/claude-code).", "erro")
+        return redirect(url_for("novo", pid=pid))
+    tema = " ".join(request.form.get("tema", "").split())[:200]
+    job = _iniciar_job(p, f"Novo vídeo: {tema}" if tema else "Novo vídeo com tema escolhido pela IA",
+                       [["leva", "--quantidade", "1", *([f"--tema={tema}"] if tema else [])]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("painel", pid=pid)))
 
 
 def _novidade():
@@ -539,10 +604,7 @@ def conexoes(pid):
 def salvar_chaves_conector(pid):
     _perfil(pid)
     permitidas = {k for k, _, _ in CHAVES} | {"ELEVENLABS_VOZ"}
-    novos = {k: v.strip() for k, v in request.form.items() if k in permitidas and v.strip()}
-    if novos:
-        _salvar_env(novos)
-        flash(f"Salvo: {', '.join(novos)}. Vale para todos os perfis.", "ok")
+    _salvar_conferindo({k: v.strip() for k, v in request.form.items() if k in permitidas and v.strip()})
     return redirect(url_for("conexoes", pid=pid) + "#" + request.form.get("ancora", ""))
 
 

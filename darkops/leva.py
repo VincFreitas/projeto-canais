@@ -81,8 +81,9 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
                           errors="replace", timeout=timeout)
 
 
-def _escrever_roteiro(perfil) -> Path | None:
-    """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila."""
+def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
+    """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila.
+    Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte."""
     from .perfis import resumo_persona
     d = perfil.dados
     persona = resumo_persona(d)
@@ -91,8 +92,10 @@ def _escrever_roteiro(perfil) -> Path | None:
     pedido = (
         f"Use a skill /escrever-roteiro para escrever UM roteiro novo para o perfil {perfil.id} "
         f"(canal {d['nome']}, nicho: {d.get('nicho') or 'curiosidades'}, formato {d.get('formato', 'vertical')}, "
-        f"cerca de {d.get('duracao_s', 60)} segundos). Escolha sozinho um tema forte que ainda não exista no canal "
-        f"(já existem: {', '.join(existentes[-40:]) or 'nenhum'}). Pesquise os fatos e guarde as fontes. "
+        f"cerca de {d.get('duracao_s', 60)} segundos). "
+        + (f"O tema do vídeo, pedido pelo dono do canal, é: {tema[:200]}. Encontre um ângulo que ainda não exista "
+           if tema else "Escolha sozinho um tema forte que ainda não exista ")
+        + f"no canal (já existem: {', '.join(existentes[-40:]) or 'nenhum'}). Pesquise os fatos e guarde as fontes. "
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
         f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
@@ -139,7 +142,7 @@ def _vivo(pid: int) -> bool:
         return False
 
 
-def criar(perfil, quantidade: int) -> list[Path]:
+def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
     """Escreve e produz uma leva. Uma trava impede duas levas ao mesmo tempo no mesmo perfil; se o PC desligou
     no meio, a próxima leva primeiro termina as prévias dos roteiros que ficaram sem vídeo."""
     trava = perfil.controle / "leva.trava"
@@ -166,7 +169,7 @@ def criar(perfil, quantidade: int) -> list[Path]:
                 print(f"vídeo {n}/{quantidade}: retomando a prévia de {roteiro.name}", flush=True)
             else:
                 print(f"vídeo {n}/{quantidade}: escrevendo o roteiro", flush=True)
-                roteiro = _escrever_roteiro(perfil)
+                roteiro = _escrever_roteiro(perfil, tema)
                 if not roteiro:
                     continue
                 pendentes.append(roteiro)

@@ -68,4 +68,5 @@
   {% if d.diretrizes %}<h3>Diretrizes do canal (aprovadas)</h3><ul>{% for x in d.diretrizes %}<li>{{ x }}</li>{% endfor %}</ul>
   <p class="dica">O /escrever-roteiro e as levas seguem essas diretrizes.</p>{% endif %}
 </section>
+<p style="margin-top:16px"><a class="botao secundario" href="{{ url_for('historico', pid=p.id) }}">Tudo que já foi publicado</a></p>
 {% endblock %}
