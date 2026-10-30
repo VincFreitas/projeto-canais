@@ -167,6 +167,9 @@ def estado(c: Conector, perfil, conexoes: dict, n8n_online: bool) -> tuple[str, 
         if n8n_online:
             return OK, "rodando"
         instalado = shutil.which("n8n") or Path(os.environ.get("APPDATA", ""), "npm", "n8n.cmd").exists()
+        from ..app import n8n_ligando
+        if instalado and n8n_ligando():
+            return OPCIONAL, "ligando (leva até 3 min)"
         return (FALTA, "instalado, mas desligado") if instalado else (FALTA, "não instalado")
     return SEMPRE, "sempre disponível"
 
@@ -181,7 +184,9 @@ def resumo(perfil, conexoes: dict, n8n_online: bool) -> list[dict]:
                      "midia": ("pixabay", "pexels"), "automacao": ("n8n",)}.get(g.id)
         if essencial:
             situacoes = {c.id: estado(c, perfil, conexoes, n8n_online)[0] for c in g.conectores}
-            alguma = any(situacoes.get(x) in (OK, SEMPRE) for x in essencial)
+            # o n8n "ligando" (opcional por alguns minutos) não é falta: ele foi mandado ligar e está subindo
+            aceitos = (OK, SEMPRE, OPCIONAL) if g.id == "automacao" else (OK, SEMPRE)
+            alguma = any(situacoes.get(x) in aceitos for x in essencial)
             todas = all(situacoes.get(x) in (OK, SEMPRE) for x in essencial)
             nivel = OK if (todas if g.id == "publicacao" else alguma) else FALTA
         else:

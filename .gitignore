@@ -57,6 +57,7 @@ dados/app.json
 dados/ultima_atualizacao.json
 dados/reiniciar
 dados/estudio.log
+dados/n8n-ligando
 
 # bibliotecas do palco 3D (npm install em web/)
 web/node_modules/

@@ -41,6 +41,11 @@
     </form>
   {% elif c.tipo == 'em_breve' %}
     {% if c.passos %}<p class="dica">{{ c.passos[0] }}</p>{% endif %}
+  {% elif c.id == 'n8n' and situacao != 'ok' %}
+    <form method="post" action="{{ url_for('ligar_n8n_agora', pid=p.id) }}"><button class="botao pequeno">Ligar o n8n agora</button></form>
+    <p class="dica">Ele também liga sozinho toda vez que você abre o Projeto Canais.</p>
+    <details class="mais"><summary>Instalar do zero</summary>
+    <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol></details>
   {% elif c.passos and situacao != 'ok' %}
     <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>
   {% endif %}

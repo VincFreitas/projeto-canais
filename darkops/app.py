@@ -144,6 +144,44 @@ def estado_atalhos() -> dict:
 
 # ---------- abrir ----------
 
+def n8n_ligado() -> bool:
+    import urllib.request
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:5678/healthz", timeout=0.8) as r:
+            return r.status == 200
+    except OSError:
+        return False
+
+
+LIGANDO_N8N = config.RAIZ / "dados" / "n8n-ligando"
+
+
+def n8n_ligando() -> bool:
+    """O n8n foi mandado ligar há menos de 4 min (ele leva de 1 a 3 min para responder)."""
+    return LIGANDO_N8N.exists() and time.time() - LIGANDO_N8N.stat().st_mtime < 240
+
+
+def ligar_n8n() -> str:
+    """Liga o n8n escondido (o mesmo lançador do logon: só em 127.0.0.1, sem abrir o editor).
+    Ele continua rodando depois que o Estúdio fecha, para postar às 12h e às 19h."""
+    from .instalacao import _n8n_cmd
+    if n8n_ligado():
+        return "ligado"
+    lancador = config.RAIZ / "n8n" / "n8n.ps1"
+    if os.name != "nt" or not lancador.exists() or not _n8n_cmd():
+        return "sem-n8n"
+    if n8n_ligando():
+        return "ligando"  # já foi mandado ligar: não abre um segundo n8n
+    LIGANDO_N8N.parent.mkdir(parents=True, exist_ok=True)
+    LIGANDO_N8N.write_text(str(time.time()), encoding="utf-8")
+    # console escondido, não "destacado": sem console nenhum (DETACHED_PROCESS) o PowerShell fecha sem rodar nada
+    sinais = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
+    subprocess.Popen(["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
+                      "-File", str(lancador), "-NoOpen"], cwd=lancador.parent, creationflags=sinais,
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return "ligando"
+
+
 def abrir() -> None:
     """O que o atalho roda: sem terminal, a saída vai para um arquivo de registro."""
     if sys.stdout is None or sys.stderr is None:  # pythonw não tem console

@@ -608,6 +608,18 @@ def salvar_chaves_conector(pid):
     return redirect(url_for("conexoes", pid=pid) + "#" + request.form.get("ancora", ""))
 
 
+@app.post("/p/<pid>/conexoes/n8n")
+def ligar_n8n_agora(pid):
+    from ..app import ligar_n8n
+    _perfil(pid)
+    estado = ligar_n8n()
+    flash({"ligado": "O n8n já está ligado.",
+           "ligando": "Ligando o n8n em segundo plano; ele leva de 1 a 3 minutos para ficar pronto.",
+           "sem-n8n": "O n8n não está instalado neste PC. Rode: npm install -g n8n"}[estado],
+          "erro" if estado == "sem-n8n" else "ok")
+    return redirect(url_for("conexoes", pid=pid) + "#n8n")
+
+
 @app.post("/p/<pid>/conexoes/youtube")
 def conectar_youtube(pid):
     p = _perfil(pid).preparar()
@@ -1279,6 +1291,8 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     reinicio = os.environ.pop("DARKOPS_REINICIO", "") == "1"
     # no Windows dois servidores conseguem ocupar a mesma porta e responder misturado: não abre outro.
     # Num reinício pela atualização, espera o Estúdio antigo fechar (até 20 s).
+    from ..app import ligar_n8n
+    ligar_n8n()  # a postagem das 12h e 19h depende do n8n; rápido (só confere e dispara), vale até com o Estúdio já aberto
     for _ in range(40 if reinicio else 1):
         with socket.socket() as teste:
             livre = teste.connect_ex(("127.0.0.1", porta)) != 0
