@@ -441,6 +441,9 @@ def preparar_actions(fila_dir: Path) -> list[str]:
         if cred.get("token_instagram"):
             (destino / "credenciais" / "token_instagram.txt").write_text(cred["token_instagram"], encoding="utf-8")
         prontos.append(origem.name)
+    # só os perfis montados aqui voltam para a fila: se a preparação não rodou, o devolver não copia nada
+    (config.RAIZ / "dados").mkdir(exist_ok=True)
+    (config.RAIZ / "dados" / "nuvem-preparados.json").write_text(json.dumps(prontos), encoding="utf-8")
     config.SAIDA.mkdir(exist_ok=True)
     pasta = config.RAIZ / "dados" / "fila-videos"
     pasta.mkdir(parents=True, exist_ok=True)
@@ -462,11 +465,13 @@ def devolver_actions(fila_dir: Path) -> list[str]:
     import subprocess
     if not na_nuvem():
         raise SystemExit("nuvem-devolver só roda no GitHub Actions")
+    marca = config.RAIZ / "dados" / "nuvem-preparados.json"
+    preparados = set(json.loads(marca.read_text(encoding="utf-8"))) if marca.exists() else set()
     mudou = []
     for perfil_dir in sorted((config.RAIZ / "perfis").glob("*")):
         destino = fila_dir / "perfis" / perfil_dir.name
-        if not destino.exists():
-            continue
+        if perfil_dir.name not in preparados or not destino.exists():
+            continue  # sem preparação, aqui está a cópia do repositório público: não pode ir para a fila
         for sub in ("fila", "publicados"):
             alvo = destino / sub
             if alvo.exists():
