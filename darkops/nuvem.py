@@ -421,6 +421,12 @@ def enviar_segredos(perfis) -> list[str]:
         _segredo("NUVEM_VIDEOS_REPO", _repo_passagem())
         _segredo("NUVEM_TOKEN", os.environ["NUVEM_TOKEN"])
         enviados += ["NUVEM_VIDEOS_REPO", "NUVEM_TOKEN"]
+    from . import whatsapp
+    if whatsapp.configurado():  # a nuvem também avisa no WhatsApp quando posta ou falha
+        for nome in ("WHATSAPP_TOKEN", "WHATSAPP_NUMERO_ID", "WHATSAPP_PARA", "WHATSAPP_MODELO"):
+            if os.getenv(nome):
+                _segredo(nome, os.environ[nome])
+                enviados.append(nome)
     client = config.RAIZ / "credenciais" / "client_secret.json"
     if client.exists():
         _segredo("CLIENT_SECRET", client.read_text(encoding="utf-8"))

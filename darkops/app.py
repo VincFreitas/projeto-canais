@@ -182,6 +182,29 @@ def ligar_n8n() -> str:
     return "ligando"
 
 
+def reiniciar_n8n() -> str:
+    """Fecha e liga o n8n de novo (ele só passa a escutar um workflow importado pela linha de comando depois de
+    reiniciar). Não reinicia perto de um horário de postagem, para não cortar uma publicação no meio."""
+    from datetime import datetime
+    from .nuvem import BRASILIA
+    agora = datetime.now(BRASILIA)  # o n8n agenda no horário de Brasília, não no fuso do Windows
+    minutos = agora.hour * 60 + agora.minute
+    if any(-10 <= minutos - (h * 60) <= 40 for h in (12, 19)):
+        return "perto-do-horario"
+    if os.name == "nt" and n8n_ligado():
+        pids = subprocess.run(["powershell", "-NoProfile", "-Command",
+                               "(Get-NetTCPConnection -LocalPort 5678 -State Listen -ErrorAction SilentlyContinue)"
+                               ".OwningProcess"], capture_output=True, text=True).stdout.split()
+        for pid in {p for p in pids if p.isdigit()}:
+            subprocess.run(["taskkill", "/PID", pid, "/T", "/F"], capture_output=True)
+        for _ in range(20):
+            if not n8n_ligado():
+                break
+            time.sleep(0.5)
+    LIGANDO_N8N.unlink(missing_ok=True)
+    return ligar_n8n()
+
+
 def abrir() -> None:
     """O que o atalho roda: sem terminal, a saída vai para um arquivo de registro."""
     if sys.stdout is None or sys.stderr is None:  # pythonw não tem console

@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
 </head>
 <body>
+<div id="carregando"></div>
 <aside class="lateral">
   <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Projeto Canais</a>
   <p class="rotulo">Canais</p>
@@ -85,6 +86,27 @@
   {% block corpo %}{% endblock %}
 </main>
 <script>
+// barra no topo e botão girando enquanto a próxima tela (ou uma ação demorada) carrega
+(function () {
+  const barra = document.getElementById('carregando');
+  const ligar = () => { barra.classList.remove('ativo'); void barra.offsetWidth; barra.classList.add('ativo'); };
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href]');
+    if (!a || e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || a.target === '_blank'
+        || a.hasAttribute('download') || a.origin !== location.origin || a.getAttribute('href').startsWith('#')) return;
+    ligar();
+  });
+  document.addEventListener('submit', e => setTimeout(() => {
+    if (e.defaultPrevented || e.target.target === '_blank') return;
+    ligar();
+    const botao = e.submitter || e.target.querySelector('button:not([type=button])');
+    if (botao && botao.classList.contains('botao')) botao.classList.add('carregando');
+  }));
+  addEventListener('pageshow', () => {  // voltar pelo navegador traz a página da memória: limpa o estado
+    barra.classList.remove('ativo');
+    document.querySelectorAll('.botao.carregando').forEach(b => b.classList.remove('carregando'));
+  });
+})();
 // quando o Estúdio reinicia com uma versão nova, a aba recarrega sozinha e mostra o que mudou
 (function () {
   let versao = null;

@@ -1,0 +1,56 @@
+{
+  "name": "Canais dark - WhatsApp do dono (comandos e resumo)",
+  "id": "whatsappcanais1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-canais",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000001",
+      "name": "Mensagem do WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "whatsapp-canais"
+    },
+    {
+      "parameters": {
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops whatsapp-receber --arquivo {{ String($json.body.arquivo || '').replace(/[^A-Za-z0-9.-]/g, '') }}"
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000002",
+      "name": "Responder o comando",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "cronExpression", "expression": "0 21 * * *"}]}
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000003",
+      "name": "Todo dia 21h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 220]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops whatsapp resumo"
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000004",
+      "name": "Resumo do dia no WhatsApp",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [260, 220]
+    }
+  ],
+  "connections": {
+    "Mensagem do WhatsApp": {"main": [[{"node": "Responder o comando", "type": "main", "index": 0}]]},
+    "Todo dia 21h": {"main": [[{"node": "Resumo do dia no WhatsApp", "type": "main", "index": 0}]]}
+  },
+  "settings": {"executionOrder": "v1"},
+  "active": false
+}

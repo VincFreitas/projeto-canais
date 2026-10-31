@@ -263,3 +263,41 @@ def slug(texto: str) -> str:
     texto = unicodedata.normalize("NFD", texto.lower())
     texto = "".join(c for c in texto if unicodedata.category(c) != "Mn")
     return re.sub(r"[^a-z0-9]+", "-", texto).strip("-")[:40] or "canal"
+
+
+# ---------- sugestões de nome para o canal novo ----------
+
+_PRONTOS = {
+    "misterios": ["Arquivo Oculto", "Enigma Diário", "O Inexplicado", "Mapa do Mistério", "Caso Sem Fim"],
+    "terror": ["Arquivo do Terror", "Relatos da Meia-Noite", "Casa Fria", "Lenda Viva", "Sussurro Sombrio"],
+    "curiosidades": ["Pulga do Saber", "Fato Rápido", "Você Sabia Hoje", "Mente Curiosa", "Minuto Curioso"],
+    "animais": ["Bicho Raro", "Planeta Selvagem", "Zoo de Bolso", "Fera Curiosa", "Mundo Animal Já"],
+    "geopolitica": ["Mapa do Poder", "Xadrez Global", "Por Trás do Mapa", "Fronteira Explicada", "Mundo em 1 Minuto"],
+}
+
+
+def sugerir_nomes(nicho: str, formato: str = "vertical") -> dict:
+    """Cinco nomes com @ e bio. A IA (Claude Code, sem ferramentas) cria a partir do assunto; sem ela, prontos."""
+    import subprocess
+    from .leva import rodar_claude
+    assunto = re.sub(r"[^\w\s,.-]", "", nicho)[:80] or "curiosidades"
+    pedido = (f"Sugira 5 nomes originais em português para um canal dark (vídeos sem rosto) sobre: {assunto}. "
+              f"Formato: {'vídeos curtos verticais (Shorts/Reels)' if formato == 'vertical' else 'vídeos longos do YouTube'}. "
+              "Cada nome: curto (até 3 palavras), fácil de lembrar e de buscar, sem marcas registradas. "
+              "Responda SÓ um JSON, sem texto em volta: "
+              '[{"nome": "...", "arroba": "@...", "bio": "uma frase de até 120 caracteres"}]')
+    try:
+        proc = rodar_claude(pedido, timeout=120)
+        achado = re.search(r"\[.*\]", proc.stdout, re.S)
+        lista = json.loads(achado.group(0)) if achado else []
+        nomes = [{"nome": str(s["nome"])[:60], "bio": str(s.get("bio", ""))[:200],
+                  "arroba": "@" + re.sub(r"[^a-z0-9_.]", "", str(s.get("arroba") or s["nome"]).lower())[:30]}
+                 for s in lista if isinstance(s, dict) and s.get("nome")][:5]
+        if nomes:
+            return {"ia": True, "nomes": nomes}
+    except (SystemExit, OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired):
+        pass
+    chave = next((k for k in _PRONTOS if k in assunto.lower()), "curiosidades")
+    return {"ia": False, "nomes": [{"nome": n, "arroba": "@" + re.sub(r"[^a-z0-9]", "", n.lower()
+                                    .translate(str.maketrans("áâãàéêíóôõúç", "aaaaeeiooouc"))), "bio": ""}
+                                   for n in _PRONTOS[chave]]}

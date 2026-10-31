@@ -37,6 +37,14 @@ Estas são as proteções em vigor e o motivo de cada uma.
 
 - O lançador (`n8n/n8n.ps1`) prende o n8n ao PC (`N8N_LISTEN_ADDRESS=127.0.0.1`). Isso importa porque o nó Execute Command roda comandos no PC, e quem entrar no n8n poderia usá-lo ([GitHub Advisory GHSA-365g-vjw2-grx8](https://advisories.gitlab.com/npm/n8n/GHSA-365g-vjw2-grx8/)). Use uma senha forte na conta local do n8n e mantenha-o atualizado.
 
+## WhatsApp (avisos e comandos)
+
+- Só a API oficial da Meta (WhatsApp Cloud API). O token, o ID do número, o número do dono e a chave secreta do app ficam no `.env`; na nuvem, os quatro necessários para avisar vão como Secrets do repositório de fila.
+- Só o número do dono (`WHATSAPP_PARA`) é ouvido; mensagem de outro número é ignorada.
+- Para os comandos chegarem, um túnel temporário da Cloudflare (`cloudflared`, baixado da página oficial e aceito só com a assinatura digital da Cloudflare) leva a internet a um porteiro local em `127.0.0.1:5680`, e a mais nada. O porteiro só aceita o caminho `/webhook/whatsapp`, confere a assinatura `X-Hub-Signature-256` de cada entrega com a chave secreta do app (sem ela: 403) e responde a verificação da Meta só com o `WHATSAPP_VERIFICAR`. O n8n e o Estúdio continuam presos a 127.0.0.1.
+- A entrega vira um arquivo em `dados/whatsapp/entrada/` e o n8n recebe só o nome dele (o comando filtra para letras, números, ponto e hífen); o texto da mensagem nunca vira parte de um comando no cmd.exe. O tema de "criar sobre <tema>" vai como argumento separado, sem shell.
+- Aprovar pelo WhatsApp segue a regra do Estúdio: só vídeo com prévia pronta. Recusar move o roteiro para `recusados/` (nada é apagado). Ajustes do canal pela IA só valem depois do botão Aplicar.
+
 ## O que fica com você
 
 - Senha forte e verificação em duas etapas nas contas do Google, do YouTube, da Meta e do n8n.

@@ -63,3 +63,8 @@ dados/n8n-ligando
 web/node_modules/
 perfis/*/controle/nuvem.trava
 perfis/*/controle/nuvem.de-novo
+
+# WhatsApp: estado da conversa, entregas do webhook e o túnel baixado
+dados/whatsapp/
+dados/bin/
+n8n/whatsapp.json

@@ -1,28 +1,298 @@
 {% extends "base.html" %}
-{% import "_canal.html" as canal with context %}
-{% block titulo %}Perfis{% endblock %}
+{% block titulo %}Novo canal{% endblock %}
+{% set icones = {'misterios': '🔍', 'terror': '👻', 'curiosidades': '💡', 'animais': '🐾', 'geopolitica': '🌍',
+                 'historias-bizarras': '🤯', 'mysteries-en': '🕵️', 'history-en': '🏛️'} %}
+{% set rotulos = {'misterios': 'Mistérios', 'terror': 'Terror', 'curiosidades': 'Curiosidades', 'animais': 'Animais',
+                  'geopolitica': 'Geopolítica', 'historias-bizarras': 'Histórias bizarras',
+                  'mysteries-en': 'Mistérios (inglês)', 'history-en': 'História (inglês)'} %}
+{% set icones_rede = {'youtube': '▶', 'instagram': '◎', 'facebook': 'f', 'tiktok': '♪', 'kwai': 'K'} %}
 {% block corpo %}
-<h1 style="margin-top:0">Perfis</h1>
-<p class="suave">Cada perfil é um canal: contas do YouTube e do Instagram próprias, estilo, fila e histórico separados.
-  As chaves de voz e de imagens são as mesmas para todos.</p>
+<div class="assistente-cabeca">
+  <h1>Novo canal</h1>
+  <p class="suave">Cinco passos rápidos. Depois é só conectar as contas e aprovar os vídeos.</p>
+</div>
+
+<form method="post" action="{{ url_for('perfil_novo') }}" class="assistente" id="assistente" novalidate>
+  <ol class="assistente-trilha" aria-label="Passos">
+    {% for rotulo in ['Assunto', 'Nome', 'Formato', 'Plataformas', 'Revisão'] %}
+    <li data-ir="{{ loop.index }}"><span>{{ loop.index }}</span>{{ rotulo }}</li>
+    {% endfor %}
+    <i class="assistente-progresso"></i>
+  </ol>
+
+  <div class="assistente-corpo">
+    <div class="assistente-passos">
+      {# 1. assunto #}
+      <section class="passo-wiz" data-passo="1">
+        <h2>Sobre o que é o canal?</h2>
+        <p class="suave">Escolha um assunto com público comprovado ou escreva o seu.</p>
+        <input type="hidden" name="nicho" value="{{ modelo.nicho }}">
+        <div class="cartoes-escolha nichos">
+          {% for chave, n in nichos.items() %}
+          <button type="button" class="escolha" data-nicho="{{ chave }}" aria-pressed="{{ 'true' if chave == modelo.nicho else 'false' }}">
+            <span class="escolha-icone">{{ icones.get(chave, '✦') }}</span>
+            <b>{{ rotulos.get(chave, chave.replace('-', ' ') | capitalize) }}</b>
+            <small>{{ n.descricao }}</small>
+          </button>
+          {% endfor %}
+        </div>
+        <label for="nicho-livre">Ou escreva outro assunto</label>
+        <input type="text" id="nicho-livre" placeholder="ex.: carros antigos, astronomia, culinária de vó...">
+      </section>
+
+      {# 2. nome #}
+      <section class="passo-wiz" data-passo="2">
+        <h2>Como o canal se chama?</h2>
+        <p class="suave">Curto, fácil de lembrar e de buscar. Sem ideia? Peça sugestões à IA.</p>
+        <label for="nome">Nome do canal</label>
+        <input type="text" name="nome" id="nome" placeholder="Ex.: Arquivo do Terror" maxlength="60" autocomplete="off" required>
+        <label for="arroba">@ nas redes</label>
+        <input type="text" name="arroba" id="arroba" placeholder="@arquivodoterror" maxlength="31" autocomplete="off">
+        <div class="acoes" style="margin-top:12px">
+          <button type="button" class="botao secundario" id="sugerir">✨ Sugerir nomes com IA</button>
+          <span class="suave" id="sugerir-estado"></span>
+        </div>
+        <div class="sugestoes-nome" id="sugestoes"></div>
+      </section>
+
+      {# 3. formato #}
+      <section class="passo-wiz" data-passo="3">
+        <h2>Qual formato de vídeo?</h2>
+        <div class="cartoes-escolha formatos">
+          {% for chave, nome in formatos.items() %}
+          <label class="escolha formato-{{ chave }}">
+            <input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if modelo.formato == chave }}>
+            <span class="tela-mini"><i></i></span>
+            <b>{{ 'Curto' if chave == 'vertical' else 'Longo' }}</b>
+            <small>{{ nome }}</small>
+          </label>
+          {% endfor %}
+        </div>
+        <label>Duração de cada vídeo</label>
+        {% for chave, opcoes in duracoes.items() %}
+        {% set padrao = modelo.duracao_s if modelo.duracao_s in opcoes else (60 if chave == 'vertical' else 600) %}
+        <div class="fichas" data-formato="{{ chave }}" data-padrao="{{ padrao }}">
+          {% for s in opcoes %}
+          <label class="ficha"><input type="radio" name="duracao_s" value="{{ s }}"><span>{{ rotulo_duracao(s) }}</span></label>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </section>
+
+      {# 4. plataformas #}
+      <section class="passo-wiz" data-passo="4">
+        <h2>Onde o canal vai postar?</h2>
+        <p class="suave">YouTube e Instagram postam sozinhos. As outras ficam anotadas para postar à mão.</p>
+        <div class="cartoes-escolha redes">
+          {% for s in status %}
+          <label class="escolha rede rede-{{ s.id }}">
+            <input type="checkbox" name="{{ s.id }}" {{ 'checked' if modelo[s.id] }}>
+            <span class="rede-icone">{{ icones_rede.get(s.id, '✦') }}</span>
+            <b>{{ s.nome }}</b>
+            <span class="selo {{ s.situacao }}">{{ {'pronta': 'pronta', 'falta': 'falta configurar', 'manual': 'manual'}[s.situacao] }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      {# 5. revisão #}
+      <section class="passo-wiz" data-passo="5">
+        <h2>Tudo certo?</h2>
+        <ul class="lista revisao-lista">
+          <li><span>Assunto</span><b data-ver="nicho"></b></li>
+          <li><span>Nome</span><b data-ver="nome"></b></li>
+          <li><span>Formato</span><b data-ver="formato"></b></li>
+          <li><span>Plataformas</span><b data-ver="redes"></b></li>
+        </ul>
+        <label for="descricao">Bio do canal (opcional)</label>
+        <textarea name="descricao" id="descricao" rows="3" maxlength="300" placeholder="Uma frase que diz o que o canal entrega. Ex.: Mistérios reais explicados em 1 minuto."></textarea>
+        <details class="mais">
+          <summary>Mostrar mais opções</summary>
+          <label>Outra plataforma (opcional)</label>
+          <input type="text" name="outra_plataforma" placeholder="ex.: Pinterest">
+          <label>Vídeo de exemplo (link)</label>
+          <input type="url" name="video_exemplo" placeholder="https://www.youtube.com/shorts/...">
+          <p class="dica">Um vídeo de referência do estilo que você quer. Serve de modelo, nunca para copiar.</p>
+          <label>Quantos vídeos criar de uma vez</label>
+          <input type="number" name="leva_quantidade" min="1" max="14" value="{{ modelo.leva_quantidade }}" style="width:90px">
+          <label style="font-weight:400"><input type="checkbox" name="leva_reabastecer" {{ 'checked' if modelo.leva_reabastecer }}>
+            Criar outra leva sozinho quando sobrarem
+            <input type="number" name="leva_minimo" min="0" max="13" value="{{ modelo.leva_minimo }}" style="width:70px;display:inline-block"> vídeos ou menos</label>
+        </details>
+      </section>
+    </div>
+
+    {# prévia ao vivo #}
+    <aside class="previa-canal" aria-live="polite">
+      <div class="previa-capa"></div>
+      <div class="previa-avatar" data-ver="inicial">?</div>
+      <b class="previa-nome" data-ver="nome">Seu canal</b>
+      <span class="previa-arroba" data-ver="arroba">@seucanal</span>
+      <span class="previa-nicho" data-ver="nicho"></span>
+      <p class="previa-bio" data-ver="bio">A bio aparece aqui.</p>
+      <div class="previa-videos" data-ver-formato>
+        <i></i><i></i><i></i>
+      </div>
+      <div class="previa-redes" data-ver="icones"></div>
+    </aside>
+  </div>
+
+  <div class="assistente-nav">
+    <button type="button" class="botao claro" id="voltar">← Voltar</button>
+    <span class="assistente-dica suave" id="dica-passo"></span>
+    <button type="button" class="botao" id="avancar">Continuar →</button>
+    <button class="botao" id="criar" hidden>✦ Criar canal</button>
+  </div>
+</form>
+
+{% if perfis %}
+<h2 style="margin-top:34px">Seus canais</h2>
 <div class="grade">
   {% for item in perfis %}
-  <a class="cartao" href="{{ url_for('painel', pid=item.id) }}" style="text-decoration:none">
-    <div class="quem"><img src="{{ url_for('avatar', pid=item.id) }}" style="width:48px;height:48px;border-radius:50%;background:#ffc400;object-fit:cover;image-rendering:pixelated">
-      <div><b>{{ item.dados.nome }}</b><br><span class="suave">{{ item.dados.arroba }}</span></div></div>
-    <p class="suave">{{ 'Postando' if item.dados.ativo else 'Pausado' }} · {{ item.dados.nicho or 'sem nicho' }}</p>
-    <p class="suave">{{ nomes_plataformas(item.dados) or 'sem plataforma' }}
-      · {{ 'Shorts/Reels' if item.dados.formato == 'vertical' else 'Vídeo longo' }} · {{ rotulo_duracao(item.dados.duracao_s) }}</p>
+  <a class="cartao canal-mini" href="{{ url_for('painel', pid=item.id) }}">
+    <img src="{{ url_for('avatar', pid=item.id) }}" alt="">
+    <div><b>{{ item.dados.nome }}</b><br><span class="suave">{{ item.dados.arroba }} · {{ 'postando' if item.dados.ativo else 'pausado' }}</span></div>
   </a>
   {% endfor %}
-  <form method="post" action="{{ url_for('perfil_novo') }}" class="cartao">
-    <h2>Novo perfil</h2>
-    <label>Nome do canal</label><input type="text" name="nome" placeholder="Ex.: Arquivo do Terror">
-    <label>@</label><input type="text" name="arroba" placeholder="@arquivodoterror">
-    <label>Nicho</label><input type="text" name="nicho" placeholder="terror, curiosidades, história...">
-    <label>Descrição</label><input type="text" name="descricao">
-    {{ canal.campos(modelo, status, novo=True) }}
-    <p><button class="botao">Criar perfil</button></p>
-  </form>
 </div>
+{% endif %}
+
+<script>
+(function () {
+  const form = document.getElementById('assistente');
+  const passos = [...form.querySelectorAll('.passo-wiz')];
+  const total = passos.length;
+  const icones = {{ icones_rede | tojson }};
+  const rotuloNicho = b => b.querySelector('b').textContent.trim();
+  let atual = 1, arrobaEditado = false;
+  form.classList.add('com-js');
+
+  const slug = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const ver = (chave, texto) => form.querySelectorAll(`[data-ver="${chave}"]`).forEach(el => {
+    if (el.textContent === texto) return;
+    el.textContent = texto;
+    if (el.closest('.previa-canal')) { el.classList.remove('pisca'); void el.offsetWidth; el.classList.add('pisca'); }
+  });
+
+  function atualizar() {
+    const nome = form.nome.value.trim();
+    if (!arrobaEditado) form.arroba.value = nome ? '@' + slug(nome).slice(0, 30) : '';
+    const nichoBotao = form.querySelector('.escolha[data-nicho][aria-pressed=true]');
+    const nicho = nichoBotao ? rotuloNicho(nichoBotao) : form.nicho.value;
+    const formato = form.querySelector('input[name=formato]:checked').value;
+    form.querySelectorAll('.fichas').forEach(f => {
+      const ativo = f.dataset.formato === formato;
+      f.hidden = !ativo;
+      f.querySelectorAll('input').forEach(i => i.disabled = !ativo);
+      // as duas listas usam o mesmo nome (duracao_s): ao trocar de formato, marca a duração padrão dele
+      if (ativo && !f.querySelector('input:checked')) f.querySelector(`input[value="${f.dataset.padrao}"]`).checked = true;
+    });
+    const duracao = form.querySelector('.fichas:not([hidden]) input:checked');
+    const redes = [...form.querySelectorAll('.redes input:checked')].map(i => i.name);
+    ver('nome', nome || 'Seu canal');
+    ver('inicial', (nome || '?').trim()[0].toUpperCase());
+    ver('arroba', form.arroba.value || '@seucanal');
+    ver('nicho', nicho || 'sem assunto');
+    ver('bio', form.descricao.value.trim() || 'A bio aparece aqui.');
+    ver('formato', `${formato === 'vertical' ? 'Curto 9:16' : 'Longo 16:9'} · ${duracao ? duracao.nextElementSibling.textContent : ''}`);
+    ver('redes', redes.map(r => form.querySelector(`.rede-${r} b`).textContent).join(', ') || 'nenhuma (só criar os vídeos)');
+    ver('icones', redes.map(r => icones[r] || '✦').join('  '));
+    form.querySelector('[data-ver-formato]').dataset.formato = formato;
+    // cor do avatar: muda com o nome, sempre a mesma para o mesmo nome
+    let h = 0; for (const c of nome) h = (h * 31 + c.charCodeAt(0)) % 360;
+    form.querySelector('.previa-canal').style.setProperty('--matiz', nome ? h : 45);
+  }
+
+  function valido(n) {
+    if (n === 1 && !form.nicho.value.trim()) return 'Escolha ou escreva um assunto.';
+    if (n === 2 && !form.nome.value.trim()) { form.nome.focus(); return 'Dê um nome ao canal.'; }
+    return '';
+  }
+
+  function ir(n) {
+    if (n > atual) for (let k = atual; k < n; k++) { const erro = valido(k); if (erro) { avisar(erro); return; } }
+    const indo = n > atual ? 'frente' : 'tras';
+    atual = Math.max(1, Math.min(total, n));
+    passos.forEach(p => {
+      const este = +p.dataset.passo === atual;
+      p.hidden = !este;
+      p.classList.remove('frente', 'tras');
+      if (este) p.classList.add(indo);
+    });
+    form.querySelectorAll('.assistente-trilha li').forEach(li => {
+      li.classList.toggle('feito', +li.dataset.ir < atual);
+      li.classList.toggle('agora', +li.dataset.ir === atual);
+    });
+    form.querySelector('.assistente-progresso').style.setProperty('--p', (atual - 1) / (total - 1));
+    form.querySelector('#voltar').style.visibility = atual === 1 ? 'hidden' : 'visible';
+    form.querySelector('#avancar').hidden = atual === total;
+    form.querySelector('#criar').hidden = atual !== total;
+    avisar('');
+    const foco = passos[atual - 1].querySelector('input[type=text]:not([id=nicho-livre]), textarea');
+    if (foco && atual > 1) setTimeout(() => foco.focus(), 260);
+  }
+
+  function avisar(texto) {
+    const d = form.querySelector('#dica-passo');
+    d.textContent = texto;
+    d.classList.toggle('erro', !!texto);
+    if (texto) { d.classList.remove('treme'); void d.offsetWidth; d.classList.add('treme'); }
+  }
+
+  form.querySelectorAll('.escolha[data-nicho]').forEach(b => b.addEventListener('click', () => {
+    form.querySelectorAll('.escolha[data-nicho]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    form.nicho.value = b.dataset.nicho;
+    form.querySelector('#nicho-livre').value = '';
+    atualizar();
+    setTimeout(() => ir(2), 280);
+  }));
+  form.querySelector('#nicho-livre').addEventListener('input', e => {
+    form.querySelectorAll('.escolha[data-nicho]').forEach(x => x.setAttribute('aria-pressed', false));
+    form.nicho.value = e.target.value.trim();
+    atualizar();
+  });
+  form.arroba.addEventListener('input', () => { arrobaEditado = !!form.arroba.value; atualizar(); });
+  form.addEventListener('input', atualizar);
+  form.addEventListener('change', atualizar);
+  form.querySelector('#avancar').addEventListener('click', () => ir(atual + 1));
+  form.querySelector('#voltar').addEventListener('click', () => ir(atual - 1));
+  form.querySelectorAll('.assistente-trilha li').forEach(li => li.addEventListener('click', () => ir(+li.dataset.ir)));
+  form.addEventListener('keydown', e => {  // Enter avança em vez de criar antes da hora
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT' && atual < total) { e.preventDefault(); ir(atual + 1); }
+  });
+  form.addEventListener('submit', e => {
+    const erro = valido(1) || valido(2);
+    if (erro) { e.preventDefault(); avisar(erro); }
+  });
+
+  // sugestões de nome pela IA (o Claude Code do PC; sem ele, sugestões prontas)
+  form.querySelector('#sugerir').addEventListener('click', async () => {
+    const botao = form.querySelector('#sugerir'), estado = form.querySelector('#sugerir-estado');
+    const caixa = form.querySelector('#sugestoes');
+    botao.classList.add('carregando'); estado.textContent = 'a IA está pensando (até 1 minuto)…'; caixa.innerHTML = '';
+    try {
+      const r = await fetch("{{ url_for('sugerir_nomes') }}", {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nicho: form.nicho.value, formato: form.querySelector('input[name=formato]:checked').value})});
+      const dados = await r.json();
+      estado.textContent = dados.ia ? 'sugestões da IA: clique para usar' : 'sugestões rápidas: clique para usar';
+      dados.nomes.forEach((s, i) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'sugestao-nome'; b.style.animationDelay = `${i * 60}ms`;
+        b.innerHTML = '<b></b><small></small>';
+        b.querySelector('b').textContent = s.nome; b.querySelector('small').textContent = s.arroba;
+        b.addEventListener('click', () => {
+          form.nome.value = s.nome; form.arroba.value = s.arroba; arrobaEditado = true;
+          if (s.bio && !form.descricao.value) form.descricao.value = s.bio;
+          atualizar();
+        });
+        caixa.appendChild(b);
+      });
+    } catch (e) { estado.textContent = 'não consegui sugerir agora; tente de novo'; }
+    botao.classList.remove('carregando');
+  });
+
+  atualizar();
+  ir(1);
+})();
+</script>
 {% endblock %}

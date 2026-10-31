@@ -49,6 +49,45 @@ def gerar_workflow(importar: bool = False) -> Path:
     return GERADO
 
 
+MODELO_WHATSAPP = config.RAIZ / "n8n" / "whatsapp.modelo.json"
+GERADO_WHATSAPP = config.RAIZ / "n8n" / "whatsapp.json"
+
+
+def webhook_whatsapp_ativo() -> bool:
+    """O n8n já escuta o webhook do WhatsApp? (um teste vazio que o whatsapp-receber ignora)"""
+    import urllib.request
+    from .whatsapp import N8N_WEBHOOK
+    req = urllib.request.Request(N8N_WEBHOOK, data=b'{"arquivo": "verificar"}',
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return r.status < 300
+    except OSError:
+        return False
+
+
+def gerar_workflow_whatsapp(importar: bool = False) -> Path:
+    """Workflow que recebe os comandos do WhatsApp e manda o resumo das 21h. Importa e publica no n8n."""
+    texto = MODELO_WHATSAPP.read_text(encoding="utf-8")
+    texto = texto.replace("__PASTA__", str(config.RAIZ).replace("\\", "\\\\"))
+    texto = texto.replace("__PYTHON__", str(Path(sys.executable)).replace("\\", "\\\\"))
+    json.loads(texto)
+    GERADO_WHATSAPP.write_text(texto, encoding="utf-8")
+    print(f"workflow gerado: {GERADO_WHATSAPP}")
+    if importar:
+        n8n = _n8n_cmd()
+        if not n8n:
+            raise SystemExit("n8n não encontrado. Instale com: npm install -g n8n")
+        env = {**os.environ, "N8N_DIAGNOSTICS_ENABLED": "false", "NODES_EXCLUDE": '["n8n-nodes-base.localFileTrigger"]'}
+        for args in (["import:workflow", f"--input={GERADO_WHATSAPP}"], ["publish:workflow", "--id=whatsappcanais1"]):
+            proc = subprocess.run([n8n, *args], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+            if proc.returncode != 0:
+                raise SystemExit(f"falha no n8n ({args[0]}): {(proc.stdout + proc.stderr).strip()[-300:]}")
+        print("importado e publicado no n8n" + ("" if webhook_whatsapp_ativo() else
+              "; o n8n aberto passa a escutar o WhatsApp quando reiniciar"))
+    return GERADO_WHATSAPP
+
+
 def diagnostico() -> list[tuple[str, bool, str]]:
     """(item, pronto?, o que fazer) para cada peça do projeto."""
     from .perfis import listar

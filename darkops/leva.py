@@ -179,6 +179,8 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
                 print(f"  roteiro {roteiro.name}; gerando a prévia", flush=True)
             if _produzir(perfil, roteiro):
                 feitos.append(roteiro)
+                from . import whatsapp
+                whatsapp.pronto_para_aprovar(perfil, roteiro)  # o vídeo vai para o celular com Aprovar/Recusar
             pendentes.remove(roteiro)
             anotar()
     finally:
@@ -198,10 +200,12 @@ def precisa_reabastecer(perfil) -> bool:
     return bool(d.get("leva_reabastecer")) and len(list(perfil.fila.glob("*.json"))) <= int(d.get("leva_minimo", 3))
 
 
-def em_segundo_plano(perfil, quantidade: int) -> None:
+def em_segundo_plano(perfil, quantidade: int, tema: str = "") -> None:
     """Dispara a leva num processo separado e volta na hora (o n8n não fica esperando horas)."""
     log = (perfil.controle / "leva-ultima.log").open("w", encoding="utf-8")
     sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
-    subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", perfil.id, "leva", "--quantidade", str(quantidade)],
+    tema_args = ["--tema", tema] if tema else []  # lista de argumentos: o tema nunca passa pelo cmd.exe
+    subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", perfil.id, "leva", "--quantidade", str(quantidade),
+                      *tema_args],
                      cwd=config.RAIZ, stdout=log, stderr=subprocess.STDOUT, creationflags=sinais,
                      env={**os.environ, "PYTHONIOENCODING": "utf-8"})

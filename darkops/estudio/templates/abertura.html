@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abrindo · Projeto Canais</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
+</head>
+<body class="abertura">
+{# Tela de abertura: aparece quando o executável abre o Estúdio. Confere o que já está de pé e entra no painel;
+   o logo "voa" para a lateral pela transição entre páginas (view-transition-name: marca). #}
+<div class="abertura-palco">
+  <div class="abertura-brilho"></div>
+  <span class="logo abertura-logo">✦</span>
+  <h1 class="abertura-nome">{% for letra in 'Projeto Canais' %}<span style="--i: {{ loop.index0 }}">{{ letra if letra != ' ' else '&nbsp;'|safe }}</span>{% endfor %}</h1>
+  <p class="abertura-sub">Sua fábrica de vídeos está ligando</p>
+  <ul class="abertura-etapas">
+    <li data-etapa="estudio"><i></i><span>Estúdio</span><b>pronto</b></li>
+    <li data-etapa="n8n"><i></i><span>n8n (postagem 12h e 19h)</span><b>conferindo…</b></li>
+    <li data-etapa="nuvem"><i></i><span>Nuvem (PC desligado)</span><b>conferindo…</b></li>
+    <li data-etapa="whatsapp"><i></i><span>WhatsApp</span><b>conferindo…</b></li>
+  </ul>
+  <div class="abertura-barra"><span></span></div>
+  <p class="abertura-versao">v{{ autoria.VERSAO }} · por {{ autoria.AUTOR }}</p>
+</div>
+<script>
+(function () {
+  const destino = "{{ url_for('inicio') }}";
+  const calmo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const marcar = (id, ok, texto) => {
+    const li = document.querySelector(`[data-etapa="${id}"]`);
+    li.classList.add(ok === true ? 'ok' : ok === false ? 'off' : 'espera');
+    li.querySelector('b').textContent = texto;
+  };
+  setTimeout(() => marcar('estudio', true, 'pronto'), calmo ? 0 : 500);
+  fetch("{{ url_for('abertura_estado') }}", {cache: 'no-store'}).then(r => r.json()).then(e => {
+    const passos = [
+      () => marcar('n8n', e.n8n === 'ligado' ? true : e.n8n === 'ligando' ? null : false,
+                   {ligado: 'ligado', ligando: 'ligando em segundo plano', desligado: 'desligado'}[e.n8n]),
+      () => marcar('nuvem', e.nuvem ? true : false, e.nuvem ? 'de reserva' : 'desligada'),
+      () => marcar('whatsapp', e.whatsapp === 'ligado' ? true : e.whatsapp === 'ligando' ? null : false,
+                   {ligado: 'conectado', ligando: 'conectando…', desligado: 'desligado'}[e.whatsapp]),
+    ];
+    passos.forEach((f, i) => setTimeout(f, calmo ? 0 : 900 + i * 380));
+  }).catch(() => {});
+  // entra no painel depois da animação (ou na hora, para quem pediu menos movimento)
+  setTimeout(() => location.replace(destino), calmo ? 400 : 3200);
+})();
+</script>
+</body>
+</html>

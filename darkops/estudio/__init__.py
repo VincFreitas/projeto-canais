@@ -206,7 +206,7 @@ def _conexoes(p) -> dict:
 
 def _proximos_horarios(p, quantidade: int = 4) -> list[str]:
     horarios = sorted(p.dados.get("horarios", ["12:00", "19:00"]))
-    agora, saida, dia = datetime.now(), [], 0
+    agora, saida, dia = datetime.now(canal_nuvem.BRASILIA).replace(tzinfo=None), [], 0  # o n8n posta no horário de Brasília
     while len(saida) < quantidade and dia < 10:
         data = (agora + timedelta(days=dia)).date()
         for h in horarios:
@@ -284,7 +284,15 @@ def inicio():
 
 @app.get("/perfis")
 def perfis_pagina():
-    return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True))
+    return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True), nichos=config.nichos())
+
+
+@app.post("/perfis/sugerir")
+def sugerir_nomes():
+    """Nomes, @ e bio para o canal novo: pede ao Claude Code (sem ferramentas, só texto); sem ele, sugestões prontas."""
+    from ..perfis import sugerir_nomes as sugerir
+    pedido = request.get_json(silent=True) or {}
+    return jsonify(sugerir(str(pedido.get("nicho", ""))[:80], str(pedido.get("formato", "vertical"))))
 
 
 @app.get("/progresso")
@@ -505,6 +513,20 @@ def versao_json():
     return jsonify({"versao": __version__})
 
 
+@app.get("/abertura")
+def abertura():
+    """Tela animada de quando o executável abre o Estúdio; confere o que já está de pé e entra no painel."""
+    return render_template("abertura.html")
+
+
+@app.get("/abertura/estado")
+def abertura_estado():
+    from ..app import n8n_ligando
+    from .. import whatsapp
+    n8n = "ligado" if _n8n_online() else "ligando" if n8n_ligando() else "desligado"
+    return jsonify({"n8n": n8n, "nuvem": canal_nuvem.configurada(), "whatsapp": whatsapp.situacao()})
+
+
 @app.post("/novidade/vista")
 def novidade_vista():
     from .. import app as app_local
@@ -600,7 +622,79 @@ def conexoes(pid):
     return render_template("conexoes.html", p=p, d=p.dados, conexoes=con, grupos=grupos,
                            tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists(),
                            nuvem=_status_nuvem(p), nuvem_repo=_env().get("NUVEM_REPO", ""),
-                           passagem_repo=_env().get("NUVEM_VIDEOS_REPO", ""))
+                           passagem_repo=_env().get("NUVEM_VIDEOS_REPO", ""), whatsapp=_status_whatsapp())
+
+
+WHATSAPP_CAMPOS = [("WHATSAPP_TOKEN", True), ("WHATSAPP_NUMERO_ID", False), ("WHATSAPP_PARA", False),
+                   ("WHATSAPP_APP_ID", False), ("WHATSAPP_APP_SECRET", True), ("WHATSAPP_MODELO", False)]
+
+
+def _status_whatsapp() -> dict:
+    from .. import whatsapp
+    estado, env = whatsapp.ler_estado(), _env()
+    return {"situacao": whatsapp.situacao(), "configurado": whatsapp.configurado(),
+            "comandos": whatsapp.recebe_comandos(), "janela": whatsapp.janela_aberta(),
+            "guardados": len(estado.get("pendentes", [])), "erro": estado.get("tunel_erro", ""),
+            "valores": {k: ("" if segredo else env.get(k, "")) for k, segredo in WHATSAPP_CAMPOS},
+            "salvas": {k: bool(env.get(k)) for k, _ in WHATSAPP_CAMPOS}}
+
+
+@app.post("/p/<pid>/whatsapp")
+def whatsapp_salvar(pid):
+    """Salva os dados do WhatsApp (segredo vazio = mantém o salvo), testa mandando uma mensagem e, com o app
+    completo, liga os comandos: workflow no n8n, túnel e webhook."""
+    from .. import whatsapp
+    p = _perfil(pid)
+    novos = {}
+    for chave, segredo in WHATSAPP_CAMPOS:
+        valor = request.form.get(chave, "").strip()
+        if chave == "WHATSAPP_PARA":
+            valor = re.sub(r"\D", "", valor)
+        if valor or not segredo:
+            novos[chave] = valor
+    _salvar_env({k: v for k, v in novos.items() if v})
+    for chave, valor in novos.items():
+        if valor:
+            os.environ[chave] = valor
+    if not whatsapp.configurado():
+        flash("Faltam o token, o ID do número ou o seu número.", "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+    try:
+        numero = whatsapp.testar()
+        flash(f"WhatsApp conectado pelo número {numero}: confira a mensagem no seu celular.", "ok")
+    except (SystemExit, OSError, whatsapp.ErroMeta) as erro:
+        flash(seguranca.ocultar(f"O WhatsApp recusou: {erro}"), "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+    passos = []
+    if whatsapp.recebe_comandos():
+        passos.append(["whatsapp", "n8n"])
+    if canal_nuvem.configurada():
+        passos.append(["nuvem-segredos"])
+    if passos:
+        job = _iniciar_job(p, "Ligar os comandos do WhatsApp", passos)
+        threading.Thread(target=_religar_whatsapp, daemon=True).start()
+        return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#whatsapp"))
+    return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+
+
+def _religar_whatsapp() -> None:
+    """Depois de importar o workflow: reinicia o n8n se ele ainda não escuta o WhatsApp e refaz o túnel."""
+    from .. import whatsapp
+    from ..app import reiniciar_n8n
+    from ..instalacao import webhook_whatsapp_ativo
+    time.sleep(20)  # dá tempo da importação terminar
+    if _n8n_online() and not webhook_whatsapp_ativo():
+        reiniciar_n8n()
+    whatsapp.ligar()
+
+
+@app.post("/p/<pid>/whatsapp/religar")
+def whatsapp_religar(pid):
+    from .. import whatsapp
+    _perfil(pid)
+    whatsapp.ligar()
+    flash("Ligando os comandos do WhatsApp: leva uns 20 segundos.", "ok")
+    return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
 
 
 @app.post("/p/<pid>/conexoes/chaves")
@@ -1359,6 +1453,8 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     # no Windows dois servidores conseguem ocupar a mesma porta e responder misturado: não abre outro.
     # Num reinício pela atualização, espera o Estúdio antigo fechar (até 20 s).
     from ..app import ligar_n8n
+    from .. import whatsapp
+    whatsapp.ligar()  # comandos pelo WhatsApp: porteiro + túnel (em segundo plano; só se estiver configurado)
     ligar_n8n()  # a postagem das 12h e 19h depende do n8n; rápido (só confere e dispara), vale até com o Estúdio já aberto
     if canal_nuvem.configurada():  # traz o que a nuvem postou com o PC desligado e manda os aprovados novos
         def _sincronizar_nuvem():
@@ -1378,11 +1474,11 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     else:
         print(f"O Estúdio já está aberto em {url}")
         if abrir:
-            webbrowser.open(url)
+            webbrowser.open(url + "/abertura")
         return
     print(f"Estúdio em {url} (Ctrl+C para fechar)")
     if abrir and not reinicio:  # no reinício a aba aberta só recarrega, sem abrir outra
-        threading.Timer(1.0, lambda: webbrowser.open(url)).start()
+        threading.Timer(1.0, lambda: webbrowser.open(url + "/abertura")).start()
     os.environ["PORT"] = str(porta)  # o Estúdio reaberto depois de uma atualização usa a mesma porta
     threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
     app.run(host="127.0.0.1", port=porta, debug=False, threaded=True)

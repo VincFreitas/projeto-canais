@@ -31,6 +31,10 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       NUVEM_VIDEOS_REPO: ${{ secrets.NUVEM_VIDEOS_REPO }}   # repositório público de passagem (Instagram)
       NUVEM_TOKEN: ${{ secrets.NUVEM_TOKEN }}
+      WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}           # avisos de postagem e falha no WhatsApp do dono
+      WHATSAPP_NUMERO_ID: ${{ secrets.WHATSAPP_NUMERO_ID }}
+      WHATSAPP_PARA: ${{ secrets.WHATSAPP_PARA }}
+      WHATSAPP_MODELO: ${{ secrets.WHATSAPP_MODELO }}
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
       NODES_EXCLUDE: '["n8n-nodes-base.localFileTrigger"]'

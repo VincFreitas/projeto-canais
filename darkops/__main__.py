@@ -177,6 +177,8 @@ def cmd_publicar_instagram(a):
                 from .seguranca import ocultar
                 registrar_falha("Publicar no Instagram", ocultar(str(erro)))
                 marcar(slug, "instagram", "erro")
+                from . import whatsapp
+                whatsapp.falhou(carregar(), "Publicar no Instagram", str(erro))
                 print(f"o Instagram falhou ({ocultar(str(erro))}); registrado em falhas.log, a fila continua")
                 _resultado({"slug": slug, "instagram": None, "erro": True})
                 return
@@ -441,6 +443,8 @@ def cmd_fila_concluir(a):
     resultado = concluir(caminho, roteiro, duracao(video))
     perfil = carregar()
     nuvem.registrar_slot(perfil, slug)
+    from . import whatsapp
+    whatsapp.postado(perfil, roteiro, caminho, resultado["ids"], "GitHub (nuvem)" if nuvem.na_nuvem() else "PC")
     if nuvem.configurada() and not nuvem.na_nuvem():
         try:
             nuvem.sincronizar(perfil)  # avisa a nuvem já, para ela não repetir este horário
@@ -487,9 +491,43 @@ def cmd_nuvem(a):
 
 
 def cmd_registrar_falha(a):
+    from . import whatsapp
     from .fila import registrar_falha
+    from .perfis import carregar
     registrar_falha(a.etapa, a.mensagem)
+    whatsapp.falhou(carregar(), a.etapa, a.mensagem)
     _resultado({"registrado": True})
+
+
+def cmd_whatsapp(a):
+    from . import whatsapp
+    if a.acao == "testar":
+        print(f"ok: mensagem de teste enviada pelo número {whatsapp.testar()}")
+    elif a.acao == "resumo":
+        whatsapp.resumo_do_dia()
+        print("resumo enviado (ou guardado até a próxima mensagem do dono)")
+    elif a.acao == "n8n":
+        from .instalacao import gerar_workflow_whatsapp
+        gerar_workflow_whatsapp(importar=True)
+    else:
+        estado = whatsapp.ler_estado()
+        print(json.dumps({"situacao": whatsapp.situacao(), "recebe_comandos": whatsapp.recebe_comandos(),
+                          "janela_aberta": whatsapp.janela_aberta(), "avisos_guardados": len(estado.get("pendentes", [])),
+                          "tunel": estado.get("tunel", ""), "erro": estado.get("tunel_erro", "")}, ensure_ascii=False))
+
+
+def cmd_whatsapp_receber(a):
+    """Chamado pelo n8n quando chega uma mensagem (o porteiro já conferiu a assinatura da Meta)."""
+    import re as _re
+    from . import whatsapp
+    if a.arquivo == "verificar":
+        _resultado({"ok": True})
+        return
+    nome = _re.sub(r"[^\w.-]", "", a.arquivo)
+    arquivo = whatsapp.ENTRADA / nome
+    if not nome.endswith(".json") or not arquivo.exists():
+        sys.exit("entrega do WhatsApp não encontrada")
+    _resultado({"tratadas": whatsapp.receber(arquivo)})
 
 
 def cmd_identidade(a):
@@ -684,6 +722,14 @@ def main():
     s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota no testes.csv do perfil")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_fila_concluir)
+
+    s = sub.add_parser("whatsapp", help="WhatsApp do dono: testar, status, resumo ou n8n (importa o workflow de comandos)")
+    s.add_argument("acao", choices=["testar", "status", "resumo", "n8n"], nargs="?", default="status")
+    s.set_defaults(fn=cmd_whatsapp)
+
+    s = sub.add_parser("whatsapp-receber", help="processa uma mensagem recebida do WhatsApp (chamado pelo n8n)")
+    s.add_argument("--arquivo", required=True)
+    s.set_defaults(fn=cmd_whatsapp_receber)
 
     s = sub.add_parser("registrar-falha", help="anota um erro do workflow em controle/falhas.log")
     s.add_argument("--etapa", required=True)
