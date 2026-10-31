@@ -33,7 +33,7 @@ a { color: inherit; }
 .bolinha { width: 9px; height: 9px; border-radius: 50%; background: #5b5650; }
 .bolinha.ligado { background: #3ddc84; box-shadow: 0 0 0 3px #3ddc8433; }
 .novo-perfil, .menu a { padding: 8px 10px; border-radius: 10px; text-decoration: none; color: #d9d3ca; }
-.novo-perfil:hover, .menu a:hover { background: #2d2a26; }
+.novo-perfil:hover, .menu a:hover, .menu a.ativo { background: #2d2a26; }
 .conteudo { flex: 1; padding: 28px 36px 60px; max-width: 1180px; }
 .topo { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
 .quem { display: flex; align-items: center; gap: 14px; }

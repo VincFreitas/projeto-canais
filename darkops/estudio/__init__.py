@@ -259,7 +259,13 @@ def _contexto():
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
-            "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado()}
+            "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado(),
+            "whatsapp_ligado": _whatsapp_ligado()}
+
+
+def _whatsapp_ligado() -> bool:
+    from .. import whatsapp
+    return whatsapp.configurado()
 
 
 def _avancado() -> bool:
@@ -636,15 +642,22 @@ def _status_whatsapp() -> dict:
             "comandos": whatsapp.recebe_comandos(), "janela": whatsapp.janela_aberta(),
             "guardados": len(estado.get("pendentes", [])), "erro": estado.get("tunel_erro", ""),
             "valores": {k: ("" if segredo else env.get(k, "")) for k, segredo in WHATSAPP_CAMPOS},
-            "salvas": {k: bool(env.get(k)) for k, _ in WHATSAPP_CAMPOS}}
+            "salvas": {k: bool(env.get(k)) for k, _ in WHATSAPP_CAMPOS},
+            "canal_atual": (whatsapp._perfil_atual().id if whatsapp._perfil_atual() else "")}
 
 
-@app.post("/p/<pid>/whatsapp")
-def whatsapp_salvar(pid):
+@app.get("/whatsapp")
+def whatsapp_pagina():
+    """Um WhatsApp para todos os canais: conecta uma vez, vale também para os canais criados depois."""
+    return render_template("whatsapp.html", whatsapp=_status_whatsapp())
+
+
+@app.post("/whatsapp")
+def whatsapp_salvar():
     """Salva os dados do WhatsApp (segredo vazio = mantém o salvo), testa mandando uma mensagem e, com o app
     completo, liga os comandos: workflow no n8n, túnel e webhook."""
     from .. import whatsapp
-    p = _perfil(pid)
+    voltar = url_for("whatsapp_pagina")
     novos = {}
     for chave, segredo in WHATSAPP_CAMPOS:
         valor = request.form.get(chave, "").strip()
@@ -658,23 +671,26 @@ def whatsapp_salvar(pid):
             os.environ[chave] = valor
     if not whatsapp.configurado():
         flash("Faltam o token, o ID do número ou o seu número.", "erro")
-        return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+        return redirect(voltar)
     try:
         numero = whatsapp.testar()
-        flash(f"WhatsApp conectado pelo número {numero}: confira a mensagem no seu celular.", "ok")
+        flash(f"WhatsApp conectado pelo número {numero} para todos os canais: confira a mensagem no seu celular.", "ok")
     except (SystemExit, OSError, whatsapp.ErroMeta) as erro:
         flash(seguranca.ocultar(f"O WhatsApp recusou: {erro}"), "erro")
-        return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+        return redirect(voltar)
     passos = []
     if whatsapp.recebe_comandos():
         passos.append(["whatsapp", "n8n"])
     if canal_nuvem.configurada():
         passos.append(["nuvem-segredos"])
-    if passos:
-        job = _iniciar_job(p, "Ligar os comandos do WhatsApp", passos)
+    perfis = listar()
+    if passos and perfis:  # a tela de acompanhar é de um canal; o trabalho vale para todos
+        job = _iniciar_job(perfis[0], "Ligar os comandos do WhatsApp", passos)
         threading.Thread(target=_religar_whatsapp, daemon=True).start()
-        return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#whatsapp"))
-    return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+        return redirect(url_for("acompanhar", pid=perfis[0].id, job=job, voltar=voltar))
+    if passos:
+        threading.Thread(target=_religar_whatsapp, daemon=True).start()
+    return redirect(voltar)
 
 
 def _religar_whatsapp() -> None:
@@ -688,13 +704,12 @@ def _religar_whatsapp() -> None:
     whatsapp.ligar()
 
 
-@app.post("/p/<pid>/whatsapp/religar")
-def whatsapp_religar(pid):
+@app.post("/whatsapp/religar")
+def whatsapp_religar():
     from .. import whatsapp
-    _perfil(pid)
     whatsapp.ligar()
     flash("Ligando os comandos do WhatsApp: leva uns 20 segundos.", "ok")
-    return redirect(url_for("conexoes", pid=pid) + "#whatsapp")
+    return redirect(url_for("whatsapp_pagina"))
 
 
 @app.post("/p/<pid>/conexoes/chaves")

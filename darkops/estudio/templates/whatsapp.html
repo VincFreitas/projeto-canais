@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block titulo %}WhatsApp{% endblock %}
+{% block corpo %}
+<h1 style="margin-top:0">WhatsApp</h1>
+<p class="suave" style="max-width:720px">Conecte uma vez e vale para <b>todos os canais</b>, inclusive os que você criar depois.
+  Cada aviso traz o nome do canal; nos comandos, <i>status</i> mostra todos, e <i>canal &lt;nome&gt;</i> escolhe em qual
+  os próximos comandos valem (<i>pausar todos</i> e <i>retomar todos</i> valem para todos de uma vez).</p>
+{% set w = whatsapp %}
+<section class="grupo" id="whatsapp">
+  <div class="conectores" style="grid-template-columns: minmax(0, 760px)">
+  <article class="conector {{ 'ok' if w.configurado else 'falta' }}">
+    <header>
+      <div><h3>WhatsApp: avisos e comandos no celular</h3><span class="escopo">todos os canais</span></div>
+      <span class="estado {{ 'ok' if w.configurado else 'falta' }}">
+        {% if not w.configurado %}✗ desligado{% elif w.comandos and w.situacao == 'ligado' %}✓ avisos e comandos{% elif w.comandos %}conectando comandos…{% else %}✓ só avisos{% endif %}</span>
+    </header>
+    <p class="funcao">Avisa quando um vídeo vai ao ar, quando algo falha, quando a fila está acabando e manda cada vídeo novo
+      com os botões <b>Aprovar</b> e <b>Recusar</b>. Você também manda comandos: <i>status</i>, <i>fila</i>, <i>criar 3</i>,
+      <i>criar sobre &lt;tema&gt;</i>, <i>pausar</i>, <i>retomar</i>, <i>ajustar &lt;pedido&gt;</i>.</p>
+    <p class="dica">💲 API oficial da Meta. Responder em até 24 h depois da sua última mensagem é grátis; fora disso, o aviso
+      fica guardado e chega quando você escrever (ou usa um modelo aprovado, que custa centavos). Comandos funcionam com o PC ligado.</p>
+    {% if w.configurado %}
+      <ul class="lista">
+        <li><span>Conversa aberta (24 h)</span><b>{{ 'sim' if w.janela else 'não: mande "oi" para abrir' }}</b></li>
+        <li><span>Avisos guardados</span><b>{{ w.guardados }}</b></li>
+        {% if w.erro %}<li><span>Comandos</span><b class="ok-x nao">{{ w.erro }}</b></li>{% endif %}
+      </ul>
+      {% if w.comandos %}
+      <form method="post" action="{{ url_for('whatsapp_religar') }}" style="margin-top:8px">
+        <button class="botao pequeno secundario">Religar os comandos</button></form>
+      {% endif %}
+    {% else %}
+      <ol class="passos">
+        <li>Crie um app <b>novo</b> só para o WhatsApp (o do Instagram não aceita esse uso):
+          <a href="https://developers.facebook.com/apps/creation/" target="_blank" rel="noopener">Criar app ↗</a> &gt; nome
+          (ex.: <i>Pulga do Saber WhatsApp</i>) &gt; caso de uso <b>Conectar-se com clientes pelo WhatsApp</b> &gt; escolha o
+          seu portfólio empresarial (o mesmo da Página do Facebook) &gt; Criar app.</li>
+        <li>No app novo: <b>Casos de uso</b> &gt; WhatsApp &gt; <b>Personalizar</b> &gt; <b>Configuração da API</b>. Copie a
+          <b>Identificação do número de telefone</b> (o número de teste grátis serve) e, em <b>Para</b>, cadastre o seu celular
+          (a Meta manda um código pelo WhatsApp para confirmar).</li>
+        <li>Token permanente: <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener">Usuários
+          do sistema ↗</a> &gt; <b>Adicionar</b> (função Administrador) &gt; <b>Atribuir ativos</b> &gt; Apps &gt; o app novo com
+          controle total &gt; <b>Gerar token</b> &gt; o app novo, validade <b>Nunca</b>, permissões
+          <i>whatsapp_business_messaging</i> e <i>whatsapp_business_management</i>.</li>
+        <li>Para os comandos: no app novo, <b>Configurações do app &gt; Básico</b>: copie o <b>ID do app</b> e a <b>Chave
+          secreta do app</b> (botão Mostrar).</li>
+      </ol>
+    {% endif %}
+    <details class="mais" {{ 'open' if not w.configurado }}>
+      <summary>{{ 'Trocar os dados do WhatsApp' if w.configurado else 'Colar os dados' }}</summary>
+      <form method="post" action="{{ url_for('whatsapp_salvar') }}" class="campos-chave">
+        <input type="password" name="WHATSAPP_TOKEN" autocomplete="off"
+               placeholder="token permanente{{ ' (salvo, deixe vazio para manter)' if w.salvas.WHATSAPP_TOKEN }}">
+        <input type="text" name="WHATSAPP_NUMERO_ID" value="{{ w.valores.WHATSAPP_NUMERO_ID }}" placeholder="Identificação do número de telefone (Phone number ID)">
+        <input type="text" name="WHATSAPP_PARA" value="{{ w.valores.WHATSAPP_PARA }}" placeholder="seu celular com DDI e DDD (ex.: 5511999998888)">
+        <input type="text" name="WHATSAPP_APP_ID" value="{{ w.valores.WHATSAPP_APP_ID }}" placeholder="ID do app (para os comandos)">
+        <input type="password" name="WHATSAPP_APP_SECRET" autocomplete="off"
+               placeholder="chave secreta do app (para os comandos){{ ' (salva, deixe vazio para manter)' if w.salvas.WHATSAPP_APP_SECRET }}">
+        <input type="text" name="WHATSAPP_MODELO" value="{{ w.valores.WHATSAPP_MODELO }}" placeholder="modelo aprovado para avisos fora das 24 h (opcional)">
+        <button class="botao pequeno">Salvar e mandar mensagem de teste</button>
+      </form>
+    </details>
+  </article>
+  </div>
+</section>
+
+{% if perfis %}
+<h2 style="margin-top:22px">Canais que recebem avisos</h2>
+<div class="grade">
+  {% for item in perfis %}
+  <div class="cartao canal-mini">
+    <img src="{{ url_for('avatar', pid=item.id) }}" alt="">
+    <div><b>{{ item.dados.nome }}</b><br><span class="suave">{{ '✓ avisos ligados' if whatsapp.configurado else 'aguardando conectar' }}{{ ' · comandos valem aqui' if item.id == whatsapp.canal_atual }}</span></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -103,6 +103,7 @@
           <li><span>Nome</span><b data-ver="nome"></b></li>
           <li><span>Formato</span><b data-ver="formato"></b></li>
           <li><span>Plataformas</span><b data-ver="redes"></b></li>
+          <li><span>WhatsApp</span><b>{{ '✓ já conectado: os avisos deste canal chegam no mesmo número' if whatsapp_ligado else 'opcional: conecte uma vez e vale para todos os canais' }}</b></li>
         </ul>
         <label for="descricao">Bio do canal (opcional)</label>
         <textarea name="descricao" id="descricao" rows="3" maxlength="300" placeholder="Uma frase que diz o que o canal entrega. Ex.: Mistérios reais explicados em 1 minuto."></textarea>

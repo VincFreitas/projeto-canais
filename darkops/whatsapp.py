@@ -286,7 +286,7 @@ AJUDA = ("Comandos do Projeto Canais:\n"
          "• *fila*: o que vai ao ar e o que espera aprovação\n"
          "• *aprovar*: manda o próximo vídeo para você aprovar (*aprovar todos* aprova os prontos)\n"
          "• *criar 3*: cria 3 vídeos novos  ·  *criar sobre <tema>*: um vídeo sobre o tema\n"
-         "• *pausar* / *retomar*: para ou volta a postagem\n"
+         "• *pausar* / *retomar*: para ou volta a postagem (*pausar todos* / *retomar todos*: todos os canais)\n"
          "• *ajustar <pedido>*: a IA propõe uma mudança no canal (você aprova antes)\n"
          "• *canal <nome>*: escolhe o canal dos próximos comandos")
 
@@ -444,6 +444,16 @@ def processar(texto: str) -> str | None:
             return "Canais: " + ", ".join(p.dados["nome"] for p in _perfis())
         _gravar_estado(perfil=achado.id)
         return f"Ok, os próximos comandos valem para *{achado.dados['nome']}*."
+    if t.startswith(("pausar todos", "parar todos", "retomar todos", "ligar todos")):
+        ativo = t.startswith(("retomar", "ligar"))
+        for p in _perfis():
+            p.salvar({"ativo": ativo})
+        return ("▶️ Todos os canais no ar: " if ativo else "⏸️ Todos os canais pausados: ") + \
+            ", ".join(p.dados["nome"] for p in _perfis())
+    if len(_perfis()) > 1 and not ler_estado().get("perfil"):
+        _gravar_estado(perfil=perfil.id)  # com vários canais, diz uma vez em qual os comandos valem
+        enviar(f"ℹ️ Você tem {len(_perfis())} canais; os comandos valem para *{perfil.dados['nome']}*. "
+               "Para trocar: *canal <nome>*.")
     if t.startswith("aprovar todos"):
         respostas = [_decidir_video(perfil, r.name, True) for r in _pendentes(perfil)]
         return "\n".join(respostas) or "Nenhum vídeo pronto esperando aprovação."

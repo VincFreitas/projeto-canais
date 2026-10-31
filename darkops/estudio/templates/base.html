@@ -21,6 +21,10 @@
     {% endfor %}
     <a href="{{ url_for('perfis_pagina') }}" class="novo-perfil">+ Novo canal</a>
   </nav>
+  <nav class="menu" style="margin-top:6px">
+    <a href="{{ url_for('whatsapp_pagina') }}" class="{{ 'ativo' if request.endpoint == 'whatsapp_pagina' }}" title="Vale para todos os canais">
+      WhatsApp <i class="bolinha {{ 'ligado' if whatsapp_ligado }}" style="display:inline-block;margin-left:6px"></i></a>
+  </nav>
   {% if avancado or guiado %}
   <p class="rotulo">Geral</p>
   <nav class="menu">
