@@ -77,6 +77,8 @@ def marcar(slug: str, plataforma: str, midia_id: str, perfil=None) -> None:
 
 
 def url(plataforma: str, midia_id: str, perfil=None) -> str:
+    if midia_id == "erro":
+        return "falhou (ver falhas.log)"  # tentativa registrada: não trava a fila
     if plataforma == "youtube":
         return f"https://youtu.be/{midia_id}"
     arroba = _perfil(perfil).dados.get("arroba", "").lstrip("@")

@@ -169,7 +169,17 @@ def cmd_publicar_instagram(a):
             print(f"já está no perfil (postado pelo PC): mídia {midia_id}")
         else:
             print(f"publicando Reel de {video.name}")
-            midia_id = publicar_reel(video, legenda)
+            try:
+                midia_id = publicar_reel(video, legenda)
+            except (SystemExit, OSError, ValueError) as erro:
+                # o Instagram não segura a fila: o vídeo segue no YouTube e o próximo horário recebe o próximo vídeo
+                from .fila import registrar_falha
+                from .seguranca import ocultar
+                registrar_falha("Publicar no Instagram", ocultar(str(erro)))
+                marcar(slug, "instagram", "erro")
+                print(f"o Instagram falhou ({ocultar(str(erro))}); registrado em falhas.log, a fila continua")
+                _resultado({"slug": slug, "instagram": None, "erro": True})
+                return
         marcar(slug, "instagram", midia_id)
         print(f"pronto: mídia {midia_id}")
     _resultado({"slug": slug, "instagram": midia_id})
@@ -459,6 +469,16 @@ def cmd_nuvem(a):
         print(json.dumps(nuvem.sincronizar(carregar()), ensure_ascii=False))
     elif a.acao == "segredos":
         print("segredos atualizados:", ", ".join(nuvem.enviar_segredos(listar())))
+    elif a.acao == "instagram":
+        # prova real sem postar: a Meta baixa o vídeo pelo link de passagem e processa, mas nada é publicado
+        from .fila import proximo
+        from .instagram import publicar_reel
+        roteiro = proximo()
+        if not roteiro:
+            sys.exit("nenhum vídeo aprovado na fila para testar")
+        _, _, _, video = _roteiro_e_video(str(roteiro), "vertical")
+        conteiner = publicar_reel(video, "teste (não publicado)", publicar=False)
+        print(f"ok: a Meta baixou e processou {video.name} pelo link de passagem (contêiner {conteiner}, não publicado)")
     elif a.acao == "testar":
         nuvem.disparar(simular=True)
         print("workflow da nuvem iniciado em simulação; veja em Actions no repositório de fila")
@@ -627,6 +647,7 @@ def main():
                         ("segredos", "reenvia os tokens do YouTube e do Instagram para a nuvem"),
                         ("status", "quantos vídeos a nuvem tem e quem postou por último"),
                         ("testar", "roda o workflow da nuvem agora, em simulação (não publica)"),
+                        ("instagram", "testa o link de passagem do Instagram sem publicar nada"),
                         ("preparar", "(usado no GitHub Actions) monta a fila, os vídeos e as credenciais"),
                         ("devolver", "(usado no GitHub Actions) devolve o estado para o repositório de fila")]:
         s = sub.add_parser(f"nuvem-{acao}", help=ajuda)

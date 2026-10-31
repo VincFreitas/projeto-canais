@@ -599,7 +599,8 @@ def conexoes(pid):
                                  for c in g.conectores]} for g in GRUPOS]
     return render_template("conexoes.html", p=p, d=p.dados, conexoes=con, grupos=grupos,
                            tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists(),
-                           nuvem=_status_nuvem(p), nuvem_repo=_env().get("NUVEM_REPO", ""))
+                           nuvem=_status_nuvem(p), nuvem_repo=_env().get("NUVEM_REPO", ""),
+                           passagem_repo=_env().get("NUVEM_VIDEOS_REPO", ""))
 
 
 @app.post("/p/<pid>/conexoes/chaves")
@@ -739,12 +740,31 @@ def nuvem_salvar(pid):
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#nuvem"))
 
 
+@app.post("/p/<pid>/nuvem/passagem")
+def nuvem_passagem(pid):
+    """Repositório PÚBLICO de passagem: o Instagram só aceita o vídeo por um link público."""
+    p = _perfil(pid)
+    repo = request.form.get("repo", "").strip().removeprefix("https://github.com/").strip("/")
+    antigo = os.environ.get("NUVEM_VIDEOS_REPO")
+    os.environ["NUVEM_VIDEOS_REPO"] = repo
+    try:
+        canal_nuvem.conferir_passagem()
+    except SystemExit as erro:
+        os.environ.pop("NUVEM_VIDEOS_REPO", None) if antigo is None else os.environ.update({"NUVEM_VIDEOS_REPO": antigo})
+        flash(seguranca.ocultar(str(erro)), "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#nuvem")
+    _salvar_env({"NUVEM_VIDEOS_REPO": repo})
+    job = _iniciar_job(p, "Ligar o Instagram na nuvem", [["nuvem-configurar"]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#nuvem"))
+
+
 @app.post("/p/<pid>/nuvem/<acao>")
 def nuvem_acao(pid, acao):
     p = _perfil(pid)
-    if acao not in ("sincronizar", "testar", "configurar", "segredos"):
+    if acao not in ("sincronizar", "testar", "configurar", "segredos", "instagram"):
         abort(404)
     titulos = {"sincronizar": "Sincronizar com a nuvem", "testar": "Testar a nuvem (simulação)",
+               "instagram": "Testar o Instagram pelo link de passagem (não publica)",
                "configurar": "Preparar a nuvem", "segredos": "Atualizar as credenciais na nuvem"}
     job = _iniciar_job(p, titulos[acao], [[f"nuvem-{acao}"]])
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#nuvem"))

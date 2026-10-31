@@ -13,7 +13,6 @@ from . import config
 
 VERSAO = "v23.0"
 GRAPH = f"https://graph.instagram.com/{VERSAO}"
-RUPLOAD = f"https://rupload.facebook.com/ig-api-upload/{VERSAO}"
 
 
 def token() -> str:
@@ -62,19 +61,33 @@ def legenda_instagram(roteiro: dict, video: Path | None = None, publicacao: dict
     return (f"{texto}\n\n{' '.join(hashtags)}" if hashtags else texto)[:2200]
 
 
-def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600) -> str:
-    """Cria o contêiner, envia o vídeo, espera o processamento e publica. Devolve o ID da mídia."""
+def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600, publicar: bool = True) -> str:
+    """Cria o contêiner, espera o processamento e publica. Devolve o ID da mídia (ou do contêiner, sem publicar).
+
+    Com o Instagram Login (graph.instagram.com) a Meta não aceita o envio do arquivo (upload resumível é só do
+    Facebook Login for Business): o contêiner exige um video_url público. O vídeo passa pelo repositório
+    público de passagem (nuvem.video_publico) só enquanto a Meta baixa, e é apagado em seguida."""
+    from . import nuvem
+    if not nuvem.passagem_configurada():
+        raise SystemExit("o Instagram precisa de um link público do vídeo: configure o repositório de passagem "
+                         "(Estúdio > Ajustes > Contas > Nuvem)")
     tk = token()
     ig_id = conta()["user_id"]
+    url, apagar = nuvem.video_publico(video)
+    try:
+        conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data={
+            "media_type": "REELS", "video_url": url, "caption": legenda,
+            "share_to_feed": "true", "access_token": tk}))["id"]
+        _esperar(conteiner, tk, espera_max_s)
+    finally:
+        apagar()
+    if not publicar:
+        return conteiner
+    return _checar(requests.post(f"{GRAPH}/{ig_id}/media_publish", timeout=60, data={
+        "creation_id": conteiner, "access_token": tk}))["id"]
 
-    conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data={
-        "media_type": "REELS", "upload_type": "resumable", "caption": legenda,
-        "share_to_feed": "true", "access_token": tk}))["id"]
 
-    with open(video, "rb") as f:
-        _checar(requests.post(f"{RUPLOAD}/{conteiner}", data=f, timeout=600, headers={
-            "Authorization": f"OAuth {tk}", "offset": "0", "file_size": str(video.stat().st_size)}))
-
+def _esperar(conteiner: str, tk: str, espera_max_s: int) -> None:
     inicio = time.time()
     while True:
         estado = _checar(requests.get(f"{GRAPH}/{conteiner}", timeout=30, params={
@@ -88,6 +101,3 @@ def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600) -> str:
             raise SystemExit("processamento do vídeo passou do tempo limite")
         print(f"  processando ({codigo})")
         time.sleep(10)
-
-    return _checar(requests.post(f"{GRAPH}/{ig_id}/media_publish", timeout=60, data={
-        "creation_id": conteiner, "access_token": tk}))["id"]

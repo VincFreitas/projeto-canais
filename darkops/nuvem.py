@@ -162,6 +162,68 @@ def nome_asset(pid: str, video: str) -> str:
     return f"{pid}__{video}"
 
 
+# ---------- passagem pública do vídeo (Instagram) ----------
+
+def passagem_configurada() -> bool:
+    return bool(os.getenv("NUVEM_VIDEOS_REPO") and os.getenv("NUVEM_TOKEN"))
+
+
+def _repo_passagem() -> str:
+    repo = os.getenv("NUVEM_VIDEOS_REPO", "").strip().removeprefix("https://github.com/").strip("/")
+    if not re.match(r"^[\w.-]+/[\w.-]+$", repo):
+        raise SystemExit("NUVEM_VIDEOS_REPO precisa ser dono/repositório (ex.: VincFreitas/projeto-canais-videos)")
+    return repo
+
+
+def conferir_passagem() -> dict:
+    """O repositório de passagem precisa ser PÚBLICO (a Meta baixa o vídeo de lá) e o token precisa escrever nele."""
+    status, dados = _pedir("GET", f"/repos/{_repo_passagem()}")
+    if status != 200:
+        raise SystemExit(f"o token não enxerga {_repo_passagem()}: acrescente esse repositório ao token do GitHub "
+                         "(Contents: leitura e escrita)")
+    if dados.get("private"):
+        raise SystemExit(f"{_repo_passagem()} é privado: o de passagem precisa ser PÚBLICO para a Meta baixar o vídeo")
+    if not (dados.get("permissions") or {}).get("push"):
+        raise SystemExit(f"o token só lê {_repo_passagem()}: dê Contents com leitura e escrita a ele")
+    return dados
+
+
+def video_publico(video: Path):
+    """O Instagram (com Instagram Login) só aceita o vídeo por um link público: sobe o arquivo para a release
+    "transito" do repositório PÚBLICO de passagem e devolve o link direto e a função que apaga depois.
+    O vídeo fica lá só enquanto a Meta baixa (1 a 2 minutos) e vai ao ar em seguida."""
+    repo = _repo_passagem()
+    status, rel = _pedir("GET", f"/repos/{repo}/releases/tags/transito")
+    if status != 200:
+        if _pedir("GET", f"/repos/{repo}/contents/LEIA-ME.md")[0] != 200:  # a release precisa de um commit
+            _pedir("PUT", f"/repos/{repo}/contents/LEIA-ME.md", {
+                "message": "passagem: criar",
+                "content": base64.b64encode("# Passagem de vídeos do Projeto Canais\n\nCada vídeo fica aqui só "
+                                            "enquanto o Instagram baixa, e é apagado em seguida.\n".encode()).decode()})
+        _, rel = _pedir("POST", f"/repos/{repo}/releases", {"tag_name": "transito", "name": "Passagem",
+                                                             "body": "Vídeos de passagem para o Instagram."})
+    nome = f"{int(time.time())}-{video.name}"
+    _, asset = _pedir("POST", f"{UPLOADS}/repos/{repo}/releases/{rel['id']}/assets?name={urllib.parse.quote(nome)}",
+                      binario=video.read_bytes(), tipo="video/mp4")
+
+    def apagar():
+        try:
+            _pedir("DELETE", f"/repos/{repo}/releases/assets/{asset['id']}")
+        except SystemExit as erro:
+            print(f"aviso: não consegui apagar o vídeo de passagem ({erro})")
+
+    # o link de download redireciona para um endereço assinado; a Meta recebe o endereço final, sem redirecionar
+    class _SemSeguir(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *a, **k):
+            return None
+    try:
+        urllib.request.build_opener(_SemSeguir).open(asset["browser_download_url"], timeout=60)
+        url = asset["browser_download_url"]
+    except urllib.error.HTTPError as resposta:
+        url = resposta.headers.get("Location") or asset["browser_download_url"]
+    return url, apagar
+
+
 # ---------- horários (slots) ----------
 
 def slot_atual(horarios: list[str], agora: datetime | None = None) -> str | None:
@@ -355,6 +417,10 @@ def _sincronizar(perfil, enviar_videos: bool = True) -> dict:
 def enviar_segredos(perfis) -> list[str]:
     """Credenciais de cada perfil (e o app OAuth do Google) como Secrets do repositório de fila."""
     enviados = []
+    if passagem_configurada():  # a nuvem também sobe o vídeo de passagem para o Instagram
+        _segredo("NUVEM_VIDEOS_REPO", _repo_passagem())
+        _segredo("NUVEM_TOKEN", os.environ["NUVEM_TOKEN"])
+        enviados += ["NUVEM_VIDEOS_REPO", "NUVEM_TOKEN"]
     client = config.RAIZ / "credenciais" / "client_secret.json"
     if client.exists():
         _segredo("CLIENT_SECRET", client.read_text(encoding="utf-8"))

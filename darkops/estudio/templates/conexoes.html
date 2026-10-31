@@ -95,6 +95,25 @@
         <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='testar') }}"><button class="botao pequeno secundario">Testar (simulação, não publica)</button></form>
         <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='configurar') }}"><button class="botao pequeno claro">Refazer a preparação</button></form>
       </div>
+      <h4 style="margin:16px 0 4px">Instagram: repositório de passagem {% if passagem_repo %}<span class="ok-x sim">✓ {{ passagem_repo }}</span>{% else %}<span class="ok-x nao">✗ falta</span>{% endif %}</h4>
+      <p class="dica">O Instagram só aceita o vídeo por um link público. Na hora de postar (no PC ou na nuvem), o vídeo sobe
+        para um repositório <b>público</b> seu, a Meta baixa e ele é apagado em seguida (fica lá 1 a 2 minutos).</p>
+      {% if not passagem_repo %}
+      <ol class="passos">
+        <li>Crie um repositório <b>público</b> e vazio (ex.: <code>projeto-canais-videos</code>).
+          <a href="https://github.com/new" target="_blank" rel="noopener">Criar repositório ↗</a></li>
+        <li>No token que você já criou, em <b>Repository access</b>, acrescente esse repositório (Contents continua leitura e escrita).
+          <a href="https://github.com/settings/personal-access-tokens" target="_blank" rel="noopener">Abrir meus tokens ↗</a></li>
+      </ol>
+      {% endif %}
+      <form method="post" action="{{ url_for('nuvem_passagem', pid=p.id) }}" class="campos-chave">
+        <input type="text" name="repo" value="{{ passagem_repo }}" placeholder="dono/repositório público (ex.: VincFreitas/projeto-canais-videos)" required>
+        <button class="botao pequeno">{{ 'Trocar' if passagem_repo else 'Conferir e ligar o Instagram' }}</button>
+      </form>
+      {% if passagem_repo %}
+      <form method="post" action="{{ url_for('nuvem_acao', pid=p.id, acao='instagram') }}" style="margin-top:8px">
+        <button class="botao pequeno secundario">Testar o Instagram (não publica)</button></form>
+      {% endif %}
     {% else %}
       {% if nuvem.erro %}<p class="aviso erro">{{ nuvem.erro }}</p>{% endif %}
       <ol class="passos">

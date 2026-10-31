@@ -29,6 +29,8 @@ jobs:
       DARKOPS_SIMULAR: ${{ inputs.simular && '1' || '0' }}
       PYTHONIOENCODING: utf-8
       GH_TOKEN: ${{ github.token }}
+      NUVEM_VIDEOS_REPO: ${{ secrets.NUVEM_VIDEOS_REPO }}   # repositório público de passagem (Instagram)
+      NUVEM_TOKEN: ${{ secrets.NUVEM_TOKEN }}
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
       NODES_EXCLUDE: '["n8n-nodes-base.localFileTrigger"]'
