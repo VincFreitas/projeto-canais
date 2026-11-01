@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.29.2%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.30.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
@@ -36,21 +36,26 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 <img src="docs/img/whatsapp.png" width="760" alt="Tela do WhatsApp: conectado uma vez para todos os canais, com o estado da conversa e os canais que recebem avisos">
 
-## Começar em 3 passos (com o Claude Code)
+## Começar em 3 passos (com qualquer agente de IA)
 
-1. Instale o [Claude Code](https://claude.com/claude-code) e o [Python 3.11+](https://www.python.org/downloads/) (marque "Add to PATH").
-2. Clone e abra a pasta no Claude Code:
+1. Instale o [Python 3.11+](https://www.python.org/downloads/) (marque "Add to PATH") e o [Claude Code](https://claude.com/claude-code). O Claude Code é necessário mesmo que você instale com outro agente: é ele que escreve os roteiros dentro do Estúdio.
+2. Clone e abra a pasta no seu agente:
    ```
    git clone https://github.com/VincFreitas/projeto-canais.git canais-dark
    cd canais-dark
-   claude
    ```
-3. Cole este prompt:
-   > **Configure este projeto para mim do zero com a skill /configurar. Vá passo a passo, me explique cada conta que eu preciso criar e confira tudo com o diagnóstico no final.**
+   Depois rode `claude`, `codex` ou `gemini` nessa pasta, ou abra a pasta no Cursor, no VS Code com o Copilot ou no Windsurf.
+3. Cole o prompt do seu agente:
+   - **Claude Code:**
+     > **Configure este projeto para mim do zero com a skill /configurar. Vá passo a passo, me explique cada conta que eu preciso criar e confira tudo com o diagnóstico no final.**
+   - **Qualquer outro agente** (Codex, Gemini CLI, Cursor, Copilot, Windsurf...):
+     > **Leia o AGENTS.md e configure este projeto para mim do zero seguindo o docs/instalacao.md. Vá passo a passo, me explique cada conta que eu preciso criar e confira tudo com `python -m darkops diagnostico --json` no final.**
 
-Antes de instalar, o Claude pergunta **quais plataformas você quer testar**: YouTube, Instagram (os dois com postagem automática), Facebook, TikTok ou Kwai (postagem manual), ou só gerar vídeos. Depois ele instala as dependências, abre o Estúdio e mostra só o tutorial das plataformas escolhidas (Azure, Pixabay, Google Cloud, Meta e n8n, conforme o caso). O progresso de cada plataforma aparece no Estúdio, em **Progresso da configuração**, e no terminal com `python -m darkops progresso`. Logins, senhas e aceites de termos ficam sempre com você. No fim, ele gera a **identidade visual das contas** (foto de perfil, capa do YouTube, marca d'água, bio e descrição) e, só depois da sua aprovação, aplica tudo no YouTube e no Instagram pelo navegador (skill `/identidade-visual`, ou aba **Identidade** do Estúdio para revisar e aprovar).
+Os agentes leem as regras do projeto no [AGENTS.md](AGENTS.md), que é a fonte única (o `CLAUDE.md` e o `GEMINI.md` só importam esse arquivo). O passo a passo fica em [docs/instalacao.md](docs/instalacao.md).
 
-## Sem o Claude (manual)
+Antes de instalar, o agente pergunta **quais plataformas você quer testar**: YouTube, Instagram (os dois com postagem automática), Facebook, TikTok ou Kwai (postagem manual), ou só gerar vídeos. Depois ele instala as dependências, abre o Estúdio e mostra só o tutorial das plataformas escolhidas (Azure, Pixabay, Google Cloud, Meta, GitHub e n8n, conforme o caso). O progresso de cada plataforma aparece no Estúdio, em **Progresso da configuração**, e no terminal com `python -m darkops progresso` (`--json` para agentes). Logins, senhas e aceites de termos ficam sempre com você. No fim, ele gera a **identidade visual das contas** (foto de perfil, capa do YouTube, marca d'água, bio e descrição). Só depois da sua aprovação, ele aplica tudo no YouTube e no Instagram, pelo navegador que o agente controla, ou você aplica à mão. Para revisar e aprovar, use a skill `/identidade-visual` ou o Estúdio, em Ajustes > **Foto, capa e bio das contas**.
+
+## Sem agente (manual)
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File instalar.ps1     # dependências, voz offline e .env
@@ -58,7 +63,7 @@ powershell -ExecutionPolicy Bypass -File instalar.ps1     # dependências, voz o
 .\.venv\Scripts\python.exe -m darkops diagnostico        # o que falta configurar
 .\.venv\Scripts\python.exe -m darkops progresso          # etapas feitas e próximas de cada plataforma
 ```
-O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL.md](.claude/skills/configurar/SKILL.md).
+O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instalacao.md).
 
 ## Como funciona
 
@@ -114,7 +119,8 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 - `n8n/`: modelos dos workflows (postagem e análise do que funcionou; WhatsApp e resumo do dia) e lançadores
 - `site/`: página inicial, privacidade e termos exigidos pelo Google e pela Meta (GitHub Pages)
 - `docs/img/`: imagens do README
-- `docs/`: formato do roteiro e banco de ganchos
+- `docs/`: instalação para qualquer agente de IA, formato do roteiro e banco de ganchos
+- `AGENTS.md`: instruções do projeto para todos os agentes (o `CLAUDE.md` e o `GEMINI.md` importam este arquivo)
 
 ## Regras que mantêm o canal vivo
 

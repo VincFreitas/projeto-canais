@@ -221,9 +221,12 @@ def cmd_perfis(_):
         print(f"{p.id:<24} {d['nome']:<24} {d['arroba']:<20} {'ativo' if d.get('ativo') else 'pausado'}")
 
 
-def cmd_diagnostico(_):
+def cmd_diagnostico(a):
     from .autoria import versao_cli
     from .instalacao import diagnostico
+    if a.json:  # para agentes de IA e scripts: só o JSON, sem texto em volta
+        print(json.dumps([{"item": i, "pronto": ok, "como": fazer} for i, ok, fazer in diagnostico()], ensure_ascii=False))
+        return
     print(versao_cli() + "\n")
     faltando = 0
     for item, pronto, fazer in diagnostico():
@@ -232,9 +235,17 @@ def cmd_diagnostico(_):
     print(f"\n{'Tudo pronto.' if not faltando else f'{faltando} item(ns) para configurar.'}")
 
 
-def cmd_progresso(_):
+def cmd_progresso(a):
     from .autoria import versao_cli
-    from .plataformas import base, calcular
+    from .plataformas import base, calcular, pendencias
+    if a.json:
+        def etapa(e):
+            return {"nome": e.nome, "feita": e.feita, "como": e.como, "link": e.link}
+        print(json.dumps({"base": [etapa(e) for e in base()],
+                          "plataformas": [{"id": r.id, "nome": r.nome, "situacao": r.situacao,
+                                           "etapas": [etapa(e) for e in r.etapas]} for r in calcular()],
+                          "pendencias_do_modo_guiado": [etapa(e) for e in pendencias()]}, ensure_ascii=False))
+        return
     print(versao_cli() + "\n")
 
     def barra(feitas: int, total: int) -> str:
@@ -597,6 +608,7 @@ def main():
     s.set_defaults(fn=cmd_perfis_ativos)
 
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
+    s.add_argument("--json", action="store_true", help="saída em JSON (para agentes de IA e scripts)")
     s.set_defaults(fn=cmd_diagnostico)
 
     s = sub.add_parser("leva", help="cria vários vídeos de uma vez (roteiro pelo Claude Code + prévia)")
@@ -620,6 +632,7 @@ def main():
     s.set_defaults(fn=cmd_referencia)
 
     s = sub.add_parser("progresso", help="progresso da configuração de cada plataforma (YouTube, Instagram...)")
+    s.add_argument("--json", action="store_true", help="saída em JSON (para agentes de IA e scripts)")
     s.set_defaults(fn=cmd_progresso)
 
     s = sub.add_parser("n8n-workflow", help="gera n8n/workflow.json para esta pasta (e importa com --importar)")

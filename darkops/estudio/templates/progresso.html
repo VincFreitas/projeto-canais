@@ -10,8 +10,9 @@
 {% endmacro %}
 {% block corpo %}
 <h1 style="margin-top:0">Progresso da configuração</h1>
-<p class="suave">O que já está pronto em cada plataforma e qual é o próximo passo. Para ser guiado do zero, abra o Claude Code
-  nesta pasta e rode <code>/configurar</code>: ele pergunta quais plataformas você quer e mostra o tutorial de cada uma.</p>
+<p class="suave">O que já está pronto em cada plataforma e qual é o próximo passo. Para ser guiado do zero, abra um agente de IA
+  nesta pasta (Claude Code: <code>/configurar</code>; Codex, Gemini CLI, Cursor ou Copilot: peça para seguir <code>docs/instalacao.md</code>):
+  ele pergunta quais plataformas você quer e mostra o tutorial de cada uma.</p>
 {% if pendentes %}
 {% set e = pendentes[0] %}
 <section class="cartao passo-atual" style="margin-bottom:16px">

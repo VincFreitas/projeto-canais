@@ -18,7 +18,7 @@
       {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
       <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao pequeno">{{ 'Reconectar' if situacao == 'ok' else 'Conectar YouTube' }}</button></form>
     {% else %}
-      <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O <code>/configurar</code> do Claude guia o passo a passo.</p>
+      <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O passo a passo está em <code>docs/instalacao.md</code> (no Claude Code, <code>/configurar</code>).</p>
     {% endif %}
   {% elif c.tipo == 'token' %}
     {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}

@@ -50,7 +50,7 @@ def _youtube(perfis_alvo) -> Plataforma:
     app = (config.RAIZ / "credenciais" / "client_secret.json").exists()
     etapas = [Etapa("App OAuth do Google", app,
                     "Vale para todos os perfis. Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e salve "
-                    "o JSON em credenciais/client_secret.json (passo a passo: /configurar)",
+                    "o JSON em credenciais/client_secret.json (passo a passo: docs/instalacao.md)",
                     "https://console.cloud.google.com/apis/library/youtube.googleapis.com")]
     etapas += [Etapa(f"Canal conectado: {p.dados['nome']}", p.token_youtube.exists(),
                      "Estúdio > Conexões > Conectar YouTube e escolher a conta do canal") for p in perfis_alvo]
@@ -65,7 +65,7 @@ def _instagram(perfis_alvo, todos) -> Plataforma:
     passagem = bool(env.get("NUVEM_TOKEN") and env.get("NUVEM_VIDEOS_REPO"))
     etapas = [Etapa("Conta Profissional e app da Meta", app,
                     "Conta do Instagram Profissional (Criador ou Empresa); em developers.facebook.com crie o app com o "
-                    "caso de uso do Instagram e gere o token (passo a passo: /configurar)",
+                    "caso de uso do Instagram e gere o token (passo a passo: docs/instalacao.md)",
                     "https://developers.facebook.com/apps/"),
               Etapa("Repositório de passagem no GitHub", passagem,
                     "Vale para todos os perfis. Estúdio > Ajustes > Contas > Nuvem: crie o token do GitHub e o repositório "
