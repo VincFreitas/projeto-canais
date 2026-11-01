@@ -668,27 +668,49 @@ def _ligar() -> None:
                             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace",
                             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
     _gravar_estado(tunel_pid=proc.pid)
-    endereco = None
-    inicio = time.time()
-    for linha in proc.stderr:
-        achado = re.search(r"https://[a-z0-9-]+\.trycloudflare\.com", linha)
-        if achado:
-            endereco = achado.group(0)
+    # o log do túnel é lido numa linha à parte: se o cloudflared ficar mudo, o prazo de 60 s ainda vale
+    achados: list[str] = []
+
+    def ler_log():
+        for linha in proc.stderr:
+            achado = re.search(r"https://[a-z0-9-]+\.trycloudflare\.com", linha)
+            if achado and not achados:
+                achados.append(achado.group(0))
+    threading.Thread(target=ler_log, daemon=True).start()
+    for _ in range(120):
+        if achados or proc.poll() is not None:
             break
-        if time.time() - inicio > 60:
-            break
-    if not endereco:
-        _gravar_estado(tunel_erro="o túnel da Cloudflare não respondeu; tente de novo em Ajustes")
+        time.sleep(0.5)
+    if not achados:
+        proc.kill()
+        _gravar_estado(tunel_erro="o túnel da Cloudflare não respondeu; clique em Religar os comandos")
         return
-    threading.Thread(target=lambda: [None for _ in proc.stderr], daemon=True).start()  # esvazia o log do túnel
-    time.sleep(4)  # o endereço novo leva uns segundos para valer na internet
+    endereco = achados[0]
     try:
+        _esperar_tunel(endereco)  # o endereço novo leva de segundos a 1 min para valer na internet
         registrar_webhook(endereco + CAMINHO_WEBHOOK)
         _gravar_estado(tunel=endereco, tunel_ok=True, tunel_erro="")
         print("WhatsApp: comandos ligados")
-    except (ErroMeta, OSError) as erro:
+    except Exception as erro:  # qualquer falha aparece na tela, em vez de deixar "conectando" para sempre
         _gravar_estado(tunel_erro=ocultar(str(erro))[:300])
         print(ocultar(f"WhatsApp: não consegui registrar o webhook: {erro}"))
+
+
+def _esperar_tunel(endereco: str, prazo_s: int = 90) -> None:
+    """Espera o túnel responder de fora (a mesma verificação que a Meta faz) antes de registrar o webhook."""
+    teste = endereco + CAMINHO_WEBHOOK + "?" + urllib.parse.urlencode(
+        {"hub.mode": "subscribe", "hub.verify_token": verificador(), "hub.challenge": "pronto"})
+    fim = time.time() + prazo_s
+    while time.time() < fim:
+        try:
+            with urllib.request.urlopen(teste, timeout=10) as r:
+                if r.read() == b"pronto":
+                    time.sleep(5)  # folga para o DNS do endereço novo chegar também aos servidores da Meta
+                    return
+        except OSError:
+            pass
+        time.sleep(3)
+    raise OSError("o endereço do túnel não ficou acessível pela internet em 90 s")
 
 
 def _token_app() -> str:

@@ -1,22 +1,31 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.26.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.29.1%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.26.1 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.29.1 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
 **Veja funcionando:** o canal de exemplo é o **Pulga do Saber**, curiosidades rápidas narradas por uma pulga em pixel art, no [YouTube](https://www.youtube.com/@pulgadosaber) e no [Instagram](https://www.instagram.com/pulgadosaber).
 
-Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico.
+Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico. Ele **aprende sozinho**: a cada 15 vídeos no ar, descobre o que funcionou e ajusta os próximos. E avisa (e obedece) pelo **WhatsApp**. Posta mesmo com o PC desligado, pela **nuvem** (GitHub Actions + n8n).
 
 ![Estúdio do Projeto Canais: início do perfil Pulga do Saber, com fila, próximas postagens e conexões por função](docs/img/estudio.png)
 
-**Neste README:** [Começar em 3 passos](#começar-em-3-passos-com-o-claude-code) · [Sem o Claude](#sem-o-claude-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
+**Neste README:** [Novidades](#novidades-v029) · [Começar em 3 passos](#começar-em-3-passos-com-o-claude-code) · [Sem o Claude](#sem-o-claude-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
+
+## Novidades (v0.29)
+
+| | |
+|---|---|
+| <img src="docs/img/abertura.png" width="420" alt="Abertura animada do Projeto Canais: o logo, o nome e a conferência do Estúdio, do n8n, da nuvem e do WhatsApp"> | **Abertura animada.** O executável abre direto numa tela que confere o Estúdio, o n8n, a nuvem e o WhatsApp, e o logo "voa" para a lateral. Sem janelas de prompt piscando. |
+| <img src="docs/img/novo-canal.png" width="420" alt="Novo canal em 5 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal"> | **Novo canal em 5 passos.** Assunto em cartões, nome com sugestões da IA, formato e duração, plataformas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**. |
+| <img src="docs/img/o-que-funcionou.png" width="420" alt="Tela O que funcionou: os vídeos que funcionaram e os que não funcionaram, com nota, e as mudanças aplicadas sozinhas com o botão Desfazer (dados de exemplo)"> | **O que funcionou** (Resultados). A cada 15 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.* |
+| <img src="docs/img/whatsapp.png" width="420" alt="Tela do WhatsApp: conectado uma vez para todos os canais, com o estado da conversa e os canais que recebem avisos"> | **WhatsApp** (API oficial da Meta). Uma vez para todos os canais: avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, manda cada vídeo novo com **Aprovar/Recusar** e obedece comandos como `status`, `criar 3` e `pausar todos`. |
 
 ## Começar em 3 passos (com o Claude Code)
 
@@ -55,7 +64,7 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 | Dar personalidade ao canal | Estúdio > Perfil > **Personalidade do canal**: quem narra, tom, público, como os vídeos começam, linguagem e padrão de título e capa; o /escrever-roteiro e as levas seguem isso |
 | Revisar antes de gerar | A tela do vídeo sem prévia mostra a **Revisão antes de gerar**: canal, visual, voz, cenas, duração, fontes, tempo para gerar e as notas do roteiro sobre o que ele escolheu |
 | Escrever o roteiro com fontes, ganchos e animações | `/escrever-roteiro <ideia>`, banco de ganchos em [docs/ganchos.md](docs/ganchos.md) |
-| Abrir sem PowerShell | Atalho **Projeto Canais** na Área de Trabalho e/ou no Menu Iniciar (escolhido na instalação ou em Estúdio > **Configurações**); `python -m darkops abrir` faz o mesmo. Ao abrir, o Estúdio também liga o n8n escondido (leva de 1 a 3 min), e ele segue ligado para postar às 12h e às 19h |
+| Abrir sem PowerShell | Atalho **Projeto Canais** na Área de Trabalho e/ou no Menu Iniciar (escolhido na instalação ou em Estúdio > **Configurações**); `python -m darkops abrir` faz o mesmo. Ao abrir, o Estúdio também liga o n8n escondido (leva de 1 a 3 min), e ele segue ligado para postar às 12h e às 19h. Abre numa **abertura animada** que confere o que já está de pé, sem janelas de prompt piscando |
 | Manter o projeto atualizado | Estúdio > Configurações: atualização automática (busca no GitHub, espera as tarefas, fecha e abre sozinho e mostra a versão nova e o que mudou), **Procurar atualização** e **Atualizar dependências** (pacotes Python e yt-dlp, n8n, Claude Code). Pela CLI: `python -m darkops atualizar` e `python -m darkops atualizar-dependencias --aplicar` |
 | Ver os números | Estúdio > **Estatísticas**: inscritos ou seguidores, visualizações, curtidas, comentários, compartilhamentos, salvamentos, minutos assistidos, duração média e retenção de cada vídeo, no YouTube e no Instagram (APIs oficiais, só leitura; `python -m darkops estatisticas`). Retenção e minutos do YouTube pedem a permissão extra "Liberar retenção" |
 | Melhorar com base nos números | **Analisar com a IA**: o Claude lê as estatísticas e sugere mudanças com o motivo; cada uma tem Aprovar ou Recusar. Mudança de configuração só é aplicada se aprovada; orientação de conteúdo aprovada vira diretriz do canal, seguida pelos roteiros |
@@ -92,7 +101,8 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 - `darkops/`: o código (CLI `python -m darkops`, com `--perfil <id>` em qualquer comando)
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
-- `n8n/`: modelo do workflow e lançadores
+- `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/whatsapp.py`: avisos e comandos; `darkops/nuvem.py`: postagem com o PC desligado
+- `n8n/`: modelos dos workflows (postagem; WhatsApp, resumo e análise) e lançadores
 - `site/`: página inicial, privacidade e termos exigidos pelo Google e pela Meta (GitHub Pages)
 - `docs/img/`: imagens do README
 - `docs/`: formato do roteiro e banco de ganchos
