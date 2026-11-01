@@ -341,7 +341,13 @@ def perfil_novo():
     except SystemExit as erro:
         flash(str(erro), "erro")
         return redirect(url_for("perfis_pagina"))
-    flash(f"Perfil {nome} criado. Agora conecte as contas.", "ok")
+    from .. import leva
+    from ..aprendizado import LEVA_INICIAL
+    canal = carregar(pid)
+    leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
+    est = leva.estimar(canal.dados, LEVA_INICIAL)
+    flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos já estão sendo criados ({est['texto']}); deixe o PC "
+          "ligado. Enquanto isso, conecte as contas.", "ok")
     return redirect(url_for("conexoes", pid=pid))
 
 
@@ -1362,6 +1368,30 @@ def estatisticas_acao(pid, acao):
         flash("Abrimos o login do Google: escolha a conta do canal e permita também a leitura do YouTube Analytics.", "ok")
     job = _iniciar_job(p, titulo, lista)
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=voltar))
+
+
+@app.get("/p/<pid>/aprendizado")
+def aprendizado(pid):
+    """O que funcionou e o que não funcionou em cada ciclo de 15 vídeos, e o que mudou sozinho por causa disso."""
+    from .. import aprendizado as apr
+    p = _perfil(pid)
+    return render_template("aprendizado.html", p=p, d=p.dados, prog=apr.progresso(p),
+                           ciclos=list(reversed(apr.ler(p).get("ciclos", []))))
+
+
+@app.post("/p/<pid>/aprendizado/<acao>")
+def aprendizado_acao(pid, acao):
+    from .. import aprendizado as apr
+    p = _perfil(pid)
+    if acao == "desfazer":
+        n = apr.desfazer(p)
+        flash(f"Pronto: {n} mudança(s) desfeita(s); o canal voltou ao que era antes da análise." if n
+              else "Não há mudança para desfazer.", "ok" if n else "erro")
+        return redirect(url_for("aprendizado", pid=pid))
+    if acao != "analisar":
+        abort(404)
+    job = _iniciar_job(p, "Analisar o que funcionou", [["aprender", "--forcar"]])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("aprendizado", pid=pid)))
 
 
 @app.post("/p/<pid>/sugestao/<sid>/<decisao>")

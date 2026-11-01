@@ -499,6 +499,29 @@ def cmd_registrar_falha(a):
     _resultado({"registrado": True})
 
 
+def cmd_aprender(a):
+    """O n8n roda todo dia: cada canal ativo com 15 vídeos novos no ar há 2 dias tem o ciclo analisado e ajustado."""
+    from . import aprendizado
+    from .perfis import carregar, listar
+    perfis = [carregar()] if a.perfil_unico or a.forcar else [p for p in listar() if p.dados.get("ativo")]
+    for p in perfis:
+        r = aprendizado.rodar(p, forcar=a.forcar)
+        if "esperando" in r:
+            e = r["esperando"]
+            print(f"{p.id}: {e['no_ar']}/{e['meta']} vídeos do ciclo no ar" +
+                  (f"; análise em {e['pronto_em']}" if e["pronto_em"] else ""))
+        else:
+            print(f"{p.id}: ciclo {r['numero']} analisado ({r['com_dados']} vídeo(s) com números), "
+                  f"{len(r['mudancas'])} mudança(s) aplicada(s)")
+            print(r.get("resumo", ""))
+
+
+def cmd_aprender_desfazer(_):
+    from . import aprendizado
+    from .perfis import carregar
+    print(f"{aprendizado.desfazer(carregar())} mudança(s) desfeita(s)")
+
+
 def cmd_whatsapp(a):
     from . import whatsapp
     if a.acao == "testar":
@@ -724,6 +747,14 @@ def main():
     s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota no testes.csv do perfil")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_fila_concluir)
+
+    s = sub.add_parser("aprender", help="analisa o que funcionou a cada 15 vídeos no ar e ajusta o canal sozinho")
+    s.add_argument("--forcar", action="store_true", help="analisa agora, mesmo sem completar o ciclo")
+    s.add_argument("--perfil-unico", action="store_true", help="só o perfil de --perfil (sem isso: todos os ativos)")
+    s.set_defaults(fn=cmd_aprender)
+
+    s = sub.add_parser("aprender-desfazer", help="volta as mudanças da última análise automática")
+    s.set_defaults(fn=cmd_aprender_desfazer)
 
     s = sub.add_parser("whatsapp", help="WhatsApp do dono: testar, status, resumo ou n8n (importa o workflow de comandos)")
     s.add_argument("acao", choices=["testar", "status", "resumo", "n8n"], nargs="?", default="status")

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block titulo %}O que funcionou · {{ d.nome }}{% endblock %}
+{% macro numero(v, sufixo='') %}{{ '—' if v is none else ('{:,}'.format(v).replace(',', '.') ~ sufixo) }}{% endmacro %}
+{% set rotulos = {'duracao_s': 'Duração de cada vídeo (s)', 'ritmo_corte_s': 'Corte de cena a cada (s)', 'velocidade': 'Velocidade da voz',
+                  'edicao': 'Nível de edição', 'tema_cards': 'Tema dos cards', 'legenda_tamanho': 'Tamanho da legenda',
+                  'estilo': 'Estilo das imagens', 'horarios': 'Horários de postagem', 'leva_quantidade': 'Vídeos por leva',
+                  'persona_narrador': 'Narrador', 'persona_tom': 'Tom', 'persona_publico': 'Público', 'persona_abertura': 'Abertura',
+                  'persona_linguagem': 'Linguagem', 'persona_titulos': 'Títulos'} %}
+{% macro video(v) %}
+<li class="video-nota">
+  <span class="nota" style="--n: {{ v.nota }}">{{ v.nota }}</span>
+  <div>
+    <b>{{ v.titulo }}</b>
+    <span class="suave">{{ numero(v.visualizacoes) }} visualizações · {{ numero(v.retencao_pct, '%') }} retenção ·
+      {{ v.curtidas }} curtidas · {{ v.comentarios }} comentários{% if v.duracao_s %} · {{ v.duracao_s }}s{% endif %}</span>
+    {% if v.gancho %}<span class="gancho">“{{ v.gancho }}”</span>{% endif %}
+  </div>
+  {% for plataforma, link in v.links.items() if link %}<a class="link" href="{{ link }}" target="_blank" rel="noopener">{{ 'YouTube' if plataforma == 'youtube' else 'Instagram' }} ↗</a>{% endfor %}
+</li>
+{% endmacro %}
+{% block corpo %}
+<div class="aprendizado-topo">
+  <div>
+    <h1>O que funcionou</h1>
+    <p class="suave">A cada {{ prog.meta }} vídeos no ar, o canal compara os que foram melhor com os que foram pior e
+      muda sozinho os próximos vídeos, usando <b>só o que funcionou</b>. Cada mudança pode ser desfeita.</p>
+  </div>
+  <form method="post" action="{{ url_for('aprendizado_acao', pid=p.id, acao='analisar') }}">
+    <button class="botao secundario" title="Analisa agora, mesmo sem completar o ciclo de {{ prog.meta }} vídeos">Analisar agora</button></form>
+</div>
+
+<section class="cartao ciclo-progresso">
+  <div class="acoes" style="justify-content:space-between">
+    <b>Próxima análise: {{ prog.no_ar }} de {{ prog.meta }} vídeos no ar</b>
+    <span class="suave">{% if prog.pronto %}roda hoje às 20h{% elif prog.pronto_em %}em {{ prog.pronto_em }} (2 dias depois do 15º vídeo, para os números aparecerem){% else %}faltam {{ prog.faltam }} vídeo(s){% endif %}</span>
+  </div>
+  <div class="barra {{ '' if prog.pronto else 'falta' }}"><span style="width: {{ (100 * prog.no_ar / prog.meta) | round }}%"></span></div>
+</section>
+
+{% if not ciclos %}
+<section class="cartao vazio-aprendizado">
+  <span class="escolha-icone">🧠</span>
+  <h2>Ainda sem análise</h2>
+  <p class="suave">Quando os {{ prog.meta }} primeiros vídeos estiverem no ar há 2 dias, a análise roda sozinha e esta tela
+    mostra o que deu certo, o que não deu e o que mudou. O aviso também chega no WhatsApp.</p>
+</section>
+{% endif %}
+
+{% for c in ciclos %}
+<section class="ciclo {{ 'antigo' if not loop.first }}">
+  <div class="acoes" style="justify-content:space-between">
+    <h2>Ciclo {{ c.numero }} · {{ c.quando }}</h2>
+    <span class="suave">{{ c.com_dados }} de {{ c.videos_no_ciclo }} vídeos com números</span>
+  </div>
+  {% if c.resumo %}<p class="resumo-ciclo">{{ c.resumo }}</p>{% endif %}
+
+  {% if c.mudancas %}
+  <div class="cartao mudancas {{ 'desfeitas' if c.desfeito }}">
+    <div class="acoes" style="justify-content:space-between">
+      <h3 style="margin:0">{{ 'Mudanças desfeitas em ' ~ c.desfeito_em if c.desfeito else 'O que mudou sozinho' }}</h3>
+      {% if loop.first and not c.desfeito %}
+      <form method="post" action="{{ url_for('aprendizado_acao', pid=p.id, acao='desfazer') }}"
+            onsubmit="return confirm('Voltar o canal ao que era antes desta análise?')">
+        <button class="botao pequeno claro">↩ Desfazer</button></form>
+      {% endif %}
+    </div>
+    <ul class="lista-mudancas">
+      {% for m in c.mudancas %}
+      <li>
+        {% if m.tipo == 'perfil' %}<b>{{ rotulos.get(m.campo, m.campo) }}</b>: <s>{{ m.antes if m.antes is not none else 'padrão' }}</s> → <b>{{ m.depois }}</b>
+        {% else %}<b>Nova orientação para os roteiros:</b> {{ m.valor }}{% endif %}
+        {% if m.motivo %}<span class="suave">{{ m.motivo }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if c.funcionou %}
+  <div class="duas-colunas">
+    <div class="cartao grupo-bom">
+      <h3>✅ Funcionou</h3>
+      {% if c.padroes_bons %}<ul class="padroes">{% for x in c.padroes_bons %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+      <ul class="videos-nota">{% for v in c.funcionou %}{{ video(v) }}{% endfor %}</ul>
+    </div>
+    <div class="cartao grupo-ruim">
+      <h3>❌ Não funcionou</h3>
+      {% if c.padroes_ruins %}<ul class="padroes">{% for x in c.padroes_ruins %}<li>{{ x }}</li>{% endfor %}</ul>{% endif %}
+      <ul class="videos-nota">{% for v in c.nao_funcionou %}{{ video(v) }}{% endfor %}</ul>
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

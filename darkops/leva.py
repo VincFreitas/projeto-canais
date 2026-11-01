@@ -22,7 +22,7 @@ from . import config
 MINUTOS_ROTEIRO = (2, 5)    # Claude pesquisando os fatos e escrevendo, por roteiro
 MINUTOS_DESENHO = (2, 5)    # gerador local, por cena desenhada
 MINUTOS_CLIPES = (0.5, 1.5)  # busca e download dos clipes de um vídeo
-LIMITE_LEVA = 14
+LIMITE_LEVA = 15
 
 
 def _cenas(dados: dict) -> int:

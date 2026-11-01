@@ -3,6 +3,11 @@
 {# número com ponto de milhar; "—" quando a plataforma não informou (sem permissão ou ainda sem dados) #}
 {% macro numero(v, sufixo='') %}{{ '—' if v is not defined or v is none else ('{:,}'.format(v).replace(',', '.') ~ sufixo) }}{% endmacro %}
 {% block corpo %}
+<a class="cartao destaque-aprendizado" href="{{ url_for('aprendizado', pid=p.id) }}">
+  <span class="escolha-icone">🧠</span>
+  <div><b>O que funcionou</b><br><span class="suave">A cada 15 vídeos no ar, o canal descobre o que deu certo e se ajusta sozinho.</span></div>
+  <span class="link">Ver →</span>
+</a>
 <div class="acoes" style="margin-bottom:12px">
   <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='atualizar') }}"><button class="botao">Atualizar dados</button></form>
   <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='analisar') }}"><button class="botao secundario">Analisar com a IA</button></form>

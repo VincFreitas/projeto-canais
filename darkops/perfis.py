@@ -43,7 +43,7 @@ MODELO = {
     "formato": "vertical",
     "duracao_s": 60,
     "video_exemplo": "",
-    "leva_quantidade": 7,       # vídeos criados de uma vez
+    "leva_quantidade": 15,      # vídeos criados de uma vez (o canal começa com 15: ver aprendizado.py)
     "leva_reabastecer": False,  # criar outra leva sozinho quando a fila ficar curta
     "leva_minimo": 3,           # ... quando sobrarem esta quantidade de vídeos ou menos
     # padrão dos vídeos (o roteiro pode sobrescrever cada um)
@@ -171,8 +171,8 @@ def campos_canal(form) -> dict:
     return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS},
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
             "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
-            "leva_quantidade": inteiro("leva_quantidade", 7, 1, 14), "leva_reabastecer": bool(form.get("leva_reabastecer")),
-            "leva_minimo": inteiro("leva_minimo", 3, 0, 13)}
+            "leva_quantidade": inteiro("leva_quantidade", 15, 1, 15), "leva_reabastecer": bool(form.get("leva_reabastecer")),
+            "leva_minimo": inteiro("leva_minimo", 3, 0, 14)}
 
 
 def atual() -> str:

@@ -31,7 +31,7 @@ def _validar(perfil, campo: str, valor):
             return v if v in RITMOS else None
         if campo == "leva_quantidade":
             v = int(valor)
-            return v if 1 <= v <= 14 else None
+            return v if 1 <= v <= 15 else None
         if campo == "velocidade":
             return valor if re.match(r"^[+-]\d{1,2}%$", str(valor)) and abs(int(str(valor)[:-1])) <= 25 else None
         if campo == "edicao":

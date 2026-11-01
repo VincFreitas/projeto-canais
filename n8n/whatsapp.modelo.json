@@ -1,5 +1,5 @@
 {
-  "name": "Canais dark - WhatsApp do dono (comandos e resumo)",
+  "name": "Canais dark - WhatsApp, resumo e análise do que funcionou",
   "id": "whatsappcanais1",
   "nodes": [
     {
@@ -13,7 +13,10 @@
       "name": "Mensagem do WhatsApp",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [0, 0],
+      "position": [
+        0,
+        0
+      ],
       "webhookId": "whatsapp-canais"
     },
     {
@@ -24,17 +27,30 @@
       "name": "Responder o comando",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [260, 0]
+      "position": [
+        260,
+        0
+      ]
     },
     {
       "parameters": {
-        "rule": {"interval": [{"field": "cronExpression", "expression": "0 21 * * *"}]}
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 21 * * *"
+            }
+          ]
+        }
       },
       "id": "a1c0ffee-0000-4000-8000-000000000003",
       "name": "Todo dia 21h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 220]
+      "position": [
+        0,
+        220
+      ]
     },
     {
       "parameters": {
@@ -44,13 +60,82 @@
       "name": "Resumo do dia no WhatsApp",
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
-      "position": [260, 220]
+      "position": [
+        260,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000005",
+      "name": "Todo dia 20h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops aprender"
+      },
+      "id": "a1c0ffee-0000-4000-8000-000000000006",
+      "name": "Aprender com o que funcionou",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        260,
+        440
+      ]
     }
   ],
   "connections": {
-    "Mensagem do WhatsApp": {"main": [[{"node": "Responder o comando", "type": "main", "index": 0}]]},
-    "Todo dia 21h": {"main": [[{"node": "Resumo do dia no WhatsApp", "type": "main", "index": 0}]]}
+    "Mensagem do WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Responder o comando",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Todo dia 21h": {
+      "main": [
+        [
+          {
+            "node": "Resumo do dia no WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Todo dia 20h": {
+      "main": [
+        [
+          {
+            "node": "Aprender com o que funcionou",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "settings": {"executionOrder": "v1"},
+  "settings": {
+    "executionOrder": "v1"
+  },
   "active": false
 }
