@@ -20,12 +20,21 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 ## Novidades (v0.29)
 
-| | |
-|---|---|
-| <img src="docs/img/abertura.png" width="420" alt="Abertura animada do Projeto Canais: o logo, o nome e a conferência do Estúdio, do n8n, da nuvem e do WhatsApp"> | **Abertura animada.** O executável abre direto numa tela que confere o Estúdio, o n8n, a nuvem e o WhatsApp, e o logo "voa" para a lateral. Sem janelas de prompt piscando. |
-| <img src="docs/img/novo-canal.png" width="420" alt="Novo canal em 5 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal"> | **Novo canal em 5 passos.** Assunto em cartões, nome com sugestões da IA, formato e duração, plataformas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**. |
-| <img src="docs/img/o-que-funcionou.png" width="420" alt="Tela O que funcionou: os vídeos que funcionaram e os que não funcionaram, com nota, e as mudanças aplicadas sozinhas com o botão Desfazer (dados de exemplo)"> | **O que funcionou** (Resultados). A cada 15 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.* |
-| <img src="docs/img/whatsapp.png" width="420" alt="Tela do WhatsApp: conectado uma vez para todos os canais, com o estado da conversa e os canais que recebem avisos"> | **WhatsApp** (API oficial da Meta). Uma vez para todos os canais: avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, manda cada vídeo novo com **Aprovar/Recusar** e obedece comandos como `status`, `criar 3` e `pausar todos`. |
+**Abertura animada.** O executável abre direto numa tela que confere o Estúdio, o n8n, a nuvem e o WhatsApp, e o logo "voa" para a lateral. Sem janelas de prompt piscando.
+
+<img src="docs/img/abertura.png" width="760" alt="Abertura animada do Projeto Canais: o logo, o nome e a conferência do Estúdio, do n8n, da nuvem e do WhatsApp">
+
+**Novo canal em 5 passos.** Assunto em cartões, nome com sugestões da IA, formato e duração, plataformas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**.
+
+<img src="docs/img/novo-canal.png" width="760" alt="Novo canal em 5 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal">
+
+**O que funcionou** (em Resultados). A cada 15 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.*
+
+<img src="docs/img/o-que-funcionou.png" width="760" alt="Tela O que funcionou: os vídeos que funcionaram e os que não funcionaram, com nota, e as mudanças aplicadas sozinhas com o botão Desfazer (dados de exemplo)">
+
+**WhatsApp** (API oficial da Meta). Uma vez para todos os canais: avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, manda cada vídeo novo com **Aprovar/Recusar** e obedece comandos como `status`, `criar 3` e `pausar todos`.
+
+<img src="docs/img/whatsapp.png" width="760" alt="Tela do WhatsApp: conectado uma vez para todos os canais, com o estado da conversa e os canais que recebem avisos">
 
 ## Começar em 3 passos (com o Claude Code)
 
