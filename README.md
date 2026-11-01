@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.32.0%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.33.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
@@ -94,6 +94,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Reabastecer a fila sozinho | Marque **Criar outra leva quando sobrarem N vídeos**: depois de cada postagem o n8n roda `leva --se-faltar --fundo`, que cria uma leva nova quando a fila chega no mínimo (nada vai ao ar sem aprovação) |
 | Postar às 12h e às 19h | n8n (workflow gerado por `python -m darkops n8n-workflow --importar`) |
 | Postar com o PC desligado | Estúdio > Ajustes > Contas > **Nuvem**: um repositório privado de fila no seu GitHub roda o mesmo workflow do n8n no GitHub Actions às 12:20 e 19:20. Se o PC já postou no horário, a nuvem não faz nada; se não, ela posta o próximo aprovado. Os dois lados conferem o estado compartilhado (e a nuvem, a própria plataforma) e nunca postam duas vezes. Criar vídeos continua no PC (`python -m darkops nuvem-status`) |
+| Conectar contas sem copiar chave | Estúdio > Ajustes > Contas: **Entrar com a Microsoft** cria a chave grátis da voz (Azure F0), **Entrar com o GitHub** cria a fila da nuvem e a passagem do Instagram, **Entrar com Instagram** traz o token e o renova sozinho. Você só faz login; criar as contas continua com você |
 | Acompanhar e mandar pelo WhatsApp | Estúdio > barra lateral > **WhatsApp** (conecta uma vez e vale para todos os canais; API oficial da Meta, só o seu número): avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, e manda cada vídeo novo com **Aprovar** e **Recusar**. Comandos: `status`, `fila`, `aprovar`, `criar 3`, `criar sobre <tema>`, `pausar`, `retomar`, `ajustar <pedido>`, `canal <nome>`. Os comandos chegam pelo n8n, com o PC ligado (`python -m darkops whatsapp testar`) |
 | Aprender com o que funcionou | Todo canal começa com **15 vídeos**. A cada 15 vídeos no ar há 2 dias, o n8n (20h) busca os números, separa o que **funcionou** do que **não funcionou** e muda sozinho os próximos vídeos usando **só o que funcionou**. Estúdio > Resultados > **O que funcionou** mostra os dois grupos e as mudanças, com **Desfazer** (`python -m darkops aprender`, `aprender-desfazer`) |
 | Instalar como aplicativo | No Chrome ou no Edge, com o Estúdio aberto: ícone **Instalar** na barra de endereço. Abre numa janela própria, com o ícone ✦. Os planos e as autorizações para virar aplicativo e site (cookies, LGPD, Google, Meta, lojas) ficam em [docs/app-e-site.md](docs/app-e-site.md) |

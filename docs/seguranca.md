@@ -31,6 +31,11 @@ Estas são as proteções em vigor e o motivo de cada uma.
 - **Claude Code**: instalador oficial da Anthropic (`claude.ai/install.ps1`); o `claude.exe` só é aceito com a assinatura da Anthropic.
 - O n8n é aberto pelo atalho de logon via `explorer.exe`, para não ficar preso à árvore de processos de um agente (no app Claude, morreria junto com o app).
 
+### Contas por login (`darkops/contas.py`)
+- **GitHub**: o GitHub CLI portátil (release oficial, conferido pelo SHA-256 da API do GitHub) faz o login por código de dispositivo, com os escopos `repo` e `workflow`. O acesso fica no Gerenciador de Credenciais do Windows e no `.env` (`NUVEM_TOKEN`). Ele vale para todos os seus repositórios, mais do que o token fine-grained manual. Quem quiser o mínimo usa "Ou faça à mão".
+- **Azure**: o Azure CLI portátil (zip oficial da Microsoft, conferido pelo Content-MD5 do servidor e pela assinatura da PSF no Python de dentro), com a configuração em `dados/apps/azure-config`. Só cria e só guarda chave de recurso de voz no nível **F0 (grátis)**: há uma trava antes de salvar.
+- **Instagram**: OAuth do Instagram Login. A Meta só aceita retorno https, então a página `site/instagram.html` (GitHub Pages) repassa o `code` para `http://127.0.0.1:<porta>/instagram/retorno`, sem guardar nada e sem Referer. O `state` é aleatório, de uso único, vale 15 minutos e fica no servidor do Estúdio (o cookie Strict não volta de outro site). O `code` sozinho não serve: a troca pelo token exige a chave secreta do app, que só existe no `.env` deste PC.
+
 ## Tokens e chaves
 
 - `.env` e `credenciais/` ficam fora do Git (`.gitignore`); o histórico foi conferido em 2026-10-24 e não tem chave nem token.

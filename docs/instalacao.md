@@ -67,7 +67,7 @@ Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
 ```
 .\.venv\Scripts\python.exe -m darkops estudio
 ```
-- **Voz: Azure Speech (recomendado, grátis).** portal.azure.com, criar recurso "Serviço de Fala", nível **Free F0** (confira duas vezes, o S0 é pago), região Brazil South. Em "Chaves e Ponto de Extremidade", copiar a CHAVE 1. Se a conta grátis for recusada, a de pagamento conforme o uso funciona com o F0 sem cobrar; sugira um alerta de orçamento de R$ 1.
+- **Voz: Azure Speech (recomendado, grátis).** Botão **Entrar com a Microsoft e criar a chave** (no card Azure Speech), ou `python -m darkops conectar-azure`. A pessoa só faz o login com o código que aparece. O projeto cria o recurso de voz no nível **grátis F0**, em Brazil South, e salva a chave já testada. Se já existir um F0, ele reaproveita, e nunca cria o S0 pago. Se a conta da Microsoft ainda não tiver assinatura do Azure, a pessoa cria a conta grátis em azure.microsoft.com/free; essa parte é com ela. Para fazer à mão, o caminho continua no próprio card.
 - **Imagens: Pixabay (grátis).** pixabay.com/api/docs mostra a chave depois do login (o Pexels pausou chaves novas). Sem chave de imagens o modo guiado não libera, a menos que o desenho local em pixel art (opcional) esteja instalado.
 - Sem Azure, a voz cai no Edge e no Piper, que já funcionam.
 
@@ -83,15 +83,15 @@ App OAuth do Google, que vale para todos os canais:
 Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos enviados pela API ficam **privados**.
 
 ## 6. Instagram (se escolhido)
+Uma vez por instalação (com a pessoa, porque são contas):
+1. A conta do Instagram precisa ser **Profissional** (Criador ou Empresa), mudança feita no app do Instagram. Com o login do Instagram usado aqui, não precisa de Página do Facebook.
+2. App da Meta: developers.facebook.com > criar app > caso de uso "Gerenciar mensagens e conteúdo no Instagram". Em Instagram > Configuração da API com login do Instagram > Configurar login da empresa, a pessoa acrescenta em **URIs de redirecionamento OAuth** o endereço que o card do Instagram mostra (padrão `https://vincfreitas.github.io/projeto-canais/instagram.html`; quem publicar o próprio site troca em `INSTAGRAM_RETORNO`). Depois cola no card o **ID do app do Instagram** e a **chave secreta**.
+
 Por canal:
-1. A conta do Instagram precisa ser **Profissional** (Criador ou Empresa). Com o login do Instagram usado aqui, não precisa de Página do Facebook.
-2. developers.facebook.com > criar app > caso de uso "Gerenciar mensagens e conteúdo no Instagram".
-3. Instagram > Configuração da API com login do Instagram > etapa 2 **Adicionar conta** (com o @ do canal) > **Gerar token**.
-4. Colar o token no Estúdio, em Ajustes > Contas. Ele dura 60 dias.
+3. Botão **Entrar com Instagram**: a pessoa entra na conta do canal e autoriza. O token de 60 dias chega sozinho e se renova sozinho depois de 40 dias, no próprio uso. Colar um token à mão continua como alternativa.
 
 Uma vez por instalação, o **repositório de passagem** (sem ele o Reel não sobe: a Meta só baixa o vídeo por um link público):
-5. Em Ajustes > Contas > **Nuvem**, siga os passos da tela: repositório **privado** de fila no GitHub e token "fine-grained" (Contents, Secrets, Actions e Workflows em leitura e escrita), colados no formulário da tela. Isso também liga a postagem pela nuvem (12:20 e 19:20, com o PC desligado).
-6. Na mesma tela, crie um repositório **público** e vazio (ex.: `projeto-canais-videos`), acrescente-o ao mesmo token e confira em **Conferir e ligar o Instagram**. Depois, **Testar o Instagram (não publica)**.
+4. Em Ajustes > Contas > **Nuvem**, botão **Entrar com o GitHub e preparar tudo** (ou `python -m darkops conectar-github`). A pessoa só aprova o código que aparece. O projeto cria o repositório **privado** de fila e o **público** de passagem, grava o acesso e prepara a nuvem (postagem às 12:20 e 19:20 com o PC desligado). Depois, **Testar o Instagram (não publica)**. O jeito manual (token fine-grained) continua em "Ou faça à mão".
 
 ## 7. Canal e primeiros vídeos
 - No Estúdio, **+ Novo canal**: um assistente de 5 passos (nicho, nome com sugestões da IA, formato e duração, redes, revisão). Marque só as redes escolhidas no passo 0. Ou use o canal de exemplo `pulga-do-saber`.

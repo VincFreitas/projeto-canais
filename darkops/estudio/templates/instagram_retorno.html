@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{# chega aqui vindo do Instagram (outro site): o próximo clique já é do próprio Estúdio, e o cookie de sessão volta #}
+<meta http-equiv="refresh" content="{{ 3 if ok else 8 }};url={{ destino }}">
+<title>Instagram · Projeto Canais</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
+</head>
+<body class="abertura">
+<div class="abertura-palco" style="text-align:center; max-width: 520px; margin: 0 auto; padding: 16px">
+  <div style="font-size:48px">{{ '✓' if ok else '✗' }}</div>
+  <h1>{{ 'Instagram conectado' if ok else 'Não deu certo' }}</h1>
+  <p>{{ texto }}</p>
+  <p><a class="botao" href="{{ destino }}">Voltar ao Estúdio</a></p>
+</div>
+</body>
+</html>

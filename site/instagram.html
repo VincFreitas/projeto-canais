@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Voltando ao Estúdio · Projeto Canais</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main>
+  <h1>Voltando ao Estúdio…</h1>
+  <p>Esta página só devolve o login do Instagram para o Estúdio que está aberto no <b>seu</b> computador
+    (<code>127.0.0.1</code>). Nada fica guardado aqui. Se nada acontecer, confira se o Estúdio está aberto e
+    <a id="link" href="#">clique aqui</a>.</p>
+</main>
+<script>
+// O Instagram só aceita endereço https como retorno do login. Esta página repassa o "code" e o "state" para o
+// Estúdio local; a porta vem dentro do state ("8765.<segredo>"), que o próprio Estúdio criou e confere na volta.
+(function () {
+  var busca = new URLSearchParams(location.search);
+  var porta = (busca.get("state") || "").split(".")[0];
+  if (!/^\d{2,5}$/.test(porta) || +porta > 65535) { document.querySelector("h1").textContent = "Endereço de retorno inválido"; return; }
+  var destino = "http://127.0.0.1:" + porta + "/instagram/retorno" + location.search;
+  document.getElementById("link").href = destino;
+  location.replace(destino);  // replace: o code não fica no histórico do navegador
+})();
+</script>
+</body>
+</html>

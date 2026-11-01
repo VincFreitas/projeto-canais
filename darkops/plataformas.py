@@ -64,15 +64,15 @@ def _instagram(perfis_alvo, todos) -> Plataforma:
     # o Instagram só baixa o vídeo por um link público: ele passa pelo repositório público do GitHub (nuvem.video_publico)
     passagem = bool(env.get("NUVEM_TOKEN") and env.get("NUVEM_VIDEOS_REPO"))
     etapas = [Etapa("Conta Profissional e app da Meta", app,
-                    "Conta do Instagram Profissional (Criador ou Empresa); em developers.facebook.com crie o app com o "
-                    "caso de uso do Instagram e gere o token (passo a passo: docs/instalacao.md)",
+                    "Conta do Instagram Profissional (Criador ou Empresa) e o app da Meta com login do Instagram; depois, "
+                    "Estúdio > Ajustes > Contas > Entrar com Instagram (passo a passo: docs/instalacao.md)",
                     "https://developers.facebook.com/apps/"),
               Etapa("Repositório de passagem no GitHub", passagem,
-                    "Vale para todos os perfis. Estúdio > Ajustes > Contas > Nuvem: crie o token do GitHub e o repositório "
-                    "de fila, depois um repositório PÚBLICO de passagem; o vídeo fica lá só enquanto a Meta baixa",
+                    "Vale para todos os perfis. Estúdio > Ajustes > Contas > Nuvem > Entrar com o GitHub: cria sozinho a "
+                    "fila e o repositório PÚBLICO de passagem; o vídeo fica lá só enquanto a Meta baixa",
                     "https://github.com/settings/personal-access-tokens")]
     etapas += [Etapa(f"Token salvo: {p.dados['nome']}", p.token_instagram.exists(),
-                     "Estúdio > Conexões > colar o token gerado no app da Meta (dura 60 dias)") for p in perfis_alvo]
+                     "Estúdio > Ajustes > Contas > Entrar com Instagram (o token se renova sozinho)") for p in perfis_alvo]
     return Plataforma("instagram", "Instagram", True, etapas)
 
 

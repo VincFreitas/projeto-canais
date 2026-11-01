@@ -21,13 +21,37 @@
       <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O passo a passo está em <code>docs/instalacao.md</code> (no Claude Code, <code>/configurar</code>).</p>
     {% endif %}
   {% elif c.tipo == 'token' %}
+    {% if instagram_app %}
+      <form method="post" action="{{ url_for('instagram_entrar', pid=p.id) }}">
+        <button class="botao pequeno">{{ 'Entrar de novo com Instagram' if situacao == 'ok' else 'Entrar com Instagram' }}</button></form>
+      <p class="dica">Você entra na conta do canal e autoriza; o token chega sozinho e se renova antes de vencer.</p>
+    {% else %}
+      <p class="dica">Uma vez só, vale para todos os canais: o app da Meta com login do Instagram.</p>
+      <ol class="passos">
+        <li>Em <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps ↗</a>, crie o app com o caso de uso <b>Gerenciar mensagens e conteúdo no Instagram</b>.</li>
+        <li>Em Instagram &gt; <b>Configuração da API com login do Instagram</b> &gt; Configurar login da empresa, acrescente este endereço em <b>URIs de redirecionamento OAuth</b>: <code>{{ instagram_retorno }}</code></li>
+        <li>Na mesma página, copie o <b>ID do app do Instagram</b> e a <b>Chave secreta do app do Instagram</b> e cole abaixo.</li>
+      </ol>
+      <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave">
+        <input type="text" name="INSTAGRAM_APP_ID" placeholder="ID do app do Instagram" autocomplete="off" required>
+        <input type="password" name="INSTAGRAM_APP_SECRET" placeholder="Chave secreta do app do Instagram" autocomplete="off" required>
+        <button class="botao pequeno">Salvar e entrar com Instagram</button>
+      </form>
+    {% endif %}
+    <details class="mais"><summary>Ou cole um token gerado no painel da Meta</summary>
     {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
     <form method="post" action="{{ url_for('conectar_instagram', pid=p.id) }}" class="linha-form">
       <input type="password" name="token" placeholder="{{ 'cole outro token para trocar' if situacao == 'ok' else 'cole o token aqui' }}" autocomplete="off"
              onpaste="setTimeout(() => this.form.requestSubmit(), 50)">
       <button class="botao pequeno">Salvar e testar</button>
-    </form>
+    </form></details>
   {% elif c.tipo == 'chave' %}
+    {% if c.id == 'azure' %}
+      <form method="post" action="{{ url_for('conectar_conta', pid=p.id, servico='azure') }}">
+        <button class="botao pequeno">{{ 'Refazer pela conta da Microsoft' if situacao == 'ok' else 'Entrar com a Microsoft e criar a chave' }}</button></form>
+      <p class="dica">Você só entra na conta; o Estúdio cria o recurso de voz no nível <b>grátis (F0)</b> e salva a chave. Nunca cria o pago.</p>
+      <details class="mais"><summary>Ou cole uma chave que você já tem</summary>
+    {% endif %}
     {% if situacao not in ('ok',) and c.passos %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
     {% if c.link and situacao != 'ok' %}<p><a class="botao pequeno secundario" href="{{ c.link }}" target="_blank" rel="noopener">1. Abrir a página da chave ↗</a></p>{% endif %}
     <form method="post" action="{{ url_for('salvar_chaves_conector', pid=p.id) }}" class="campos-chave">
@@ -39,6 +63,7 @@
       {% endfor %}
       <button class="botao pequeno">Salvar</button>
     </form>
+    {% if c.id == 'azure' %}</details>{% endif %}
   {% elif c.tipo == 'em_breve' %}
     {% if c.passos %}<p class="dica">{{ c.passos[0] }}</p>{% endif %}
   {% elif c.id == 'n8n' and situacao != 'ok' %}
@@ -132,6 +157,11 @@
       {% endif %}
     {% else %}
       {% if nuvem.erro %}<p class="aviso erro">{{ nuvem.erro }}</p>{% endif %}
+      <form method="post" action="{{ url_for('conectar_conta', pid=p.id, servico='github') }}">
+        <button class="botao pequeno">Entrar com o GitHub e preparar tudo</button></form>
+      <p class="dica">Você só entra na conta do GitHub (crie uma grátis se não tiver). O Estúdio cria o repositório
+        privado de fila e o público de passagem do Instagram, envia as credenciais e liga a nuvem.</p>
+      <details class="mais"><summary>Ou faça à mão</summary>
       <ol class="passos">
         <li>No GitHub, crie um repositório <b>privado</b> e vazio (ex.: <code>projeto-canais-fila</code>).
           <a href="https://github.com/new" target="_blank" rel="noopener">Criar repositório ↗</a></li>
@@ -145,7 +175,7 @@
         <input type="text" name="repo" value="{{ nuvem_repo }}" placeholder="dono/repositório (ex.: VincFreitas/projeto-canais-fila)" required>
         <input type="password" name="token" placeholder="token do GitHub (github_pat_...)" autocomplete="off">
         <button class="botao pequeno">Conferir e preparar a nuvem</button>
-      </form>
+      </form></details>
     {% endif %}
   </article>
   </div>

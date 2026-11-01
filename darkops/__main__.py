@@ -527,6 +527,16 @@ def cmd_aprender(a):
             print(r.get("resumo", ""))
 
 
+def cmd_conectar_github(_):
+    from . import contas
+    contas.conectar_github()
+
+
+def cmd_conectar_azure(_):
+    from . import contas
+    contas.conectar_azure()
+
+
 def cmd_instalar_apps(a):
     from . import apps
     falhas = apps.instalar_tudo(claude=not a.sem_claude, n8n=not a.sem_n8n, logon=not a.sem_logon)
@@ -774,6 +784,12 @@ def main():
     s.add_argument("--forcar", action="store_true", help="analisa agora, mesmo sem completar o ciclo")
     s.add_argument("--perfil-unico", action="store_true", help="só o perfil de --perfil (sem isso: todos os ativos)")
     s.set_defaults(fn=cmd_aprender)
+
+    s = sub.add_parser("conectar-github", help="login no GitHub; cria os repositórios da nuvem e da passagem do Instagram")
+    s.set_defaults(fn=cmd_conectar_github)
+
+    s = sub.add_parser("conectar-azure", help="login na Microsoft; cria o recurso de voz grátis (F0) e salva a chave")
+    s.set_defaults(fn=cmd_conectar_azure)
 
     s = sub.add_parser("instalar-apps", help="instala sozinho o Node.js, o n8n e o Claude Code (na pasta do projeto)")
     s.add_argument("--sem-claude", action="store_true")

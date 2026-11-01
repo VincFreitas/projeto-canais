@@ -23,8 +23,39 @@ def token() -> str:
     if not valor and arquivo.exists():
         valor = arquivo.read_text(encoding="utf-8-sig").strip()
     if not valor:
-        raise SystemExit("sem token do Instagram neste perfil: cole no Estúdio (Conexões)")
+        raise SystemExit("sem token do Instagram neste perfil: Estúdio > Ajustes > Contas > Entrar com Instagram")
+    if not os.getenv("INSTAGRAM_TOKEN") and arquivo.exists():
+        valor = _renovar_se_preciso(arquivo, valor)
     return valor
+
+
+RENOVAR_DEPOIS_DIAS = 40  # o token vale 60 dias; renova com folga, no próprio uso (postagem, estatísticas)
+
+
+def _renovar_se_preciso(arquivo: Path, valor: str) -> str:
+    """Renova o token de 60 dias quando ele passa de 40 dias, e manda o novo para a nuvem. Se a renovação falhar,
+    segue com o atual (que ainda vale) e tenta de novo no próximo uso."""
+    import time
+    from . import nuvem
+    if nuvem.na_nuvem() or time.time() - arquivo.stat().st_mtime < RENOVAR_DEPOIS_DIAS * 86400:
+        return valor
+    try:
+        dados = _checar(requests.get("https://graph.instagram.com/refresh_access_token",
+                                     params={"grant_type": "ig_refresh_token", "access_token": valor}, timeout=30))
+    except (SystemExit, requests.RequestException, ValueError) as erro:
+        from .seguranca import ocultar
+        print(f"aviso: não renovei o token do Instagram agora ({ocultar(str(erro))})")
+        return valor
+    arquivo.write_text(dados["access_token"], encoding="utf-8")
+    print("token do Instagram renovado por mais 60 dias")
+    if nuvem.configurada():
+        try:
+            from .perfis import listar
+            nuvem.enviar_segredos(listar())
+        except (SystemExit, OSError) as erro:
+            from .seguranca import ocultar
+            print(f"aviso: a nuvem ainda tem o token antigo ({ocultar(str(erro))}); use Atualizar as credenciais")
+    return dados["access_token"]
 
 
 def _checar(resposta: requests.Response) -> dict:

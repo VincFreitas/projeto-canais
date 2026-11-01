@@ -659,7 +659,9 @@ def conexoes(pid):
     return render_template("conexoes.html", p=p, d=p.dados, conexoes=con, grupos=grupos,
                            tem_client=(config.RAIZ / "credenciais" / "client_secret.json").exists(),
                            nuvem=_status_nuvem(p), nuvem_repo=_env().get("NUVEM_REPO", ""),
-                           passagem_repo=_env().get("NUVEM_VIDEOS_REPO", ""), whatsapp=_status_whatsapp())
+                           passagem_repo=_env().get("NUVEM_VIDEOS_REPO", ""),
+                           instagram_app=bool(_env().get("INSTAGRAM_APP_ID") and _env().get("INSTAGRAM_APP_SECRET")),
+                           instagram_retorno=_instagram_retorno(), whatsapp=_status_whatsapp())
 
 
 WHATSAPP_CAMPOS = [("WHATSAPP_TOKEN", True), ("WHATSAPP_NUMERO_ID", False), ("WHATSAPP_PARA", False),
@@ -853,11 +855,86 @@ def _nuvem_em_fundo(p, acao: str) -> None:
         _iniciar_job(p, f"Nuvem: {acao}", [[f"nuvem-{acao}"]])
 
 
+def _instagram_retorno() -> str:
+    from ..contas import instagram_retorno
+    return instagram_retorno()
+
+
 def _status_nuvem(p) -> dict:
     try:
         return canal_nuvem.status(p)
     except (SystemExit, OSError) as erro:
         return {"configurada": True, "erro": str(erro)}
+
+
+# ---------- contas por login: a pessoa só entra na conta, o resto o Estúdio faz (darkops/contas.py) ----------
+
+@app.post("/p/<pid>/conectar/<servico>")
+def conectar_conta(pid, servico):
+    p = _perfil(pid)
+    if servico not in ("github", "azure"):
+        abort(404)
+    comandos = {"github": [["conectar-github"], ["nuvem-configurar"]], "azure": [["conectar-azure"]]}[servico]
+    titulo = {"github": "Entrar com o GitHub e preparar a nuvem", "azure": "Entrar com a Microsoft e criar a chave da voz"}
+    job = _iniciar_job(p, titulo[servico], comandos)
+    flash("Abrimos a página de login no navegador. O código para colar lá aparece logo abaixo.", "ok")
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid) + "#" +
+                            ("nuvem" if servico == "github" else "azure")))
+
+
+@app.post("/p/<pid>/instagram/app")
+def instagram_app(pid):
+    """ID e chave secreta do app do Instagram (uma vez, todos os canais); em seguida já abre o login."""
+    _perfil(pid)
+    app_id = request.form.get("INSTAGRAM_APP_ID", "").strip()
+    segredo = request.form.get("INSTAGRAM_APP_SECRET", "").strip()
+    if not (app_id.isdigit() and re.fullmatch(r"[0-9a-f]{32}", segredo)):
+        flash("Confira os dois campos: o ID do app tem só números e a chave secreta tem 32 letras e números.", "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#instagram")
+    from ..contas import salvar_env
+    salvar_env({"INSTAGRAM_APP_ID": app_id, "INSTAGRAM_APP_SECRET": segredo})
+    return redirect(url_for("instagram_entrar", pid=pid), code=307)
+
+
+@app.post("/p/<pid>/instagram/entrar")
+def instagram_entrar(pid):
+    _perfil(pid)
+    from ..contas import instagram_url
+    porta = int(request.host.rsplit(":", 1)[1]) if ":" in request.host else 80
+    try:
+        return redirect(instagram_url(pid, porta))
+    except SystemExit as erro:
+        flash(str(erro), "erro")
+        return redirect(url_for("conexoes", pid=pid) + "#instagram")
+
+
+@app.get("/instagram/retorno")
+def instagram_volta():
+    """A página https do site repassa o code da Meta para cá. Vem de outro site, então o cookie de sessão (Strict)
+    não chega: o estado de uso único guardado no servidor é que diz qual canal pediu."""
+    from ..contas import instagram_perfil_do_estado, instagram_trocar_codigo
+    pid = instagram_perfil_do_estado(request.args.get("state", ""))
+    if not pid:
+        return render_template("instagram_retorno.html", ok=False, destino=url_for("inicio"),
+                               texto="Este login expirou ou não foi pedido por este Estúdio. Clique de novo em Entrar com Instagram.")
+    p = _perfil(pid)
+    destino = url_for("conexoes", pid=pid) + "#instagram"
+    if request.args.get("error"):
+        return render_template("instagram_retorno.html", ok=False, destino=destino,
+                               texto="O login no Instagram foi cancelado. Nada mudou.")
+    try:
+        token = instagram_trocar_codigo(request.args.get("code", ""))
+    except (SystemExit, OSError, ValueError) as erro:
+        return render_template("instagram_retorno.html", ok=False, destino=destino, texto=seguranca.ocultar(str(erro)))
+    p.preparar()
+    p.token_instagram.write_text(token, encoding="utf-8")
+    ok, saida = _rodar_agora(pid, "conta-instagram", timeout=60)
+    achado = re.search(r"token válido: @([A-Za-z0-9_.]+)", saida) if ok else None
+    if canal_nuvem.configurada():
+        _iniciar_job(p, "Atualizar as credenciais na nuvem", [["nuvem-segredos"]])
+    return render_template("instagram_retorno.html", ok=True, destino=destino,
+                           texto=f"Instagram conectado{(' em @' + achado.group(1)) if achado else ''}. "
+                                 "O token vale 60 dias e se renova sozinho.")
 
 
 @app.post("/p/<pid>/nuvem/salvar")
