@@ -37,7 +37,7 @@
     li.classList.add(ok === true ? 'ok' : ok === false ? 'off' : 'espera');
     li.querySelector('b').textContent = texto;
   };
-  setTimeout(() => marcar('estudio', true, 'pronto'), calmo ? 0 : 500);
+  setTimeout(() => marcar('estudio', true, 'pronto'), calmo ? 0 : 200);
   fetch("{{ url_for('abertura_estado') }}", {cache: 'no-store'}).then(r => r.json()).then(e => {
     const passos = [
       () => marcar('n8n', e.n8n === 'ligado' ? true : e.n8n === 'ligando' ? null : false,
@@ -46,10 +46,10 @@
       () => marcar('whatsapp', e.whatsapp === 'ligado' ? true : e.whatsapp === 'ligando' ? null : false,
                    {ligado: 'conectado', ligando: 'conectando…', desligado: 'desligado'}[e.whatsapp]),
     ];
-    passos.forEach((f, i) => setTimeout(f, calmo ? 0 : 900 + i * 380));
+    passos.forEach((f, i) => setTimeout(f, calmo ? 0 : 400 + i * 200));
   }).catch(() => {});
   // entra no painel depois da animação (ou na hora, para quem pediu menos movimento)
-  setTimeout(() => location.replace(destino), calmo ? 400 : 3200);
+  setTimeout(() => location.replace(destino), calmo ? 300 : 1500);
 })();
 </script>
 </body>

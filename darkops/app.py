@@ -218,12 +218,25 @@ def reiniciar_n8n() -> str:
     return ligar_n8n()
 
 
+def estudio_aberto(porta: int = 8765) -> bool:
+    import socket
+    with socket.socket() as teste:
+        return teste.connect_ex(("127.0.0.1", porta)) == 0
+
+
 def abrir() -> None:
     """O que o atalho roda: sem terminal, a saída vai para um arquivo de registro."""
     if sys.stdout is None or sys.stderr is None:  # pythonw não tem console
         registro = config.RAIZ / "dados" / "estudio.log"
         registro.parent.mkdir(parents=True, exist_ok=True)
         sys.stdout = sys.stderr = open(registro, "a", encoding="utf-8", buffering=1)
+    porta = int(os.environ.get("PORT", 8765))
+    if not os.environ.get("DARKOPS_REINICIO") and estudio_aberto(porta):
+        # já aberto: vai direto ao painel, sem carregar o Flask nem repetir a abertura animada
+        import webbrowser
+        ligar_n8n()
+        webbrowser.open(f"http://127.0.0.1:{porta}/")
+        return
     from .estudio import rodar
     rodar(abrir=True)
 

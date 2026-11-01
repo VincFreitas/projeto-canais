@@ -41,6 +41,31 @@ if (-not (Test-Path $n8n)) {
 }
 if (-not (Test-Path $n8n)) { Write-Error "n8n nao encontrado. Rode: .\.venv\Scripts\python.exe -m darkops instalar-apps"; exit 1 }
 
+# Abertura mais rapida (medida com o disco ja aquecido; detalhes em n8n/acelerar.cjs):
+# 1) desliga os modulos que o workflow nao usa (IA, MCP, chat, insights, tabelas). So entram os nomes que a
+#    versao instalada conhece: um nome que ela nao conhece faria o n8n recusar abrir depois de uma atualizacao.
+$pacote = Join-Path (Split-Path (Split-Path $n8n -Parent) -Parent) 'n8n'
+$lista = Join-Path (Split-Path $pacote -Parent) '@n8n\backend-common\dist\modules\modules.config.js'
+if (Test-Path $lista) {
+    $conhecidos = [regex]::Matches((Get-Content $lista -Raw), "'([a-z0-9-]+)'") | ForEach-Object { $_.Groups[1].Value }
+    $sem_uso = 'agents', 'agent-evals', 'insights', 'chat-hub', 'mcp', 'mcp-discovery', 'mcp-registry', 'instance-ai',
+               'workflow-builder', 'quick-connect', 'data-table', 'inbox', 'otel'
+    $env:N8N_DISABLED_MODULES = ($sem_uso | Where-Object { $conhecidos -contains $_ }) -join ','
+}
+# 2) cache de onde o Node acha cada modulo (n8n\acelerar.cjs). O nome muda com a versao do n8n e com a data
+#    do .package-lock.json (o npm reescreve a cada instalacao); os caches velhos sao apagados.
+$trava = Join-Path (Split-Path $pacote -Parent) '.package-lock.json'
+if ((Test-Path (Join-Path $pacote 'package.json')) -and (Test-Path $trava)) {
+    $versao = (Get-Content (Join-Path $pacote 'package.json') -Raw | ConvertFrom-Json).version
+    $chave = "$versao-$((Get-Item $trava).LastWriteTimeUtc.Ticks)"
+    $caches = Join-Path (Split-Path $PSScriptRoot -Parent) 'dados\cache'
+    Get-ChildItem $caches -Filter 'n8n-modulos-*.json' -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -ne "n8n-modulos-$chave.json" } | Remove-Item -ErrorAction SilentlyContinue
+    $env:DARKOPS_CACHE_N8N = Join-Path $caches "n8n-modulos-$chave.json"
+    # barras normais: dentro das aspas do NODE_OPTIONS o Node trata a barra invertida como escape
+    $env:NODE_OPTIONS = "--require `"$((Join-Path $PSScriptRoot 'acelerar.cjs') -replace '\\', '/')`""
+}
+
 if (Get-NetTCPConnection -LocalPort 5678 -State Listen -ErrorAction SilentlyContinue) {
     Write-Host 'n8n ja esta rodando em http://localhost:5678'
     if (-not $NoOpen) { Start-Process 'http://localhost:5678' }
@@ -49,11 +74,17 @@ if (Get-NetTCPConnection -LocalPort 5678 -State Listen -ErrorAction SilentlyCont
 
 if (-not $NoOpen) {
     Start-Job -ScriptBlock {
-        for ($i = 0; $i -lt 120; $i++) {
+        for ($i = 0; $i -lt 600; $i++) {  # logo depois de ligar o PC o n8n pode levar minutos
             Start-Sleep -Seconds 1
             try { Invoke-WebRequest 'http://localhost:5678/healthz' -UseBasicParsing -TimeoutSec 2 | Out-Null; Start-Process 'http://localhost:5678'; break } catch {}
         }
     } | Out-Null
 }
 
+$inicio = Get-Date
 & $n8n start
+if ($LASTEXITCODE -ne 0 -and $env:DARKOPS_CACHE_N8N -and ((Get-Date) - $inicio).TotalSeconds -lt 180) {
+    # caiu logo ao abrir: o acelerar.cjs ja apagou o cache; tenta uma vez do jeito normal
+    Remove-Item Env:NODE_OPTIONS, Env:DARKOPS_CACHE_N8N -ErrorAction SilentlyContinue
+    & $n8n start
+}

@@ -1624,12 +1624,15 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
         if abrir:
             webbrowser.open(url + "/abertura")
         return
+    from werkzeug.serving import make_server
+    servidor = make_server("127.0.0.1", porta, app, threaded=True)
     print(f"Estúdio em {url} (Ctrl+C para fechar)")
     if abrir and not reinicio:  # no reinício a aba aberta só recarrega, sem abrir outra
-        threading.Timer(1.0, lambda: webbrowser.open(url + "/abertura")).start()
+        # a porta já está escutando: o navegador abre na hora, sem esperar um tempo fixo
+        threading.Thread(target=webbrowser.open, args=(url + "/abertura",), daemon=True).start()
     os.environ["PORT"] = str(porta)  # o Estúdio reaberto depois de uma atualização usa a mesma porta
     threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
-    app.run(host="127.0.0.1", port=porta, debug=False, threaded=True)
+    servidor.serve_forever()
 
 
 def _vigiar_atualizacao() -> None:

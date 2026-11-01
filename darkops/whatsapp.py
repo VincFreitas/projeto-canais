@@ -644,15 +644,16 @@ _PORTEIRO: ThreadingHTTPServer | None = None
 
 def _ligar() -> None:
     global _PORTEIRO
-    _gravar_estado(tunel_ok=False, tunel_erro="")
     verificador()
     if _PORTEIRO is None:  # ligar de novo (troca de configuração) reaproveita o porteiro e refaz só o túnel
         try:
             _PORTEIRO = ThreadingHTTPServer(("127.0.0.1", PORTA_PORTEIRO), _Porteiro)
         except OSError:
-            _gravar_estado(tunel_erro="a porta 5680 já está em uso (outro Estúdio aberto?)")
+            # outro Estúdio já tem o porteiro e o túnel: não mexe no estado dele
+            print("WhatsApp: a porta 5680 já está em uso (outro Estúdio aberto?)")
             return
         threading.Thread(target=_PORTEIRO.serve_forever, daemon=True).start()
+    _gravar_estado(tunel_ok=False, tunel_erro="")
     exe = _cloudflared()
     if not exe and os.name == "nt":
         try:
