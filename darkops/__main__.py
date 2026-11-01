@@ -559,6 +559,8 @@ def cmd_nichos(_):
 
 
 def main():
+    from .janelas import esconder
+    esconder()  # aberto pelo atalho (pythonw): nenhum comando chamado daqui pisca uma janela de prompt
     from .autoria import ROTULO, VERSAO
     p = argparse.ArgumentParser(prog="dark", description=f"Pesquisa e produção de canais dark. {ROTULO}")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSAO}")
