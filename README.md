@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.29.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.29.2%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
@@ -111,7 +111,7 @@ O passo a passo completo de cada conta está em [.claude/skills/configurar/SKILL
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
 - `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/whatsapp.py`: avisos e comandos; `darkops/nuvem.py`: postagem com o PC desligado
-- `n8n/`: modelos dos workflows (postagem; WhatsApp, resumo e análise) e lançadores
+- `n8n/`: modelos dos workflows (postagem e análise do que funcionou; WhatsApp e resumo do dia) e lançadores
 - `site/`: página inicial, privacidade e termos exigidos pelo Google e pela Meta (GitHub Pages)
 - `docs/img/`: imagens do README
 - `docs/`: formato do roteiro e banco de ganchos

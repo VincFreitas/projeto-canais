@@ -40,13 +40,43 @@ def gerar_workflow(importar: bool = False) -> Path:
             raise SystemExit("n8n não encontrado. Instale com: npm install -g n8n")
         env = {**os.environ, "N8N_DIAGNOSTICS_ENABLED": "false",
                "NODES_EXCLUDE": '["n8n-nodes-base.localFileTrigger"]'}
-        proc = subprocess.run([n8n, "import:workflow", f"--input={GERADO}"], capture_output=True, text=True,
-                              encoding="utf-8", errors="replace", env=env)
-        print((proc.stdout + proc.stderr).strip().splitlines()[-1] if (proc.stdout + proc.stderr).strip() else "")
-        if proc.returncode != 0:
-            raise SystemExit("falha ao importar no n8n")
-        print("Importado. Abra http://localhost:5678 e ative o workflow (chave no canto superior direito).")
+        # importar deixa o workflow desligado: publica em seguida, senão nada posta e ninguém percebe
+        for args in (["import:workflow", f"--input={GERADO}"], ["publish:workflow", f"--id={ID_POSTAGEM}"]):
+            proc = subprocess.run([n8n, *args], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
+            if proc.returncode != 0:
+                raise SystemExit(f"falha no n8n ({args[0]}): {(proc.stdout + proc.stderr).strip()[-300:]}")
+        print("importado e ligado no n8n" + _reiniciar_se_aberto())
     return GERADO
+
+
+def _reiniciar_se_aberto() -> str:
+    """O n8n aberto só passa a seguir um workflow publicado pela linha de comando depois de reiniciar."""
+    from .app import n8n_ligado, reiniciar_n8n
+    if not n8n_ligado():
+        return " (vale quando o n8n abrir)"
+    if reiniciar_n8n() == "perto-do-horario":
+        return "; perto das 12h/19h o n8n não reinicia: reabra o Estúdio depois do horário para valer"
+    return "; o n8n está reiniciando para valer (1 a 3 min)"
+
+
+ID_POSTAGEM = "516k0cfwhvZqU0cp"  # o "id" de n8n/workflow.modelo.json
+
+
+def workflow_ativo(wid: str) -> bool | None:
+    """O workflow está ligado no n8n deste PC? None = n8n ainda sem banco (nunca abriu)."""
+    import sqlite3
+    pasta = Path(os.environ.get("N8N_USER_FOLDER") or Path.home()) / ".n8n" / "database.sqlite"
+    if not pasta.exists():
+        return None
+    try:
+        con = sqlite3.connect(f"file:{pasta}?mode=ro", uri=True, timeout=2)
+        try:
+            linha = con.execute("select active from workflow_entity where id = ?", (wid,)).fetchone()
+        finally:
+            con.close()
+    except sqlite3.Error:
+        return None
+    return bool(linha and linha[0])
 
 
 MODELO_WHATSAPP = config.RAIZ / "n8n" / "whatsapp.modelo.json"
@@ -90,6 +120,7 @@ def gerar_workflow_whatsapp(importar: bool = False) -> Path:
 
 def diagnostico() -> list[tuple[str, bool, str]]:
     """(item, pronto?, o que fazer) para cada peça do projeto."""
+    from .leva import _claude
     from .perfis import listar
     env = {}
     arquivo_env = config.RAIZ / ".env"
@@ -128,7 +159,9 @@ def diagnostico() -> list[tuple[str, bool, str]]:
     itens += [
         ("Node.js", bool(shutil.which("node")), "instale o Node.js LTS em nodejs.org"),
         ("n8n", bool(_n8n_cmd()), "npm install -g n8n"),
-        ("Workflow do n8n gerado", GERADO.exists(), "python -m darkops n8n-workflow --importar"),
-        ("Claude Code (para escrever roteiros)", bool(shutil.which("claude")), "opcional: claude.com/claude-code"),
+        ("Postagem automática ligada no n8n", bool(workflow_ativo(ID_POSTAGEM)),
+         "python -m darkops n8n-workflow --importar (importa, liga e reinicia o n8n)"),
+        ("Claude Code (escreve os roteiros)", bool(_claude()),
+         "necessário: instale em claude.com/claude-code e faça login uma vez rodando: claude"),
     ]
     return itens

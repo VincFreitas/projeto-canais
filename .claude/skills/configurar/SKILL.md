@@ -1,6 +1,6 @@
 ---
 name: configurar
-description: Instala e configura o projeto do zero num PC Windows (dependências, voz, n8n, chaves, contas do YouTube e do Instagram, primeiro perfil e postagem automática), guiando o usuário passo a passo e conferindo cada etapa com o diagnóstico. Use quando alguém acabou de clonar o repositório, pedir para instalar, configurar, "fazer funcionar" ou quando o diagnóstico mostrar itens faltando.
+description: Instala e configura o projeto do zero num PC Windows (dependências, voz, Claude Code, n8n, chaves, contas do YouTube e do Instagram, primeiro canal, postagem automática e WhatsApp opcional), guiando o usuário passo a passo e conferindo cada etapa com o diagnóstico. Use quando alguém acabou de clonar o repositório, pedir para instalar, configurar, "fazer funcionar" ou quando o diagnóstico mostrar itens faltando.
 ---
 
 # Configurar o projeto
@@ -11,86 +11,107 @@ Objetivo: deixar o usuário com um canal postando sozinho, sem ele precisar mexe
 
 **Regras de segurança (obrigatórias):**
 - Criar contas, fazer login, digitar senha, verificar por SMS e aceitar termos é sempre **com o usuário**. Você mostra o caminho e espera.
-- **Nunca** peça para colar chave ou token no chat. Chaves vão pelo Estúdio (Conexões) ou direto no `.env`; tokens do Instagram, pelo Estúdio.
+- **Nunca** peça para colar chave ou token no chat. Chaves e tokens vão pelo Estúdio (Ajustes > Contas, ou a tela WhatsApp), que grava no `.env` ou em `perfis/<id>/credenciais/`.
 - Não mude configurações de segurança do Windows (política de execução, firewall). Use `powershell -ExecutionPolicy Bypass -File ...`, que vale só para aquele comando.
 - Antes de instalar algo global (Node, n8n), diga o que é, o tamanho aproximado e peça o ok.
+
+**Onde ficam as telas do Estúdio** (http://127.0.0.1:8765): no modo simples, as contas e chaves ficam em **Ajustes > Contas** (no Modo avançado, a mesma tela aparece como **Conexões** na lateral). **Progresso da configuração** e **WhatsApp** ficam na barra lateral; **+ Novo canal** fica no topo dela.
 
 ## 0. Perguntar o que a pessoa quer testar (sempre primeiro)
 Antes de instalar qualquer coisa, use AskUserQuestion (multiSelect) e deixe claro o que cada opção significa:
 - **YouTube**: Shorts ou vídeo convencional, com postagem automática (precisa de um app OAuth do Google, uma vez, e de um clique por canal).
-- **Instagram**: Reels, com postagem automática (precisa de conta Profissional, app da Meta e um token por canal, que dura 60 dias).
+- **Instagram**: Reels, com postagem automática (precisa de conta Profissional, app da Meta, um token por canal que dura 60 dias e uma conta no GitHub, porque o vídeo passa por um repositório público enquanto a Meta baixa).
 - **Facebook, TikTok ou Kwai**: o projeto gera o vídeo, mas a postagem é **manual** (ainda não há postagem automática).
-- **Só gerar vídeos**: sem publicar, para testar o pipeline (voz, imagens e render).
+- **Só gerar vídeos**: sem publicar, para testar o pipeline (roteiro, voz, imagens e render).
 
-Pergunte também se é só um teste (vídeos privados ou não listados, sem ligar a postagem) ou se o canal vai postar de verdade.
-Depois, diga em uma frase o plano: "Vamos configurar a base e depois <plataformas escolhidas>", e siga **só** os tutoriais das plataformas escolhidas (passos 4 e 5). Pule os outros.
+Pergunte também se é só um teste (vídeos privados ou não listados, sem ligar a postagem) ou se o canal vai postar de verdade, e se a pessoa quer **avisos e comandos pelo WhatsApp** (opcional, passo 9).
+Depois, diga em uma frase o plano: "Vamos configurar a base e depois <plataformas escolhidas>", e siga **só** os tutoriais das plataformas escolhidas (passos 5 e 6). Pule os outros.
 
 ## 1. Ver onde estamos
-Rode o diagnóstico e o progresso por plataforma (se o `.venv` ainda não existir, pule para o passo 2):
+Se o `.venv` já existe, rode o diagnóstico e o progresso por plataforma (senão, pule para o passo 2):
 ```
 .\.venv\Scripts\python.exe -m darkops diagnostico
 .\.venv\Scripts\python.exe -m darkops progresso
 ```
 Mostre o resultado resumido das plataformas escolhidas e siga só os passos que faltam.
-O Estúdio fica em **modo guiado** até essas etapas terminarem: Fila, Novo vídeo e Histórico ficam travados e a tela Progresso mostra o próximo passo; siga essa ordem. Mostre também a tela **Progresso da configuração** do Estúdio (menu Geral, http://127.0.0.1:8765/progresso), que tem uma barra por plataforma e se atualiza a cada etapa.
+O Estúdio fica em **modo guiado** até o essencial terminar (.env, voz offline, Claude Code, um canal, imagens e as plataformas marcadas no canal): Início, Novo vídeo e Histórico ficam travados e a tela **Progresso da configuração** mostra o próximo passo, com uma barra por plataforma; siga essa ordem.
 
 ## 2. Dependências (Python 3.11+)
 - Confira `python --version`. Sem Python: peça para instalar em python.org (marcar "Add to PATH").
-- Rode o instalador (cria o `.venv`, instala os pacotes, baixa a voz offline e cria o `.env`):
+- Rode o instalador (cria o `.venv`, instala os pacotes, baixa a voz offline e cria o `.env`). Passe sempre `-Atalhos nenhum`: sem ele o instalador para esperando respostas no teclado, e os atalhos são feitos no passo 2b:
   ```
-  powershell -ExecutionPolicy Bypass -File instalar.ps1
+  powershell -ExecutionPolicy Bypass -File instalar.ps1 -Atalhos nenhum
   ```
 
 ## 2b. Atalhos para abrir com um clique
-Pergunte com AskUserQuestion (multiSelect) onde a pessoa quer o atalho do Projeto Canais: **Área de Trabalho**, **Menu Iniciar** e/ou **Barra de tarefas**. Explique que o Windows não deixa programas se fixarem sozinhos na barra de tarefas: o atalho vai para o Menu Iniciar e ela clica com o botão direito > Fixar na barra de tarefas. Depois rode, com as opções escolhidas:
+Pergunte com AskUserQuestion (multiSelect) onde a pessoa quer o atalho do Projeto Canais: **Área de Trabalho**, **Menu Iniciar** e/ou **Barra de tarefas**. Explique que o Windows não deixa programas se fixarem sozinhos na barra de tarefas: o atalho vai para o Menu Iniciar e ela clica com o botão direito > Fixar na barra de tarefas. Depois rode, só com as opções escolhidas:
 ```
 .\.venv\Scripts\python.exe -m darkops atalhos --area-de-trabalho --menu-iniciar --barra-de-tarefas
 ```
-A partir daí ela abre tudo pelo atalho, sem PowerShell. Dá para mudar em Estúdio > Configurações, onde também ficam a atualização automática do projeto e a atualização das dependências.
+A partir daí ela abre tudo pelo atalho, sem PowerShell (abre numa abertura animada e liga o n8n escondido, se já estiver instalado). Dá para mudar em Estúdio > Configurações, onde também ficam a atualização automática do projeto e a das dependências.
 
-## 3. Chaves de serviços (valem para todos os perfis)
-Abra o Estúdio e mostre a aba **Conexões**, que explica cada conector:
+## 3. Claude Code (necessário)
+É ele que escreve os roteiros (Novo vídeo, levas, os 15 vídeos do canal novo) e faz a análise do que funcionou. Se a pessoa está falando com você pelo Claude Code, já está instalado; confira com o diagnóstico ("Claude Code (escreve os roteiros)"). Se faltar: instalar em claude.com/claude-code e fazer login uma vez rodando `claude` no terminal.
+
+## 4. Chaves de serviços (valem para todos os canais)
+Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
 ```
 .\.venv\Scripts\python.exe -m darkops estudio
 ```
 - **Voz: Azure Speech (recomendado, grátis).** portal.azure.com, criar recurso "Serviço de Fala", nível **Free F0** (confira duas vezes, o S0 é pago), região Brazil South. Em "Chaves e Ponto de Extremidade", copiar a CHAVE 1. Se a conta grátis for recusada, a de pagamento conforme o uso funciona com o F0 sem cobrar; sugira um alerta de orçamento de R$ 1.
-- **Imagens: Pixabay (grátis).** pixabay.com/api/docs mostra a chave depois do login.
+- **Imagens: Pixabay (grátis).** pixabay.com/api/docs mostra a chave depois do login (o Pexels pausou chaves novas). Sem chave de imagens o modo guiado não libera, a menos que o desenho local em pixel art (opcional) esteja instalado.
 - Sem Azure, a voz cai no Edge e no Piper, que já funcionam.
 
-## 4. YouTube (se escolhido; uma vez por instalação, depois um clique por canal)
-App OAuth do Google, que vale para todos os perfis:
+## 5. YouTube (se escolhido; uma vez por instalação, depois um clique por canal)
+App OAuth do Google, que vale para todos os canais:
 1. console.cloud.google.com, logado na conta do canal: criar o projeto, ativar a **YouTube Data API v3**.
 2. Google Auth Platform: Branding (nome do app, e-mail), Público **Externo**, usuário de teste = o Gmail do canal.
 3. Acesso a dados: adicionar os escopos em "Adicionar escopos manualmente" (o campo de cima é só filtro): `https://www.googleapis.com/auth/youtube.upload` e `https://www.googleapis.com/auth/youtube.readonly`, depois Atualizar e Salvar.
 4. Para o token não vencer em 7 dias, **publicar o app** (Público > Publicar app). Isso exige página inicial, política de privacidade e termos no Branding: a pasta `site/` tem modelos para publicar no GitHub Pages (workflow `.github/workflows/pages.yml`, Settings > Pages > Source: GitHub Actions **antes** do primeiro push).
 5. Clientes > Criar cliente > **App para computador** > Baixar JSON. Salvar como `credenciais/client_secret.json`.
-6. No Estúdio, Conexões > **Conectar YouTube** e escolher a conta do canal.
+6. No Estúdio, Ajustes > Contas > **Conectar YouTube** e escolher a conta do canal (depois de criar o canal no passo 7, ou no canal de exemplo).
 
 Avise: sem a auditoria do Google ("YouTube API Services Audit"), os vídeos enviados pela API ficam **privados**.
 
-## 5. Instagram (se escolhido; por canal)
-1. A conta do Instagram precisa ser **Profissional** (Criador) e estar ligada a uma Página do Facebook.
+## 6. Instagram (se escolhido)
+Por canal:
+1. A conta do Instagram precisa ser **Profissional** (Criador ou Empresa). Com o login do Instagram usado aqui, não precisa de Página do Facebook.
 2. developers.facebook.com > criar app > caso de uso "Gerenciar mensagens e conteúdo no Instagram".
 3. Instagram > Configuração da API com login do Instagram > etapa 2 **Adicionar conta** (com o @ do canal) > **Gerar token**.
-4. Colar o token no Estúdio, em Conexões. Ele dura 60 dias.
+4. Colar o token no Estúdio, em Ajustes > Contas. Ele dura 60 dias.
 
-## 6. Perfil e primeiros vídeos
-- No Estúdio, **+ Novo perfil** (ou use o exemplo `pulga-do-saber`), preencha nome, @, nicho e foto.
-- Para encher a fila com qualidade, use `/pesquisar-nicho <nicho>` e depois `/escrever-roteiro <ideia>`; salve os roteiros em `perfis/<perfil>/fila/NNN-slug.json`.
-- No Estúdio: abra cada vídeo, **Gerar prévia**, assista e **Aprovar**. Só os aprovados vão ao ar.
+Uma vez por instalação, o **repositório de passagem** (sem ele o Reel não sobe: a Meta só baixa o vídeo por um link público):
+5. Em Ajustes > Contas > **Nuvem**, siga os passos da tela: repositório **privado** de fila no GitHub e token "fine-grained" (Contents, Secrets, Actions e Workflows em leitura e escrita), colados no formulário da tela. Isso também liga a postagem pela nuvem (12:20 e 19:20, com o PC desligado).
+6. Na mesma tela, crie um repositório **público** e vazio (ex.: `projeto-canais-videos`), acrescente-o ao mesmo token e confira em **Conferir e ligar o Instagram**. Depois, **Testar o Instagram (não publica)**.
 
-## 6b. Identidade visual das contas (depois de conectar YouTube e/ou Instagram)
-- Rode a skill `/identidade-visual <perfil>`: ela gera a foto de perfil, a capa do YouTube, a marca d'água, a bio do Instagram e a descrição do YouTube no estilo do canal.
-- Mostre a prévia e peça a aprovação de quem está testando (no chat ou no Estúdio, aba **Identidade**). **Só depois de aprovada**, aplique nas contas que a pessoa abriu e logou no navegador interno.
+## 7. Canal e primeiros vídeos
+- No Estúdio, **+ Novo canal**: um assistente de 5 passos (nicho, nome com sugestões da IA, formato e duração, redes, revisão). Marque só as redes escolhidas no passo 0. Ou use o canal de exemplo `pulga-do-saber`.
+- Ao criar, o canal **já começa os 15 primeiros vídeos** (escreve cada roteiro com o Claude Code e gera a prévia). Avise que leva um tempo (a tela mostra a estimativa) e que o PC precisa ficar ligado.
+- Para temas mais fortes, use `/pesquisar-nicho <nicho>` e `/escrever-roteiro <ideia>`; os roteiros vão para `perfis/<canal>/fila/NNN-slug.json`.
+- No Início: assistir cada prévia e **Aprovar**. Só os aprovados vão ao ar.
+- Depois dos 15 vídeos no ar há 2 dias, o canal se ajusta sozinho pelo que funcionou (Resultados > **O que funcionou**, com Desfazer). Isso roda no n8n às 20h (passo 8).
+
+## 7b. Identidade visual das contas (depois de conectar YouTube e/ou Instagram)
+- Rode a skill `/identidade-visual <canal>`: ela gera a foto de perfil, a capa do YouTube, a marca d'água, a bio do Instagram e a descrição do YouTube no estilo do canal.
+- Mostre a prévia e peça a aprovação de quem está testando (no chat ou no Estúdio, em Ajustes > **Foto, capa e bio das contas**). **Só depois de aprovada**, aplique nas contas que a pessoa abriu e logou no navegador interno.
 - Se a pessoa não quiser mexer nas contas agora, deixe gerado e aprovado; dá para aplicar depois com `/identidade-visual`.
 
-## 7. Postagem automática (n8n)
+## 8. Postagem automática e aprendizado (n8n)
 1. Node.js LTS (nodejs.org), depois `npm install -g n8n` (cerca de 10 minutos; peça o ok).
-2. Inicie o n8n: `powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1` e crie a conta local no primeiro acesso (http://localhost:5678).
-3. Gere e importe o workflow desta pasta: `.\.venv\Scripts\python.exe -m darkops n8n-workflow --importar`
-4. No n8n, abra "Canais dark - postagem automática" e **ative**. Posta às 12h e às 19h (horário de Brasília) o próximo vídeo aprovado de cada perfil ligado.
+2. Abra o n8n uma vez para criar a conta local: `powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1` (abre http://localhost:5678). Depois disso o Estúdio liga o n8n escondido sozinho toda vez que abre.
+3. Importe e ligue o workflow desta pasta (importa, publica e reinicia o n8n; perto das 12h e 19h de Brasília ele não reinicia, então rode fora desses horários):
+   ```
+   .\.venv\Scripts\python.exe -m darkops n8n-workflow --importar
+   ```
+4. Confira no diagnóstico o item **"Postagem automática ligada no n8n"**. O workflow posta às 12h e às 19h (horário de Brasília) o próximo vídeo aprovado de cada canal ligado e, às 20h, roda a análise do que funcionou.
 5. Opcional: iniciar com o Windows (`powershell -ExecutionPolicy Bypass -File n8n\iniciar-com-windows.ps1`) e suspensão do PC em "Nunca" na tomada.
 
-## 8. Conferir
+## 9. WhatsApp (opcional; uma vez, vale para todos os canais)
+Avisos (vídeo no ar, falha, fila acabando, vídeo novo com Aprovar e Recusar, resumo das 21h) e comandos (`status`, `fila`, `criar 3`, `aprovar`, `pausar`...). Usa a API oficial da Meta com um app **separado** do Instagram (a Meta não aceita "WhatsApp" no nome do app).
+- Abra a tela **WhatsApp** na barra lateral e siga o passo a passo dela (criar o app com o produto WhatsApp, número de teste, o seu número como destinatário, token e App Secret). Os campos são colados lá, nunca no chat.
+- Ao salvar, o Estúdio importa o workflow de comandos no n8n, baixa o `cloudflared` oficial (confere a assinatura da Cloudflare) e registra o webhook. Espere a tela mostrar **ligado**.
+- Teste: `.\.venv\Scripts\python.exe -m darkops whatsapp testar`. Depois peça para a pessoa mandar "oi" para o número de teste: isso abre a janela de 24 h em que os avisos chegam sem modelo aprovado.
+
+## 10. Conferir
 Depois de cada plataforma, rode `.\.venv\Scripts\python.exe -m darkops progresso` e mostre a barra dela. No fim, rode o diagnóstico de novo e mostre o que ficou pronto e o que é opcional.
-No perfil (Estúdio > Novo perfil ou aba Perfil), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Marque só as que a pessoa escolheu. Lembre que em **Sobre o projeto > Enviar sugestão** dá para mandar o que travou. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio, gerar prévias, aprovar.
+No canal (Ajustes), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Lembre que em **Sobre o projeto > Enviar sugestão** dá para mandar o que travou. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio pelo atalho, assistir as prévias e aprovar (ou aprovar pelo WhatsApp).

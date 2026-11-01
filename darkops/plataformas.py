@@ -60,13 +60,26 @@ def _youtube(perfis_alvo) -> Plataforma:
 def _instagram(perfis_alvo, todos) -> Plataforma:
     # o app da Meta não deixa rastro local; um token salvo em qualquer perfil mostra que ele já existe
     app = any(p.token_instagram.exists() for p in todos)
+    env = _env()
+    # o Instagram só baixa o vídeo por um link público: ele passa pelo repositório público do GitHub (nuvem.video_publico)
+    passagem = bool(env.get("NUVEM_TOKEN") and env.get("NUVEM_VIDEOS_REPO"))
     etapas = [Etapa("Conta Profissional e app da Meta", app,
-                    "Conta do Instagram Profissional (Criador) ligada a uma Página do Facebook; em "
-                    "developers.facebook.com crie o app e gere o token (passo a passo: /configurar)",
-                    "https://developers.facebook.com/apps/")]
+                    "Conta do Instagram Profissional (Criador ou Empresa); em developers.facebook.com crie o app com o "
+                    "caso de uso do Instagram e gere o token (passo a passo: /configurar)",
+                    "https://developers.facebook.com/apps/"),
+              Etapa("Repositório de passagem no GitHub", passagem,
+                    "Vale para todos os perfis. Estúdio > Ajustes > Contas > Nuvem: crie o token do GitHub e o repositório "
+                    "de fila, depois um repositório PÚBLICO de passagem; o vídeo fica lá só enquanto a Meta baixa",
+                    "https://github.com/settings/personal-access-tokens")]
     etapas += [Etapa(f"Token salvo: {p.dados['nome']}", p.token_instagram.exists(),
                      "Estúdio > Conexões > colar o token gerado no app da Meta (dura 60 dias)") for p in perfis_alvo]
     return Plataforma("instagram", "Instagram", True, etapas)
+
+
+def _env() -> dict:
+    from dotenv import dotenv_values
+    arquivo = config.RAIZ / ".env"
+    return {k: (v or "").strip() for k, v in dotenv_values(arquivo).items()} if arquivo.exists() else {}
 
 
 def _manual(pid: str, nome: str, link: str) -> Plataforma:
@@ -96,7 +109,7 @@ def calcular(perfil=None, novo: bool = False) -> list[Plataforma]:
     ]
 
 
-ESSENCIAIS = ("Arquivo .env", "Voz offline (Piper)", "Pelo menos um perfil")
+ESSENCIAIS = ("Arquivo .env", "Voz offline (Piper)", "Pelo menos um perfil", "Claude Code (escreve os roteiros)")
 
 
 def pendencias() -> list[Etapa]:

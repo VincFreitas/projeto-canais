@@ -227,6 +227,39 @@
         260
       ],
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 20 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1f0c001-0000-4000-8000-0000000000a1",
+      "name": "Todo dia 20h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        780
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops aprender"
+      },
+      "id": "a1f0c001-0000-4000-8000-0000000000a2",
+      "name": "Aprender com o que funcionou",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        780
+      ]
     }
   ],
   "connections": {
@@ -405,6 +438,17 @@
         [
           {
             "node": "Próximo da fila",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Todo dia 20h": {
+      "main": [
+        [
+          {
+            "node": "Aprender com o que funcionou",
             "type": "main",
             "index": 0
           }

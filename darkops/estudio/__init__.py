@@ -344,6 +344,10 @@ def perfil_novo():
     from .. import leva
     from ..aprendizado import LEVA_INICIAL
     canal = carregar(pid)
+    if not leva._claude():  # sem o Claude Code a leva falharia escondida, com o aviso de "sendo criados" na tela
+        flash(f"Canal {nome} criado, mas os vídeos não começaram: falta o Claude Code, que escreve os roteiros. "
+              f"Instale em claude.com/claude-code, faça login e crie a leva inicial de {LEVA_INICIAL} vídeos em Ajustes.", "erro")
+        return redirect(url_for("conexoes", pid=pid))
     leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
     est = leva.estimar(canal.dados, LEVA_INICIAL)
     flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos já estão sendo criados ({est['texto']}); deixe o PC "
