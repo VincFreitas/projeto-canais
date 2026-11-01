@@ -1,6 +1,6 @@
 # Banco de ganchos (primeiros 2 segundos)
 
-O gancho é a primeira frase depois do bordão "Tá com a pulga atrás da orelha? Então escuta essa:". Ele decide se a pessoa fica. Regras:
+O gancho é a primeira frase do vídeo e decide se a pessoa fica. **Formato atual do Pulga do Saber: o explicativo (abaixo), que abre direto com "Se você..." e sem bordão.** As 21 fórmulas da tabela servem aos vídeos curtos de curiosidade (formato antigo do canal, em que o gancho vinha depois do bordão "Tá com a pulga atrás da orelha? Então escuta essa:") e a perfis novos. Regras:
 - No máximo **12 palavras** e uma ideia só.
 - Tem que ser **verdade** e ser **entregue** no vídeo (sem clickbait).
 - Use o fato mais estranho que você tem, não o contexto.

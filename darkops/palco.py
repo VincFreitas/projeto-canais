@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from .render import FFMPEG, FPS
 
-VERSAO = 2
+VERSAO = 3
 FONTE_FORTE = "C:/Windows/Fonts/ariblk.ttf"
 FONTE_MONO = "C:/Windows/Fonts/consolab.ttf"
 OURO = (255, 206, 40)
@@ -280,7 +280,11 @@ def _hud(tela: Image.Image, mod, cenas, i, t, entradas, antes, largura, altura):
     x0, x1 = int(largura * 0.06), int(largura * 0.94)
     faixa = Image.new("RGBA", (largura, int(altura * 0.058)), (12, 10, 24, 170))  # fundo escuro para ler
     tela.paste(faixa, (0, y - int(altura * 0.012)), faixa)
-    d.text((x0, y), getattr(mod, "SERIE", "COMO FUNCIONA"), font=mono, fill=(255, 255, 255))
+    serie = getattr(mod, "SERIE", "COMO FUNCIONA")  # etiqueta amarela fixa: quem chega no meio sabe o assunto
+    sb = d.textbbox((x0, y), serie, font=mono)
+    folga = int(largura * 0.012)
+    d.rectangle([sb[0] - folga, sb[1] - folga, sb[2] + folga, sb[3] + folga], fill=OURO)
+    d.text((x0, y), serie, font=mono, fill=TINTA)
     texto = f"PEÇAS {len(feitas)}/{len(contam)}"
     cx = d.textbbox((0, 0), texto, font=mono)
     d.text((x1 - (cx[2] - cx[0]), y), texto, font=mono, fill=OURO)

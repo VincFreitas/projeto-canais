@@ -47,13 +47,14 @@ Notas para a revisão: grave em `notas_roteiro` (uma lista curta de frases) o qu
 
 ## 3c. Formato explicativo ("como funciona", 75 a 110 s)
 Quando a ideia é explicar como algo funciona, use o formato explicativo de [docs/ganchos.md](../../../docs/ganchos.md#formato-explicativo-você-monta) e os campos de [docs/roteiro.md](../../../docs/roteiro.md#formato-explicativo-tela-cheia-você-monta). Modelo: `roteiros/explicativo-geladeira.json`.
-- Use `"layout": "cheio"`, `"legenda_modo": "palavra"` e `"velocidade": "+15%"`, e escreva de 12 a 16 cenas com 1 ou 2 frases cada (cerca de 280 a 320 palavras).
-- Não use o bordão. A 1ª frase já é "Se você [ação simples]...".
+- Use `"layout": "cheio"`, `"legenda_modo": "grupo"` e `"velocidade": "+15%"`, e escreva de 12 a 16 cenas com 1 ou 2 frases cada (cerca de 280 a 320 palavras). Conte as palavras antes de salvar: com menos de 260, o vídeo fica curto demais e falta passo.
+- Não use o bordão. A 1ª frase já é "Se você [ação simples]..." (nunca uma definição como "O fogo precisa de...").
 - Cada ciclo "Mas... / Então você... / Esse é o [termo]" põe o nome técnico em `termo`. Marque as peças com `rotulos` (2 ou 3 palavras, com `em` na palavra falada).
+- Carimbos: em cada cena "Mas..." ponha um `selo` vermelho (`"tipo": "ruim"`) de 1 a 3 palavras que resume o problema, com `em` na palavra falada ("Vaza água", "Queima"). Na cena final ("Pronto..."), um `selo` verde (`"tipo": "bom"`) com a solução. Nunca ponha `selo` em cena com `nova_peca`.
 - Ponha uma `expressao` na pulga quando a fala pedir: `preocupada` no problema, `surpresa` na virada, `feliz` na solução e no fim.
 - O `personagem` descreve o cenário fixo, e cada `ilustracao` descreve o mesmo objeto no estado daquele passo.
 - O CTA vai só na última frase e é um pedido de comentário com uma palavra ("Comenta GELO se...").
-- **Palco 3D (padrão atual do explicativo)**: escreva `cenas/<slug>.3d.js` com o kit `cenas/comum3d.js`, seguindo um dos 14 módulos que já existem, e ponha `"palco": "cenas/<slug>.3d.js"`. Os campos do roteiro são os mesmos do palco 2D, mas as etiquetas usam `peca` com o nome de uma âncora 3D, nunca `ponto`. Antes de produzir, desenhe um quadro por passo (um teste no Chromium) e confira se nenhuma âncora fica fora da tela.
+- **Palco 3D (padrão atual do explicativo)**: escreva `cenas/<slug>.3d.js` com o kit `cenas/comum3d.js`, seguindo um dos 14 módulos que já existem, e ponha `"palco": "cenas/<slug>.3d.js"`. Os campos do roteiro são os mesmos do palco 2D, mas as etiquetas usam `peca` com o nome de uma âncora 3D (chave do `ANC` do módulo), nunca `ponto`; `nova_peca` e `foco` usam as chaves de `PECAS`. Antes de terminar, rode `.venv\Scripts\python.exe -m darkops palco-testar <roteiro>.json` e corrija até sair sem erro: ele desenha cada cena no Chromium e acusa erro de JavaScript, peça que não existe, etiqueta sem âncora e âncora fora da tela.
 - **Palco 2D (alternativa)**: escreva também `cenas/<slug>.py`, a cena programada em pixel art ([docs/roteiro.md](../../../docs/roteiro.md#palco-animação-feita-em-código-recomendado-para-o-explicativo)). Use como modelo um dos módulos que já existem em `cenas/` (geladeira, motor e tubos; descarga e panela em corte; elevador e para-raios em cenário). Ponha `"palco": "cenas/<slug>.py"` no roteiro e, em cada cena, `nova_peca`/`nova_em` (uma peça por passo "Então você..."), `acao`/`acao_em` (o que se mexe naquele passo), `foco` e `rotulos` com `peca` ou `ponto`. Toda palavra-gatilho precisa estar na fala da cena. Antes de produzir, chame `desenhar` de cada cena num teste rápido. Sem palco, use a cena viva abaixo.
 - **Cena viva** ([docs/roteiro.md](../../../docs/roteiro.md#cena-viva-câmera-partículas-e-antesdepois)): cada cena tem de 1 a 3 `efeitos` ligados à física do passo (`fluxo` para corrente, água ou gás; `calor`, `vapor`, `frio`, `faiscas`, `bolhas`, `ondas`, `eletricidade`; `brilhos` no fim). Ponha `ilustracao_depois` + `depois_em` em 2 ou 3 cenas em que o objeto muda de estado, e `alvo` nas etiquetas que apontam uma peça. Use `focos` quando o close precisar cair numa peça específica.
 - Simplificar pode, inventar não: cada passo tem fonte em `fontes`.
@@ -72,6 +73,8 @@ Quando a ideia é explicar como algo funciona, use o formato explicativo de [doc
 - [ ] Todo fato tem fonte em `fontes`, e as lendas estão marcadas como lenda
 - [ ] O ângulo é diferente do outlier de origem (não é paráfrase)
 - [ ] O gancho entrega a promessa do título
+- [ ] `notas_roteiro` preenchido (gancho, ângulo novo, fontes principais, simplificações)
+- [ ] Explicativo: abre com "Se você...", tem de 280 a 320 palavras, tem `palco` e o `palco-testar` passou
 - [ ] O JSON é válido (`python -m json.tool roteiros\<arquivo>.json`)
 
 Salve em `roteiros/`, mostre o título, a duração estimada e o gancho, e ofereça rodar `/produzir-video`.

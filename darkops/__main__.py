@@ -367,6 +367,11 @@ def cmd_palco_testar(a):
     modulo = (config.RAIZ / roteiro["palco"]).resolve()
     if not modulo.is_relative_to((config.RAIZ / "cenas").resolve()):
         sys.exit("o palco precisa estar em cenas/")
+    if modulo.suffix == ".js":  # palco 3D: desenha no Chromium e confere peças e âncoras
+        from .palco_web import testar
+        problemas = testar(modulo, roteiro["cenas"])
+        print("\n".join(problemas) or f"{len(roteiro['cenas'])} cenas ok")
+        sys.exit(1 if problemas else 0)
     mod = _carregar(modulo)
     mundo = tuple(getattr(mod, "MUNDO", (216, 384)))
     erros = 0

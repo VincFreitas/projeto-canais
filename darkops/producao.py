@@ -100,7 +100,7 @@ def _aplicar_edicao(roteiro: dict) -> None:
     cards = 0
     for c in roteiro["cenas"]:
         if edicao == "simples":
-            for campo in ("animacao", "destaque", "termo", "rotulos"):
+            for campo in ("animacao", "destaque", "termo", "rotulos", "selo"):
                 c.pop(campo, None)
         elif c.get("animacao"):
             cards += 1
@@ -153,7 +153,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     slug = roteiro.get("slug") or caminho.stem
     estilo = roteiro.get("estilo")
     pixel = int(roteiro.get("pixel", 5)) if estilo == "pixel" else 0  # tamanho do pixel na tela
-    palavra = roteiro.get("legenda_modo") == "palavra"  # formato explicativo: uma palavra por vez
+    # formato explicativo: "palavra" mostra uma palavra por vez; "grupo", de 2 a 3 com a falada em destaque
+    palavra = roteiro.get("legenda_modo") in ("palavra", "grupo")
+    grupo = roteiro.get("legenda_modo") == "grupo"
 
     obra = config.OBRA / slug / formato
     for sub in ("audio", "visuais", "cenas"):
@@ -229,6 +231,13 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             if t is not None:
                 destaque = (texto, t)
                 efeitos.append((inicio_cena + t, "thud"))
+        selo = None
+        if c.get("selo"):  # carimbo de problema (vermelho) ou solução (verde) na palavra que o dispara
+            from .sincronia import momento
+            s = c["selo"]
+            t = momento(palavras, s.get("em") or s["texto"])
+            selo = (s["texto"], s.get("tipo", "ruim"), t if t is not None else 0.2)
+            efeitos.append((inicio_cena + selo[2], "thud"))
         termo, rotulos, rotulos_vivos = None, [], []
         if c.get("termo"):  # "Esse é o tungstênio": o nome técnico fica no topo até o fim da cena
             from .sincronia import momento
@@ -280,7 +289,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                  fonte=roteiro.get("legenda_fonte", "Arial Black"),
                                  escala=TAMANHOS_LEGENDA.get(roteiro.get("legenda_tamanho", "media"), 1.0),
                                  cor=roteiro.get("legenda_cor", "#FFE500"),
-                                 palavra=palavra, termo=termo, rotulos=rotulos)
+                                 palavra=palavra, termo=termo, rotulos=rotulos, grupo=grupo, selo=selo)
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),

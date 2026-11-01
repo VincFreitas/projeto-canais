@@ -261,16 +261,25 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
                baixo: bool = False, destaque: tuple[str, float] | None = None, grande: bool = False,
                fonte: str = "Arial Black", escala: float = 1.0, cor: str = "#FFE500",
                palavra: bool = False, termo: tuple[str, float] | None = None,
-               rotulos: list[tuple[str, float, float, float]] | None = None) -> None:
+               rotulos: list[tuple[str, float, float, float]] | None = None, grupo: bool = False,
+               selo: tuple[str, str, float] | None = None) -> None:
     """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
     baixo=True, para não cobrir uma animação), a palavra falada fica na cor de destaque (amarelo por padrão)
     e cada grupo entra com um pulo. fonte, escala e cor vêm do padrão do canal.
 
     Formato explicativo: palavra=True mostra uma palavra por vez, branca, abaixo do centro, e as palavras do
     termo saem na cor de destaque; termo=(texto, segundo) fixa o nome técnico no topo até o fim da cena;
-    rotulos=[(texto, x, y, segundo)] são etiquetas presas ao objeto (x e y de 0 a 1 na tela)."""
+    rotulos=[(texto, x, y, segundo)] são etiquetas presas ao objeto (x e y de 0 a 1 na tela).
+
+    grupo=True (legenda_modo "grupo"): de 2 a 3 palavras no mesmo lugar do modo palavra; a palavra falada fica na
+    cor de destaque, as já faladas em branco e as que vêm depois em cinza. selo=(texto, "ruim"|"bom", segundo) é
+    o carimbo vermelho (problema) ou verde (solução) que bate na tela por 1,6 s."""
     vertical = altura > largura or grande  # grande: estilo de Shorts mesmo numa janela horizontal
-    if palavra and vertical:
+    if grupo and vertical:
+        estilo = (f"Style: Base,{fonte},{int(largura * 0.075 * escala)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,"
+                  f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * 0.3)},1")
+        max_palavras = 3
+    elif palavra and vertical:
         estilo = (f"Style: Base,{fonte},{int(largura * 0.085 * escala)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,"
                   f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * 0.3)},1")
         max_palavras = 1
@@ -301,6 +310,9 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         # etiqueta presa ao objeto: caixa branca (BorderStyle 3) com texto escuro
         (f"Style: Rotulo,Arial Black,{int(largura * 0.036)},&H00202020,&H00FFFFFF,&H00FFFFFF,&H00FFFFFF,"
          f"-1,0,0,0,100,100,0,0,3,{int(largura * 0.012)},0,5,0,0,0,1"),
+        # carimbo de problema ou solução: caixa colorida (a cor da caixa vem no \3c de cada evento)
+        (f"Style: Selo,Arial Black,{int(largura * 0.07)},&H00FFFFFF,&H00FFFFFF,&H003C3CE6,&H00000000,"
+         f"-1,0,0,0,100,100,2,0,3,{int(largura * 0.016)},0,5,0,0,0,1"),
         "", "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
     ]
@@ -309,6 +321,21 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         inicio = g[0]["inicio"]
         # segura a legenda até o próximo grupo para não piscar entre palavras
         fim = grupos[i + 1][0]["inicio"] if i + 1 < len(grupos) else min(g[-1]["fim"] + 0.5, duracao)
+        if grupo and vertical:
+            from .sincronia import _norm
+            chaves = [_norm(t) for t in termo[0].split()] if termo else []
+            for j, p in enumerate(g):  # um evento por palavra: muda só a cor de cada uma
+                fim_j = g[j + 1]["inicio"] if j + 1 < len(g) else fim
+                partes = []
+                for k, q in enumerate(g):
+                    cor_k = (_cor_ass(cor) if k == j or (k < j and _norm(q["texto"]) in chaves)
+                             else "&H00FFFFFF" if k < j else "&H00A0A0A0")
+                    limpo = _escapar(q["texto"].strip(".,;:!?\"'")).upper()
+                    partes.append(f"{{\\c{cor_k}&}}{limpo}")
+                pulo = "{\\fad(30,0)\\fscx85\\fscy85\\t(0,90,\\fscx104\\fscy104)\\t(90,160,\\fscx100\\fscy100)}"
+                linhas.append(f"Dialogue: 0,{_tempo(p['inicio'] if j else inicio)},{_tempo(fim_j)},Base,,0,0,0,,"
+                              f"{pulo if j == 0 else ''}{' '.join(partes)}")
+            continue
         if palavra and vertical:
             p = g[0]
             from .sincronia import _norm
@@ -338,6 +365,13 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         texto, inicio = termo
         efeito = "{\\fad(60,0)\\fscx40\\fscy40\\t(0,140,\\fscx112\\fscy112)\\t(140,240,\\fscx100\\fscy100)}"
         linhas.append(f"Dialogue: 2,{_tempo(inicio)},{_tempo(duracao)},Termo,,0,0,0,,{efeito}{_escapar(texto.upper())}")
+    if selo and vertical:
+        texto, tipo, inicio = selo
+        caixa = "&H0050C850&" if tipo == "bom" else "&H003C3CE6&"  # verde ou vermelho (BGR)
+        efeito = (f"{{\\pos({largura // 2},{int(altura * 0.22)})\\3c{caixa}\\frz{4 if tipo == 'bom' else -6}"
+                  f"\\fad(0,200)\\fscx170\\fscy170\\t(0,120,\\fscx95\\fscy95)\\t(120,200,\\fscx100\\fscy100)}}")
+        linhas.append(f"Dialogue: 4,{_tempo(inicio)},{_tempo(min(inicio + 1.6, duracao))},Selo,,0,0,0,,"
+                      f"{efeito}{_escapar(texto.upper())}")
     for k, (texto, x, y, inicio) in enumerate(rotulos or []):
         bolinha = _cor_ass(("#FF5A7D", "#28C8FF", "#6EE68C", "#FFCE28")[k % 4])
         efeito = (f"{{\\pos({int(largura * x)},{int(altura * y)})\\fad(50,0)\\fscx30\\fscy30"

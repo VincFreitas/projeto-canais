@@ -25,7 +25,7 @@ from . import config
 from .palco import _foco, _historia, _hud, _sprite_rotulo, rotulo_na_tela, vaivem
 from .render import FFMPEG, FPS
 
-VERSAO = 2
+VERSAO = 3
 ORIGEM = "http://palco.local"
 VISUAL = "liso"  # "liso" (palco.html) ou "pixel" (palco_pixel.html); a produção troca conforme o roteiro
 
@@ -142,3 +142,54 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
         raise RuntimeError(f"ffmpeg falhou ao gravar o palco 3D {destino.name}")
     marca.write_text(json.dumps(assinatura, ensure_ascii=False), encoding="utf-8")
     return destino
+
+
+def testar(modulo: Path, cenas: list[dict], largura: int = 1080, altura: int = 1920) -> list[str]:
+    """Desenha 3 quadros de cada cena sem gravar vídeo e devolve os erros: erro de JavaScript, peça que o roteiro cita
+    e o módulo não tem, e etiqueta presa numa âncora que fica fora da tela. É o teste que a leva roda antes de produzir."""
+    from playwright.sync_api import sync_playwright
+    problemas = []
+    with sync_playwright() as p:
+        navegador = p.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader",
+                                            "--ignore-gpu-blocklist"])
+        try:
+            pagina = navegador.new_page(viewport={"width": largura, "height": altura})
+            erros = []
+            pagina.on("pageerror", lambda e: erros.append(str(e)))
+            pagina.route(f"{ORIGEM}/**", _servir)
+            pagina.goto(f"{ORIGEM}/web/palco.html")
+            pagina.wait_for_function("window.__pronto === true", timeout=20000)
+            url = "/" + modulo.resolve().relative_to(config.RAIZ).as_posix()
+            info = pagina.evaluate("([u, w, h, p]) => window.__palco.iniciar(u, w, h, p)", [url, largura, altura, 1])
+            if erros:
+                return [f"módulo com erro: {erros[0]}"]
+            pecas_modulo = set(info["PECAS"])
+            for i, c in enumerate(cenas, 1):
+                for nome in (c.get("nova_peca"), c.get("foco")):
+                    if nome and nome != "tudo" and nome not in pecas_modulo:
+                        problemas.append(f"cena {i}: a peça '{nome}' não existe no módulo")
+                antes, entradas, acoes = _historia(cenas, i, [], 4.0)
+                de, para = (_foco(cenas[i - 2]) if i > 1 else "tudo"), _foco(c)
+                for t in (0.0, 1.5, 3.5):
+                    pecas = {n: 1.0 if n in antes else (min(max((t - entradas[n]) / 0.7, 0.0), 1.0)
+                                                        if n in entradas else 0.0) for n in info["PECAS"]}
+                    estado = {"t": t, "T": t, "cena": i, "pecas": pecas,
+                              "acoes": {k: (t - v if t >= v else None) for k, v in acoes.items()},
+                              "camera": {"de": de, "para": para, "f": vaivem(t / 1.1)}, "impacto": 0.0}
+                    resposta = pagina.evaluate("e => window.__palco.quadro(e)", estado)
+                    if erros:
+                        problemas.append(f"cena {i}, {t:.1f}s: erro de JavaScript: {erros.pop()}")
+                        break
+                if t < 3.5:
+                    continue
+                for r in c.get("rotulos", []):  # no fim da cena a câmera já chegou: a etiqueta precisa caber na tela
+                    ponta = resposta["ancoras"].get(r.get("peca")) if r.get("peca") else None
+                    if ponta is None and not r.get("ponto"):
+                        problemas.append(f"cena {i}: a etiqueta '{r['texto']}' não aparece: '{r.get('peca')}' "
+                                         "não é uma âncora do módulo")
+                    elif ponta and not (0 <= ponta[0] <= largura and 0 <= ponta[1] <= altura):
+                        problemas.append(f"cena {i}: a etiqueta '{r['texto']}' aponta para '{r['peca']}', "
+                                         "que fica fora da tela")
+        finally:
+            navegador.close()
+    return problemas

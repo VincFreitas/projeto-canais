@@ -112,7 +112,8 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 | Campo | Onde | O que faz |
 |---|---|---|
 | `"layout": "cheio"` | roteiro | Tela cheia 1080x1920, sem a moldura do layout post. No pixel art, o desenho já sai em pé (768x1344) |
-| `"legenda_modo": "palavra"` | roteiro | Uma palavra por vez, branca e grande, abaixo do centro. As palavras do `termo` saem na `legenda_cor` (laranja `#FF9F1C` no exemplo) |
+| `"legenda_modo": "grupo"` | roteiro | **Padrão do explicativo desde a v0.34.0.** De 2 a 3 palavras em caixa alta abaixo do centro: a palavra falada na `legenda_cor`, as já faladas em branco e as próximas em cinza (as do `termo` continuam na cor). `"palavra"` (o modo antigo) mostra uma palavra por vez |
+| `selo` | cena | Carimbo que bate na tela por 1,6 s: `{"texto": "Vaza água", "tipo": "ruim", "em": "vaza"}`. `ruim` = caixa vermelha (o problema dos "Mas..."), `bom` = caixa verde (a solução no "Pronto"). De 1 a 3 palavras; não use `bom` em cena com `nova_peca` (o aviso NOVA PEÇA! já ocupa o meio da tela) |
 | `termo` (`termo_em`) | cena | O nome técnico ("evaporador") aparece no topo, em caixa alta, no segundo em que é falado, e fica até o fim da cena |
 | `rotulos` | cena | Etiquetas brancas presas ao objeto: `[{"texto": "gás refrigerante", "x": 0.5, "y": 0.6, "em": "refrigerante"}]`. `x` e `y` vão de 0 a 1 na tela, e `em` é a palavra falada que faz a etiqueta aparecer (sem `em`, vale o texto) |
 | `expressao` | cena | Rosto da pulga narradora: `normal`, `feliz`, `surpresa` ou `preocupada` |
@@ -124,7 +125,7 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 ### Palco: animação feita em código (recomendado para o explicativo)
 Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O módulo `cenas/<slug>.py` programa o mundo em pixel art, e `darkops/palco.py` cuida da montagem, da câmera e da interface. O exemplo é `cenas/explicativo-geladeira.py` com `roteiros/explicativo-geladeira.json`. Cada vídeo leva cerca de 5 min para renderizar, sem placa de vídeo.
 - **Módulo**:
-  - `SERIE` (texto da barra de cima) e `MUNDO` (tamanho na grade, 216x384).
+  - `SERIE` (texto da etiqueta amarela fixa no topo, ex.: "PULGA DO SABER · ZÍPER") e `MUNDO` (tamanho na grade, 216x384).
   - `PECAS`, com `titulo`, `caixa` (para a câmera), `ancora` (ponta da etiqueta) e `conta` (entra na barra "PEÇAS n/N").
   - `desenhar(ctx)`: usa `ctx.peca(nome)` (de 0 a 1 enquanto encaixa), `ctx.acao(nome)` (segundos desde a ação) e `ctx.T` (relógio do vídeo, para movimentos contínuos), com os ajudantes `ret`, `circulo`, `polilinha`, `sprite`, `fluxo`, `ondas_calor`, `vapor` e `brilhos`.
 - **Campos da cena**:

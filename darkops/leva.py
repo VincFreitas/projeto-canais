@@ -99,9 +99,10 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
         f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
-        "com \"aprovado\": false, e, se a skill pedir o palco, também o módulo cenas/<slug>.py; nesse caso, teste "
+        "com \"aprovado\": false, e \"notas_roteiro\" preenchido. No formato explicativo, escreva também o palco 3D "
+        "cenas/<slug>.3d.js (padrão do canal; o 2D cenas/<slug>.py só se o 3D não der) e teste "
         f"com: .venv\\Scripts\\python.exe -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "
-        "antes de terminar. Não produza o vídeo, não publique nada e não faça commit."
+        "até sair sem erro antes de terminar. Não produza o vídeo, não publique nada e não faça commit."
     )
     # o Claude lê páginas da internet: só pode gravar na fila do perfil e em cenas/, e só roda o teste do palco
     fila = f"perfis/{perfil.id}/fila"
