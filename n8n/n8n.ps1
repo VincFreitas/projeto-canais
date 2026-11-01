@@ -29,8 +29,17 @@ $env:PYTHONIOENCODING = 'utf-8'
 $env:EXECUTIONS_DATA_PRUNE = 'true'
 $env:EXECUTIONS_DATA_MAX_AGE = '336'
 
-$n8n = Join-Path $env:APPDATA 'npm\n8n.cmd'
-if (-not (Test-Path $n8n)) { Write-Error "n8n nao encontrado em $n8n. Rode: npm install -g n8n"; exit 1 }
+# Primeiro o n8n e o Node da pasta do projeto (python -m darkops instalar-apps): todo processo do Windows enxerga.
+$apps = Join-Path (Split-Path $PSScriptRoot -Parent) 'dados\apps'
+if (Test-Path (Join-Path $apps 'node\node.exe')) { $env:PATH = (Join-Path $apps 'node') + ';' + $env:PATH }
+$n8n = Join-Path $apps 'n8n\node_modules\.bin\n8n.cmd'
+if (-not (Test-Path $n8n)) { $n8n = Join-Path $env:APPDATA 'npm\n8n.cmd' }
+if (-not (Test-Path $n8n)) {
+    # instalado pelo terminal do app Claude (pacote MSIX): fica na pasta virtual do pacote, invisivel fora dele
+    $virtual = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Packages\Claude_*\LocalCache\Roaming\npm\n8n.cmd') -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($virtual) { $n8n = $virtual.FullName }
+}
+if (-not (Test-Path $n8n)) { Write-Error "n8n nao encontrado. Rode: .\.venv\Scripts\python.exe -m darkops instalar-apps"; exit 1 }
 
 if (Get-NetTCPConnection -LocalPort 5678 -State Listen -ErrorAction SilentlyContinue) {
     Write-Host 'n8n ja esta rodando em http://localhost:5678'

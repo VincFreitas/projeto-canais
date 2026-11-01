@@ -7,6 +7,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - Este arquivo é a fonte única das instruções do projeto. O `CLAUDE.md` e o `GEMINI.md` só importam este arquivo.
 - **Instalar ou configurar do zero:** siga [docs/instalacao.md](docs/instalacao.md), que é o mesmo passo a passo da skill `/configurar` do Claude Code. Se a pasta ainda não tem `.venv` (repositório recém-clonado), ofereça a instalação antes de qualquer outra coisa.
 - **Skills:** os comandos com barra abaixo (`/pesquisar-nicho`, `/escrever-roteiro`...) são skills em `.claude/skills/<nome>/SKILL.md`. No Claude Code, rode pelo nome. Em outro agente, leia o `SKILL.md` e siga as instruções dele (ignore só o cabeçalho entre `---`).
+- **Autonomia na instalação:** programas (Python se faltar, Node.js, n8n, Claude Code) o `instalar.ps1` / `python -m darkops instalar-apps` põe sozinho em `dados/apps/`, sem pedir ok; com o usuário ficam só contas, logins e chaves. Nunca rode `npm install -g` nem crie pastas novas no AppData pelo terminal do agente: o app Claude para Windows (MSIX) desvia isso para uma pasta virtual invisível ao resto do Windows.
 - **O Claude Code é necessário mesmo usando outro agente:** o Estúdio chama o CLI `claude` (por `leva.rodar_claude`) para escrever os roteiros, as levas e a análise do que funcionou.
 - Confira o estado com `python -m darkops diagnostico --json` e `python -m darkops progresso --json`.
 

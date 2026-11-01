@@ -23,6 +23,14 @@ Estas são as proteções em vigor e o motivo de cada uma.
 - O service worker do aplicativo instalável (`/sw.js`) só guarda CSS e ícones; páginas e ações sempre vão ao Estúdio, e nada de POST passa por ele.
 - O site (`site/`) não usa cookies opcionais; `site/consentimento.js` só libera um script opcional depois do consentimento.
 
+### Programas baixados pelo instalador (`instalar.ps1`, `darkops/apps.py`)
+- Tudo vai para `dados/apps/` (fora do Git), sem administrador e sem mexer no PATH do Windows.
+- **Python** (só se faltar): instalador oficial do python.org, aceito só com assinatura digital válida da Python Software Foundation.
+- **Node.js**: zip oficial do nodejs.org, conferido pelo SHA-256 do `SHASUMS256.txt` publicado e pela assinatura da OpenJS Foundation no `node.exe`.
+- **n8n**: `npm install --prefix dados/apps/n8n` do registro oficial do npm, travado na versão principal 2 (a atualização só sobe dentro dela).
+- **Claude Code**: instalador oficial da Anthropic (`claude.ai/install.ps1`); o `claude.exe` só é aceito com a assinatura da Anthropic.
+- O n8n é aberto pelo atalho de logon via `explorer.exe`, para não ficar preso à árvore de processos de um agente (no app Claude, morreria junto com o app).
+
 ## Tokens e chaves
 
 - `.env` e `credenciais/` ficam fora do Git (`.gitignore`); o histórico foi conferido em 2026-10-24 e não tem chave nem token.

@@ -166,7 +166,8 @@ def estado(c: Conector, perfil, conexoes: dict, n8n_online: bool) -> tuple[str, 
     if c.id == "n8n":
         if n8n_online:
             return OK, "rodando"
-        instalado = shutil.which("n8n") or Path(os.environ.get("APPDATA", ""), "npm", "n8n.cmd").exists()
+        from ..instalacao import _n8n_cmd
+        instalado = _n8n_cmd()
         from ..app import n8n_ligando
         if instalado and n8n_ligando():
             return OPCIONAL, "ligando (leva até 3 min)"

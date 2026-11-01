@@ -19,7 +19,8 @@ Deixar o usuário com um canal postando sozinho, sem ele precisar mexer em arqui
 - Criar contas, fazer login, digitar senha, verificar por SMS e aceitar termos é sempre **com o usuário**. Você mostra o caminho e espera.
 - **Nunca** peça para colar chave ou token no chat. Chaves e tokens vão pelo Estúdio (Ajustes > Contas, ou a tela WhatsApp), que grava no `.env` ou em `perfis/<id>/credenciais/`.
 - Não mude configurações de segurança do Windows (política de execução, firewall). Use `powershell -ExecutionPolicy Bypass -File ...`, que vale só para aquele comando.
-- Antes de instalar algo global (Node, n8n), diga o que é, o tamanho aproximado e peça o ok.
+- **Autonomia (decisão do dono, 2026-11-01):** tudo que é programa o instalador baixa e instala sozinho, sem pedir ok: Python (se faltar), Node.js, n8n e Claude Code. Avise só o tamanho (cerca de 700 MB) e o tempo (de 10 a 20 minutos). Com a pessoa ficam apenas as **contas e chaves**: login do Claude Code, contas e chaves das plataformas e, se quiser, a conta local do n8n.
+- **Nunca** instale programa com `npm install -g` nem nada que crie pasta nova no `AppData` pelo terminal do agente. O app Claude para Windows é um pacote MSIX e desvia essas pastas para uma pasta virtual, que o resto do Windows não vê. O instalador põe tudo em `dados\apps\` (a pasta do projeto), visível para todo processo.
 
 **Onde ficam as telas do Estúdio** (http://127.0.0.1:8765): no modo simples, as contas e chaves ficam em **Ajustes > Contas** (no Modo avançado, a mesma tela aparece como **Conexões** na lateral). **Progresso da configuração** e **WhatsApp** ficam na barra lateral; **+ Novo canal** fica no topo dela.
 
@@ -40,24 +41,26 @@ Se o `.venv` já existe, rode o diagnóstico e o progresso por plataforma (senã
 .\.venv\Scripts\python.exe -m darkops progresso
 ```
 Mostre o resultado resumido das plataformas escolhidas e siga só os passos que faltam.
-O Estúdio fica em **modo guiado** até o essencial terminar (.env, voz offline, Claude Code, um canal, imagens e as plataformas marcadas no canal): Início, Novo vídeo e Histórico ficam travados e a tela **Progresso da configuração** mostra o próximo passo, com uma barra por plataforma; siga essa ordem.
+Se o `.venv` não existe, vá direto ao passo 2. O Estúdio fica em **modo guiado** até o essencial terminar (.env, voz offline, Claude Code, um canal, imagens e as plataformas marcadas no canal): Início, Novo vídeo e Histórico ficam travados e a tela **Progresso da configuração** mostra o próximo passo, com uma barra por plataforma; siga essa ordem.
 
-## 2. Dependências (Python 3.11+)
-- Confira `python --version`. Sem Python: peça para instalar em python.org (marcar "Add to PATH").
-- Rode o instalador (cria o `.venv`, instala os pacotes, baixa a voz offline e cria o `.env`). Passe sempre `-Atalhos nenhum`: sem ele o instalador para esperando respostas no teclado, e os atalhos são feitos no passo 2b:
-  ```
-  powershell -ExecutionPolicy Bypass -File instalar.ps1 -Atalhos nenhum
-  ```
-
-## 2b. Atalhos para abrir com um clique
-Pergunte (múltipla escolha) onde a pessoa quer o atalho do Projeto Canais: **Área de Trabalho**, **Menu Iniciar** e/ou **Barra de tarefas**. Explique que o Windows não deixa programas se fixarem sozinhos na barra de tarefas: o atalho vai para o Menu Iniciar e ela clica com o botão direito > Fixar na barra de tarefas. Depois rode, só com as opções escolhidas:
+## 2. Instalação (um comando, sem perguntas)
+Rode o instalador. Ele faz tudo sozinho, e cada download é conferido (SHA-256 ou assinatura digital oficial):
 ```
-.\.venv\Scripts\python.exe -m darkops atalhos --area-de-trabalho --menu-iniciar --barra-de-tarefas
+powershell -ExecutionPolicy Bypass -File instalar.ps1
 ```
-A partir daí ela abre tudo pelo atalho, sem PowerShell (abre numa abertura animada e liga o n8n escondido, se já estiver instalado). Dá para mudar em Estúdio > Configurações, onde também ficam a atualização automática do projeto e a das dependências.
+1. **Python 3.11+**: usa o do PC. Se faltar, baixa o instalador oficial do python.org e instala em `dados\apps\python` (sem administrador e sem mexer no PATH).
+2. Cria o `.venv`, instala os pacotes, baixa a voz offline e cria o `.env`.
+3. Cria os atalhos **Projeto Canais** na Área de Trabalho e no Menu Iniciar. Rodando por agente, ele não pergunta; dá para mudar em Estúdio > Configurações. Fixar na barra de tarefas é com a pessoa (botão direito no atalho do Menu Iniciar), porque o Windows não deixa programa fazer isso.
+4. `python -m darkops instalar-apps`:
+   - **Node.js** LTS portátil (zip oficial) e **n8n**, os dois em `dados\apps\`;
+   - importa e **liga** o workflow de postagem e aprendizado;
+   - põe o n8n para **iniciar com o Windows**;
+   - instala o **Claude Code** pelo instalador oficial da Anthropic.
 
-## 3. Claude Code (necessário)
-É ele que escreve os roteiros (Novo vídeo, levas, os 15 vídeos do canal novo) e faz a análise do que funcionou. Mesmo que você seja outro agente (Codex, Gemini CLI, Cursor, Copilot, Windsurf...), o Estúdio chama o Claude Code pela linha de comando, então ele precisa estar instalado e logado neste PC; confira com o diagnóstico ("Claude Code (escreve os roteiros)"). Se faltar: instalar em claude.com/claude-code e fazer login uma vez rodando `claude` no terminal.
+Se uma etapa falhar (internet, por exemplo), o instalador sai com código diferente de 0 e o diagnóstico mostra o quê. Basta rodar de novo, porque o que já está pronto é pulado. Opções: `-Atalhos nenhum` e `-SemApps`.
+
+## 3. Login do Claude Code (com a pessoa)
+O instalador já pôs o Claude Code. É ele que escreve os roteiros (Novo vídeo, levas, os 15 vídeos do canal novo) e faz a análise do que funcionou. Mesmo que você seja outro agente (Codex, Gemini CLI, Cursor, Copilot, Windsurf...), o Estúdio chama o CLI `claude`. Falta só a pessoa entrar na conta dela: rodar `claude` uma vez num terminal e fazer o login. Confira com o diagnóstico ("Claude Code (escreve os roteiros)").
 
 ## 4. Chaves de serviços (valem para todos os canais)
 Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
@@ -103,14 +106,11 @@ Uma vez por instalação, o **repositório de passagem** (sem ele o Reel não so
 - Se a pessoa não quiser mexer nas contas agora, deixe gerado e aprovado; dá para aplicar depois com `/identidade-visual`.
 
 ## 8. Postagem automática e aprendizado (n8n)
-1. Node.js LTS (nodejs.org), depois `npm install -g n8n` (cerca de 10 minutos; peça o ok).
-2. Abra o n8n uma vez para criar a conta local: `powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1` (abre http://localhost:5678). Depois disso o Estúdio liga o n8n escondido sozinho toda vez que abre.
-3. Importe e ligue o workflow desta pasta (importa, publica e reinicia o n8n; perto das 12h e 19h de Brasília ele não reinicia, então rode fora desses horários):
-   ```
-   .\.venv\Scripts\python.exe -m darkops n8n-workflow --importar
-   ```
-4. Confira no diagnóstico o item **"Postagem automática ligada no n8n"**. O workflow posta às 12h e às 19h (horário de Brasília) o próximo vídeo aprovado de cada canal ligado e, às 20h, roda a análise do que funcionou.
-5. Opcional: iniciar com o Windows (`powershell -ExecutionPolicy Bypass -File n8n\iniciar-com-windows.ps1`) e suspensão do PC em "Nunca" na tomada.
+O instalador já fez esta parte: n8n na pasta do projeto, workflow importado e ligado, início com o Windows. O Estúdio também liga o n8n escondido toda vez que abre.
+1. Confira no diagnóstico os itens **"n8n"** e **"Postagem automática ligada no n8n"**. O workflow posta às 12h e às 19h (horário de Brasília) o próximo vídeo aprovado de cada canal ligado e, às 20h, roda a análise do que funcionou.
+2. Opcional, com a pessoa: abrir http://localhost:5678 e criar a conta local do n8n, que protege o editor.
+3. Peça para deixar a suspensão do PC em "Nunca" quando estiver na tomada. É configuração do Windows, então fica com a pessoa.
+4. Se algo falhar: `.\.venv\Scripts\python.exe -m darkops instalar-apps` refaz o que faltar, e `n8n-workflow --importar` reimporta o workflow (fora das 12h e 19h de Brasília, porque reinicia o n8n).
 
 ## 9. WhatsApp (opcional; uma vez, vale para todos os canais)
 Avisos (vídeo no ar, falha, fila acabando, vídeo novo com Aprovar e Recusar, resumo das 21h) e comandos (`status`, `fila`, `criar 3`, `aprovar`, `pausar`...). Usa a API oficial da Meta com um app **separado** do Instagram (a Meta não aceita "WhatsApp" no nome do app).

@@ -12,17 +12,44 @@ import sys
 from pathlib import Path
 
 from . import config
+from .apps import env_node, node_exe
 
 MODELO = config.RAIZ / "n8n" / "workflow.modelo.json"
 GERADO = config.RAIZ / "n8n" / "workflow.json"
 
 
+def _n8n_virtual() -> Path | None:
+    """n8n instalado pelo terminal de dentro do app Claude (pacote MSIX): o Windows desvia o AppData/Roaming desse
+    terminal para a pasta do pacote, e fora do Claude (atalho, Explorer, n8n agendado) o npm global parece vazio."""
+    pacotes = Path(os.environ.get("LOCALAPPDATA", ""), "Packages")
+    if not pacotes.exists():
+        return None
+    return next((c for c in pacotes.glob("Claude_*/LocalCache/Roaming/npm/n8n.cmd") if c.exists()), None)
+
+
 def _n8n_cmd() -> str | None:
+    from .apps import N8N_CMD
+    if N8N_CMD.exists():  # o do projeto (instalar-apps) vem primeiro: é o que todo processo enxerga
+        return str(N8N_CMD)
     achado = shutil.which("n8n")
     if achado:
         return achado
     candidato = Path(os.environ.get("APPDATA", ""), "npm", "n8n.cmd")
-    return str(candidato) if candidato.exists() else None
+    if candidato.exists():
+        return str(candidato)
+    virtual = _n8n_virtual()
+    return str(virtual) if virtual else None
+
+
+def n8n_so_no_claude() -> bool:
+    """O n8n só existe na pasta virtual do app Claude: funciona, mas some se o Claude for desinstalado."""
+    from .apps import N8N_CMD
+    if N8N_CMD.exists():
+        return False
+    real = Path(os.environ.get("APPDATA", ""), "npm", "n8n.cmd")
+    # dentro do terminal do Claude o caminho "real" também existe, mas aponta (resolve) para a pasta do pacote
+    instalado_de_verdade = real.exists() and "Packages" not in str(real.resolve())
+    return bool(_n8n_virtual()) and not instalado_de_verdade
 
 
 def gerar_workflow(importar: bool = False) -> Path:
@@ -38,7 +65,7 @@ def gerar_workflow(importar: bool = False) -> Path:
         n8n = _n8n_cmd()
         if not n8n:
             raise SystemExit("n8n não encontrado. Instale com: npm install -g n8n")
-        env = {**os.environ, "N8N_DIAGNOSTICS_ENABLED": "false",
+        env = {**env_node(), "N8N_DIAGNOSTICS_ENABLED": "false",
                "NODES_EXCLUDE": '["n8n-nodes-base.localFileTrigger"]'}
         # importar deixa o workflow desligado: publica em seguida, senão nada posta e ninguém percebe
         for args in (["import:workflow", f"--input={GERADO}"], ["publish:workflow", f"--id={ID_POSTAGEM}"]):
@@ -108,7 +135,7 @@ def gerar_workflow_whatsapp(importar: bool = False) -> Path:
         n8n = _n8n_cmd()
         if not n8n:
             raise SystemExit("n8n não encontrado. Instale com: npm install -g n8n")
-        env = {**os.environ, "N8N_DIAGNOSTICS_ENABLED": "false", "NODES_EXCLUDE": '["n8n-nodes-base.localFileTrigger"]'}
+        env = {**env_node(), "N8N_DIAGNOSTICS_ENABLED": "false", "NODES_EXCLUDE": '["n8n-nodes-base.localFileTrigger"]'}
         for args in (["import:workflow", f"--input={GERADO_WHATSAPP}"], ["publish:workflow", "--id=whatsappcanais1"]):
             proc = subprocess.run([n8n, *args], capture_output=True, text=True, encoding="utf-8", errors="replace", env=env)
             if proc.returncode != 0:
@@ -157,11 +184,14 @@ def diagnostico() -> list[tuple[str, bool, str]]:
         itens.append((f"Identidade visual do perfil {p.id}", bool(ident.get("aprovada")) and not faltam,
                       "opcional: Estúdio > Identidade para aprovar, depois /identidade-visual no Claude"))
     itens += [
-        ("Node.js", bool(shutil.which("node")), "instale o Node.js LTS em nodejs.org"),
-        ("n8n", bool(_n8n_cmd()), "npm install -g n8n"),
+        ("Node.js", bool(node_exe()), "python -m darkops instalar-apps"),
+        ("n8n", bool(_n8n_cmd()), "python -m darkops instalar-apps (instala o Node.js e o n8n na pasta do projeto)"),
+        ("n8n instalado fora do app Claude", not n8n_so_no_claude(),
+         "o n8n foi instalado pelo terminal do app Claude e só existe na pasta dele (some se o Claude for desinstalado). "
+         "Rode: python -m darkops instalar-apps (instala na pasta do projeto, visível para todo o Windows)"),
         ("Postagem automática ligada no n8n", bool(workflow_ativo(ID_POSTAGEM)),
          "python -m darkops n8n-workflow --importar (importa, liga e reinicia o n8n)"),
         ("Claude Code (escreve os roteiros)", bool(_claude()),
-         "necessário: instale em claude.com/claude-code e faça login uma vez rodando: claude"),
+         "necessário: python -m darkops instalar-apps (instalador oficial) e depois o login, rodando: claude"),
     ]
     return itens

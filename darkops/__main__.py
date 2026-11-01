@@ -527,6 +527,15 @@ def cmd_aprender(a):
             print(r.get("resumo", ""))
 
 
+def cmd_instalar_apps(a):
+    from . import apps
+    falhas = apps.instalar_tudo(claude=not a.sem_claude, n8n=not a.sem_n8n, logon=not a.sem_logon)
+    if falhas:
+        raise SystemExit(f"falhou: {', '.join(falhas)} (rode de novo: python -m darkops instalar-apps)")
+    print("Programas prontos. Fica com você só o que é conta: o login do Claude Code (rode: claude) e as chaves e "
+          "contas das plataformas, no Estúdio.")
+
+
 def cmd_aprender_desfazer(_):
     from . import aprendizado
     from .perfis import carregar
@@ -765,6 +774,12 @@ def main():
     s.add_argument("--forcar", action="store_true", help="analisa agora, mesmo sem completar o ciclo")
     s.add_argument("--perfil-unico", action="store_true", help="só o perfil de --perfil (sem isso: todos os ativos)")
     s.set_defaults(fn=cmd_aprender)
+
+    s = sub.add_parser("instalar-apps", help="instala sozinho o Node.js, o n8n e o Claude Code (na pasta do projeto)")
+    s.add_argument("--sem-claude", action="store_true")
+    s.add_argument("--sem-n8n", action="store_true")
+    s.add_argument("--sem-logon", action="store_true", help="não liga o n8n junto com o Windows")
+    s.set_defaults(fn=cmd_instalar_apps)
 
     s = sub.add_parser("aprender-desfazer", help="volta as mudanças da última análise automática")
     s.set_defaults(fn=cmd_aprender_desfazer)

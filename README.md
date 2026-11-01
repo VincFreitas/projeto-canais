@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.31.0%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.32.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
@@ -38,7 +38,7 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 ## Começar em 3 passos (com qualquer agente de IA)
 
-1. Instale o [Python 3.11+](https://www.python.org/downloads/) (marque "Add to PATH") e o [Claude Code](https://claude.com/claude-code). O Claude Code é necessário mesmo que você instale com outro agente: é ele que escreve os roteiros dentro do Estúdio.
+1. Tenha um agente de IA, como o [Claude Code](https://claude.com/claude-code). Python, Node.js, n8n e o próprio Claude Code (que escreve os roteiros dentro do Estúdio) são instalados sozinhos, na pasta do projeto, com cada download conferido. Com você ficam só as **contas e chaves**: o login do Claude Code e as contas das plataformas.
 2. Clone e abra a pasta no seu agente:
    ```
    git clone https://github.com/VincFreitas/projeto-canais.git canais-dark
@@ -58,7 +58,7 @@ Antes de instalar, o agente pergunta **quais plataformas você quer testar**: Yo
 ## Sem agente (manual)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File instalar.ps1     # dependências, voz offline e .env
+powershell -ExecutionPolicy Bypass -File instalar.ps1     # tudo: Python se faltar, pacotes, voz, atalhos, Node.js, n8n e Claude Code
 .\.venv\Scripts\python.exe -m darkops estudio            # abre o painel em http://127.0.0.1:8765
 .\.venv\Scripts\python.exe -m darkops diagnostico        # o que falta configurar
 .\.venv\Scripts\python.exe -m darkops progresso          # etapas feitas e próximas de cada plataforma

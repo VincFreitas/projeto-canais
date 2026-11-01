@@ -161,6 +161,12 @@ def n8n_ligando() -> bool:
     return LIGANDO_N8N.exists() and time.time() - LIGANDO_N8N.stat().st_mtime < 240
 
 
+def atalho_logon_n8n() -> Path:
+    """O atalho que n8n/iniciar-com-windows.ps1 põe na pasta Inicializar."""
+    return Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup" / \
+        "n8n (Pulga do Saber).lnk"
+
+
 def ligar_n8n() -> str:
     """Liga o n8n escondido (o mesmo lançador do logon: só em 127.0.0.1, sem abrir o editor).
     Ele continua rodando depois que o Estúdio fecha, para postar às 12h e às 19h."""
@@ -174,6 +180,13 @@ def ligar_n8n() -> str:
         return "ligando"  # já foi mandado ligar: não abre um segundo n8n
     LIGANDO_N8N.parent.mkdir(parents=True, exist_ok=True)
     LIGANDO_N8N.write_text(str(time.time()), encoding="utf-8")
+    atalho = atalho_logon_n8n()
+    if atalho.exists():
+        # o explorer.exe abre o atalho do logon como o próprio Windows faria: o n8n não fica preso à árvore de
+        # processos de quem pediu. Pedido pelo terminal de um agente (ex.: app Claude), ele morreria junto com o app.
+        subprocess.Popen(["explorer.exe", str(atalho)], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL)
+        return "ligando"
     # console escondido, não "destacado": sem console nenhum (DETACHED_PROCESS) o PowerShell fecha sem rodar nada
     sinais = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
     subprocess.Popen(["powershell", "-NoProfile", "-WindowStyle", "Hidden", "-ExecutionPolicy", "Bypass",
@@ -289,9 +302,9 @@ def reiniciar_processo() -> None:
 
 # ---------- dependências ----------
 
-def _rodar(args: list[str], timeout: int = 600) -> subprocess.CompletedProcess:
+def _rodar(args: list[str], timeout: int = 600, env: dict | None = None) -> subprocess.CompletedProcess:
     return subprocess.run(args, cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8", errors="replace",
-                          timeout=timeout)
+                          timeout=timeout, env=env)
 
 
 def dependencias(aplicar: bool = False) -> list[dict]:
@@ -315,14 +328,22 @@ def dependencias(aplicar: bool = False) -> list[dict]:
         for i in itens:
             if i["nova"]:
                 i["resultado"] = "atualizado"
-    npm = shutil.which("npm")
-    n8n = shutil.which("n8n") or (Path(os.environ.get("APPDATA", "")) / "npm" / "n8n.cmd")
-    if npm and Path(n8n).exists():
-        atual = _rodar([str(n8n), "--version"], timeout=60).stdout.strip().splitlines()[-1:] or ["?"]
-        nova = _rodar([npm, "view", "n8n", "version"], timeout=60).stdout.strip()
+    from . import apps
+    from .instalacao import _n8n_cmd
+    npm = str(apps.NODE / "npm.cmd") if (apps.NODE / "npm.cmd").exists() else shutil.which("npm.cmd") or shutil.which("npm")
+    n8n = _n8n_cmd() or ""
+    if npm and n8n and Path(n8n).exists():
+        env = apps.env_node()
+        atual = _rodar([str(n8n), "--version"], timeout=60, env=env).stdout.strip().splitlines()[-1:] or ["?"]
+        # só dentro da mesma versão principal: uma 3.x pode mudar os nós do workflow
+        faixa = f"n8n@^{atual[0].split('.')[0]}" if atual[0][:1].isdigit() else "n8n@latest"
+        nova = (_rodar([npm, "view", faixa, "version"], timeout=60, env=env).stdout.strip().splitlines() or [""])[-1]
+        nova = nova.split()[-1].strip("'") if nova else ""
         item = {"nome": "n8n", "tipo": "automação", "atual": atual[0], "nova": nova if nova and nova != atual[0] else None}
         if aplicar and item["nova"]:
-            r = _rodar([npm, "install", "-g", "n8n@latest"], timeout=1800)
+            # o do projeto atualiza na pasta do projeto; um global antigo, no global
+            destino = ["--prefix", str(apps.N8N)] if Path(n8n) == apps.N8N_CMD else ["-g"]
+            r = _rodar([npm, "install", *destino, faixa, "--no-audit", "--no-fund"], timeout=1800, env=env)
             item["resultado"] = "atualizado (feche e abra o n8n)" if r.returncode == 0 else f"falhou: {r.stderr[-200:]}"
         itens.append(item)
     from .leva import _claude
