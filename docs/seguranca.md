@@ -17,6 +17,12 @@ Estas são as proteções em vigor e o motivo de cada uma.
 | Nomes de arquivo conferidos por expressão regular e caminhos presos à pasta do perfil | **path traversal** (`../`) | `_arquivo_fila`, `midia`, `visual_cena` |
 | Modo de depuração desligado | página de erro mostrando código e variáveis | `app.run(debug=False)` |
 
+### Cookies, ambiente e aplicativo instalável
+- O Estúdio tem um único cookie, o de sessão (avisos entre telas), necessário: `HttpOnly`, `SameSite=Strict` e sem validade; a chave muda a cada abertura. A configuração sai de `darkops/ambiente.py`.
+- `DARKOPS_AMBIENTE=servidor` deixa pronta a configuração de um futuro modo hospedado (chave fixa em `DARKOPS_CHAVE_SECRETA`, cookie `__Host-` só por HTTPS, origens em `DARKOPS_ORIGENS`), mas o Estúdio **se recusa a abrir** nesse modo. A lista do que falta antes de liberar está em [app-e-site.md](app-e-site.md).
+- O service worker do aplicativo instalável (`/sw.js`) só guarda CSS e ícones; páginas e ações sempre vão ao Estúdio, e nada de POST passa por ele.
+- O site (`site/`) não usa cookies opcionais; `site/consentimento.js` só libera um script opcional depois do consentimento.
+
 ## Tokens e chaves
 
 - `.env` e `credenciais/` ficam fora do Git (`.gitignore`); o histórico foi conferido em 2026-10-24 e não tem chave nem token.

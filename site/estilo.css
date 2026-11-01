@@ -35,3 +35,21 @@ footer {
   color: var(--suave);
   font-size: .9rem;
 }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { border: 1px solid color-mix(in srgb, var(--suave) 30%, transparent); padding: 6px 8px; text-align: left; vertical-align: top; }
+/* aviso de cookies: só aparece quando existir cookie opcional (consentimento.js) */
+#consentimento {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 10;
+  max-width: 640px; margin: 0 auto; padding: 16px;
+  background: var(--fundo); color: var(--texto);
+  border: 1px solid color-mix(in srgb, var(--suave) 40%, transparent);
+  border-radius: 12px; box-shadow: 0 8px 30px rgb(0 0 0 / .25);
+  font-size: .95rem;
+}
+#consentimento p { margin: 0 0 10px; }
+#consentimento label { display: block; margin: 4px 0; }
+#consentimento .botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+#consentimento button {
+  font: inherit; padding: 6px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--link); background: transparent; color: var(--texto);
+}

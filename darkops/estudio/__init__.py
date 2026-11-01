@@ -21,7 +21,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import autoria, canal_ia, plataformas, seguranca
+from .. import ambiente, autoria, canal_ia, plataformas, seguranca
 from .. import nuvem as canal_nuvem
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
@@ -41,11 +41,10 @@ VOZES = ["pt-BR-AntonioNeural", "pt-BR-FranciscaNeural", "pt-BR-ThalitaMultiling
 JOBS: dict[str, dict] = {}
 
 app = Flask(__name__)
-app.secret_key = os.urandom(16)
+app.secret_key = ambiente.chave_secreta()
 app.config.update(
     MAX_CONTENT_LENGTH=512 * 1024 * 1024,  # maior envio aceito (vídeo ou narração): 512 MB
-    SESSION_COOKIE_SAMESITE="Strict",      # o cookie de sessão não vai em pedidos vindos de outros sites
-    SESSION_COOKIE_HTTPONLY=True,
+    **ambiente.config_flask(),             # cookie de sessão: SameSite=Strict, HttpOnly (e Secure no modo servidor)
 )
 LOCAL = re.compile(r"^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$")
 
@@ -63,7 +62,7 @@ def _so_local():
     # 3) CSRF: toda ação (POST) precisa vir de uma página do próprio Estúdio
     if request.method == "POST":
         origem = request.headers.get("Origin") or request.headers.get("Referer") or ""
-        if not re.match(r"^https?://(127\.0\.0\.1|localhost|\[::1\])(:\d+)?(/|$)", origem):
+        if not ambiente.origem_permitida(origem):
             abort(403)
 
 
@@ -256,7 +255,8 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 
 @app.context_processor
 def _contexto():
-    return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS,
+    from .. import __version__
+    return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS, "versao_app": __version__,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado(),
@@ -527,6 +527,27 @@ def versao_json():
     """A aba aberta pergunta a versão de tempos em tempos e recarrega quando o Estúdio reinicia atualizado."""
     from .. import __version__
     return jsonify({"versao": __version__})
+
+
+# ---------- aplicativo instalável (PWA): manifesto e service worker na raiz, para valer no Estúdio inteiro ----------
+
+@app.get("/manifest.webmanifest")
+def manifesto():
+    return jsonify({
+        "name": "Projeto Canais", "short_name": "Canais", "lang": "pt-BR",
+        "description": "Estúdio do Projeto Canais: cria, aprova e publica os vídeos dos seus canais.",
+        "start_url": "/", "scope": "/", "display": "standalone",
+        "background_color": "#111111", "theme_color": "#111111",
+        "icons": [{"src": url_for("static", filename=f"icone-{n}.png"), "sizes": f"{n}x{n}", "type": "image/png",
+                   "purpose": "any"} for n in (192, 512)],
+    }), 200, {"Content-Type": "application/manifest+json"}
+
+
+@app.get("/sw.js")
+def service_worker():
+    resposta = send_file(Path(app.static_folder) / "sw.js", mimetype="text/javascript", max_age=0)
+    resposta.headers["Cache-Control"] = "no-cache"  # o navegador confere o service worker novo a cada abertura
+    return resposta
 
 
 @app.get("/abertura")
@@ -1496,6 +1517,7 @@ def historico(pid):
 
 def rodar(porta: int = 8765, abrir: bool = True) -> None:
     import socket
+    ambiente.exigir_local()  # o modo servidor está preparado em ambiente.py, mas bloqueado pelas regras de segurança
     porta = int(os.environ.get("PORT", porta))  # o preview do Claude Code pode escolher a porta
     url = f"http://127.0.0.1:{porta}"
     reinicio = os.environ.pop("DARKOPS_REINICIO", "") == "1"

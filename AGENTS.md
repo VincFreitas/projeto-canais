@@ -58,7 +58,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - Guia **Sobre o projeto** (`/sobre`): apresentação, apoio (estrela, seguir, compartilhar, LinkedIn) e **Enviar sugestão**, que abre uma issue pré-preenchida em VincFreitas/projeto-canais.
 
 ## Segurança (obrigatória; detalhes em [docs/seguranca.md](docs/seguranca.md))
-- O Estúdio só aceita 127.0.0.1, confere o Host (DNS rebinding) e exige Origin/Referer local em todo POST; não afrouxe isso nem rode o Estúdio fora de 127.0.0.1.
+- O Estúdio só aceita 127.0.0.1, confere o Host (DNS rebinding) e exige Origin/Referer local em todo POST; não afrouxe isso nem rode o Estúdio fora de 127.0.0.1. Cookies, chave da sessão e origens aceitas vêm de `darkops/ambiente.py`; o modo `DARKOPS_AMBIENTE=servidor` está preparado mas bloqueado e só pode ser liberado com decisão do dono e a revisão de segurança de [docs/app-e-site.md](docs/app-e-site.md) (decisão de 2026-11-01: o produto é "cada um roda o seu").
 - Chame o Claude Code só por `leva.rodar_claude` (pedido pela entrada padrão, ferramentas listadas). Nunca use `--permission-mode acceptEdits` nem libere Python/Bash genérico para um pedido que lê a internet.
 - Toda mensagem que pode conter URL ou erro de API passa por `seguranca.ocultar()` antes de ir para log, tela ou arquivo.
 - Nada de token, chave ou senha em código, commit, log ou chat.

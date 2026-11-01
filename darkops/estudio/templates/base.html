@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block titulo %}Estúdio{% endblock %} · Projeto Canais</title>
+<link rel="manifest" href="{{ url_for('manifesto') }}">
+<meta name="theme-color" content="#111111">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='icone-192.png') }}">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='icone-192.png') }}">
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("{{ url_for('service_worker', v=versao_app) }}").catch(() => {});</script>
 <link rel="stylesheet" href="{{ url_for('static', filename='estudio.css') }}">
 </head>
 <body>

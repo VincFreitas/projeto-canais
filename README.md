@@ -1,6 +1,6 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.30.0%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.31.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
@@ -96,6 +96,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Postar com o PC desligado | Estúdio > Ajustes > Contas > **Nuvem**: um repositório privado de fila no seu GitHub roda o mesmo workflow do n8n no GitHub Actions às 12:20 e 19:20. Se o PC já postou no horário, a nuvem não faz nada; se não, ela posta o próximo aprovado. Os dois lados conferem o estado compartilhado (e a nuvem, a própria plataforma) e nunca postam duas vezes. Criar vídeos continua no PC (`python -m darkops nuvem-status`) |
 | Acompanhar e mandar pelo WhatsApp | Estúdio > barra lateral > **WhatsApp** (conecta uma vez e vale para todos os canais; API oficial da Meta, só o seu número): avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, e manda cada vídeo novo com **Aprovar** e **Recusar**. Comandos: `status`, `fila`, `aprovar`, `criar 3`, `criar sobre <tema>`, `pausar`, `retomar`, `ajustar <pedido>`, `canal <nome>`. Os comandos chegam pelo n8n, com o PC ligado (`python -m darkops whatsapp testar`) |
 | Aprender com o que funcionou | Todo canal começa com **15 vídeos**. A cada 15 vídeos no ar há 2 dias, o n8n (20h) busca os números, separa o que **funcionou** do que **não funcionou** e muda sozinho os próximos vídeos usando **só o que funcionou**. Estúdio > Resultados > **O que funcionou** mostra os dois grupos e as mudanças, com **Desfazer** (`python -m darkops aprender`, `aprender-desfazer`) |
+| Instalar como aplicativo | No Chrome ou no Edge, com o Estúdio aberto: ícone **Instalar** na barra de endereço. Abre numa janela própria, com o ícone ✦. Os planos e as autorizações para virar aplicativo e site (cookies, LGPD, Google, Meta, lojas) ficam em [docs/app-e-site.md](docs/app-e-site.md) |
 | Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
 | Medir e decidir | `/revisar-desempenho` |
 
@@ -117,9 +118,9 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
 - `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/whatsapp.py`: avisos e comandos; `darkops/nuvem.py`: postagem com o PC desligado
 - `n8n/`: modelos dos workflows (postagem e análise do que funcionou; WhatsApp e resumo do dia) e lançadores
-- `site/`: página inicial, privacidade e termos exigidos pelo Google e pela Meta (GitHub Pages)
+- `site/`: página inicial, privacidade (LGPD), termos e política de cookies com aviso de consentimento (GitHub Pages)
 - `docs/img/`: imagens do README
-- `docs/`: instalação para qualquer agente de IA, formato do roteiro e banco de ganchos
+- `docs/`: instalação para qualquer agente de IA, plano de aplicativo e site, formato do roteiro e banco de ganchos
 - `AGENTS.md`: instruções do projeto para todos os agentes (o `CLAUDE.md` e o `GEMINI.md` importam este arquivo)
 
 ## Regras que mantêm o canal vivo
