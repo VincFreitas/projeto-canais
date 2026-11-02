@@ -29,8 +29,54 @@
     <div><b>{{ numero(t.retencao_media, '%') }}</b><span>retenção média</span></div>
   </div>
   {% for a in info.avisos %}<p class="aviso erro" style="margin:8px 0 0">{{ a }}
-    {% if 'permissão extra' in a %}<form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='retencao') }}" style="display:inline">
-      <button class="botao claro">Liberar retenção do YouTube</button></form>{% endif %}</p>{% endfor %}
+    {% if 'permissão extra' in a or 'Liberar retenção e receita' in a %}<form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='retencao') }}" style="display:inline">
+      <button class="botao claro">Liberar retenção e receita do YouTube</button></form>{% endif %}</p>{% endfor %}
+  {% set m = info.monetizacao %}
+  {% if plataforma == 'youtube' and m %}
+  <div class="monetizacao">
+    <h3>Monetização</h3>
+    {% if m.monetizado %}
+    <p class="aviso ok" style="margin:6px 0">✓ Canal monetizado: o YouTube já paga por este canal.</p>
+    <div class="numeros">
+      {% for chave, rotulo in [('28d', 'últimos 28 dias'), ('90d', 'últimos 90 dias'), ('365d', 'últimos 12 meses')] %}
+      {% set r = m.receita[chave] %}
+      <div><b>US$ {{ '%.2f' | format(r.valor) }}</b><span>receita estimada · {{ rotulo }}</span></div>
+      {% endfor %}
+      <div><b>US$ {{ '%.2f' | format(m.receita['28d'].rpm) }}</b><span>RPM (por mil visualizações, 28 dias)</span></div>
+      <div><b>US$ {{ '%.2f' | format(m.receita['28d'].cpm) }}</b><span>CPM por reprodução (28 dias)</span></div>
+    </div>
+    <p class="dica">Receita estimada pela YouTube Analytics API, sem os anúncios vendidos por você; o YouTube ajusta no fim do mês. O valor pago está no YouTube Studio &gt; Monetização.</p>
+    {% else %}
+    <p style="margin:6px 0">{% if m.receita is none and not m.sem_analytics %}Ainda não dá para saber se o canal está monetizado: libere a leitura da receita (botão acima).
+      Enquanto isso, o progresso até o Programa de Parcerias:{% else %}<b>Ainda não monetizado.</b> O que falta para entrar no Programa de Parcerias do YouTube:{% endif %}</p>
+    {% if m.sem_analytics %}<p class="dica">As horas de exibição e as visualizações de Shorts aparecem depois de liberar a retenção e a receita (botão acima). Por enquanto, só os inscritos.</p>{% endif %}
+    {% for n in m.niveis %}
+    <div class="nivel-ypp {{ 'atingiu' if n.atingiu }}">
+      <b>{{ n.nome }}</b> {% if n.atingiu %}<span class="selo pronta">requisitos de números atingidos</span>{% endif %}
+      <p class="suave" style="margin:2px 0 6px">{{ numero(n.barras[0].meta) }} inscritos e, além disso, {{ numero(n.barras[1].meta) }} horas OU {{ numero(n.barras[2].meta) }} visualizações de Shorts.</p>
+      {% for b in n.barras %}
+      <div class="linha-barra">
+        <span>{{ b.rotulo }}: <b>{{ numero(b.atual) }}</b> de {{ numero(b.meta) }}{% if b.ok %} ✓{% elif b.falta is not none %} · faltam {{ numero(b.falta | round | int) }}{% endif %}</span>
+        <div class="barra {{ '' if b.ok else 'falta' }}"><span style="width: {{ b.pct }}%"></span></div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    <details class="mais"><summary>Outros requisitos (conferir no YouTube Studio)</summary>
+      <ul>{% for item in m.checklist %}<li>{{ item }}</li>{% endfor %}</ul>
+      <p class="dica">Quando os números baterem: YouTube Studio &gt; <a href="{{ m.inscrever }}" target="_blank" rel="noopener">Ganhar dinheiro ↗</a> &gt; Inscrever-se. A análise costuma levar cerca de 1 mês.</p>
+    </details>
+    {% endif %}
+    <p class="dica">Horas e Shorts são estimativas (o YouTube conta só as "qualificadas"; o número oficial está no YouTube Studio). Requisitos conferidos na
+      <a href="{{ m.fonte }}" target="_blank" rel="noopener">página oficial ↗</a>{% if m.aviso_2027 %}; a partir de 01/02/2027, o programa completo passa a pedir 8.000 horas ou 20 milhões de visualizações de Shorts{% endif %}.</p>
+  </div>
+  {% elif plataforma == 'instagram' %}
+  <div class="monetizacao">
+    <h3>Monetização</h3>
+    <p class="dica" style="margin:4px 0">O Instagram não informa pela API se a conta ganha dinheiro (presentes, assinaturas, bônus). Confira no app:
+      Perfil &gt; <b>Painel profissional</b> &gt; <b>Monetização</b>. Ali aparece o que a conta já pode usar e o que falta.</p>
+  </div>
+  {% endif %}
   {% if info.videos %}
   <div style="overflow-x:auto;margin-top:10px">
   <table class="tabela-estat">

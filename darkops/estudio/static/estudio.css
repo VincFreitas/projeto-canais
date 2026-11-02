@@ -463,3 +463,10 @@ body.abertura { display: grid; place-items: center; background: radial-gradient(
   *, *::before, *::after, ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) {
     animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+
+.monetizacao { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--linha); }
+.monetizacao h3 { margin: 0 0 4px; }
+.nivel-ypp { border: 1px solid var(--linha); border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: #fffdfa; }
+.nivel-ypp.atingiu { border-left: 4px solid var(--verde); }
+.linha-barra { font-size: 14px; }
+.linha-barra .barra { margin: 4px 0 8px; }

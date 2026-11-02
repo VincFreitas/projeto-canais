@@ -47,8 +47,8 @@ def _youtube(perfil) -> dict:
     # retenção e minutos: só com a permissão extra
     info = json.loads(perfil.token_youtube.read_text(encoding="utf-8")) if perfil.token_youtube.exists() else {}
     if ESCOPO_ANALYTICS not in (info.get("scopes") or []):
-        saida["avisos"].append("Minutos assistidos e retenção do YouTube precisam da permissão extra: "
-                               "Estúdio > Estatísticas > Liberar retenção do YouTube.")
+        saida["avisos"].append("Minutos assistidos, retenção e monetização do YouTube precisam da permissão extra: "
+                               "Estúdio > Estatísticas > Liberar retenção e receita do YouTube.")
     elif ids:
         try:
             an = build("youtubeAnalytics", "v2", credentials=cred, cache_discovery=False)
@@ -66,6 +66,17 @@ def _youtube(perfil) -> dict:
                               "inscritos_ganhos": int(a["subscribersGained"])})
         except Exception as erro:  # API não ativada no Google Cloud, cota etc.
             saida["avisos"].append(_explicar_erro_analytics(erro))
+    # monetização: progresso até o Programa de Parcerias ou quanto o canal já rende (monetizacao.py)
+    from . import monetizacao
+    mon = None
+    if ESCOPO_ANALYTICS in (info.get("scopes") or []):
+        try:
+            an = build("youtubeAnalytics", "v2", credentials=cred, cache_discovery=False)
+            mon = monetizacao.coletar_youtube(an, info.get("scopes") or [])
+            saida["avisos"] += mon.pop("avisos", [])
+        except Exception as erro:
+            saida["avisos"].append(_explicar_erro_analytics(erro))
+    saida["monetizacao"] = monetizacao.situacao(saida["conta"], mon)
     return saida
 
 

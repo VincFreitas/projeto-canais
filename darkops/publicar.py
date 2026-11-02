@@ -22,11 +22,12 @@ def autorizar_youtube(analytics: bool = False) -> Path:
     """Abre o navegador uma vez para o dono do canal permitir o acesso e salva o token local.
     analytics=True pede também a leitura do YouTube Analytics (minutos assistidos e retenção)."""
     from .estatisticas import ESCOPO_ANALYTICS
+    from .monetizacao import ESCOPO_RECEITA
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     if not CLIENT_SECRET.exists():
         raise SystemExit(f"falta {CLIENT_SECRET} (baixe o JSON do cliente OAuth no Google Cloud)")
-    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS + ([ESCOPO_ANALYTICS] if analytics else []))
+    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS + ([ESCOPO_ANALYTICS, ESCOPO_RECEITA] if analytics else []))
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
     # select_account: deixa escolher a conta do Google do canal deste perfil
     cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")
