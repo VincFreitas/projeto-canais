@@ -833,7 +833,9 @@ def conectar_youtube(pid):
     p = _perfil(pid).preparar()
     job = _iniciar_job(p, "Conectar YouTube", [["autorizar-youtube"]])
     flash(f"Abrimos o login do Google no navegador. Escolha o Gmail e, na tela seguinte (\"Escolha uma conta ou um "
-          f"canal de marca\"), escolha o canal {p.dados.get('nome')}, não a conta pessoal. Depois permita o acesso.", "ok")
+          f"canal de marca\"), escolha o canal {p.dados.get('nome')}, não a conta pessoal. Se aparecer \"O Google não "
+          "verificou este app\", é o seu próprio app ainda sem a verificação do Google: clique em Avançado e depois em "
+          "\"Acessar (não seguro)\". Depois permita o acesso.", "ok")
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid)))
 
 

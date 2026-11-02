@@ -187,14 +187,20 @@ def passos(dados: dict, perfil=None) -> list[dict]:
             "texto": "Logado com um Gmail seu: crie o projeto, ative a YouTube Data API v3, preencha a marca do app "
                      "(público Externo; ponha o Gmail do canal como usuário de teste), adicione os escopos "
                      "youtube.upload e youtube.readonly e crie o cliente \"App para computador\". Baixe o JSON e "
-                     "salve como credenciais/client_secret.json.",
+                     "salve como credenciais/client_secret.json. Ao conectar, o Google mostra \"O Google não "
+                     "verificou este app\": é o seu próprio app; clique em Avançado > Acessar (não seguro). Para "
+                     "esse aviso sumir, peça a verificação do app (passo 7), que leva alguns dias e pede a "
+                     "política de privacidade do site, o domínio confirmado no Search Console e um vídeo curto "
+                     "mostrando o login.",
             "nomes": [("Nome do projeto", n["google_projeto"]), ("Nome do app", n["google_app"])],
             "links": [("1. Criar o projeto", "https://console.cloud.google.com/projectcreate"),
                       ("2. Ativar a API", "https://console.cloud.google.com/apis/library/youtube.googleapis.com"),
                       ("3. Marca do app", "https://console.cloud.google.com/auth/branding"),
                       ("4. Público e testes", "https://console.cloud.google.com/auth/audience"),
                       ("5. Escopos", "https://console.cloud.google.com/auth/scopes"),
-                      ("6. Criar o cliente", "https://console.cloud.google.com/auth/clients/create")]})
+                      ("6. Criar o cliente", "https://console.cloud.google.com/auth/clients/create"),
+                      ("7. Pedir a verificação (tira o aviso)", "https://console.cloud.google.com/auth/verification"),
+                      ("Confirmar o domínio do site", "https://search.google.com/search-console")]})
     if ig:
         lista.append({
             "id": "meta_app", "titulo": "App da Meta (postar no Instagram)", "vale": "uma vez, para todos os canais",
