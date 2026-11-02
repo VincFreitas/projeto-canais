@@ -61,8 +61,9 @@ def textos_padrao(p: Perfil) -> dict:
 
 
 def _mascote(p: Perfil, lado: int, pixel: int) -> Image.Image:
-    """Foto do perfil, se houver; senão a pulga narradora em pixel art."""
-    if p.avatar:
+    """Foto do perfil (a enviada ou o emblema do tema); a pulga em pixel art só no Pulga do Saber."""
+    from .aparencia import garantir
+    if garantir(p):
         foto = ImageOps.fit(Image.open(p.avatar).convert("RGBA"), (lado, lado))
         return foto.resize((lado // pixel, lado // pixel), Image.BOX).resize((lado, lado), Image.NEAREST)
     from .narrador import _desenhar, _pixelar
@@ -101,9 +102,16 @@ def _fundo_capa(p: Perfil, destino: Path) -> Image.Image:
     if sd.exists() and all(x.exists() for x in pesos):
         if not destino.exists():
             nicho = p.dados.get("nicho") or "curiosities"
-            prompt = ("16-bit pixel art, retro SNES video game style, crisp square pixels, limited palette, wide "
-                      f"panoramic banner. A whimsical colorful world about {nicho}: several small cute scenes side "
-                      "by side, cheerful, calm empty sky band across the middle. No text, no letters, no watermark.")
+            from .aparencia import PULGA, cores
+            if p.id == PULGA:  # o mundo em pixel art colorido é a cara da Pulga
+                prompt = ("16-bit pixel art, retro SNES video game style, crisp square pixels, limited palette, wide "
+                          f"panoramic banner. A whimsical colorful world about {nicho}: several small cute scenes side "
+                          "by side, cheerful, calm empty sky band across the middle. No text, no letters, no watermark.")
+            else:  # cena do próprio tema, na paleta do canal
+                cor, fundo = cores(p.dados)
+                prompt = (f"Wide cinematic panoramic banner about {nicho}. Atmospheric digital illustration, mood "
+                          f"and palette built around the colors rgb{cor} and rgb{fundo}, calm empty band across the "
+                          "middle for a title. No text, no letters, no logos, no characters from existing brands.")
             print("desenhando o fundo da capa no PC (cerca de 3 min)")
             from .visuais import _vez_na_placa
             with _vez_na_placa():
@@ -117,9 +125,11 @@ def _fundo_capa(p: Perfil, destino: Path) -> Image.Image:
     # sem o gerador local: degradê em faixas com estrelas, já na grade de pixels
     img = Image.new("RGB", (320, 180))
     d = ImageDraw.Draw(img)
+    from .aparencia import PULGA, cores
+    cor, fundo = ((90, 130, 220), (30, 40, 120)) if p.id == PULGA else cores(p.dados)
     for y in range(0, 180, 6):
         t = y / 180
-        d.rectangle([0, y, 320, y + 6], fill=(int(30 + 60 * t), int(40 + 90 * t), int(120 + 100 * t)))
+        d.rectangle([0, y, 320, y + 6], fill=tuple(int(fundo[k] + (cor[k] - fundo[k]) * 0.6 * t) for k in range(3)))
     semente = zlib.crc32(p.id.encode())
     for i in range(60):
         x, y = (semente * (i + 3) * 7919) % 320, (semente * (i + 5) * 104729) % 120
@@ -137,8 +147,11 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     (m / "textos.json").write_text(json.dumps(tx, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     # foto de perfil 800x800 (as redes recortam em círculo) e marca d'água 150x150
-    foto = Image.new("RGBA", (160, 160), AMARELO + (255,))
-    ImageDraw.Draw(foto).ellipse([0, 0, 159, 159], outline=LARANJA + (255,), width=6)
+    from .aparencia import PULGA, cores
+    # cada canal nas próprias cores; o amarelo e o laranja são da Pulga
+    principal, fundo_marca = (AMARELO, LARANJA) if p.id == PULGA else cores(p.dados)
+    foto = Image.new("RGBA", (160, 160), (fundo_marca if p.id != PULGA else AMARELO) + (255,))
+    ImageDraw.Draw(foto).ellipse([0, 0, 159, 159], outline=(principal if p.id != PULGA else LARANJA) + (255,), width=6)
     foto = foto.resize((800, 800), Image.NEAREST)
     foto.alpha_composite(_mascote(p, 620, 10), (90, 110))
     foto = foto.convert("RGB")
@@ -153,7 +166,7 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     capa.alpha_composite(Image.new("RGBA", (sw, sh), (20, 20, 50, 150)), (sx, sy))
     capa.alpha_composite(_mascote(p, 90, 2), (sx + 10, (360 - 90) // 2))
     tx_x = sx + 108
-    titulo = _caber(tx["titulo_capa"], 28, sx + sw - tx_x - 8, AMARELO + (255,), ESCURO + (255,))
+    titulo = _caber(tx["titulo_capa"], 28, sx + sw - tx_x - 8, principal + (255,), ESCURO + (255,))
     sub = _caber(tx["subtitulo_capa"], 10, sx + sw - tx_x - 8, (255, 255, 255, 255), ESCURO + (255,))
     capa.alpha_composite(titulo, (tx_x, 180 - titulo.height + 2))
     capa.alpha_composite(sub, (tx_x, 190))

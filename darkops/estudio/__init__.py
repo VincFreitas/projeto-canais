@@ -21,7 +21,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import ambiente, autoria, canal_ia, mercados, plataformas, seguranca
+from .. import ambiente, aparencia, autoria, canal_ia, mercados, plataformas, seguranca
 from .. import nuvem as canal_nuvem
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
@@ -397,7 +397,7 @@ def configurar(pid):
                   "voz": f.get("voz") or p.dados["voz"], "layout": f.get("layout") or "post",
                   "musica": f.get("musica") or "animada",
                   # pixel e cartoon têm a pulga narradora; clipes reais não
-                  "estilo": f.get("estilo", ""), "narrador": f.get("estilo") in ("pixel", "cartoon"),
+                  "estilo": f.get("estilo", ""), "narrador": f.get("estilo") in ("pixel", "cartoon") and p.id == aparencia.PULGA,
                   "privacidade_youtube": f.get("privacidade_youtube") or "public",
                   "horarios": horarios or p.dados["horarios"], **campos_canal(f), **campos_padrao(f)})
         foto = request.files.get("avatar")
@@ -632,7 +632,8 @@ def tema_card(nome):
 @app.get("/p/<pid>/avatar")
 def avatar(pid):
     p = _perfil(pid)
-    if p.avatar:
+    from ..aparencia import garantir
+    if garantir(p):  # foto enviada pelo dono ou emblema do tema; a pulga é só do Pulga do Saber
         return send_file(p.avatar)
     from ..narrador import _desenhar, _pixelar
     pixel = p.dados.get("estilo") == "pixel"

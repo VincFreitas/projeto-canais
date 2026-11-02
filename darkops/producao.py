@@ -121,6 +121,7 @@ def _tipo_da_cena(roteiro: dict, indice: int) -> str:
 
 def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     caminho = caminho.resolve()
+    from .aparencia import PULGA, cores as cores_canal, garantir as garantir_foto
     from .perfis import carregar as carregar_perfil
     perfil = carregar_perfil()
     # o perfil dá o padrão do canal (nome, @, layout, voz, música); o roteiro pode sobrescrever
@@ -214,7 +215,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,
                                                                       dur_cena, gatilhos)]
         narrador = None
-        if roteiro.get("narrador"):  # pulga cartoon que fala junto com a voz, no canto esquerdo de baixo
+        if roteiro.get("narrador") and perfil.id == PULGA:  # pulga que fala junto com a voz: só no Pulga do Saber
             from .narrador import gerar as gerar_narrador
             lado = int(largura * (0.19 if altura < largura else 0.26))
             # com a legenda de uma palavra, o meio de baixo fica livre e a pulga desce para o canto
@@ -315,12 +316,15 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
                   # no palco, o nome do canal já vai na barra de peças, no lugar do selo
                   selo=None if roteiro.get("palco") else roteiro.get("selo"), efeitos=sfx,
-                  # a pulga narradora já faz o papel do mascote do canto
-                  mascote=roteiro.get("mascote", not roteiro.get("narrador")),
+                  # a pulga narradora já faz o papel do mascote do canto; a pulga é só do Pulga do Saber,
+                  # os outros canais levam a própria foto (emblema do tema) no canto
+                  mascote=(roteiro.get("mascote", not roteiro.get("narrador")) and
+                           (True if perfil.id == PULGA else (garantir_foto(perfil) or False))),
                   post={"manchete": roteiro.get("manchete") or roteiro.get("titulo", slug),
                         "nome": roteiro.get("canal_nome", perfil.dados.get("nome")),
                         "arroba": roteiro.get("selo", perfil.dados.get("arroba")),
-                        "avatar": perfil.avatar, "pixel": pixel} if post else None)
+                        "avatar": garantir_foto(perfil), "pixel": pixel,
+                        "cor": None if perfil.id == PULGA else cores_canal(perfil.dados)[0]} if post else None)
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

@@ -10,6 +10,7 @@ Argumentos recebidos: $ARGUMENTS (id do perfil; padrão `pulga-do-saber`)
 Objetivo: as contas do canal ficam com a mesma cara dos vídeos (pixel art). A aplicação só acontece depois de alguém aprovar. Fale em português, um passo por vez.
 
 **Regras (obrigatórias):**
+- **Identidade nova a partir do tema.** Nunca copie a foto, a mascote, as cores ou o estilo de outro canal ou de outro perfil daqui. A pulga e o amarelo são só do `pulga-do-saber`. Os outros canais usam a foto e as cores do próprio perfil (`cor_marca`, `cor_fundo_marca` e `avatar.png`, criados por `darkops/aparencia.py` a partir do tema).
 - **Só aplique o que foi aprovado.** Confira com `identidade estado`: `aprovada` precisa ser `true`. Sem aprovação, mostre a prévia e peça a aprovação no Estúdio (aba **Identidade**) ou no chat. Uma resposta clara no chat ("pode aplicar") vale: registre com `identidade aprovar --por "<nome>"`.
 - Login, senha e verificação são **sempre do usuário**. Ele abre o YouTube Studio e o Instagram, logado na conta do canal, no navegador interno. Nunca saia da conta, nunca mude outros campos (nome, @, e-mail, links) e nunca aceite termos.
 - Antes de clicar em **Publicar** (YouTube) ou **Enviar** (Instagram), confira que só mudaram os itens aprovados.

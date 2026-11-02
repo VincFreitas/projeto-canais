@@ -71,7 +71,7 @@ MODELO = {
 EDICOES = {"simples": "Simples: só imagem, narração e legenda",
            "leve": "Leve: palavra-herói e até 2 cards com dados por vídeo",
            "pro": "Pro: card ou etiqueta em toda cena com número, data ou comparação"}
-PERSONA = [("persona_narrador", "Quem narra", "Ex.: uma pulga curiosa e animada que fala com o público como amigo"),
+PERSONA = [("persona_narrador", "Quem narra", "Ex.: um narrador curioso que fala com o público como amigo"),
            ("persona_tom", "Tom", "Ex.: divertido e espantado, sem exagero"),
            ("persona_publico", "Público", "Ex.: adolescentes e adultos curiosos, 13 a 35 anos"),
            ("persona_abertura", "Como os vídeos começam", "Ex.: com uma pergunta ou um fato que parece impossível"),
@@ -258,6 +258,8 @@ def criar(perfil_id: str, dados: dict) -> Perfil:
     if perfil.arquivo.exists():
         raise SystemExit(f"o perfil {perfil_id} já existe")
     perfil.preparar().salvar(dados)
+    from .aparencia import aplicar
+    aplicar(perfil)  # paleta, legenda, música e foto tiradas do tema; nada copiado de outro canal
     return perfil
 
 
@@ -273,7 +275,7 @@ def slug(texto: str) -> str:
 _PRONTOS = {
     "misterios": ["Arquivo Oculto", "Enigma Diário", "O Inexplicado", "Mapa do Mistério", "Caso Sem Fim"],
     "terror": ["Arquivo do Terror", "Relatos da Meia-Noite", "Casa Fria", "Lenda Viva", "Sussurro Sombrio"],
-    "curiosidades": ["Pulga do Saber", "Fato Rápido", "Você Sabia Hoje", "Mente Curiosa", "Minuto Curioso"],
+    "curiosidades": ["Fato Rápido", "Você Sabia Hoje", "Mente Curiosa", "Minuto Curioso"],
     "animais": ["Bicho Raro", "Planeta Selvagem", "Zoo de Bolso", "Fera Curiosa", "Mundo Animal Já"],
     "geopolitica": ["Mapa do Poder", "Xadrez Global", "Por Trás do Mapa", "Fronteira Explicada", "Mundo em 1 Minuto"],
 }

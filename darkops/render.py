@@ -211,6 +211,18 @@ def _selo(texto: str, largura: int, destino: Path) -> Path:
     return destino
 
 
+def _foto_canto(foto: Path, largura: int, destino: Path) -> Path:
+    """A foto do canal em círculo, no lugar da pulga, para os outros canais."""
+    from PIL import Image, ImageDraw, ImageOps
+    lado = int(largura * 0.12)
+    img = ImageOps.fit(Image.open(foto).convert("RGBA"), (lado, lado))
+    mascara = Image.new("L", (lado, lado), 0)
+    ImageDraw.Draw(mascara).ellipse([0, 0, lado - 1, lado - 1], fill=255)
+    img.putalpha(mascara)
+    img.save(destino)
+    return destino
+
+
 def _mascote(largura: int, destino: Path) -> Path:
     """A pulga do canal em pixel art (corpo marrom, olhos grandes, óculos, antenas e patas)."""
     from PIL import Image
@@ -245,7 +257,7 @@ def _mascote(largura: int, destino: Path) -> Path:
 
 
 def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: Path | None = None,
-                  pixel: int = 0) -> Path:
+                  pixel: int = 0, cor: tuple | None = None) -> Path:
     """Fundo branco 1080x1920 com avatar (a pulga num círculo amarelo), nome, @ e a manchete."""
     from PIL import Image, ImageDraw, ImageFont
 
@@ -262,8 +274,9 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
     d = ImageDraw.Draw(img)
     # avatar: círculo amarelo com borda, a pulga em pixel art no meio
     lado, ax, ay = 180, 100, 215
-    d.ellipse([ax - 8, ay - 8, ax + lado + 8, ay + lado + 8], fill=(255, 196, 0))
-    d.ellipse([ax, ay, ax + lado, ay + lado], fill=(255, 222, 70), outline=(230, 150, 0), width=6)
+    aro = tuple(cor) if cor else (255, 196, 0)  # sem cor própria: o amarelo da Pulga
+    d.ellipse([ax - 8, ay - 8, ax + lado + 8, ay + lado + 8], fill=aro)
+    d.ellipse([ax, ay, ax + lado, ay + lado], fill=(255, 222, 70) if not cor else aro, outline=aro, width=6)
     if avatar:  # foto do perfil recortada em círculo
         from PIL import ImageOps
         foto = ImageOps.fit(Image.open(avatar).convert("RGB"), (lado, lado))
@@ -316,7 +329,7 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
 
 
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
-           selo: str | None = None, efeitos: Path | None = None, mascote: bool = False,
+           selo: str | None = None, efeitos: Path | None = None, mascote: bool | Path = False,
            post: dict | None = None) -> None:
     """Concatena as cenas, põe a barra de progresso e o selo do canal (só no vertical) e normaliza o
     volume para -14 LUFS (padrão das plataformas)."""
@@ -357,7 +370,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         from .config import TOPO_JANELA_POST
         entradas += ["-loop", "1", "-i", str(_moldura_post(post["manchete"], post["nome"], post["arroba"],
                                                           pasta / "moldura.png", post.get("avatar"),
-                                                          post.get("pixel", 0)))]
+                                                          post.get("pixel", 0), post.get("cor")))]
         indice = len([e for e in entradas if e == "-i"]) - 1
         barra = 8
         video = (f"[{indice}:v]format=yuv420p,setsar=1[fundo];"
@@ -379,8 +392,9 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
             indice = len([e for e in entradas if e == "-i"]) - 1
             video += f";[{atual}][{indice}:v]overlay=x=(W-w)/2:y=H*0.055[vs]"
             atual = "vs"
-        if mascote:  # pulga em pixel art no canto, pulando de leve
-            entradas += ["-i", str(_mascote(larg, pasta / "mascote.png"))]
+        if mascote:  # pulga em pixel art no canto (só no Pulga do Saber) ou a foto do canal, pulando de leve
+            entradas += ["-i", str(_mascote(larg, pasta / "mascote.png") if mascote is True
+                                   else _foto_canto(Path(mascote), larg, pasta / "mascote.png"))]
             indice = len([e for e in entradas if e == "-i"]) - 1
             video += (f";[{atual}][{indice}:v]overlay=x=W*0.05:"
                       f"y='H*0.835-abs(sin(t*2.6))*{int(alt * 0.012)}':eval=frame[vm]")
