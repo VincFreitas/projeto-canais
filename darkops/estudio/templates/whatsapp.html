@@ -14,7 +14,7 @@
       <span class="estado {{ 'ok' if w.configurado else 'falta' }}">
         {% if not w.configurado %}✗ desligado{% elif w.comandos and w.situacao == 'ligado' %}✓ avisos e comandos{% elif w.comandos %}conectando comandos…{% else %}✓ só avisos{% endif %}</span>
     </header>
-    <p class="funcao">Avisa quando um vídeo vai ao ar, quando algo falha, quando a fila está acabando e manda cada vídeo novo
+    <p class="funcao">Avisa quando um vídeo vai ao ar, quando algo falha, quando a fila está acabando, quando sai versão nova do Projeto Canais (número, data, hora e o que mudou) e manda cada vídeo novo
       com os botões <b>Aprovar</b> e <b>Recusar</b>. Você também manda comandos: <i>status</i>, <i>fila</i>, <i>criar 3</i>,
       <i>criar sobre &lt;tema&gt;</i>, <i>pausar</i>, <i>retomar</i>, <i>ajustar &lt;pedido&gt;</i>.</p>
     <p class="dica">💲 API oficial da Meta. Responder em até 24 h depois da sua última mensagem é grátis; fora disso, o aviso

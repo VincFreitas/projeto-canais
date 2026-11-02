@@ -3,7 +3,8 @@
 Usa só a API oficial da Meta (WhatsApp Cloud API) e só conversa com UM número: o do dono (WHATSAPP_PARA).
 
 Avisos (saem do PC e da nuvem): vídeo postado, falha, fila acabando, vídeo novo pronto para aprovar (o próprio
-vídeo, com os botões Aprovar e Recusar) e um resumo do dia. A Meta só deixa mandar texto livre até 24 h depois da
+vídeo, com os botões Aprovar e Recusar) e um resumo do dia. Do PC também sai o aviso de versão nova do Projeto Canais
+(número, data e hora de Brasília e o que mudou), conferido pelo Estúdio a cada minuto. A Meta só deixa mandar texto livre até 24 h depois da
 última mensagem do dono; fora dessa janela o aviso usa o modelo aprovado (WHATSAPP_MODELO, opcional) ou fica
 guardado e é entregue na próxima vez que o dono escrever.
 
@@ -277,6 +278,48 @@ def pronto_para_aprovar(perfil, caminho: Path) -> None:
 
 def resumo_do_dia() -> None:
     enviar("🌙 Resumo do dia\n" + _status())
+
+
+def _git(*args: str) -> str:
+    try:
+        r = subprocess.run(["git", *args], cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=30, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def avisar_versao() -> bool:
+    """Avisa o dono quando entra uma versão nova (commit aqui ou atualização vinda do GitHub): número, data e hora
+    de Brasília e o que mudou. Conta pela versão gravada no último commit, não pelo arquivo ainda em edição.
+    Na primeira vez só anota a versão atual, sem avisar."""
+    if not configurado():
+        return False
+    commit = _git("rev-parse", "HEAD")
+    estado = ler_estado()
+    if not commit or estado.get("versao_visto") == commit:
+        return False
+    achado = re.search(r'__version__ = "([\d.]+)"', _git("show", f"{commit}:darkops/__init__.py"))
+    versao, anterior = (achado.group(1) if achado else ""), estado.get("versao_avisada")
+    if not versao or not anterior or versao == anterior:
+        _gravar_estado(versao_visto=commit, versao_avisada=versao or anterior,
+                       versao_commit=estado.get("versao_commit") if anterior else commit)
+        return False
+    base = estado.get("versao_commit", "")
+    # o que entrou desde o último aviso; se o histórico mudou (base sumiu), só o último commit
+    intervalo = f"{base}..{commit}" if base and _git("merge-base", base, commit) == base else f"{commit}~1..{commit}"
+    mudancas = [re.sub(r"\s*\(v[\d.]+\)\s*$", "", m) for m in _git("log", "--no-merges", "--pretty=%s", intervalo).splitlines()]
+    from .nuvem import BRASILIA
+    from datetime import datetime
+    quando = datetime.fromtimestamp(int(_git("log", "-1", "--format=%ct", commit) or time.time()), BRASILIA)
+    linhas = [f"🆕 *Projeto Canais v{versao}* (antes: v{anterior})",
+              f"📅 {quando:%d/%m/%Y} às {quando:%H:%M} (horário de Brasília)", "", "O que mudou:"]
+    linhas += [f"• {m[:160]}" for m in mudancas[:8]] or ["• ajustes internos"]
+    if len(mudancas) > 8:
+        linhas.append(f"• e mais {len(mudancas) - 8} mudança(s)")
+    # anota antes de mandar: um erro da Meta não pode virar o mesmo aviso a cada minuto
+    _gravar_estado(versao_visto=commit, versao_avisada=versao, versao_commit=commit)
+    return enviar("\n".join(linhas))
 
 
 # ---------- comandos ----------

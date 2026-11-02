@@ -1639,9 +1639,16 @@ def _vigiar_atualizacao() -> None:
     """Procura versão nova de tempos em tempos (se ligado em Configurações) e, quando há atualização, reinicia
     o Estúdio com o código novo, mas só quando nenhuma tarefa (prévia, leva...) estiver rodando."""
     from .. import app as app_local
-    inicio = time.time()
+    from .. import whatsapp
+    inicio, versao_conferida = time.time(), 0.0
     while True:
         time.sleep(5)
+        if time.time() - versao_conferida > 60:  # versão nova (commit ou atualização) vira aviso no WhatsApp
+            versao_conferida = time.time()
+            try:
+                whatsapp.avisar_versao()
+            except Exception as erro:
+                print(seguranca.ocultar(f"aviso de versão no WhatsApp falhou: {erro}"))
         cfg = app_local.ler()
         if cfg["atualizar_sozinho"] and time.time() - cfg["ultima_verificacao"] > cfg["verificar_a_cada_h"] * 3600:
             try:

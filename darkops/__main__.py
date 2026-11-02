@@ -341,6 +341,8 @@ def cmd_atualizar(a):
         print(f"atualizado: v{n['de']} -> v{n['para']}")
         for m in n["mudancas"]:
             print(f"  - {m}")
+        from . import whatsapp
+        whatsapp.avisar_versao()
         print("se o Estúdio estiver aberto, ele reinicia sozinho")
     elif r.get("motivo"):
         sys.exit(r["motivo"])
@@ -564,6 +566,9 @@ def cmd_whatsapp(a):
     elif a.acao == "resumo":
         whatsapp.resumo_do_dia()
         print("resumo enviado (ou guardado até a próxima mensagem do dono)")
+    elif a.acao == "versao":
+        print("aviso da versão nova enviado" if whatsapp.avisar_versao() else
+              "nenhuma versão nova para avisar (ou guardada até a próxima mensagem do dono)")
     elif a.acao == "n8n":
         from .instalacao import gerar_workflow_whatsapp
         gerar_workflow_whatsapp(importar=True)
@@ -805,8 +810,8 @@ def main():
     s = sub.add_parser("aprender-desfazer", help="volta as mudanças da última análise automática")
     s.set_defaults(fn=cmd_aprender_desfazer)
 
-    s = sub.add_parser("whatsapp", help="WhatsApp do dono: testar, status, resumo ou n8n (importa o workflow de comandos)")
-    s.add_argument("acao", choices=["testar", "status", "resumo", "n8n"], nargs="?", default="status")
+    s = sub.add_parser("whatsapp", help="WhatsApp do dono: testar, status, resumo, versao (avisa a versão nova) ou n8n (importa o workflow de comandos)")
+    s.add_argument("acao", choices=["testar", "status", "resumo", "versao", "n8n"], nargs="?", default="status")
     s.set_defaults(fn=cmd_whatsapp)
 
     s = sub.add_parser("whatsapp-receber", help="processa uma mensagem recebida do WhatsApp (chamado pelo n8n)")
