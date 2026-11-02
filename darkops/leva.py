@@ -84,6 +84,7 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
 def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
     """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila.
     Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte."""
+    from . import mercados
     from .perfis import resumo_persona
     d = perfil.dados
     persona = resumo_persona(d)
@@ -96,6 +97,7 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         + (f"O tema do vídeo, pedido pelo dono do canal, é: {tema[:200]}. Encontre um ângulo que ainda não exista "
            if tema else "Escolha sozinho um tema forte que ainda não exista ")
         + f"no canal (já existem: {', '.join(existentes[-40:]) or 'nenhum'}). Pesquise os fatos e guarde as fontes. "
+        + mercados.instrucao_roteiro(d)
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
         f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "

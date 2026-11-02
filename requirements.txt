@@ -10,3 +10,4 @@ google-auth-oauthlib>=1.2
 numpy>=2.0
 flask>=3.0
 pynacl>=1.5
+tzdata>=2025.2

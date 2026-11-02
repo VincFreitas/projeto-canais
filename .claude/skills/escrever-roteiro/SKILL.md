@@ -17,6 +17,8 @@ Nível de edição (`edicao` do perfil): `pro` = ponha `animacao` em toda cena c
 
 Alcance: siga [docs/viralizacao.md](../../../docs/viralizacao.md). A 1ª frase prende nas 4 ou 5 primeiras palavras (sem saudação), o título traz a palavra principal no começo (o feed corta em ~40 caracteres), o final conecta com o começo quando der, e a última cena convida a comentar ou a mandar o vídeo para alguém (envios pesam muito no Reels). A descrição e as tags são feitas à parte (`python -m darkops descricao`), então não precisa escrevê-las no roteiro.
 
+Língua e região: siga o `mercado` do perfil (`perfis/<perfil>/perfil.json`; sem ele, o `idioma`; a lista está em `darkops/mercados.py`). Tudo que o público vê ou ouve sai na língua desse mercado, com expressões, exemplos, unidades e moeda de lá, e o roteiro grava `idioma` e `mercado`. Escrever direto na língua, nunca traduzir um texto em português.
+
 Notas para a revisão: grave em `notas_roteiro` (uma lista curta de frases) o que você escolheu e por quê: a fórmula do gancho, o ângulo que o vídeo traz de novo, de onde vêm os fatos principais e qualquer simplificação feita. O Estúdio mostra isso na revisão antes de gerar.
 
 ## 1. Pesquisar

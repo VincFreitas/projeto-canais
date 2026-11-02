@@ -24,7 +24,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import config
+from . import config, mercados
 from .seguranca import ocultar
 
 API = "https://api.github.com"
@@ -226,14 +226,15 @@ def video_publico(video: Path):
 
 # ---------- horários (slots) ----------
 
-def slot_atual(horarios: list[str], agora: datetime | None = None) -> str | None:
-    """O horário de postagem da vez (o último que já passou), se ainda estiver dentro da janela."""
-    agora = (agora or datetime.now(BRASILIA)).astimezone(BRASILIA)
+def slot_atual(horarios: list[str], agora: datetime | None = None, fuso=BRASILIA) -> str | None:
+    """O horário de postagem da vez (o último que já passou), se ainda estiver dentro da janela.
+    `fuso`: o do mercado do canal (mercados.fuso); os horários do perfil são no horário de lá."""
+    agora = (agora or datetime.now(fuso)).astimezone(fuso)
     candidatos = []
     for dia in (agora.date() - timedelta(days=1), agora.date()):
         for h in horarios:
             hh, mm = map(int, h.split(":"))
-            momento = datetime(dia.year, dia.month, dia.day, hh, mm, tzinfo=BRASILIA)
+            momento = datetime(dia.year, dia.month, dia.day, hh, mm, tzinfo=fuso)
             if momento <= agora:
                 candidatos.append(momento)
     if not candidatos:
@@ -253,12 +254,12 @@ def ler_slots(perfil) -> dict:
 
 def slot_atendido(perfil) -> str | None:
     """Quem já postou no horário da vez ('pc' ou 'nuvem'), ou None."""
-    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]))
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
     return ler_slots(perfil).get(slot, {}).get("por") if slot else None
 
 
 def registrar_slot(perfil, slug: str) -> None:
-    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]))
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
     if not slot:
         return  # publicação fora de horário (ex.: "Publicar agora"): não ocupa a vez de ninguém
     slots = ler_slots(perfil)
@@ -443,8 +444,18 @@ def enviar_segredos(perfis) -> list[str]:
     return enviados
 
 
-def workflow_actions() -> str:
-    return (config.RAIZ / "n8n" / "nuvem.actions.yml").read_text(encoding="utf-8")
+def workflow_actions(perfis=()) -> str:
+    """O workflow do Actions, com a agenda 20 minutos depois de cada horário, no fuso do mercado de cada canal."""
+    texto = (config.RAIZ / "n8n" / "nuvem.actions.yml").read_text(encoding="utf-8")
+    agenda = mercados.cron_utc([p.dados for p in perfis])
+    if not agenda:
+        return texto
+    return re.sub(r"(?m)^    - cron: .*\n(?:    - cron: .*\n)*", lambda _: agenda + "\n", texto, count=1)
+
+
+def atualizar_agenda(perfis) -> bool:
+    """Troca só a agenda do Actions (depois de mudar horários ou o mercado de um canal). True se mudou."""
+    return _gravar(".github/workflows/postar.yml", workflow_actions(perfis), "nuvem: horários por mercado")
 
 
 def workflow_n8n_nuvem() -> str:
@@ -473,7 +484,7 @@ def configurar(perfis) -> dict:
     """Prepara o repositório de fila: workflow do Actions, workflow do n8n, release, segredos e a fila de cada perfil."""
     conferir_acesso()
     _release()
-    _gravar(".github/workflows/postar.yml", workflow_actions(), "nuvem: workflow do Actions")
+    _gravar(".github/workflows/postar.yml", workflow_actions(perfis), "nuvem: workflow do Actions")
     _gravar("n8n-nuvem.json", workflow_n8n_nuvem(), "nuvem: workflow do n8n")
     segredos = enviar_segredos(perfis)
     filas = {p.id: sincronizar(p) for p in perfis}

@@ -38,6 +38,11 @@
         </div>
         <label for="nicho-livre">Ou escreva outro assunto</label>
         <input type="text" id="nicho-livre" placeholder="ex.: carros antigos, astronomia, culinária de vó...">
+        <label for="mercado">Para quem? (língua e região do público)</label>
+        <select name="mercado" id="mercado">
+          {% for k, nome in mercados.items() %}<option value="{{ k }}" {{ 'selected' if k == mercado_padrao }}>{{ nome }}</option>{% endfor %}
+        </select>
+        <p class="suave">Os vídeos saem na língua dessa região, com voz de lá, e postam no horário de lá.</p>
       </section>
 
       {# 2. nome #}
@@ -100,6 +105,7 @@
         <h2>Tudo certo?</h2>
         <ul class="lista revisao-lista">
           <li><span>Assunto</span><b data-ver="nicho"></b></li>
+          <li><span>Público</span><b data-ver="mercado"></b></li>
           <li><span>Nome</span><b data-ver="nome"></b></li>
           <li><span>Formato</span><b data-ver="formato"></b></li>
           <li><span>Plataformas</span><b data-ver="redes"></b></li>
@@ -194,6 +200,7 @@
     ver('inicial', (nome || '?').trim()[0].toUpperCase());
     ver('arroba', form.arroba.value || '@seucanal');
     ver('nicho', nicho || 'sem assunto');
+    ver('mercado', form.mercado.options[form.mercado.selectedIndex].text);
     ver('bio', form.descricao.value.trim() || 'A bio aparece aqui.');
     ver('formato', `${formato === 'vertical' ? 'Curto 9:16' : 'Longo 16:9'} · ${duracao ? duracao.nextElementSibling.textContent : ''}`);
     ver('redes', redes.map(r => form.querySelector(`.rede-${r} b`).textContent).join(', ') || 'nenhuma (só criar os vídeos)');
@@ -273,7 +280,7 @@
     botao.classList.add('carregando'); estado.textContent = 'a IA está pensando (até 1 minuto)…'; caixa.innerHTML = '';
     try {
       const r = await fetch("{{ url_for('sugerir_nomes') }}", {method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({nicho: form.nicho.value, formato: form.querySelector('input[name=formato]:checked').value})});
+        body: JSON.stringify({nicho: form.nicho.value, mercado: form.mercado.value, formato: form.querySelector('input[name=formato]:checked').value})});
       const dados = await r.json();
       estado.textContent = dados.ia ? 'sugestões da IA: clique para usar' : 'sugestões rápidas: clique para usar';
       dados.nomes.forEach((s, i) => {

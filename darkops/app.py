@@ -198,11 +198,10 @@ def ligar_n8n() -> str:
 def reiniciar_n8n() -> str:
     """Fecha e liga o n8n de novo (ele só passa a escutar um workflow importado pela linha de comando depois de
     reiniciar). Não reinicia perto de um horário de postagem, para não cortar uma publicação no meio."""
-    from datetime import datetime
-    from .nuvem import BRASILIA
-    agora = datetime.now(BRASILIA)  # o n8n agenda no horário de Brasília, não no fuso do Windows
-    minutos = agora.hour * 60 + agora.minute
-    if any(-10 <= minutos - (h * 60) <= 40 for h in (12, 19)):
+    from .mercados import perto_de_postar
+    from .perfis import listar
+    # cada canal posta no fuso do seu mercado, não no do Windows
+    if perto_de_postar([p.dados for p in listar() if p.dados.get("ativo")] or [{"horarios": ["12:00", "19:00"]}]):
         return "perto-do-horario"
     if os.name == "nt" and n8n_ligado():
         pids = subprocess.run(["powershell", "-NoProfile", "-Command",

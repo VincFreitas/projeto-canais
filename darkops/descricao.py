@@ -87,24 +87,27 @@ def _regras(roteiro: dict, perfil) -> dict:
     titulo = roteiro.get("titulo") or roteiro.get("manchete") or ""
     primeira = (roteiro.get("manchete") or titulo).strip()
     resumo = roteiro.get("cenas", [{}])[0].get("texto", "").strip()
-    linhas = [primeira[:LIMITE_LINHA_1], "", resumo, "", f"Segue {perfil.dados.get('arroba', '')} para mais curiosidades."]
+    from .mercados import texto as frase
+    linhas = [primeira[:LIMITE_LINHA_1], "", resumo, "", frase(perfil.dados, "seguir", arroba=perfil.dados.get("arroba", ""))]
     fontes = roteiro.get("fontes") or []
     if fontes:
-        linhas += ["", "Fontes:"] + [f"- {f}" for f in fontes]
+        linhas += ["", frase(perfil.dados, "fontes")] + [f"- {f}" for f in fontes]
     from collections import Counter
     # as palavras que mais se repetem dizem o assunto melhor que as mais compridas
     contagem = Counter(p for p in _conteudo(texto) if p not in GENERICAS)
     palavras = list(dict.fromkeys([tema] + [p for p, _ in contagem.most_common(12)]))[:8]
     nicho = (perfil.dados.get("nicho") or "curiosidades").split(",")[0].strip()
-    hashtags = _limpar_hashtags([nicho, tema, "vocesabia"])
+    hashtags = _limpar_hashtags([nicho, tema] + [h.lstrip("#") for h in frase(perfil.dados, "hashtags")][1:])
     return {"descricao": "\n".join(linhas), "tags": _limpar_tags([titulo, nicho] + palavras), "hashtags": hashtags}
 
 
 def _com_ia(roteiro: dict, perfil) -> dict | None:
     from .leva import _claude, rodar_claude
+    from .mercados import de as mercado_de
     from .perfis import resumo_persona
     if not _claude():
         return None
+    mercado = mercado_de(perfil.dados)
     falas = "\n".join(c.get("texto", "") for c in roteiro.get("cenas", []))
     pedido = (
         "Escreva a descrição, as tags e as hashtags para publicar este vídeo curto no YouTube e no Instagram. "
@@ -114,7 +117,8 @@ def _com_ia(roteiro: dict, perfil) -> dict | None:
         "ensina, uma chamada para comentar ou mandar para alguém, e as fontes abaixo. Nada de lista de palavras-chave, "
         "nada de promessa que o vídeo não cumpre. Tags: de 8 a 15 termos do assunto, do mais específico ao mais geral, "
         f"incluindo grafias erradas comuns, até {MAX_TAGS_CHARS} caracteres no total. Hashtags: de 3 a 5, ligadas ao "
-        f"assunto (nunca mais de {MAX_HASHTAGS}). Português do Brasil.\n"
+        f"assunto (nunca mais de {MAX_HASHTAGS}). Tudo em {mercado['lingua']}, para o {mercado['publico']}: as tags e "
+        "hashtags são as que esse público digita na busca.\n"
         + (f"Personalidade do canal: {resumo_persona(perfil.dados)}\n" if resumo_persona(perfil.dados) else "")
         + f"Canal: {perfil.dados.get('nome')} ({perfil.dados.get('arroba')}), nicho {perfil.dados.get('nicho')}.\n"
         f"Título: {roteiro.get('titulo')}\nNarração:\n{falas}\nFontes: {', '.join(roteiro.get('fontes') or []) or 'nenhuma'}"

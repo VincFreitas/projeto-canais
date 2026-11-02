@@ -7,13 +7,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "0 12,19 * * *"
+              "expression": "0,30 * * * *"
             }
           ]
         }
       },
       "id": "a1f0c001-0000-4000-8000-000000000001",
-      "name": "Todo dia 12h e 19h",
+      "name": "A cada 30 minutos",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
@@ -260,20 +260,23 @@
         220,
         780
       ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops perfis-ativos --na-hora"
+      },
+      "id": "a1f0c001-0000-4000-8000-00000000a0a1",
+      "name": "Perfis na hora",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        140
+      ],
+      "onError": "continueErrorOutput"
     }
   ],
   "connections": {
-    "Todo dia 12h e 19h": {
-      "main": [
-        [
-          {
-            "node": "Perfis ativos",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Próximo da fila": {
       "main": [
         [
@@ -449,6 +452,35 @@
         [
           {
             "node": "Aprender com o que funcionou",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 30 minutos": {
+      "main": [
+        [
+          {
+            "node": "Perfis na hora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Perfis na hora": {
+      "main": [
+        [
+          {
+            "node": "Separar perfis",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar execução com erro",
             "type": "main",
             "index": 0
           }

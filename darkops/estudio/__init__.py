@@ -21,7 +21,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import ambiente, autoria, canal_ia, plataformas, seguranca
+from .. import ambiente, autoria, canal_ia, mercados, plataformas, seguranca
 from .. import nuvem as canal_nuvem
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
@@ -36,8 +36,6 @@ CHAVES = [
     ("PEXELS_API_KEY", "Pexels", True),
     ("ELEVENLABS_API_KEY", "ElevenLabs (opcional)", True),
 ]
-VOZES = ["pt-BR-AntonioNeural", "pt-BR-FranciscaNeural", "pt-BR-ThalitaMultilingualNeural",
-         "pt-BR-MacerioMultilingualNeural", "en-US-AndrewMultilingualNeural", "es-MX-JorgeNeural"]
 JOBS: dict[str, dict] = {}
 
 app = Flask(__name__)
@@ -205,7 +203,8 @@ def _conexoes(p) -> dict:
 
 def _proximos_horarios(p, quantidade: int = 4) -> list[str]:
     horarios = sorted(p.dados.get("horarios", ["12:00", "19:00"]))
-    agora, saida, dia = datetime.now(canal_nuvem.BRASILIA).replace(tzinfo=None), [], 0  # o n8n posta no horário de Brasília
+    # os horários são no fuso do mercado do canal (12:00 de Nova York num canal para os EUA)
+    agora, saida, dia = datetime.now(mercados.fuso(p.dados)).replace(tzinfo=None), [], 0
     while len(saida) < quantidade and dia < 10:
         data = (agora + timedelta(days=dia)).date()
         for h in horarios:
@@ -290,7 +289,8 @@ def inicio():
 
 @app.get("/perfis")
 def perfis_pagina():
-    return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True), nichos=config.nichos())
+    return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True), nichos=config.nichos(),
+                           mercados=mercados.opcoes(), mercado_padrao=mercados.PADRAO)
 
 
 @app.post("/perfis/sugerir")
@@ -298,7 +298,8 @@ def sugerir_nomes():
     """Nomes, @ e bio para o canal novo: pede ao Claude Code (sem ferramentas, só texto); sem ele, sugestões prontas."""
     from ..perfis import sugerir_nomes as sugerir
     pedido = request.get_json(silent=True) or {}
-    return jsonify(sugerir(str(pedido.get("nicho", ""))[:80], str(pedido.get("formato", "vertical"))))
+    mercado = pedido.get("mercado") if pedido.get("mercado") in mercados.MERCADOS else mercados.PADRAO
+    return jsonify(sugerir(str(pedido.get("nicho", ""))[:80], str(pedido.get("formato", "vertical")), mercado))
 
 
 @app.get("/progresso")
@@ -388,6 +389,8 @@ def configurar(pid):
     if request.method == "POST":
         f = request.form
         horarios = [h.strip() for h in f.get("horarios", "").split(",") if re.match(r"^\d{1,2}:\d{2}$", h.strip())]
+        horarios = [h for h in horarios if int(h.split(":")[0]) < 24 and int(h.split(":")[1]) < 60]
+        agenda_antes = (mercados.codigo(p.dados), p.dados.get("horarios"))
         p.salvar({"nome": f.get("nome", "").strip() or p.dados["nome"],
                   "arroba": f.get("arroba", "").strip() or p.dados["arroba"],
                   "nicho": f.get("nicho", "").strip(), "descricao": f.get("descricao", "").strip(),
@@ -403,9 +406,13 @@ def configurar(pid):
             img = ImageOps.exif_transpose(Image.open(foto.stream)).convert("RGB")
             img.thumbnail((512, 512))
             img.save(p.pasta / "avatar.png")
-        flash("Perfil salvo.", "ok")
+        if agenda_antes != (mercados.codigo(p.dados), p.dados.get("horarios")) and canal_nuvem.configurada():
+            _iniciar_job(p, "Acertar os horários da nuvem", [["nuvem-agenda"]])  # o Actions roda no fuso novo
+        m = mercados.de(p.dados)
+        flash(f"Perfil salvo. Público: {m['nome']}; posta no horário de {m['cidade']}.", "ok")
         return redirect(url_for("configurar", pid=pid))
-    return render_template("configurar.html", p=p, d=p.dados, vozes=VOZES, status=plataformas.calcular(p),
+    return render_template("configurar.html", p=p, d=p.dados, status=plataformas.calcular(p),
+                           mercados=mercados.MERCADOS, mercado=mercados.codigo(p.dados),
                            motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
                            tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS, edicoes=EDICOES, persona=PERSONA,
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p),
@@ -1324,12 +1331,14 @@ def _criar_roteiro(p, manchete: str, titulo: str, cenas: list[dict], fontes: str
     formato = extra.get("formato") or p.dados.get("formato", "vertical")
     roteiro = {
         "slug": s, "titulo": titulo, "manchete": manchete,
-        "idioma": p.dados.get("idioma", "pt"), "formato": formato, "velocidade": "+10%",
+        "idioma": mercados.de(p.dados)["idioma"], "mercado": mercados.codigo(p.dados),
+        "formato": formato, "velocidade": "+10%",
         "tipo_visual": "video", "fontes": [l.strip() for l in fontes.splitlines() if l.strip()],
         "cenas": cenas,
         "metadados": {("youtube_shorts" if formato == "vertical" else "youtube"): {"titulo": titulo},
-                      "instagram": {"legenda": f"{manchete}. Você sabia? Segue a {p.dados['arroba']} para mais.",
-                                    "hashtags": ["#curiosidades", "#vocesabia"]}},
+                      "instagram": {"legenda": f"{manchete}. {mercados.texto(p.dados, 'voce_sabia')} "
+                                                   f"{mercados.texto(p.dados, 'seguir_curto', arroba=p.dados['arroba'])}",
+                                    "hashtags": mercados.texto(p.dados, "hashtags")}},
         **extra, "aprovado": False,
     }
     destino = p.fila / f"{numero:03d}-{s}.json"

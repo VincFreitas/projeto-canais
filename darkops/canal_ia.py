@@ -22,8 +22,8 @@ ROTULOS = {"nome": "Nome", "arroba": "@", "nicho": "Nicho", "descricao": "Descri
 MUSICAS = {"animada": "animada", "ambiente": "suspense", "chiptune": "chiptune 8 bits"}
 TEXTOS = {"nome": 60, "arroba": 31, "nicho": 80, "descricao": 600}
 CAMPOS = ("nome, arroba (@...), nicho, descricao, formato (vertical ou longo), duracao_s (vertical: 15/30/45/60/90/180; "
-          "longo: 180 a 1800), voz (pt-BR-AntonioNeural, pt-BR-FranciscaNeural, pt-BR-ThalitaMultilingualNeural, "
-          "pt-BR-MacerioMultilingualNeural), musica (animada/ambiente/chiptune), legenda (true/false), ritmo_corte_s "
+          "longo: 180 a 1800), voz (uma voz Neural da língua e da região do canal, "
+          "ex.: pt-BR-AntonioNeural, pt-BR-FranciscaNeural), musica (animada/ambiente/chiptune), legenda (true/false), ritmo_corte_s "
           "(2/3/4/6/8), velocidade (ex.: +10%), edicao (simples/leve/pro), tema_cards (padrao/arquivo_frio/jornal_antigo/"
           "moderno_limpo), legenda_tamanho (pequena/media/grande), horarios (lista HH:MM), leva_quantidade (1 a 14), "
           "persona_narrador, persona_tom, persona_publico, persona_abertura, persona_linguagem, persona_titulos, "
@@ -42,7 +42,10 @@ def _validar(perfil, campo: str, valor, formato: str):
     if campo == "formato":
         return valor if valor in FORMATOS else None
     if campo == "voz":
-        return valor if re.match(r"^[a-z]{2}-[A-Z]{2}-\w+Neural$", str(valor)) else None
+        from .mercados import codigo, voz_combina
+        # só vozes do público do canal: trocar a língua é decisão do dono, em Ajustes > Público
+        return valor if re.match(r"^[a-z]{2}-[A-Z]{2}-\w+Neural$", str(valor)) and voz_combina(
+            codigo(perfil.dados), str(valor)) else None
     if campo == "musica":
         return valor if valor in MUSICAS else None
     if campo == "legenda":

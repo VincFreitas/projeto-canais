@@ -1,6 +1,7 @@
 """CLI: python -m darkops <comando>  (ou .\\dark.ps1 <comando>)."""
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -128,8 +129,11 @@ def cmd_publicar_youtube(a):
             print(f"já está no canal (postado pelo PC): https://youtu.be/{video_id}")
         else:
             print(f"publicando '{meta['titulo']}' ({a.privacidade})")
+            from .mercados import de as mercado_de
+            # o roteiro escrito para um mercado vale mais que o perfil (o canal pode ter trocado de região depois)
+            idioma = mercado_de({**carregar().dados, **{k: roteiro[k] for k in ("mercado",) if k in roteiro}})["youtube"]
             video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
-                                      a.privacidade, bool(roteiro.get("sintetico")))
+                                      a.privacidade, bool(roteiro.get("sintetico")), idioma)
         marcar(slug, "youtube", video_id)
         print(f"pronto: https://youtu.be/{video_id}")
     _resultado({"slug": slug, "youtube": video_id, "url": f"https://youtu.be/{video_id}"})
@@ -209,9 +213,23 @@ def cmd_fila_proximo(_):
     _resultado({"perfil": atual(), "vazia": False, "roteiro": str(caminho), "restantes": restantes()})
 
 
-def cmd_perfis_ativos(_):
+def cmd_perfis_ativos(a):
+    """Perfis com postagem ligada. Com --na-hora (gatilho de 30 em 30 minutos do n8n, ou a agenda da nuvem), só os
+    que acabaram de chegar a um horário de postagem no fuso do seu mercado (12:00 em Nova York, 12:00 em Lisboa...)."""
+    from .mercados import slot_na_hora
+    from .nuvem import JANELA_SLOT_H
     from .perfis import listar
-    _resultado({"perfis": [p.id for p in listar() if p.dados.get("ativo")]})
+    na_hora = a.na_hora or os.environ.get("DARKOPS_NA_HORA") == "1"
+    # no PC o gatilho é exato (30 min); a agenda do GitHub Actions pode atrasar, então a nuvem aceita a janela toda
+    janela = 30 if a.na_hora else JANELA_SLOT_H * 60
+    _resultado({"perfis": [p.id for p in listar() if p.dados.get("ativo")
+                           and (not na_hora or slot_na_hora(p.dados, janela_min=janela))]})
+
+
+def cmd_mercados(_):
+    from .mercados import MERCADOS
+    for cod, m in MERCADOS.items():
+        print(f"{cod:<7} {m['nome']:<36} voz {m['vozes'][0]:<34} horário de {m['cidade']}")
 
 
 def cmd_perfis(_):
@@ -489,6 +507,9 @@ def cmd_nuvem(a):
             print(f"  {pid}: {len(f['enviados'])} vídeo(s) enviado(s), {len(f['concluidos_aqui'])} concluído(s) aqui")
     elif a.acao == "sincronizar":
         print(json.dumps(nuvem.sincronizar(carregar()), ensure_ascii=False))
+    elif a.acao == "agenda":
+        mudou = nuvem.atualizar_agenda([p for p in listar() if p.dados.get("ativo")] or [carregar()])
+        print("agenda da nuvem " + ("atualizada" if mudou else "já estava certa"))
     elif a.acao == "segredos":
         print("segredos atualizados:", ", ".join(nuvem.enviar_segredos(listar())))
     elif a.acao == "instagram":
@@ -634,7 +655,11 @@ def main():
     s.set_defaults(fn=cmd_perfis)
 
     s = sub.add_parser("perfis-ativos", help="perfis com postagem ligada (saída JSON para o n8n)")
+    s.add_argument("--na-hora", action="store_true", help="só os que chegaram agora a um horário (fuso do mercado)")
     s.set_defaults(fn=cmd_perfis_ativos)
+
+    s = sub.add_parser("mercados", help="línguas e regiões de público disponíveis para os canais")
+    s.set_defaults(fn=cmd_mercados)
 
     s = sub.add_parser("diagnostico", help="o que está pronto e o que falta configurar")
     s.add_argument("--json", action="store_true", help="saída em JSON (para agentes de IA e scripts)")
@@ -751,6 +776,7 @@ def main():
                         ("sincronizar", "troca o estado com a nuvem e envia os vídeos aprovados"),
                         ("segredos", "reenvia os tokens do YouTube e do Instagram para a nuvem"),
                         ("status", "quantos vídeos a nuvem tem e quem postou por último"),
+                        ("agenda", "acerta os horários da nuvem com o fuso do mercado de cada canal"),
                         ("testar", "roda o workflow da nuvem agora, em simulação (não publica)"),
                         ("instagram", "testa o link de passagem do Instagram sem publicar nada"),
                         ("preparar", "(usado no GitHub Actions) monta a fila, os vídeos e as credenciais"),

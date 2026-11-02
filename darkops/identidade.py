@@ -41,18 +41,20 @@ def _salvar_estado(p: Perfil, **mudancas) -> dict:
 def textos_padrao(p: Perfil) -> dict:
     d = p.dados
     nome, arroba = d.get("nome", ""), d.get("arroba", "").lstrip("@")
-    horarios = " e ".join(h.replace(":00", "h") for h in d.get("horarios", [])) or "todo dia"
-    gancho = (d.get("descricao") or f"Vídeos curtos sobre {d.get('nicho') or 'curiosidades'}").rstrip(".")
+    from . import mercados
+    pt = mercados.de(d)["idioma"] == "pt"  # a frase da pulga só existe em português
+    frase = lambda chave, **c: str(mercados.texto(d, chave, **c))  # noqa: E731
+    horarios = mercados.horarios_legiveis(d)
+    gancho = (d.get("descricao") or frase("gancho", nicho=d.get("nicho") or "curiosidades")).rstrip(".")
     bio = "\n".join(linha for linha in [
-        "🧠 Uma pulga atrás da orelha por dia" if d.get("narrador") else f"🧠 {gancho}",
-        "Curiosidades rápidas e checadas" if d.get("narrador") else "",
-        f"⏰ Reels novos às {horarios}",
+        "🧠 Uma pulga atrás da orelha por dia" if d.get("narrador") and pt else f"🧠 {gancho}",
+        frase("bio_checadas") if d.get("narrador") else "",
+        frase("bio_reels", horarios=horarios),
         f"▶️ YouTube: @{arroba}" if d.get("youtube", True) else "",
     ] if linha)
     descricao = (f"{gancho}.\n"
-                 f"O {nome} traz vídeos curtos, em menos de 1 minuto, sobre {d.get('nicho', 'curiosidades')}. "
-                 "Tudo com fonte checada: se é lenda, a gente avisa.\n"
-                 f"⏰ Shorts novos todo dia, às {horarios}.\n" +
+                 + frase("desc_canal", nome=nome, nicho=d.get("nicho", "curiosidades")) + "\n"
+                 + frase("desc_shorts", horarios=horarios) + "\n" +
                  (f"📸 Instagram: @{arroba}" if d.get("instagram", True) else ""))
     return {"bio_instagram": bio[:BIO_MAX], "descricao_youtube": descricao.strip(),
             "titulo_capa": nome.upper(), "subtitulo_capa": f"{gancho.split('.')[0]} · {horarios}"}

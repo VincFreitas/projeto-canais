@@ -5,7 +5,8 @@ name: postar
 
 on:
   schedule:
-    - cron: "20 15,22 * * *"   # 12:20 e 19:20 em Brasília (UTC-3)
+    # 20 minutos depois de cada horário, no fuso do mercado de cada canal (o Estúdio troca estas linhas)
+    - cron: "20 15,22 * * *"
   workflow_dispatch:
     inputs:
       simular:
@@ -27,6 +28,7 @@ jobs:
     env:
       DARKOPS_NUVEM: "1"
       DARKOPS_SIMULAR: ${{ inputs.simular && '1' || '0' }}
+      DARKOPS_NA_HORA: ${{ github.event_name == 'schedule' && '1' || '0' }}   # na agenda, só os canais na hora
       PYTHONIOENCODING: utf-8
       GH_TOKEN: ${{ github.token }}
       NUVEM_VIDEOS_REPO: ${{ secrets.NUVEM_VIDEOS_REPO }}   # repositório público de passagem (Instagram)

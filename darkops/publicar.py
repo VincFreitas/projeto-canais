@@ -94,13 +94,15 @@ def metadados_youtube(roteiro: dict, video: Path | None = None, texto: dict | No
 
 
 def enviar_youtube(video: Path, titulo: str, descricao: str, tags: list[str],
-                   privacidade: str = "private", sintetico: bool = False) -> str:
+                   privacidade: str = "private", sintetico: bool = False, idioma: str = "pt-BR") -> str:
     """Envia o vídeo e devolve o ID. Projeto sem auditoria do Google: o YouTube trava como privado."""
     from googleapiclient.http import MediaFileUpload
 
     corpo = {
         "snippet": {"title": titulo, "description": descricao, "tags": tags,
-                    "categoryId": CATEGORIA_EDUCACAO, "defaultLanguage": "pt-BR"},
+                    "categoryId": CATEGORIA_EDUCACAO,
+                    # língua do título/descrição e do áudio: o YouTube usa as duas para mostrar o vídeo na região certa
+                    "defaultLanguage": idioma, "defaultAudioLanguage": idioma},
         "status": {"privacyStatus": privacidade, "selfDeclaredMadeForKids": False,
                    "containsSyntheticMedia": sintetico},
     }

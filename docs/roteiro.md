@@ -11,6 +11,7 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
   "slug": "zona-do-silencio",
   "titulo": "A Zona do Silêncio",
   "idioma": "pt",
+  "mercado": "pt-BR",
   "formato": "longo",
   "motor_voz": "auto",
   "voz": "pt-BR-AntonioNeural",
@@ -43,6 +44,7 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 
 | Campo | Obrigatório | O que faz |
 |---|---|---|
+| `idioma` / `mercado` | não | Língua da narração (`pt`, `en`, `es`...) e público (`pt-BR`, `en-US`, `es-MX`...; lista em `python -m darkops mercados`). A leva grava os dois a partir do perfil; o `mercado` define a língua informada ao YouTube |
 | `formato` | sim | `longo` (1920x1080) ou `vertical` (1080x1920: Shorts, TikTok, Reels, Kwai) |
 | `cenas[].texto` | sim | Narração. Cada cena vira um trecho com um visual; 8 a 15 s por cena mantém o ritmo |
 | `cenas[].visual` | não | Busca no Pexels, **em inglês** (ex.: `abandoned hospital corridor`) |

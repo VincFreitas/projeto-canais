@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import config
+from . import config, mercados
 
 PERFIS = config.RAIZ / "perfis"
 PADRAO = "pulga-do-saber"
@@ -27,7 +27,7 @@ MODELO = {
     "arroba": "@novocanal",
     "nicho": "curiosidades",
     "descricao": "",
-    "idioma": "pt",
+    "idioma": "pt",             # vem do mercado (mercados.py); o perfil novo grava "mercado" ao salvar
     "layout": "post",
     "voz": "pt-BR-AntonioNeural",
     "musica": "animada",
@@ -168,7 +168,9 @@ def campos_canal(form) -> dict:
             return min(max(int(form.get(chave, padrao)), minimo), maximo)
         except ValueError:
             return padrao
-    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS},
+    # língua e região do público (mercados.py); sem o campo no formulário, fica a do perfil
+    mercado = {"mercado": form.get("mercado")} if form.get("mercado") in mercados.MERCADOS else {}
+    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado,
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
             "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
             "leva_quantidade": inteiro("leva_quantidade", 15, 1, 15), "leva_reabastecer": bool(form.get("leva_reabastecer")),
@@ -198,6 +200,7 @@ class Perfil:
 
     def salvar(self, novos: dict) -> None:
         dados = {**self.dados, **novos}
+        dados.update(mercados.coerente(dados))  # língua e voz sempre do mercado escolhido
         self.pasta.mkdir(parents=True, exist_ok=True)
         self.arquivo.write_text(json.dumps(dados, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -276,12 +279,14 @@ _PRONTOS = {
 }
 
 
-def sugerir_nomes(nicho: str, formato: str = "vertical") -> dict:
+def sugerir_nomes(nicho: str, formato: str = "vertical", mercado: str = mercados.PADRAO) -> dict:
     """Cinco nomes com @ e bio. A IA (Claude Code, sem ferramentas) cria a partir do assunto; sem ela, prontos."""
     import subprocess
     from .leva import rodar_claude
     assunto = re.sub(r"[^\w\s,.-]", "", nicho)[:80] or "curiosidades"
-    pedido = (f"Sugira 5 nomes originais em português para um canal dark (vídeos sem rosto) sobre: {assunto}. "
+    m = mercados.de({"mercado": mercado})
+    pedido = (f"Sugira 5 nomes originais em {m['lingua']}, para o {m['publico']}, para um canal dark (vídeos sem "
+              f"rosto) sobre: {assunto}. A bio também em {m['lingua']}. "
               f"Formato: {'vídeos curtos verticais (Shorts/Reels)' if formato == 'vertical' else 'vídeos longos do YouTube'}. "
               "Cada nome: curto (até 3 palavras), fácil de lembrar e de buscar, sem marcas registradas. "
               "Responda SÓ um JSON, sem texto em volta: "
@@ -297,6 +302,8 @@ def sugerir_nomes(nicho: str, formato: str = "vertical") -> dict:
             return {"ia": True, "nomes": nomes}
     except (SystemExit, OSError, ValueError, KeyError, TypeError, subprocess.TimeoutExpired):
         pass
+    if m["idioma"] != "pt":  # os nomes prontos são em português
+        return {"ia": False, "nomes": []}
     chave = next((k for k in _PRONTOS if k in assunto.lower()), "curiosidades")
     return {"ia": False, "nomes": [{"nome": n, "arroba": "@" + re.sub(r"[^a-z0-9]", "", n.lower()
                                     .translate(str.maketrans("áâãàéêíóôõúç", "aaaaeeiooouc"))), "bio": ""}
