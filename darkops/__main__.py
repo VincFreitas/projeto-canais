@@ -72,8 +72,12 @@ def cmd_autorizar_youtube(a):
     from .publicar import autorizar_youtube, canal
     arquivo = autorizar_youtube(analytics=getattr(a, "analytics", False))
     print(f"token salvo em {arquivo}")
+    from .perfis import carregar
     c = canal()
     print(f"canal autorizado: {c['nome']} ({c['id']})")
+    if c["nome"].strip().lower() != str(carregar().dados.get("nome", "")).strip().lower():
+        print(f"aviso: o canal se chama \"{c['nome']}\" e o perfil, \"{carregar().dados.get('nome')}\". Se não for o canal "
+              "certo, conecte de novo e escolha o canal deste perfil.")
 
 
 def _resultado(dados: dict) -> None:

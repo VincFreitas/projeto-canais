@@ -163,7 +163,9 @@ def passos(dados: dict, perfil=None) -> list[dict]:
             "feito": feitos.get("youtube_canal", False) or token_yt,
             "texto": "Entre no YouTube com o Gmail do canal, ou com o seu e crie um canal de marca (não pede "
                      "verificação de conta nova). Use o nome abaixo e depois escolha o @. Para enviar thumbnail "
-                     "própria e vídeos com mais de 15 minutos, confirme o canal pelo celular.",
+                     "própria e vídeos com mais de 15 minutos, confirme o canal pelo celular. Ao conectar no "
+                     "Estúdio, escolha este canal na tela \"Escolha uma conta ou um canal de marca\", e não a "
+                     "conta pessoal.",
             "nomes": [("Nome do canal", n["youtube_nome"]), ("@ do YouTube", n["youtube_handle"])],
             "links": [("Criar canal de marca", "https://www.youtube.com/channel_switcher"),
                       ("Criar o canal (Gmail novo)", "https://www.youtube.com/create_channel"),

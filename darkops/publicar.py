@@ -30,10 +30,58 @@ def autorizar_youtube(analytics: bool = False) -> Path:
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
     # select_account: deixa escolher a conta do Google do canal deste perfil
     cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")
+    # só salva se a escolha foi um canal, e um canal que ainda não é de outro perfil: escolher a conta pessoal do
+    # Google (sem canal) ou o canal de outro perfil faria a postagem falhar ou sair no canal errado
+    escolhido = _canal_do(cred)
+    _conferir_dono(escolhido)
     destino = _token_youtube()
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_text(cred.to_json(), encoding="utf-8")
+    _guardar_canal(escolhido)
     return destino
+
+
+SEM_CANAL = ("a conta escolhida não tem canal do YouTube, então nada foi salvo. Na tela do Google, depois de escolher "
+             "o Gmail, aparece \"Escolha uma conta ou um canal de marca\": escolha o canal deste perfil (o canal de "
+             "marca), não a conta pessoal. Se o canal ainda não existe, crie em https://www.youtube.com/channel_switcher "
+             "(Ajustes > Criar as contas) e conecte de novo.")
+
+
+def _canal_do(cred) -> dict:
+    from googleapiclient.discovery import build
+    itens = build("youtube", "v3", credentials=cred, cache_discovery=False).channels() \
+        .list(part="snippet", mine=True).execute().get("items", [])
+    if not itens:
+        raise SystemExit(SEM_CANAL)
+    return {"id": itens[0]["id"], "nome": itens[0]["snippet"]["title"]}
+
+
+def _arquivo_canal(perfil) -> Path:
+    return perfil.controle / "youtube_canal.json"
+
+
+def _conferir_dono(escolhido: dict) -> None:
+    """Recusa o canal que já está ligado a outro perfil (dois perfis postando no mesmo canal)."""
+    from .perfis import carregar, listar
+    atual = carregar()
+    for outro in listar():
+        arquivo = _arquivo_canal(outro)
+        if outro.id == atual.id or not arquivo.exists():
+            continue
+        try:
+            dono = json.loads(arquivo.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        if dono.get("id") == escolhido["id"] and outro.token_youtube.exists():
+            raise SystemExit(f"o canal \"{escolhido['nome']}\" já está ligado ao perfil {outro.dados.get('nome')}, "
+                             "então nada foi salvo. Conecte de novo e escolha o canal deste perfil.")
+
+
+def _guardar_canal(escolhido: dict) -> None:
+    from .perfis import carregar
+    perfil = carregar()
+    perfil.controle.mkdir(parents=True, exist_ok=True)
+    _arquivo_canal(perfil).write_text(json.dumps(escolhido, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def _credenciais():
@@ -65,8 +113,11 @@ def canal() -> dict:
     resposta = _servico().channels().list(part="snippet", mine=True).execute()
     itens = resposta.get("items", [])
     if not itens:
-        raise SystemExit("a conta autorizada não tem canal do YouTube")
-    return {"id": itens[0]["id"], "nome": itens[0]["snippet"]["title"]}
+        raise SystemExit("o token salvo é de uma conta sem canal do YouTube: em Ajustes > Contas, conecte o YouTube "
+                         "de novo e escolha o canal deste perfil (o canal de marca), não a conta pessoal")
+    escolhido = {"id": itens[0]["id"], "nome": itens[0]["snippet"]["title"]}
+    _guardar_canal(escolhido)  # perfis conectados antes desta conferência passam a ter o canal anotado
+    return escolhido
 
 
 def metadados_youtube(roteiro: dict, video: Path | None = None, texto: dict | None = None) -> dict:

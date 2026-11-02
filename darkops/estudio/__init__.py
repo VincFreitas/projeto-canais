@@ -832,7 +832,8 @@ def ligar_n8n_agora(pid):
 def conectar_youtube(pid):
     p = _perfil(pid).preparar()
     job = _iniciar_job(p, "Conectar YouTube", [["autorizar-youtube"]])
-    flash("Abrimos o login do Google no navegador. Escolha a conta do canal e permita o acesso.", "ok")
+    flash(f"Abrimos o login do Google no navegador. Escolha o Gmail e, na tela seguinte (\"Escolha uma conta ou um "
+          f"canal de marca\"), escolha o canal {p.dados.get('nome')}, não a conta pessoal. Depois permita o acesso.", "ok")
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("conexoes", pid=pid)))
 
 
