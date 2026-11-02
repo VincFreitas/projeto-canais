@@ -6,7 +6,9 @@ YouTube: os números vêm da YouTube Analytics API, junto com as estatísticas (
   anúncios pagos, sem o feed de Shorts nas horas), então o número oficial do YouTube Studio pode ser um pouco menor.
 - Receita: estimatedRevenue e playbackBasedCpm, que pedem a permissão yt-analytics-monetary.readonly (o mesmo
   botão que libera a retenção). Receita acima de zero nos últimos 90 dias = canal monetizado.
-Instagram: presentes, assinaturas e bônus não têm API; o Estúdio só mostra onde conferir.
+Instagram: a API não informa se a conta ganha dinheiro. O Estúdio mostra o progresso dos seguidores até as metas de
+referência de cada ferramenta (INSTAGRAM, abaixo) e onde conferir no app. As metas não estão numa página oficial
+legível: são as que a Central de Ajuda e os guias citavam em 2026-11; a palavra final é o painel do app.
 
 Requisitos: support.google.com/youtube/answer/72851 (conferido em 2026-11-02) e answer/12843009 (mudança de
 2027-02-01). Revise se o YouTube mudar as regras.
@@ -115,3 +117,36 @@ def situacao(conta: dict, mon: dict | None, hoje: date | None = None) -> dict:
             "sem_analytics": horas is None, "fonte": req["fonte"],
             "aviso_2027": (hoje or date.today()) < MUDANCA_2027,
             "inscrever": "https://studio.youtube.com/channel/UC/monetization"}
+
+
+# Instagram: ferramentas de monetização. Metas de referência (sem página oficial legível em 2026-11-02; a Central de
+# Ajuda é carregada por JavaScript e guias de terceiros citam estes números). O app mostra a situação real.
+INSTAGRAM = [
+    {"id": "presentes", "nome": "Presentes nos Reels", "seguidores": 500,
+     "como": "Quem assiste compra Estrelas e manda presentes nos seus Reels; a Meta paga por eles."},
+    {"id": "assinaturas", "nome": "Assinaturas", "seguidores": 10000,
+     "como": "Seguidores pagam por mês para ver conteúdo exclusivo."},
+    {"id": "parcerias", "nome": "Anúncios em parceria e Marketplace de criadores", "seguidores": None,
+     "como": "Marcas pagam para promover seus posts; sem mínimo de seguidores, mas exige rótulo de Parceria paga."},
+    {"id": "bonus", "nome": "Bônus", "seguidores": None,
+     "como": "Por convite e por tempo limitado: aparece no painel quando a Meta oferece."},
+]
+FONTE_INSTAGRAM = "https://creators.instagram.com/earn-money"
+
+
+def situacao_instagram(conta: dict) -> dict:
+    """Progresso dos seguidores até as metas de referência e onde conferir a situação real no app."""
+    seguidores = int(conta.get("seguidores") or 0)
+    ferramentas = []
+    for f in INSTAGRAM:
+        meta = f["seguidores"]
+        ferramentas.append({**f, "atual": seguidores,
+                            "pct": min(round(seguidores / meta * 100), 100) if meta else None,
+                            "ok": (seguidores >= meta) if meta else None,
+                            "falta": max(meta - seguidores, 0) if meta else None})
+    return {"seguidores": seguidores, "ferramentas": ferramentas, "fonte": FONTE_INSTAGRAM,
+            "checklist": ["Conta Profissional (Criador ou Empresa)", "Ter 18 anos ou mais",
+                          "Seguir as Políticas de Monetização de Parceiros e de Conteúdo",
+                          "Conta de pagamento cadastrada (no app, em Monetização > Configurações de pagamento)",
+                          "Conteúdo original; nada voltado principalmente a crianças"],
+            "onde": "No app: Perfil > Painel profissional > Monetização (ou Status de monetização)."}

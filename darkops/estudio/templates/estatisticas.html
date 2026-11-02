@@ -73,8 +73,27 @@
   {% elif plataforma == 'instagram' %}
   <div class="monetizacao">
     <h3>Monetização</h3>
-    <p class="dica" style="margin:4px 0">O Instagram não informa pela API se a conta ganha dinheiro (presentes, assinaturas, bônus). Confira no app:
-      Perfil &gt; <b>Painel profissional</b> &gt; <b>Monetização</b>. Ali aparece o que a conta já pode usar e o que falta.</p>
+    <p class="dica" style="margin:4px 0">O Instagram não informa pela API se a conta já ganha dinheiro nem quanto. Situação real e ganhos:
+      {{ m.onde if m else 'No app: Perfil > Painel profissional > Monetização.' }} Abaixo, o progresso até as metas de cada ferramenta.</p>
+    {% if m %}
+    {% for f in m.ferramentas %}
+    <div class="nivel-ypp {{ 'atingiu' if f.ok }}">
+      <b>{{ f.nome }}</b>{% if f.ok %} <span class="selo pronta">meta de seguidores atingida</span>{% endif %}
+      <p class="suave" style="margin:2px 0 6px">{{ f.como }}</p>
+      {% if f.pct is not none %}
+      <div class="linha-barra">
+        <span>Seguidores: <b>{{ numero(f.atual) }}</b> de {{ numero(f.seguidores) }}{% if f.ok %} ✓{% else %} · faltam {{ numero(f.falta) }}{% endif %}</span>
+        <div class="barra {{ '' if f.ok else 'falta' }}"><span style="width: {{ f.pct }}%"></span></div>
+      </div>
+      {% else %}<p class="suave" style="margin:0">Sem mínimo de seguidores.</p>{% endif %}
+    </div>
+    {% endfor %}
+    <details class="mais"><summary>Outros requisitos (conferir no app)</summary>
+      <ul>{% for item in m.checklist %}<li>{{ item }}</li>{% endfor %}</ul>
+    </details>
+    <p class="dica">As metas de seguidores são referências (a Meta não publica uma lista oficial fixa e muda por país e por conta); o app mostra se a sua conta já pode usar.
+      <a href="{{ m.fonte }}" target="_blank" rel="noopener">Ferramentas de ganho do Instagram ↗</a></p>
+    {% endif %}
   </div>
   {% endif %}
   {% if info.videos %}

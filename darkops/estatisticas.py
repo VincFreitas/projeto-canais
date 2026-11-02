@@ -127,6 +127,8 @@ def _instagram(perfil) -> dict:
                           "duracao_media_s": round((valores.get("ig_reels_avg_watch_time") or 0) / 1000, 1),
                           "minutos": round((valores.get("ig_reels_video_view_total_time") or 0) / 60000)})
         saida["videos"].append(v)
+    from .monetizacao import situacao_instagram
+    saida["monetizacao"] = situacao_instagram(saida["conta"])
     if sem_insights:
         saida["avisos"].append(f"Instagram: as métricas de cada Reel pedem a permissão de insights no token "
                                f"(instagram_business_manage_insights). Resposta: {sem_insights[:160]}")
