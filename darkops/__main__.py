@@ -555,9 +555,9 @@ def cmd_aprender(a):
             print(r.get("resumo", ""))
 
 
-def cmd_conectar_github(_):
+def cmd_conectar_github(a):
     from . import contas
-    contas.conectar_github()
+    contas.conectar_github(a.fila or contas.REPO_FILA, a.passagem or contas.REPO_PASSAGEM)
 
 
 def cmd_conectar_azure(_):
@@ -822,6 +822,8 @@ def main():
     s.set_defaults(fn=cmd_aprender)
 
     s = sub.add_parser("conectar-github", help="login no GitHub; cria os repositórios da nuvem e da passagem do Instagram")
+    s.add_argument("--fila", default="", help="nome do repositório privado da fila (padrão projeto-canais-fila)")
+    s.add_argument("--passagem", default="", help="nome do repositório público de passagem (padrão projeto-canais-videos)")
     s.set_defaults(fn=cmd_conectar_github)
 
     s = sub.add_parser("conectar-azure", help="login na Microsoft; cria o recurso de voz grátis (F0) e salva a chave")

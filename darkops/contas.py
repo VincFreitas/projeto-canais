@@ -119,8 +119,14 @@ def _repo(token: str, dono: str, nome: str, privado: bool) -> str:
     return dados["full_name"]
 
 
-def conectar_github() -> dict:
-    """Login no GitHub com código no navegador; depois cria os dois repositórios e grava tudo no .env."""
+def conectar_github(nome_fila: str = REPO_FILA, nome_passagem: str = REPO_PASSAGEM) -> dict:
+    """Login no GitHub com código no navegador; depois cria os dois repositórios (nomes escolhidos no guia de
+    contas, ou os padrões) e grava tudo no .env."""
+    for nome in (nome_fila, nome_passagem):
+        if not re.fullmatch(r"[A-Za-z0-9._-]{1,100}", nome) or nome in (".", ".."):
+            raise SystemExit(f"nome de repositório inválido: {nome!r} (use letras, números, ponto, hífen e _)")
+    if nome_fila == nome_passagem:
+        raise SystemExit("a fila (privada) e a passagem (pública) precisam de nomes diferentes")
     instalar_gh()
     if _gh("auth", "status", "--hostname", "github.com").returncode != 0:
         print("Entre na sua conta do GitHub: vai aparecer um código de 8 letras logo abaixo.")
@@ -146,8 +152,8 @@ def conectar_github() -> dict:
         raise SystemExit("o acesso do GitHub foi recusado; clique de novo em Entrar com o GitHub")
     dono = eu["login"]
     print(f"conta do GitHub: {dono}")
-    fila = _repo(token, dono, REPO_FILA, privado=True)
-    passagem = _repo(token, dono, REPO_PASSAGEM, privado=False)
+    fila = _repo(token, dono, nome_fila, privado=True)
+    passagem = _repo(token, dono, nome_passagem, privado=False)
     salvar_env({"NUVEM_REPO": fila, "NUVEM_TOKEN": token, "NUVEM_VIDEOS_REPO": passagem})
     print("ok: fila e passagem do Instagram prontas; a nuvem será preparada em seguida")
     return {"fila": fila, "passagem": passagem}

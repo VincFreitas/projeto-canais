@@ -302,6 +302,37 @@ def sugerir_nomes():
     return jsonify(sugerir(str(pedido.get("nicho", ""))[:80], str(pedido.get("formato", "vertical")), mercado))
 
 
+@app.get("/perfis/contas-previa")
+def contas_previa():
+    """Passo Contas do assistente: os passos e os nomes sugeridos para o canal que ainda vai ser criado."""
+    from ..contas_guia import passos
+    a = request.args
+    dados = {"nome": a.get("nome", "")[:60], "arroba": a.get("arroba", "")[:31],
+             "mercado": a.get("mercado") if a.get("mercado") in mercados.MERCADOS else mercados.PADRAO,
+             "youtube": a.get("youtube") == "1", "instagram": a.get("instagram") == "1"}
+    return render_template("_contas_passos.html", passos=passos(dados), p=None, manuais=())
+
+
+@app.get("/p/<pid>/contas")
+def contas_criar(pid):
+    """Aba Contas do canal: o passo a passo para criar cada conta, com nomes e links."""
+    from ..contas_guia import MANUAIS, passos
+    p = _perfil(pid)
+    lista = passos(p.dados, p)
+    return render_template("contas_criar.html", p=p, d=p.dados, passos=lista, manuais=MANUAIS,
+                           feitos=sum(1 for s in lista if s["feito"]))
+
+
+@app.post("/p/<pid>/contas/<passo>")
+def contas_marcar(pid, passo):
+    from ..contas_guia import MANUAIS, marcar, marcas
+    p = _perfil(pid)
+    if passo not in MANUAIS:
+        abort(404)
+    marcar(p, passo, not marcas(p).get(passo, False))
+    return redirect(url_for("contas_criar", pid=pid) + f"#conta-{passo}")
+
+
 @app.get("/progresso")
 def progresso():
     return render_template("progresso.html", base=plataformas.base(), redes=plataformas.calcular(),
@@ -352,8 +383,8 @@ def perfil_novo():
     leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
     est = leva.estimar(canal.dados, LEVA_INICIAL)
     flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos já estão sendo criados ({est['texto']}); deixe o PC "
-          "ligado. Enquanto isso, conecte as contas.", "ok")
-    return redirect(url_for("conexoes", pid=pid))
+          "ligado. Enquanto isso, crie as contas do canal.", "ok")
+    return redirect(url_for("contas_criar", pid=pid))
 
 
 @app.route("/chaves", methods=["GET", "POST"])
@@ -882,7 +913,14 @@ def conectar_conta(pid, servico):
     p = _perfil(pid)
     if servico not in ("github", "azure"):
         abort(404)
-    comandos = {"github": [["conectar-github"], ["nuvem-configurar"]], "azure": [["conectar-azure"]]}[servico]
+    from ..contas_guia import NOME_REPO
+    nomes = [request.form.get("repo_fila", "").strip(), request.form.get("repo_passagem", "").strip()]
+    if servico == "github" and any(nomes):  # nomes escolhidos no guia de contas
+        if not all(NOME_REPO.fullmatch(n) for n in nomes) or nomes[0] == nomes[1]:
+            flash("Confira os nomes dos repositórios: só letras, números, ponto, hífen e _, e diferentes entre si.", "erro")
+            return redirect(url_for("contas_criar", pid=pid) + "#conta-github")
+    extra = ["--fila", nomes[0], "--passagem", nomes[1]] if servico == "github" and all(nomes) else []
+    comandos = {"github": [["conectar-github", *extra], ["nuvem-configurar"]], "azure": [["conectar-azure"]]}[servico]
     titulo = {"github": "Entrar com o GitHub e preparar a nuvem", "azure": "Entrar com a Microsoft e criar a chave da voz"}
     job = _iniciar_job(p, titulo[servico], comandos)
     flash("Abrimos a página de login no navegador. O código para colar lá aparece logo abaixo.", "ok")

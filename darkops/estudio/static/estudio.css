@@ -134,6 +134,22 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .selo { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px; vertical-align: 1px; }
 .selo.pronta { background: #e3f4ea; color: var(--verde); }
 .selo.falta { background: #fff3cd; color: #8a6400; }
+.contas-passos { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 12px; }
+.conta-passo { border: 1px solid var(--linha); border-radius: 12px; padding: 14px 16px; background: #fffdfa; }
+.conta-passo.feito { opacity: .75; border-left: 4px solid var(--verde); }
+.conta-cabeca { display: flex; gap: 12px; align-items: center; }
+.conta-numero { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: #efe9df; }
+.conta-passo.feito .conta-numero { background: #e3f4ea; color: var(--verde); }
+.conta-vale { display: block; font-size: 12px; }
+.conta-texto { margin: 8px 0; }
+.conta-nomes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.nome-copiar { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 99px; border: 1px dashed var(--linha); background: #fff; cursor: copy; }
+.nome-copiar:hover { border-color: var(--amarelo); }
+.nome-copiar.copiado { border-style: solid; border-color: var(--verde); color: var(--verde); }
+.nome-copiar.copiado::after { content: " copiado"; font-size: 11px; }
+.conta-links { flex-wrap: wrap; }
+.conta-repos { margin-top: 10px; }
+form.inline { display: inline; }
 .selo.manual { background: #eceae6; color: var(--suave); }
 .alerta-plataformas { border: 1px solid var(--linha); border-left: 4px solid var(--amarelo); border-radius: 9px; padding: 8px 12px; margin: 4px 0 10px; font-size: 14px; background: #fffdf6; }
 .alerta-plataformas p { margin: 4px 0; }

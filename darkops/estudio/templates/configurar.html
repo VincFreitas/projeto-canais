@@ -41,6 +41,7 @@
     {% endfor %}
   </ul>
   <div class="acoes" style="margin-top:10px">
+    <a class="botao pequeno secundario" href="{{ url_for('contas_criar', pid=p.id) }}">Criar as contas (passo a passo)</a>
     <a class="botao pequeno secundario" href="{{ url_for('conexoes', pid=p.id) }}">Conectar ou trocar contas</a>
     <a class="botao pequeno secundario" href="{{ url_for('identidade_pagina', pid=p.id) }}">Foto, capa e bio das contas</a>
   </div>

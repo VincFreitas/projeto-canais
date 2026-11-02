@@ -1,0 +1,45 @@
+{# Passos para criar as contas do canal: usado no assistente do Novo canal (prévia, sem p) e na aba Contas do canal #}
+<ol class="contas-passos">
+  {% for s in passos %}
+  <li class="conta-passo {{ 'feito' if s.feito }}" id="conta-{{ s.id }}">
+    <div class="conta-cabeca">
+      <span class="conta-numero">{{ '✓' if s.feito else loop.index }}</span>
+      <div>
+        <b>{{ s.titulo }}</b>
+        <span class="selo {{ 'pronta' if s.feito else 'falta' }}">{{ 'pronto' if s.feito else 'a fazer' }}</span>
+        <span class="suave conta-vale">{{ s.vale }}</span>
+      </div>
+    </div>
+    <p class="conta-texto">{{ s.texto }}</p>
+    {% for rotulo, nomes in s.nomes if nomes %}
+    <div class="conta-nomes">
+      <span class="suave">{{ rotulo }}:</span>
+      {% for nome in nomes %}<button type="button" class="nome-copiar" data-copiar="{{ nome }}" title="Clique para copiar">{{ nome }}</button>{% endfor %}
+    </div>
+    {% endfor %}
+    <div class="acoes conta-links">
+      {% for rotulo, url in s.links %}<a class="botao pequeno {{ '' if loop.first else 'secundario' }}" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ rotulo }} ↗</a>{% endfor %}
+      {% if p and s.id in manuais %}
+      <form method="post" action="{{ url_for('contas_marcar', pid=p.id, passo=s.id) }}" class="inline">
+        <button class="botao pequeno claro">{{ 'Desmarcar' if s.feito else '✓ Já fiz' }}</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if p and s.repos and not s.feito %}
+    <form method="post" action="{{ url_for('conectar_conta', pid=p.id, servico='github') }}" class="conta-repos">
+      <div class="grade">
+        <div><label>Repositório privado (fila)</label><input type="text" name="repo_fila" value="{{ s.nomes[1][1][0] }}" pattern="[A-Za-z0-9._-]{1,100}" required></div>
+        <div><label>Repositório público (passagem)</label><input type="text" name="repo_passagem" value="{{ s.nomes[2][1][0] }}" pattern="[A-Za-z0-9._-]{1,100}" required></div>
+      </div>
+      <button class="botao pequeno">Entrar com o GitHub e criar os dois</button>
+    </form>
+    {% elif p and s.id == 'azure' and not s.feito %}
+    <form method="post" action="{{ url_for('conectar_conta', pid=p.id, servico='azure') }}" class="inline">
+      <button class="botao pequeno">Entrar com a Microsoft e criar a chave</button>
+    </form>
+    {% elif p and s.id in ('google_app', 'meta_app') and not s.feito %}
+    <a class="botao pequeno claro" href="{{ url_for('conexoes', pid=p.id) }}#{{ 'youtube' if s.id == 'google_app' else 'instagram' }}">Depois: concluir em Contas</a>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ol>

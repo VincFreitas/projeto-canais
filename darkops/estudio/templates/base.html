@@ -68,11 +68,12 @@
     <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' or (aba in ('ver','editar','lotes') and not avancado) }}">Início{{ trava }}</a>
     <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo{{ trava }}</a>
     <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba in ('estatisticas',) or (aba == 'historico' and not avancado) }}">Resultados</a>
-    <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' or (aba in ('conexoes','identidade_pagina') and not avancado) }}">Ajustes</a>
+    <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' or (aba in ('conexoes','identidade_pagina','contas_criar') and not avancado) }}">Ajustes</a>
     {% if avancado %}
     <span class="abas-separador" title="Modo avançado"></span>
     <a href="{{ url_for('fila', pid=p.id) }}" class="{{ 'atual' if aba in ('fila','ver','editar','lotes') }}">Fila{{ trava }}</a>
     <a href="{{ url_for('conexoes', pid=p.id) }}" class="{{ 'atual' if aba == 'conexoes' }}">Conexões</a>
+    <a href="{{ url_for('contas_criar', pid=p.id) }}" class="{{ 'atual' if aba == 'contas_criar' }}">Criar contas</a>
     <a href="{{ url_for('historico', pid=p.id) }}" class="{{ 'atual' if aba == 'historico' }}">Histórico{{ trava }}</a>
     <a href="{{ url_for('identidade_pagina', pid=p.id) }}" class="{{ 'atual' if aba == 'identidade_pagina' }}">Identidade</a>
     {% endif %}
@@ -116,6 +117,14 @@
     document.querySelectorAll('.botao.carregando').forEach(b => b.classList.remove('carregando'));
   });
 })();
+// nomes sugeridos (guia de contas): um clique copia
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-copiar]');
+  if (!b) return;
+  try { await navigator.clipboard.writeText(b.dataset.copiar); } catch (erro) { return; }
+  b.classList.add('copiado');
+  setTimeout(() => b.classList.remove('copiado'), 1400);
+});
 // quando o Estúdio reinicia com uma versão nova, a aba recarrega sozinha e mostra o que mudou
 (function () {
   let versao = null;

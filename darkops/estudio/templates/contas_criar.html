@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titulo %}Criar as contas · {{ d.nome }}{% endblock %}
+{% block corpo %}
+<h1>Criar as contas do {{ d.nome }}</h1>
+<p class="suave">Um passo de cada vez, na ordem. Cada botão abre a página certa; os nomes sugeridos saem do nome do canal
+  (clique para copiar). Se um nome já estiver em uso, o site avisa: tente o próximo. Criar as contas e fazer os logins
+  é com você; o resto o Estúdio faz.</p>
+<p><b>{{ feitos }} de {{ passos|length }}</b> prontos.
+  {% if feitos == passos|length %}Tudo pronto: <a href="{{ url_for('conexoes', pid=p.id) }}">conectar as contas</a>.{% endif %}</p>
+{% include "_contas_passos.html" %}
+<p class="acoes" style="margin-top:18px">
+  <a class="botao" href="{{ url_for('conexoes', pid=p.id) }}">Conectar as contas criadas →</a>
+  <a class="botao claro" href="{{ url_for('painel', pid=p.id) }}">Fazer depois</a>
+</p>
+{% endblock %}

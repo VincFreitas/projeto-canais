@@ -1,2 +1,2 @@
 """Projeto Canais: pesquisa, produção e postagem de canais dark. Autor: Vinicius Freitas."""
-__version__ = "0.38.0"
+__version__ = "0.39.0"

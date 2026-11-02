@@ -9,12 +9,12 @@
 {% block corpo %}
 <div class="assistente-cabeca">
   <h1>Novo canal</h1>
-  <p class="suave">Cinco passos rápidos. Depois é só conectar as contas e aprovar os vídeos.</p>
+  <p class="suave">Seis passos rápidos. Depois é só criar e conectar as contas e aprovar os vídeos.</p>
 </div>
 
 <form method="post" action="{{ url_for('perfil_novo') }}" class="assistente" id="assistente" novalidate>
   <ol class="assistente-trilha" aria-label="Passos">
-    {% for rotulo in ['Assunto', 'Nome', 'Formato', 'Plataformas', 'Revisão'] %}
+    {% for rotulo in ['Assunto', 'Nome', 'Formato', 'Plataformas', 'Contas', 'Revisão'] %}
     <li data-ir="{{ loop.index }}"><span>{{ loop.index }}</span>{{ rotulo }}</li>
     {% endfor %}
     <i class="assistente-progresso"></i>
@@ -100,8 +100,16 @@
         </div>
       </section>
 
-      {# 5. revisão #}
+      {# 5. contas #}
       <section class="passo-wiz" data-passo="5">
+        <h2>Contas do canal</h2>
+        <p class="suave">O que criar, com nomes tirados do nome do canal (clique para copiar) e o link de cada passo.
+          Pode fazer agora, numa aba ao lado, ou depois: este guia fica em <b>Ajustes &gt; Criar as contas</b>.</p>
+        <div id="contas-previa"><p class="suave">carregando os passos…</p></div>
+      </section>
+
+      {# 6. revisão #}
+      <section class="passo-wiz" data-passo="6">
         <h2>Tudo certo?</h2>
         <ul class="lista revisao-lista">
           <li><span>Assunto</span><b data-ver="nicho"></b></li>
@@ -236,8 +244,23 @@
     form.querySelector('#avancar').hidden = atual === total;
     form.querySelector('#criar').hidden = atual !== total;
     avisar('');
+    if (atual === 5) carregarContas();
     const foco = passos[atual - 1].querySelector('input[type=text]:not([id=nicho-livre]), textarea');
     if (foco && atual > 1) setTimeout(() => foco.focus(), 260);
+  }
+
+  // passo Contas: busca no Estúdio os passos e os nomes sugeridos para o nome e as redes escolhidos
+  let contasChave = '';
+  async function carregarContas() {
+    const redes = n => form.querySelector(`.redes input[name=${n}]`)?.checked ? '1' : '0';
+    const q = new URLSearchParams({nome: form.nome.value.trim(), arroba: form.arroba.value.trim(),
+                                   mercado: form.mercado.value, youtube: redes('youtube'), instagram: redes('instagram')});
+    if (q.toString() === contasChave) return;
+    contasChave = q.toString();
+    try {
+      const r = await fetch("{{ url_for('contas_previa') }}?" + q, {cache: 'no-store'});
+      form.querySelector('#contas-previa').innerHTML = await r.text();
+    } catch (e) { form.querySelector('#contas-previa').innerHTML = '<p class="suave">não consegui carregar agora; o guia fica em Ajustes depois de criar.</p>'; }
   }
 
   function avisar(texto) {
