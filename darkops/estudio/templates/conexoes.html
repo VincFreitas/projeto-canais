@@ -55,17 +55,28 @@
             <li><i>Casos de uso (Use cases):</i> se aparecer <b>Gerenciar mensagens e conteúdo no Instagram</b> (Manage messaging &amp; content on Instagram), marque. Se não aparecer, marque <b>Outro</b> (Other) e, na tela seguinte, o tipo <b>Empresa</b> (Business). <b>Avançar</b>.</li>
             <li><i>Empresa (Business):</i> escolha <b>Não quero conectar um portfólio empresarial agora</b> (I don't want to connect a business portfolio yet). <b>Avançar</b> até <b>Ir para o painel</b> (Go to dashboard).</li>
           </ul></li>
-        <li><b>Abrir a parte do Instagram.</b> No painel do app, se a lista de produtos aparecer, ache <b>Instagram</b> e clique em <b>Configurar</b> (Set up).
-          No menu da esquerda vai surgir <b>Instagram &gt; Configuração da API com login do Instagram</b> (API setup with Instagram login), com 3 etapas numeradas.</li>
-        <li><b>Ligar a conta do canal.</b> Na etapa <b>1. Gerar tokens de acesso</b> (Generate access tokens), clique em <b>Adicionar conta</b> (Add account)
+        <li><b>Abrir a parte do Instagram.</b> Depende de como o painel abriu:
+          <ul>
+            <li><i>Painel com "Casos de uso" (Use cases) no menu da esquerda:</i> clique em <b>Casos de uso</b>, ache
+              <b>Gerenciar mensagens e conteúdo no Instagram</b> e clique em <b>Personalizar</b> (Customize). No menu que abre, escolha
+              <b>Configuração da API com login do Instagram</b> (API setup with Instagram login).</li>
+            <li><i>Painel com lista de produtos:</i> ache <b>Instagram</b>, clique em <b>Configurar</b> (Set up) e depois, no menu da esquerda,
+              <b>Instagram &gt; Configuração da API com login do Instagram</b>.</li>
+            <li>A tela certa tem 3 etapas numeradas: 1. Gerar tokens de acesso, 2. Webhooks, 3. Configurar o login da empresa.
+              Se o menu tiver dois "Configuração da API com login ...", passe o mouse: o certo termina em <b>do Instagram</b>.
+              Não use <b>API setup with Unified login</b> (pede portfólio empresarial e o Estúdio ainda não conecta por ele). Se o seu app
+              só tiver Unified login (apps criados a partir de out/2026), use um app mais antigo seu, se tiver, ou avise.</li>
+          </ul></li>
+        <li><b>Ligar a conta do canal.</b> Na etapa <b>Gerar tokens de acesso</b> (Generate access tokens; o número muda: 1 ou 2), clique em <b>Adicionar conta</b> (Add account)
           e entre na conta do Instagram do canal. Cada canal novo volta só a este passo, no mesmo app. (A etapa 2, Webhooks, não precisa.)</li>
-        <li><b>Endereço de retorno.</b> Na etapa <b>3. Configurar o login da empresa do Instagram</b> (Set up Instagram business login), clique em <b>Configurar</b> (Set up)
+        <li><b>Endereço de retorno.</b> Mais abaixo, na etapa <b>Configurar o login da empresa do Instagram</b> (Set up Instagram business login), clique em <b>Configurar</b> (Set up)
           e, em <b>URIs de redirecionamento do OAuth</b> (OAuth redirect URIs / Redirect URL), cole exatamente:
           <button type="button" class="nome-copiar" data-copiar="{{ instagram_retorno }}" title="Clique para copiar">{{ instagram_retorno }}</button>
           e clique em <b>Salvar</b> (Save).</li>
-        <li><b>Copiar o ID e a chave.</b> Ainda na etapa 3, abra <b>Configurações do login da empresa</b> (Business login settings).
-          Ali estão o <b>ID do app do Instagram</b> (Instagram app ID: só números) e a <b>Chave secreta do app do Instagram</b>
-          (Instagram app secret: clique em <b>Mostrar</b>; são 32 letras e números). Cole os dois abaixo.
+        <li><b>Copiar o ID e a chave.</b> No topo dessa mesma tela há um quadro com <b>Nome do app do Instagram</b>, <b>ID do app do Instagram</b>
+          (Instagram app ID: só números) e <b>Chave secreta do app do Instagram</b> (Instagram app secret: clique em <b>Mostrar</b>; são 32 letras e números).
+          Em alguns painéis eles ficam em <b>Configurações do login da empresa</b> (Business login settings). Cole os dois abaixo.
+          <span class="suave">Esse nome aparece no login de todos os canais. Para trocar por "Projeto Canais": Configurações do app &gt; Básico &gt; Nome de exibição, depois <b>Sincronizar nome do app</b> nesta tela.</span>
           <span class="suave">Atenção: é o ID do app <b>do Instagram</b>, que fica nessa tela. O ID do app que aparece no topo do painel e em Configurações &gt; Básico é outro e não funciona.</span></li>
       </ol>
       <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave">

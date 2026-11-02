@@ -74,7 +74,7 @@ def _cabecalhos(resposta):
     resposta.headers.setdefault("Content-Security-Policy",
                                 "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; "
                                 "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
-                                "frame-ancestors 'none'; form-action 'self' https://github.com; base-uri 'none'")
+                                "frame-ancestors 'none'; form-action 'self' https://github.com https://www.instagram.com; base-uri 'none'")
     return resposta
 
 
