@@ -21,6 +21,8 @@
   {% if e.como %}<p>{{ e.como }}{% if e.link %} · <a href="{{ e.link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</p>{% endif %}
   <p class="suave">Faltam {{ pendentes | length }} etapa(s). Fila, Novo vídeo e Histórico ficam travados até terminar, para
     você não pular nenhuma parte da configuração da aplicação e das contas. Depois de cada passo, recarregue esta página.</p>
+  <p class="acoes">{% for item in perfis %}<a class="botao pequeno secundario" href="{{ url_for('contas_criar', pid=item.id) }}">Criar as contas: {{ item.dados.nome }}</a>{% endfor %}
+    <a class="botao pequeno claro" href="{{ url_for('configuracoes') }}#modo-guiado">Desligar o modo guiado</a></p>
 </section>
 {% else %}
 <div class="aviso ok">Configuração concluída: todas as telas estão liberadas.</div>

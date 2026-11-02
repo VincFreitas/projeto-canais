@@ -91,7 +91,8 @@ TRAVADAS = {"inicio", "painel", "fila", "ver", "editar", "novo", "historico"}
 
 
 def _guia_pendente() -> list:
-    if os.getenv("DARKOPS_MODO_GUIADO", "1").strip() == "0":
+    # lido do .env a cada vez: desligar em Configurações (ou no .env) vale na hora, sem reiniciar o Estúdio
+    if str(_env().get("DARKOPS_MODO_GUIADO") or os.getenv("DARKOPS_MODO_GUIADO", "1")).strip() == "0":
         return []
     return plataformas.pendencias()
 
@@ -644,6 +645,12 @@ def configuracoes():
                 horas = 6
             app_local.salvar({"atualizar_sozinho": bool(f.get("auto")), "verificar_a_cada_h": horas})
             flash("Preferências de atualização salvas.", "ok")
+        elif acao == "modo_guiado":
+            from ..contas import salvar_env
+            ligado = bool(f.get("guiado"))
+            salvar_env({"DARKOPS_MODO_GUIADO": "1" if ligado else "0"})
+            flash("Modo guiado " + ("ligado: Fila, Novo vídeo e Histórico esperam a configuração terminar."
+                                    if ligado else "desligado: todas as telas liberadas."), "ok")
         elif acao in ("verificar", "atualizar", "dependencias", "dependencias-aplicar"):
             perfis_ = listar()
             p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
@@ -655,7 +662,8 @@ def configuracoes():
             return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("configuracoes")))
         return redirect(url_for("configuracoes"))
     from .. import __version__
-    return render_template("configuracoes.html", cfg=app_local.ler(), existem=app_local.estado_atalhos(),
+    guiado = str(_env().get("DARKOPS_MODO_GUIADO") or os.getenv("DARKOPS_MODO_GUIADO", "1")).strip() != "0"
+    return render_template("configuracoes.html", cfg=app_local.ler(), existem=app_local.estado_atalhos(), guiado=guiado,
                            versao=__version__, pastas=app_local._pastas())
 
 

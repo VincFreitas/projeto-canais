@@ -33,6 +33,14 @@
   </div>
 </form>
 
+<form method="post" class="cartao" style="margin-bottom:16px" id="modo-guiado">
+  <h2>Modo guiado</h2>
+  <p class="suave">Ligado, o Estúdio trava Início, Fila, Novo vídeo e Histórico até terminar a configuração e mostra o
+    próximo passo em Progresso. Desligue para navegar livre (por exemplo, para voltar ao passo a passo das contas).</p>
+  <label style="font-weight:400"><input type="checkbox" name="guiado" {{ 'checked' if guiado }}> Ligar o modo guiado</label>
+  <p><button class="botao pequeno" name="acao" value="modo_guiado">Salvar</button></p>
+</form>
+
 <form method="post" class="cartao">
   <h2>Dependências</h2>
   <p class="suave">Programas e bibliotecas que o projeto usa: pacotes Python (o yt-dlp é o que mais precisa, porque o
