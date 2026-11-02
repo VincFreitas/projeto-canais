@@ -22,6 +22,11 @@ from types import SimpleNamespace
 from PIL import Image, ImageDraw
 
 from . import config
+
+# o Chromium fica na pasta do projeto (apps.instalar_playwright), visível para o n8n e para o terminal do agente
+import os as _os  # noqa: E402
+from .apps import env_playwright  # noqa: E402
+_os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", env_playwright()["PLAYWRIGHT_BROWSERS_PATH"])
 from .palco import _foco, _historia, _hud, _sprite_rotulo, rotulo_na_tela, vaivem
 from .render import FFMPEG, FPS
 

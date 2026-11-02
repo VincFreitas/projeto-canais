@@ -131,6 +131,27 @@ def iniciar_com_windows() -> None:
                     str(config.RAIZ / "n8n" / "iniciar-com-windows.ps1")], check=True)
 
 
+PLAYWRIGHT = PASTA / "ms-playwright"  # navegador do palco 3D (palco_web.py)
+
+
+def env_playwright() -> dict:
+    """Aponta o Playwright para o Chromium da pasta do projeto: instalado pelo terminal do app Claude, o padrão
+    (%LOCALAPPDATA%\\ms-playwright) cai na pasta virtual do pacote e o n8n não acha (a postagem falha)."""
+    return {"PLAYWRIGHT_BROWSERS_PATH": str(PLAYWRIGHT)}
+
+
+def instalar_playwright() -> str:
+    """Chromium do Playwright em dados/apps/ms-playwright (só se faltar)."""
+    import sys
+    if PLAYWRIGHT.exists() and any(PLAYWRIGHT.glob("chromium*")):
+        return "já instalado"
+    proc = subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], capture_output=True, text=True,
+                          env={**os.environ, **env_playwright()}, timeout=1800)
+    if proc.returncode != 0:
+        raise SystemExit(f"o Chromium do palco 3D não instalou: {(proc.stdout + proc.stderr).strip()[-300:]}")
+    return str(PLAYWRIGHT)
+
+
 def instalar_tudo(claude: bool = True, n8n: bool = True, logon: bool = True) -> list[str]:
     """Cada etapa é independente: uma falha não impede as outras. Devolve a lista de falhas."""
     falhas = []
@@ -153,4 +174,5 @@ def instalar_tudo(claude: bool = True, n8n: bool = True, logon: bool = True) -> 
             etapa("workflow de postagem no n8n", lambda: gerar_workflow(importar=True) and "importado e ligado")
     if claude:
         etapa("Claude Code", instalar_claude)
+    etapa("Chromium do palco 3D", instalar_playwright)
     return falhas

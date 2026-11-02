@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block titulo %}Início{% endblock %}
+{% macro numero(v) %}{{ '—' if v is none else '{:,}'.format(v).replace(',', '.') }}{% endmacro %}
+{% block corpo %}
+{% set t = lobby.totais %}
+<div class="lobby-cabeca">
+  <div>
+    <h1>{{ 'Bom dia' if lobby.hoje.hour < 12 else ('Boa tarde' if lobby.hoje.hour < 18 else 'Boa noite') }} ✦</h1>
+    <p class="suave">{{ t.canais }} canal{{ 'is' if t.canais != 1 }} · {{ t.ativos }} postando sozinho{{ 's' if t.ativos != 1 }}. Escolha um canal para entrar ou crie outro.</p>
+  </div>
+  <a class="botao" href="{{ url_for('perfis_pagina') }}">+ Novo canal</a>
+</div>
+
+<div class="numeros lobby-numeros">
+  <div><b>{{ numero(t.publicados) }}</b><span>vídeos publicados</span></div>
+  <div><b>{{ numero(t.aprovados) }}</b><span>aprovados na fila</span></div>
+  <div><b>{{ numero(t.esperando) }}</b><span>esperando aprovação</span></div>
+  <div><b>{{ numero(t.inscritos) }}</b><span>inscritos no YouTube</span></div>
+  <div><b>{{ numero(t.seguidores_ig) }}</b><span>seguidores no Instagram</span></div>
+  <div><b>{{ numero(t.visualizacoes) }}</b><span>visualizações dos vídeos</span></div>
+</div>
+
+<div class="lobby-grade">
+  <div>
+    <h2>Seus canais</h2>
+    {% for c in lobby.canais %}
+    <a class="cartao lobby-canal" href="{{ url_for('painel', pid=c.id) }}">
+      <img src="{{ url_for('avatar', pid=c.id) }}" alt="">
+      <div class="lobby-canal-info">
+        <div><b>{{ c.nome }}</b> <span class="suave">{{ c.arroba }} · {{ c.nicho }}</span></div>
+        <div class="lobby-selos">
+          <span class="selo {{ 'aprovado' if c.ativo else 'sem-previa' }}">{{ 'postando' if c.ativo else 'pausado' }}</span>
+          {% if c.criando %}<span class="selo pronta">criando vídeos…</span>{% endif %}
+          {% if c.esperando %}<span class="selo desatualizada">{{ c.esperando }} para aprovar</span>{% endif %}
+          {% if c.youtube is not none %}<span class="selo {{ 'aprovado' if c.youtube else 'falta' }}">YouTube {{ '✓' if c.youtube else '✗' }}</span>{% endif %}
+          {% if c.instagram is not none %}<span class="selo {{ 'aprovado' if c.instagram else 'falta' }}">Instagram {{ '✓' if c.instagram else '✗' }}</span>{% endif %}
+        </div>
+        <div class="suave lobby-linha">
+          {{ c.aprovados }} aprovado{{ 's' if c.aprovados != 1 }} · {{ c.publicados }} publicado{{ 's' if c.publicados != 1 }}
+          {% if c.proximo %} · próximo post {{ c.proximo }}{% endif %}
+          {% if c.inscritos is not none %} · {{ numero(c.inscritos) }} inscritos{% endif %}
+          {% if c.seguidores_ig is not none %} · {{ numero(c.seguidores_ig) }} seguidores{% endif %}
+        </div>
+        {% if c.mon %}
+        <div class="lobby-mon">
+          {% if c.mon.monetizado %}<span class="selo aprovado">💲 {{ c.mon.texto }}</span>
+          {% else %}<span class="suave">Monetização: {{ c.mon.texto }}</span>
+          <div class="barra falta"><span style="width: {{ c.mon.pct }}%"></span></div>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <span class="link">Entrar →</span>
+    </a>
+    {% else %}
+    <div class="cartao"><p>Nenhum canal ainda. <a href="{{ url_for('perfis_pagina') }}">Crie o primeiro</a>: leva 2 minutos.</p></div>
+    {% endfor %}
+  </div>
+
+  <div>
+    <section class="cartao">
+      <h2>Pede atenção</h2>
+      {% for a in lobby.atencao %}
+      <p class="aviso {{ 'erro' if a.nivel == 'erro' else ('ok' if a.nivel == 'acao' else '') }}" style="margin:6px 0">
+        {% if a.link and a.id %}<a href="{{ url_for(a.link, pid=a.id) }}">{{ a.texto }}</a>{% else %}{{ a.texto }}{% endif %}</p>
+      {% else %}
+      <p class="suave">Tudo em dia. ✓</p>
+      {% endfor %}
+    </section>
+
+    <section class="cartao">
+      <h2>Próximas postagens</h2>
+      {% for x in lobby.proximos %}
+      <p class="lobby-post"><b>{{ x.quando }}</b> <a href="{{ url_for('painel', pid=x.id) }}">{{ x.canal }}</a></p>
+      {% else %}
+      <p class="suave">Nenhum canal postando agora. Ligue a postagem no topo do canal.</p>
+      {% endfor %}
+    </section>
+
+    <section class="cartao lobby-dica">
+      <h2>💡 Dica do dia</h2>
+      <p>{{ lobby.dica }}</p>
+      <details class="mais"><summary>Mais dicas</summary>
+        {% for d in lobby.outras_dicas %}<p>{{ d }}</p>{% endfor %}
+      </details>
+    </section>
+
+    <section class="cartao">
+      <h2>Atalhos</h2>
+      <div class="acoes">
+        <a class="botao pequeno secundario" href="{{ url_for('progresso') }}">Progresso da configuração</a>
+        <a class="botao pequeno secundario" href="{{ url_for('whatsapp_pagina') }}">WhatsApp</a>
+        <a class="botao pequeno secundario" href="{{ url_for('configuracoes') }}">Configurações</a>
+        <a class="botao pequeno secundario" href="{{ url_for('sobre') }}">Sobre o projeto</a>
+      </div>
+    </section>
+  </div>
+</div>
+<p class="dica">Os números de inscritos, seguidores e visualizações são os da última vez em Resultados &gt; Atualizar dados de cada canal.</p>
+{% endblock %}

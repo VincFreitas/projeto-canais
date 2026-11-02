@@ -283,9 +283,11 @@ def alternar_avancado():
 
 @app.get("/")
 def inicio():
-    perfis = listar()
-    return redirect(url_for("painel", pid=perfis[0].id if perfis else PADRAO)) if perfis \
-        else redirect(url_for("perfis_pagina"))
+    """Lobby: visão geral de todos os canais, pendências e dicas (lobby.py); sem canal, vai criar o primeiro."""
+    if not listar():
+        return redirect(url_for("perfis_pagina"))
+    from .lobby import dados
+    return render_template("lobby.html", lobby=dados())
 
 
 @app.get("/perfis")

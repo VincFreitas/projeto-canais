@@ -470,3 +470,20 @@ body.abertura { display: grid; place-items: center; background: radial-gradient(
 .nivel-ypp.atingiu { border-left: 4px solid var(--verde); }
 .linha-barra { font-size: 14px; }
 .linha-barra .barra { margin: 4px 0 8px; }
+
+.lobby-cabeca { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.lobby-cabeca h1 { margin: 0; }
+.lobby-numeros { margin: 14px 0 18px; }
+.lobby-grade { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.lobby-grade > div > .cartao { margin-bottom: 14px; }
+.lobby-canal { display: flex; gap: 14px; align-items: center; text-decoration: none; color: inherit; transition: transform .15s, box-shadow .15s; }
+.lobby-canal:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.lobby-canal img { width: 64px; height: 64px; border-radius: 50%; flex: none; object-fit: cover; }
+.lobby-canal-info { flex: 1; min-width: 0; }
+.lobby-selos { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.lobby-linha { font-size: 13px; }
+.lobby-mon { margin-top: 6px; font-size: 13px; }
+.lobby-mon .barra { margin: 4px 0 0; }
+.lobby-post { margin: 4px 0; }
+.lobby-dica p { margin: 6px 0; }
+@media (max-width: 860px) { .lobby-grade { grid-template-columns: 1fr; } }
