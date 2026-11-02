@@ -208,8 +208,10 @@ def passos(dados: dict, perfil=None) -> list[dict]:
         lista.append({
             "id": "meta_app", "titulo": "App da Meta (postar no Instagram)", "vale": "uma vez, para todos os canais",
             "feito": bool(env.get("INSTAGRAM_APP_ID")),
-            "texto": "Crie o app com o caso de uso \"Gerenciar mensagens e conteúdo no Instagram\". O nome não pode "
-                     "ter Instagram, Facebook nem Meta. Depois cole o ID e a chave secreta em Ajustes > Contas.",
+            "texto": "Crie o app (nome sem Instagram, Facebook nem Meta), escolha o caso de uso \"Gerenciar mensagens e "
+                     "conteúdo no Instagram\" (ou \"Outro\" > tipo \"Empresa\"), adicione a conta do canal em \"1. Gerar "
+                     "tokens de acesso\", cole o endereço de retorno na etapa 3 e copie o ID e a chave do app do "
+                     "Instagram. O passo a passo detalhado, tela por tela, está no card do Instagram em Ajustes > Contas.",
             "nomes": [("Nome do app", n["meta_app"])],
             "links": [("Criar o app", "https://developers.facebook.com/apps/creation/"),
                       ("Seus apps", "https://developers.facebook.com/apps/")]})

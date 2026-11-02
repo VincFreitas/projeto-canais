@@ -26,11 +26,29 @@
         <button class="botao pequeno">{{ 'Entrar de novo com Instagram' if situacao == 'ok' else 'Entrar com Instagram' }}</button></form>
       <p class="dica">Você entra na conta do canal e autoriza; o token chega sozinho e se renova antes de vencer.</p>
     {% else %}
-      <p class="dica">Uma vez só, vale para todos os canais: o app da Meta com login do Instagram.</p>
-      <ol class="passos">
-        <li>Em <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps ↗</a>, crie o app com o caso de uso <b>Gerenciar mensagens e conteúdo no Instagram</b>.</li>
-        <li>Em Instagram &gt; <b>Configuração da API com login do Instagram</b> &gt; Configurar login da empresa, acrescente este endereço em <b>URIs de redirecionamento OAuth</b>: <code>{{ instagram_retorno }}</code></li>
-        <li>Na mesma página, copie o <b>ID do app do Instagram</b> e a <b>Chave secreta do app do Instagram</b> e cole abaixo.</li>
+      <p class="dica">Uma vez só, vale para todos os canais. Leva uns 10 minutos. Antes: a conta do Instagram do canal
+        precisa ser <b>Profissional</b> (no app: Configurações &gt; Tipo de conta e ferramentas &gt; Mudar para conta profissional)
+        e <b>pública</b>. O painel da Meta muda de tempos em tempos: os nomes em inglês entre parênteses ajudam se ele estiver em inglês.</p>
+      <ol class="passos passos-meta">
+        <li><b>Criar o app.</b> Abra <a href="https://developers.facebook.com/apps/creation/" target="_blank" rel="noopener">developers.facebook.com/apps/creation ↗</a>
+          (entre com o seu Facebook; se pedir, aceite virar desenvolvedor).
+          <ul>
+            <li><i>Detalhes do app (App details):</i> nome <code>Projeto Canais</code> (sem Instagram, Facebook nem Meta no nome) e o seu e-mail. <b>Avançar</b>.</li>
+            <li><i>Casos de uso (Use cases):</i> se aparecer <b>Gerenciar mensagens e conteúdo no Instagram</b> (Manage messaging &amp; content on Instagram), marque. Se não aparecer, marque <b>Outro</b> (Other) e, na tela seguinte, o tipo <b>Empresa</b> (Business). <b>Avançar</b>.</li>
+            <li><i>Empresa (Business):</i> escolha <b>Não quero conectar um portfólio empresarial agora</b> (I don't want to connect a business portfolio yet). <b>Avançar</b> até <b>Ir para o painel</b> (Go to dashboard).</li>
+          </ul></li>
+        <li><b>Abrir a parte do Instagram.</b> No painel do app, se a lista de produtos aparecer, ache <b>Instagram</b> e clique em <b>Configurar</b> (Set up).
+          No menu da esquerda vai surgir <b>Instagram &gt; Configuração da API com login do Instagram</b> (API setup with Instagram login), com 3 etapas numeradas.</li>
+        <li><b>Ligar a conta do canal.</b> Na etapa <b>1. Gerar tokens de acesso</b> (Generate access tokens), clique em <b>Adicionar conta</b> (Add account)
+          e entre na conta do Instagram do canal. Repita para cada canal. (A etapa 2, Webhooks, não precisa.)</li>
+        <li><b>Endereço de retorno.</b> Na etapa <b>3. Configurar o login da empresa do Instagram</b> (Set up Instagram business login), clique em <b>Configurar</b> (Set up)
+          e, em <b>URIs de redirecionamento do OAuth</b> (OAuth redirect URIs / Redirect URL), cole exatamente:
+          <button type="button" class="nome-copiar" data-copiar="{{ instagram_retorno }}" title="Clique para copiar">{{ instagram_retorno }}</button>
+          e clique em <b>Salvar</b> (Save).</li>
+        <li><b>Copiar o ID e a chave.</b> Ainda na etapa 3, abra <b>Configurações do login da empresa</b> (Business login settings).
+          Ali estão o <b>ID do app do Instagram</b> (Instagram app ID: só números) e a <b>Chave secreta do app do Instagram</b>
+          (Instagram app secret: clique em <b>Mostrar</b>; são 32 letras e números). Cole os dois abaixo.
+          <span class="suave">Atenção: é o ID do app <b>do Instagram</b>, que fica nessa tela. O ID do app que aparece no topo do painel e em Configurações &gt; Básico é outro e não funciona.</span></li>
       </ol>
       <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave">
         <input type="text" name="INSTAGRAM_APP_ID" placeholder="ID do app do Instagram" autocomplete="off" required>
