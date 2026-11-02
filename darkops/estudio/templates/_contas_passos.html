@@ -11,6 +11,19 @@
       </div>
     </div>
     <p class="conta-texto">{{ s.texto }}</p>
+    {% if s.aviso %}<p class="conta-aviso">{{ s.aviso }}</p>{% endif %}
+    {% if s.bloqueio %}
+    <div class="conta-bloqueio {{ 'liberado' if s.bloqueio.liberado }}">
+      {% if s.bloqueio.liberado %}
+      <b>Já pode tentar de novo.</b> Se bloquear outra vez, marque de novo: a próxima espera estimada é maior.
+      {% else %}
+      <b>Bloqueado pelo Google</b> ({{ s.bloqueio.vezes }}ª vez). Tente de novo a partir de
+      <b class="bloqueio-ate" data-ate="{{ (s.bloqueio.ate * 1000) | int }}"></b>
+      (faltam <span class="bloqueio-falta" data-ate="{{ (s.bloqueio.ate * 1000) | int }}">{{ s.bloqueio.falta }}</span>).
+      <span class="suave">Estimativa de {{ s.bloqueio.espera_h }} h: o Google não divulga o prazo, e a espera sobe a cada bloqueio seguido (24 h, 48 h, 7 dias).</span>
+      {% endif %}
+    </div>
+    {% endif %}
     {% for rotulo, nomes in s.nomes if nomes %}
     <div class="conta-nomes">
       <span class="suave">{{ rotulo }}:</span>
@@ -19,6 +32,12 @@
     {% endfor %}
     <div class="acoes conta-links">
       {% for rotulo, url in s.links %}<a class="botao pequeno {{ '' if loop.first else 'secundario' }}" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ rotulo }} ↗</a>{% endfor %}
+      {% if p and s.id == 'gmail' %}
+      <form method="post" action="{{ url_for('contas_bloqueio', pid=p.id) }}" class="inline">
+        {% if s.bloqueio %}<button class="botao pequeno claro" name="acao" value="limpar">Consegui criar / limpar o bloqueio</button>{% endif %}
+        <button class="botao pequeno claro" name="acao" value="registrar">⚠ O Google bloqueou</button>
+      </form>
+      {% endif %}
       {% if p and s.id in manuais %}
       <form method="post" action="{{ url_for('contas_marcar', pid=p.id, passo=s.id) }}" class="inline">
         <button class="botao pequeno claro">{{ 'Desmarcar' if s.feito else '✓ Já fiz' }}</button>
@@ -43,3 +62,16 @@
   </li>
   {% endfor %}
 </ol>
+<script>
+// horário local de quando liberar e contagem regressiva do bloqueio
+document.querySelectorAll('.bloqueio-ate').forEach(el => {
+  el.textContent = new Date(+el.dataset.ate).toLocaleString('pt-BR', {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
+});
+(function contar() {
+  document.querySelectorAll('.bloqueio-falta').forEach(el => {
+    const ms = Math.max(+el.dataset.ate - Date.now(), 0);
+    el.textContent = `${Math.floor(ms / 3600000)} h ${String(Math.floor(ms % 3600000 / 60000)).padStart(2, '0')} min`;
+  });
+  if (document.querySelector('.bloqueio-falta')) setTimeout(contar, 30000);
+})();
+</script>

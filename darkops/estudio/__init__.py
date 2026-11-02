@@ -323,6 +323,22 @@ def contas_criar(pid):
                            feitos=sum(1 for s in lista if s["feito"]))
 
 
+@app.post("/p/<pid>/contas/bloqueio")
+def contas_bloqueio(pid):
+    """O Google recusou a verificação (celular usado muitas vezes): guarda quando foi e mostra quando tentar de novo."""
+    from ..contas_guia import limpar_bloqueio, marcar, registrar_bloqueio
+    p = _perfil(pid)
+    if request.form.get("acao") == "limpar":
+        limpar_bloqueio()
+        marcar(p, "gmail", True)
+        flash("Bloqueio limpo e Gmail marcado como feito.", "ok")
+    else:
+        s = registrar_bloqueio()
+        flash(f"Anotado. Estimativa: tente de novo daqui a {s['espera_h']} h. Não insista antes: cada tentativa pode "
+              "alongar a espera. Enquanto isso, crie o canal de marca no Gmail que você já usa.", "ok")
+    return redirect(url_for("contas_criar", pid=pid) + "#conta-gmail")
+
+
 @app.post("/p/<pid>/contas/<passo>")
 def contas_marcar(pid, passo):
     from ..contas_guia import MANUAIS, marcar, marcas

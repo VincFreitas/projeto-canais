@@ -7,6 +7,7 @@ Os nomes sugeridos podem já estar em uso: o próprio site avisa, e aí vale ten
 import json
 import os
 import re
+import time
 import unicodedata
 
 from . import config, mercados
@@ -17,6 +18,12 @@ SUFIXOS = {"pt": ["oficial", "canal", "tv"], "en": ["official", "tv", "hq"], "es
 REPO_FILA, REPO_PASSAGEM = "projeto-canais-fila", "projeto-canais-videos"
 NOME_REPO = re.compile(r"^[A-Za-z0-9._-]{1,100}$")
 MANUAIS = ("gmail", "youtube_canal", "instagram_conta")  # sem como conferir sozinho: o usuário marca "Já fiz"
+
+# Bloqueio do Google ao criar conta ("o dispositivo usado para ler o QR code foi usado muitas vezes"). O Google não
+# divulga o prazo; relatos falam em 24 h, às vezes 48 h, raramente semanas. A espera sobe a cada bloqueio seguido.
+# Vale para o PC todo (é o celular que fica bloqueado, não o canal).
+ESPERAS_H = [24, 48, 168]
+BLOQUEIO = config.RAIZ / "dados" / "bloqueio-google.json"
 
 
 def _palavras(texto: str) -> list[str]:
@@ -58,6 +65,7 @@ def sugestoes(dados: dict) -> dict:
         "meta_app": _unicos([f"{nome} Publicador", f"{nome} Reels", "Projeto Canais Publicador"], 3, 40),
         "github": _unicos([traco, junto, f"{traco}-{s[0]}", f"{junto}-{s[1]}"], 3, 39,
                           lambda x: re.fullmatch(r"[a-z0-9][a-z0-9-]*", x) is not None),
+        "apelido": [f"+{junto}", f"+{junto}.ig"],  # vai entre o seu nome e o @gmail.com
         "repo_fila": [REPO_FILA, f"{traco}-fila"],
         "repo_passagem": [REPO_PASSAGEM, f"{traco}-videos"],
     }
@@ -91,6 +99,39 @@ def _env() -> dict:
         ("NUVEM_", "INSTAGRAM_", "AZURE_"))}}
 
 
+# ---------- bloqueio do Google na criação de conta ----------
+
+def registrar_bloqueio(agora: float | None = None) -> dict:
+    """O usuário avisou que o Google bloqueou. Um bloqueio novo dentro da espera anterior conta como seguido."""
+    agora = agora or time.time()
+    antes = situacao_bloqueio(agora)
+    vezes = (antes["vezes"] + 1) if antes else 1
+    BLOQUEIO.parent.mkdir(parents=True, exist_ok=True)
+    BLOQUEIO.write_text(json.dumps({"vezes": vezes, "em": agora}) + "\n", encoding="utf-8")
+    return situacao_bloqueio(agora) or {}
+
+
+def limpar_bloqueio() -> None:
+    BLOQUEIO.unlink(missing_ok=True)
+
+
+def situacao_bloqueio(agora: float | None = None) -> dict | None:
+    """Quando dá para tentar de novo. Some sozinho 7 dias depois de liberar (aí a contagem recomeça do 24 h)."""
+    try:
+        dados = json.loads(BLOQUEIO.read_text(encoding="utf-8"))
+        vezes, em = max(int(dados["vezes"]), 1), float(dados["em"])
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    agora = agora or time.time()
+    espera_h = ESPERAS_H[min(vezes, len(ESPERAS_H)) - 1]
+    ate = em + espera_h * 3600
+    if agora > ate + 7 * 86400:
+        return None
+    falta = max(ate - agora, 0)
+    return {"vezes": vezes, "espera_h": espera_h, "ate": ate, "liberado": falta == 0,
+            "falta": f"{int(falta // 3600)} h {int(falta % 3600 // 60):02d} min"}
+
+
 # ---------- os passos ----------
 
 def passos(dados: dict, perfil=None) -> list[dict]:
@@ -104,21 +145,28 @@ def passos(dados: dict, perfil=None) -> list[dict]:
     token_yt = bool(perfil and perfil.token_youtube.exists())
     token_ig = bool(perfil and perfil.token_instagram.exists())
     lista = [
-        {"id": "gmail", "titulo": "E-mail do canal (Gmail)", "vale": "por canal", "feito": feitos.get("gmail", False),
-         "texto": "Um Gmail só deste canal. Ele vira a conta do YouTube e recebe os avisos das outras contas. "
-                  "Use um número de celular seu para confirmar.",
-         "nomes": [("E-mail", n["gmail"])],
+        {"id": "gmail", "titulo": "E-mail do canal (Gmail, opcional)", "vale": "por canal",
+         "feito": feitos.get("gmail", False),
+         "texto": "Um Gmail só deste canal deixa as contas separadas, mas não é obrigatório: o canal do YouTube pode "
+                  "ser um canal de marca no Gmail que você já usa, e o Instagram aceita um apelido do seu e-mail "
+                  "(seuemail+canal@gmail.com chega na sua caixa normal).",
+         "aviso": "Atenção: o Google limita quantas contas um mesmo celular confirma. Se aparecer \"Tente usar outro "
+                  "dispositivo para fazer a verificação\", pare de tentar (cada tentativa pode alongar a espera) e "
+                  "marque abaixo: o Estúdio calcula quando tentar de novo. Enquanto isso, siga pelo canal de marca.",
+         "bloqueio": situacao_bloqueio(),
+         "nomes": [("E-mail", n["gmail"]), ("Apelido do seu e-mail (Instagram)", n["apelido"])],
          "links": [("Criar o Gmail", "https://accounts.google.com/signup")]},
     ]
     if yt:
         lista.append({
             "id": "youtube_canal", "titulo": "Canal do YouTube", "vale": "por canal",
             "feito": feitos.get("youtube_canal", False) or token_yt,
-            "texto": "Entre no YouTube com o Gmail do canal e crie o canal com o nome abaixo. Depois escolha o @ "
-                     "(identificador). Para enviar thumbnail própria e vídeos com mais de 15 minutos, confirme "
-                     "o canal pelo celular.",
+            "texto": "Entre no YouTube com o Gmail do canal, ou com o seu e crie um canal de marca (não pede "
+                     "verificação de conta nova). Use o nome abaixo e depois escolha o @. Para enviar thumbnail "
+                     "própria e vídeos com mais de 15 minutos, confirme o canal pelo celular.",
             "nomes": [("Nome do canal", n["youtube_nome"]), ("@ do YouTube", n["youtube_handle"])],
-            "links": [("Criar o canal", "https://www.youtube.com/create_channel"),
+            "links": [("Criar canal de marca", "https://www.youtube.com/channel_switcher"),
+                      ("Criar o canal (Gmail novo)", "https://www.youtube.com/create_channel"),
                       ("Escolher o @", "https://www.youtube.com/handle"),
                       ("Confirmar pelo celular", "https://www.youtube.com/verify")]})
     if ig:

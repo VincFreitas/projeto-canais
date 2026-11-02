@@ -149,6 +149,10 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .nome-copiar.copiado::after { content: " copiado"; font-size: 11px; }
 .conta-links { flex-wrap: wrap; }
 .conta-repos { margin-top: 10px; }
+.conta-aviso { margin: 8px 0; padding: 8px 12px; border-radius: 8px; background: #fff3cd; color: #6b4e00; font-size: 14px; }
+.conta-bloqueio { margin: 8px 0; padding: 10px 12px; border-radius: 8px; background: #fde8e8; color: #7a1f1f; font-size: 14px; }
+.conta-bloqueio.liberado { background: #e3f4ea; color: var(--verde); }
+.conta-bloqueio .suave { display: block; margin-top: 4px; }
 form.inline { display: inline; }
 .selo.manual { background: #eceae6; color: var(--suave); }
 .alerta-plataformas { border: 1px solid var(--linha); border-left: 4px solid var(--amarelo); border-radius: 9px; padding: 8px 12px; margin: 4px 0 10px; font-size: 14px; background: #fffdf6; }
