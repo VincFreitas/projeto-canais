@@ -51,7 +51,8 @@ def sugestoes(dados: dict) -> dict:
     handles = _unicos([arroba, junto, f"{junto}.{s[0]}", f"{junto}{s[2]}", f"{junto}_{s[1]}", f"{ponto}"], 3, 30)
     gmail = _unicos([ponto, junto, f"{junto}.{s[0]}", f"{junto}{s[1]}", f"{s[1]}.{junto}"], 6, 30,
                     lambda x: ".." not in x and x[0].isalnum())
-    projeto = _unicos([f"{traco}-canais", f"{traco}-publicador", "projeto-canais", f"{junto}-app"], 6, 30,
+    # o app do Google e o da Meta valem para todos os canais: o nome é do projeto, nunca de um canal
+    projeto = _unicos(["projeto-canais", "projeto-canais-app", "projeto-canais-publicador"], 6, 30,
                       lambda x: x[0].isalpha() and re.fullmatch(r"[a-z][a-z0-9-]*", x) is not None)
     nome = " ".join(p.capitalize() for p in palavras)
     return {
@@ -61,8 +62,8 @@ def sugestoes(dados: dict) -> dict:
         "instagram": [f"@{h}" for h in handles],
         "google_projeto": projeto,
         # o Google e a Meta recusam nome de app com a marca deles (YouTube, Google, Instagram, Facebook, Meta)
-        "google_app": _unicos([f"{nome} Publicador", f"{nome} Studio", "Projeto Canais"], 3, 40),
-        "meta_app": _unicos([f"{nome} Publicador", f"{nome} Reels", "Projeto Canais Publicador"], 3, 40),
+        "google_app": ["Projeto Canais", "Projeto Canais Publicador"],
+        "meta_app": ["Projeto Canais", "Projeto Canais Publicador"],
         "github": _unicos([traco, junto, f"{traco}-{s[0]}", f"{junto}-{s[1]}"], 3, 39,
                           lambda x: re.fullmatch(r"[a-z0-9][a-z0-9-]*", x) is not None),
         "apelido": [f"+{junto}", f"+{junto}.ig"],  # vai entre o seu nome e o @gmail.com
@@ -187,7 +188,9 @@ def passos(dados: dict, perfil=None) -> list[dict]:
             "texto": "Logado com um Gmail seu: crie o projeto, ative a YouTube Data API v3, preencha a marca do app "
                      "(público Externo; ponha o Gmail do canal como usuário de teste), adicione os escopos "
                      "youtube.upload e youtube.readonly e crie o cliente \"App para computador\". Baixe o JSON e "
-                     "salve como credenciais/client_secret.json. Ao conectar, o Google mostra \"O Google não "
+                     "salve como credenciais/client_secret.json. O app serve a todos os canais: dê o nome do "
+                     "projeto (não o de um canal) e use um e-mail seu como e-mail de suporte, porque os dois aparecem "
+                     "no login de todos os canais. Para trocar depois: Marca do app (passo 3). Ao conectar, o Google mostra \"O Google não "
                      "verificou este app\": é o seu próprio app; clique em Avançado > Acessar (não seguro). Para "
                      "esse aviso sumir, peça a verificação do app (passo 7), que leva alguns dias e pede a "
                      "política de privacidade do site, o domínio confirmado no Search Console e um vídeo curto "
