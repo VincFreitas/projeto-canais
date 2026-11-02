@@ -15,18 +15,36 @@
 
   {% if c.tipo == 'oauth' %}
     {% if tem_client %}
-      {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
+      {% if situacao != 'ok' %}
+      <p class="app-unico"><b>O app do Google já está pronto e é o mesmo para todos os canais.</b> Não crie outro. Para este canal:
+        se o app estiver em modo de teste (Google Auth Platform &gt; <a href="https://console.cloud.google.com/auth/audience" target="_blank" rel="noopener">Público ↗</a>),
+        acrescente o Gmail deste canal em <b>Usuários de teste</b>; publicado, não precisa. Depois clique abaixo.</p>
+      <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
       <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao pequeno">{{ 'Reconectar' if situacao == 'ok' else 'Conectar YouTube' }}</button></form>
     {% else %}
+      <p class="app-unico"><b>Um app do Google para todos os canais.</b> Crie uma vez só, no primeiro canal; os próximos usam o mesmo.</p>
       <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O passo a passo está em <code>docs/instalacao.md</code> (no Claude Code, <code>/configurar</code>).</p>
     {% endif %}
   {% elif c.tipo == 'token' %}
     {% if instagram_app %}
+      {% if situacao != 'ok' %}
+      <p class="app-unico"><b>O app da Meta já está pronto e é o mesmo para todos os canais.</b> Não crie outro. Para este canal:</p>
+      <ol class="passos">
+        <li>A conta do Instagram do canal precisa ser <b>Profissional</b> e <b>pública</b>.</li>
+        <li>Em <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com/apps ↗</a>, abra o app <b>Projeto Canais</b> &gt; Instagram &gt;
+          <b>Configuração da API com login do Instagram</b> (API setup with Instagram login) &gt; etapa <b>1. Gerar tokens de acesso</b> &gt;
+          <b>Adicionar conta</b> (Add account) e entre na conta do Instagram deste canal.</li>
+        <li>Volte aqui e clique em <b>Entrar com Instagram</b>, escolhendo a mesma conta.</li>
+      </ol>
+      {% endif %}
       <form method="post" action="{{ url_for('instagram_entrar', pid=p.id) }}">
         <button class="botao pequeno">{{ 'Entrar de novo com Instagram' if situacao == 'ok' else 'Entrar com Instagram' }}</button></form>
       <p class="dica">Você entra na conta do canal e autoriza; o token chega sozinho e se renova antes de vencer.</p>
     {% else %}
-      <p class="dica">Uma vez só, vale para todos os canais. Leva uns 10 minutos. Antes: a conta do Instagram do canal
+      <p class="app-unico"><b>Um app da Meta para todos os canais.</b> Crie uma vez só, no primeiro canal. Nos próximos canais, não
+        crie outro app: só adicione a conta do Instagram do novo canal no mesmo app (passo 3 abaixo) e entre com ela.
+        Não precisa de Página nem de grupo do Facebook.</p>
+      <p class="dica">Leva uns 10 minutos. Antes: a conta do Instagram do canal
         precisa ser <b>Profissional</b> (no app: Configurações &gt; Tipo de conta e ferramentas &gt; Mudar para conta profissional)
         e <b>pública</b>. O painel da Meta muda de tempos em tempos: os nomes em inglês entre parênteses ajudam se ele estiver em inglês.</p>
       <ol class="passos passos-meta">
@@ -40,7 +58,7 @@
         <li><b>Abrir a parte do Instagram.</b> No painel do app, se a lista de produtos aparecer, ache <b>Instagram</b> e clique em <b>Configurar</b> (Set up).
           No menu da esquerda vai surgir <b>Instagram &gt; Configuração da API com login do Instagram</b> (API setup with Instagram login), com 3 etapas numeradas.</li>
         <li><b>Ligar a conta do canal.</b> Na etapa <b>1. Gerar tokens de acesso</b> (Generate access tokens), clique em <b>Adicionar conta</b> (Add account)
-          e entre na conta do Instagram do canal. Repita para cada canal. (A etapa 2, Webhooks, não precisa.)</li>
+          e entre na conta do Instagram do canal. Cada canal novo volta só a este passo, no mesmo app. (A etapa 2, Webhooks, não precisa.)</li>
         <li><b>Endereço de retorno.</b> Na etapa <b>3. Configurar o login da empresa do Instagram</b> (Set up Instagram business login), clique em <b>Configurar</b> (Set up)
           e, em <b>URIs de redirecionamento do OAuth</b> (OAuth redirect URIs / Redirect URL), cole exatamente:
           <button type="button" class="nome-copiar" data-copiar="{{ instagram_retorno }}" title="Clique para copiar">{{ instagram_retorno }}</button>

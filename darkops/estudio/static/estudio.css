@@ -99,6 +99,7 @@ th { background: #faf7f2; color: var(--suave); font-weight: 600; }
 .passos { counter-reset: passo; list-style: none; padding: 0; }
 .passos li { counter-increment: passo; position: relative; padding-left: 34px; margin: 8px 0; }
 .passos li::before { content: counter(passo); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--amarelo); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.app-unico { margin: 8px 0; padding: 8px 12px; border-radius: 8px; background: #e8eefc; color: #1d3a7a; font-size: 14px; }
 .passos-meta ul { list-style: none; padding: 0; margin: 6px 0 0; }
 .passos-meta ul li { counter-increment: none; padding-left: 14px; margin: 4px 0; font-size: 14px; }
 .passos-meta ul li::before { content: "•"; background: none; width: auto; height: auto; color: var(--suave); }

@@ -177,15 +177,19 @@ def passos(dados: dict, perfil=None) -> list[dict]:
             "id": "instagram_conta", "titulo": "Conta do Instagram", "vale": "por canal",
             "feito": feitos.get("instagram_conta", False) or token_ig,
             "texto": "Crie a conta com o Gmail do canal. Depois, no app do Instagram, mude para conta "
-                     "Profissional (Criador ou Empresa): sem isso a postagem automática não funciona.",
+                     "Profissional (Criador ou Empresa) e deixe pública: sem isso a postagem automática não funciona. "
+                     "Se o app da Meta já existe (de outro canal), não crie outro: adicione esta conta nele, em "
+                     "Instagram > Configuração da API com login do Instagram > 1. Gerar tokens de acesso > Adicionar conta.",
             "nomes": [("Nome de usuário", n["instagram"])],
             "links": [("Criar a conta", "https://www.instagram.com/accounts/emailsignup/"),
+                      ("Adicionar no app da Meta", "https://developers.facebook.com/apps/"),
                       ("Como mudar para Profissional", "https://help.instagram.com/502981923235522")]})
     if yt:
         lista.append({
             "id": "google_app", "titulo": "App do Google (postar no YouTube)", "vale": "uma vez, para todos os canais",
             "feito": CLIENT_SECRET.exists(),
-            "texto": "Logado com um Gmail seu: crie o projeto, ative a YouTube Data API v3, preencha a marca do app "
+            "texto": "Um app só para todos os canais: crie uma vez; os próximos canais usam o mesmo (com o app em modo "
+                     "de teste, acrescente o Gmail de cada canal em Público > Usuários de teste). Logado com um Gmail seu: crie o projeto, ative a YouTube Data API v3, preencha a marca do app "
                      "(público Externo; ponha o Gmail do canal como usuário de teste), adicione os escopos "
                      "youtube.upload e youtube.readonly e crie o cliente \"App para computador\". Baixe o JSON e "
                      "salve como credenciais/client_secret.json. O app serve a todos os canais: dê o nome do "
@@ -208,7 +212,8 @@ def passos(dados: dict, perfil=None) -> list[dict]:
         lista.append({
             "id": "meta_app", "titulo": "App da Meta (postar no Instagram)", "vale": "uma vez, para todos os canais",
             "feito": bool(env.get("INSTAGRAM_APP_ID")),
-            "texto": "Crie o app (nome sem Instagram, Facebook nem Meta), escolha o caso de uso \"Gerenciar mensagens e "
+            "texto": "Um app só para todos os canais: crie uma vez, no primeiro canal; os outros entram no mesmo app. "
+                     "Crie o app (nome sem Instagram, Facebook nem Meta), escolha o caso de uso \"Gerenciar mensagens e "
                      "conteúdo no Instagram\" (ou \"Outro\" > tipo \"Empresa\"), adicione a conta do canal em \"1. Gerar "
                      "tokens de acesso\", cole o endereço de retorno na etapa 3 e copie o ID e a chave do app do "
                      "Instagram. O passo a passo detalhado, tela por tela, está no card do Instagram em Ajustes > Contas.",
