@@ -1,6 +1,6 @@
 {# Passos para criar as contas do canal: usado no assistente do Novo canal (prévia, sem p) e na aba Contas do canal #}
-<ol class="contas-passos">
-  {% for s in passos %}
+{% macro lista(grupo_passos) %}<ol class="contas-passos">
+  {% for s in grupo_passos %}
   <li class="conta-passo {{ 'feito' if s.feito }}" id="conta-{{ s.id }}">
     <div class="conta-cabeca">
       <span class="conta-numero">{{ '✓' if s.feito else loop.index }}</span>
@@ -61,7 +61,17 @@
     {% endif %}
   </li>
   {% endfor %}
-</ol>
+</ol>{% endmacro %}
+{% set do_canal = passos | selectattr('grupo', 'equalto', 'canal') | list %}
+{% set uma_vez = passos | selectattr('grupo', 'equalto', 'instalacao') | list %}
+{% set uma_vez_pronta = uma_vez | rejectattr('feito') | list | length == 0 %}
+<h3 class="contas-grupo">Para cada canal novo <span class="suave">· faça de novo sempre que criar um canal</span></h3>
+{{ lista(do_canal) }}
+<details class="contas-uma-vez" {{ '' if uma_vez_pronta else 'open' }}>
+  <summary><h3 class="contas-grupo" style="display:inline">Uma vez só, para todos os canais
+    <span class="suave">· {{ '✓ já feito: num canal novo, não precisa refazer' if uma_vez_pronta else 'feito no primeiro canal; os próximos usam o mesmo' }}</span></h3></summary>
+  {{ lista(uma_vez) }}
+</details>
 <script>
 // horário local de quando liberar e contagem regressiva do bloqueio
 document.querySelectorAll('.bloqueio-ate').forEach(el => {

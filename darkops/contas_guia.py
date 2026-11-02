@@ -237,4 +237,6 @@ def passos(dados: dict, perfil=None) -> list[dict]:
         "nomes": [],
         "links": [("Criar a conta da Microsoft", "https://signup.live.com/"),
                   ("Conta grátis do Azure", "https://azure.microsoft.com/free")]})
+    for s in lista:  # o que se repete a cada canal novo e o que se faz uma vez só
+        s["grupo"] = "canal" if s["vale"] == "por canal" else "instalacao"
     return lista

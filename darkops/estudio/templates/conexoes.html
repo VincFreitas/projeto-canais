@@ -128,11 +128,23 @@
 </div>
 {% if conexoes.testado_em %}<p class="dica" style="margin-top:-8px">Último teste: {{ conexoes.testado_em }}</p>{% endif %}
 
+{% set deste = essenciais | selectattr('c.escopo', 'equalto', 'perfil') | list %}
+{% set de_todos = essenciais | rejectattr('c.escopo', 'equalto', 'perfil') | list %}
 <section class="grupo">
+  <h2 class="titulo-escopo">Deste canal <span class="suave">· repita em cada canal novo</span></h2>
   <div class="conectores">
-    {% for item in essenciais %}{{ conector(item) }}{% endfor %}
+    {% for item in deste %}{{ conector(item) }}{% endfor %}
   </div>
 </section>
+
+<h2 class="titulo-escopo">Uma vez só <span class="suave">· vale para todos os canais; num canal novo, não precisa refazer</span></h2>
+{% if de_todos %}
+<section class="grupo">
+  <div class="conectores">
+    {% for item in de_todos %}{{ conector(item) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
 
 {% set w = whatsapp %}
 <section class="grupo" id="whatsapp">
