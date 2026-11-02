@@ -136,8 +136,12 @@ def cmd_publicar_youtube(a):
             from .mercados import de as mercado_de
             # o roteiro escrito para um mercado vale mais que o perfil (o canal pode ter trocado de região depois)
             idioma = mercado_de({**carregar().dados, **{k: roteiro[k] for k in ("mercado",) if k in roteiro}})["youtube"]
+            from .visuais import ESTILOS_SINTETICOS
+            # imagem realista de IA (estilo do roteiro ou do canal) marca "conteúdo alterado ou sintético" sozinha
+            estilo = roteiro.get("estilo") or carregar().dados.get("estilo")
+            sintetico = bool(roteiro.get("sintetico")) or estilo in ESTILOS_SINTETICOS
             video_id = enviar_youtube(video, meta["titulo"], meta["descricao"], meta["tags"],
-                                      a.privacidade, bool(roteiro.get("sintetico")), idioma)
+                                      a.privacidade, sintetico, idioma)
         marcar(slug, "youtube", video_id)
         print(f"pronto: https://youtu.be/{video_id}")
     _resultado({"slug": slug, "youtube": video_id, "url": f"https://youtu.be/{video_id}"})

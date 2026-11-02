@@ -100,7 +100,11 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         + mercados.instrucao_roteiro(d)
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
-        f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
+        + ("Edição dossiê (tema_cards dossie): use os painéis, citações e checklists do dossiê de docs/roteiro.md, "
+           "escreva titulo_tela, marque imagem: true com ilustracao em até 4 cenas de impacto e ponha codigo (mapa, "
+           "diagrama, escala ou ficha) em 3 a 6 cenas; não escreva palco 3D. "
+           if d.get("tema_cards") == "dossie" else "")
+        + f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
         "com \"aprovado\": false, e \"notas_roteiro\" preenchido. No formato explicativo, escreva também o palco 3D "
         "cenas/<slug>.3d.js (padrão do canal; o 2D cenas/<slug>.py só se o 3D não der) e teste "
         f"com: .venv\\Scripts\\python.exe -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "

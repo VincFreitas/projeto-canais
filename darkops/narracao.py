@@ -262,7 +262,8 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
                fonte: str = "Arial Black", escala: float = 1.0, cor: str = "#FFE500",
                palavra: bool = False, termo: tuple[str, float] | None = None,
                rotulos: list[tuple[str, float, float, float]] | None = None, grupo: bool = False,
-               selo: tuple[str, str, float] | None = None) -> None:
+               selo: tuple[str, str, float] | None = None,
+               cabecalho: tuple[str, list[str]] | None = None) -> None:
     """Horizontal: frases curtas embaixo. Vertical: 1-3 palavras grandes no centro (ou embaixo, com
     baixo=True, para não cobrir uma animação), a palavra falada fica na cor de destaque (amarelo por padrão)
     e cada grupo entra com um pulo. fonte, escala e cor vêm do padrão do canal.
@@ -273,15 +274,19 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
 
     grupo=True (legenda_modo "grupo"): de 2 a 3 palavras no mesmo lugar do modo palavra; a palavra falada fica na
     cor de destaque, as já faladas em branco e as que vêm depois em cinza. selo=(texto, "ruim"|"bom", segundo) é
-    o carimbo vermelho (problema) ou verde (solução) que bate na tela por 1,6 s."""
+    o carimbo vermelho (problema) ou verde (solução) que bate na tela por 1,6 s.
+
+    cabecalho=(etiqueta, linhas do título): edição dossiê. A etiqueta pequena em fonte de terminal fica no topo a
+    cena inteira ("RECONSTITUIÇÃO ILUSTRATIVA"); o título (só na 1ª cena) fica acima dela, com a última linha
+    na cor de destaque."""
     vertical = altura > largura or grande  # grande: estilo de Shorts mesmo numa janela horizontal
     if grupo and vertical:
         estilo = (f"Style: Base,{fonte},{int(largura * 0.075 * escala)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,"
-                  f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * 0.3)},1")
+                  f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * (0.22 if cabecalho else 0.3))},1")
         max_palavras = 3
     elif palavra and vertical:
         estilo = (f"Style: Base,{fonte},{int(largura * 0.085 * escala)},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,"
-                  f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * 0.3)},1")
+                  f"-1,0,0,0,100,100,0,0,1,{int(largura * 0.009)},3,2,60,60,{int(altura * (0.22 if cabecalho else 0.3))},1")
         max_palavras = 1
     elif vertical:
         # \kf pinta da cor secundária (branco) para a primária (destaque) conforme a palavra é falada
@@ -294,6 +299,8 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
                   f"-1,0,0,0,100,100,0,0,1,{int(altura * 0.0035)},1,2,120,120,{int(altura * 0.07)},1")
         max_palavras = 7
 
+    # etiqueta presa ao objeto: caixa branca; no dossiê, caixa azul-noite com texto claro
+    texto_rotulo, caixa_rotulo = ("&H00FAF4F0", "&H001E100C") if cabecalho else ("&H00202020", "&H00FFFFFF")
     linhas = [
         "[Script Info]", "ScriptType: v4.00+", f"PlayResX: {largura}", f"PlayResY: {altura}",
         "WrapStyle: 0", "", "[V4+ Styles]",
@@ -302,13 +309,13 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
         "Alignment, MarginL, MarginR, MarginV, Encoding",
         estilo,
         # palavra-herói: grande, amarela, contorno grosso, um pouco acima do centro
-        (f"Style: Heroi,Arial Black,{int(largura * (0.133 if altura > largura else 0.11))},&H0000D4FF,"
+        (f"Style: Heroi,Arial Black,{int(largura * (0.133 if altura > largura else 0.11))},{_cor_ass(cor) if cabecalho else '&H0000D4FF'},"
          f"&H00FFFFFF,&H00101010,&H96000000,-1,0,0,0,100,100,2,0,1,{int(largura * 0.014)},4,5,40,40,0,1"),
         # termo técnico fixo no topo ("Esse é o tungstênio")
         (f"Style: Termo,Arial Black,{int(largura * 0.075)},{_cor_ass(cor)},&H00FFFFFF,&H00101010,&H96000000,"
          f"-1,0,0,0,100,100,1,0,1,{int(largura * 0.008)},3,8,40,40,{int(altura * 0.12)},1"),
         # etiqueta presa ao objeto: caixa branca (BorderStyle 3) com texto escuro
-        (f"Style: Rotulo,Arial Black,{int(largura * 0.036)},&H00202020,&H00FFFFFF,&H00FFFFFF,&H00FFFFFF,"
+        (f"Style: Rotulo,Arial Black,{int(largura * 0.036)},{texto_rotulo},&H00FFFFFF,{caixa_rotulo},{caixa_rotulo},"
          f"-1,0,0,0,100,100,0,0,3,{int(largura * 0.012)},0,5,0,0,0,1"),
         # carimbo de problema ou solução: caixa colorida (a cor da caixa vem no \3c de cada evento)
         (f"Style: Selo,Arial Black,{int(largura * 0.07)},&H00FFFFFF,&H00FFFFFF,&H003C3CE6,&H00000000,"
@@ -372,10 +379,25 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
                   f"\\fad(0,200)\\fscx170\\fscy170\\t(0,120,\\fscx95\\fscy95)\\t(120,200,\\fscx100\\fscy100)}}")
         linhas.append(f"Dialogue: 4,{_tempo(inicio)},{_tempo(min(inicio + 1.6, duracao))},Selo,,0,0,0,,"
                       f"{efeito}{_escapar(texto.upper())}")
+    if cabecalho and vertical:
+        etiqueta, titulo = cabecalho
+        tam = int(largura * 0.074)
+        y = int(altura * 0.045)
+        for k, linha in enumerate(titulo[:2]):
+            cor_linha = _cor_ass(cor) if k == len(titulo[:2]) - 1 and len(titulo[:2]) > 1 else "&H00FFFFFF"
+            linhas.append(f"Dialogue: 5,{_tempo(0)},{_tempo(duracao)},Base,,0,0,0,,"
+                          f"{{\\an8\\pos({largura // 2},{y})\\fnArial Black\\fs{tam}\\bord{max(int(largura * 0.004), 2)}"
+                          f"\\shad3\\c{cor_linha}&\\fad(120,0)}}{_escapar(linha.upper())}")
+            y += int(tam * 1.12)
+        if etiqueta:
+            y += int(altura * 0.004) if titulo else 0
+            linhas.append(f"Dialogue: 5,{_tempo(0)},{_tempo(duracao)},Base,,0,0,0,,"
+                          f"{{\\an8\\pos({largura // 2},{y})\\fnConsolas\\fs{int(largura * 0.021)}\\b0\\fsp4"
+                          f"\\bord0\\shad1\\c&H00C8BEB4&\\alpha&H20&}}{_escapar(etiqueta.upper())}")
     for k, (texto, x, y, inicio) in enumerate(rotulos or []):
         bolinha = _cor_ass(("#FF5A7D", "#28C8FF", "#6EE68C", "#FFCE28")[k % 4])
         efeito = (f"{{\\pos({int(largura * x)},{int(altura * y)})\\fad(50,0)\\fscx30\\fscy30"
                   f"\\t(0,120,\\fscx110\\fscy110)\\t(120,200,\\fscx100\\fscy100)}}")
         linhas.append(f"Dialogue: 3,{_tempo(inicio)},{_tempo(duracao)},Rotulo,,0,0,0,,"
-                      f"{efeito}{{\\c{bolinha}&}}●{{\\c&H00202020&}} {_escapar(texto.upper())}")
+                      f"{efeito}{{\\c{bolinha}&}}●{{\\c{texto_rotulo}&}} {_escapar(texto.upper())}")
     destino.write_text("\n".join(linhas) + "\n", encoding="utf-8")

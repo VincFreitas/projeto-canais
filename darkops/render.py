@@ -55,8 +55,8 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
          pixel: int = 0, movimento: str | None = None, transicao: bool = True) -> float:
     """Renderiza uma cena com a duração da narração + pausa. Devolve a duração.
 
-    card = (vídeo com transparência, x, y): infográfico por cima do clipe, que fica desfocado e
-    um pouco mais escuro para o card se destacar. pixel = tamanho do pixel no estilo pixel art: a imagem
+    card = (vídeo com transparência, x, y[, nítido]): infográfico por cima do clipe, que fica desfocado e
+    um pouco mais escuro para o card se destacar (nítido=True, no dossiê, mantém a imagem como está). pixel = tamanho do pixel no estilo pixel art: a imagem
     é ampliada sem suavizar e anda em degraus de pixel, como num jogo antigo."""
     dur = duracao(audio) + pausa
     quadros = max(int(dur * FPS), 1)
@@ -89,12 +89,15 @@ def cena(visual: Path, audio: Path, legenda: Path | None, saida: Path,
     entrada_suave = f",fade=t=in:st=0:d={TRANSICAO}" if transicao else ""
     extra = []
     if card:
-        arquivo, x, y = card
+        arquivo, x, y, *opcoes = card
+        nitido = bool(opcoes and opcoes[0])
         extra = ["-i", str(arquivo)]
         if pixel:  # sem desfoque (borraria os pixels); o card também vira pixel art
             video += (f",eq=brightness=-0.12[base];[2:v]format=rgba,scale=iw/{pixel}:ih/{pixel}:flags=area,"
                       "lutrgb=r='floor(val/40)*40':g='floor(val/40)*40':b='floor(val/40)*40',"  # poucas cores
                       f"scale=iw*{pixel}:ih*{pixel}:flags=neighbor[card];")
+        elif nitido:  # dossiê: os painéis já têm fundo escuro; a imagem só escurece um pouco
+            video += ",eq=brightness=-0.04[base];[2:v]format=rgba[card];"
         else:
             video += ",boxblur=7:1,eq=brightness=-0.07[base];[2:v]format=rgba[card];"
         video += f"[base][card]overlay=x={x}:y={y}:eof_action=pass:format=auto"
@@ -330,9 +333,10 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
 
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
            selo: str | None = None, efeitos: Path | None = None, mascote: bool | Path = False,
-           post: dict | None = None) -> None:
-    """Concatena as cenas, põe a barra de progresso e o selo do canal (só no vertical) e normaliza o
+           post: dict | None = None, cor_barra: str = "#FFD400") -> None:
+    """Concatena as cenas, põe a barra de progresso (na cor do canal) e o selo do canal (só no vertical) e normaliza o
     volume para -14 LUFS (padrão das plataformas)."""
+    cor_barra = "0x" + cor_barra.lstrip("#").upper()
     pasta = cenas[0].parent
     lista = pasta / "lista.txt"
     lista.write_text("".join(f"file '{c.name}'\n" for c in cenas), encoding="utf-8")
@@ -375,7 +379,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         barra = 8
         video = (f"[{indice}:v]format=yuv420p,setsar=1[fundo];"
                  f"[fundo][0:v]overlay=x=0:y={TOPO_JANELA_POST}:shortest=1[comvideo];"
-                 f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
+                 f"color=c={cor_barra}:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
                  f"[comvideo][barra]overlay=x='-W+W*t/{total:.3f}':y={TOPO_JANELA_POST + alt - barra}:"
                  f"eval=frame[v]")
         mapa_video = "[v]"
@@ -384,7 +388,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         filtro = f"{video};{audio}"
     elif alt > larg:  # vertical: barra amarela que enche até o fim + selo do canal no topo
         barra = max(int(alt * 0.006), 6)
-        video = (f"color=c=0xFFD400:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
+        video = (f"color=c={cor_barra}:s={larg}x{barra}:r={FPS}:d={total:.3f}[barra];"
                  f"[0:v][barra]overlay=x='-W+W*t/{total:.3f}':y=H-h:eval=frame[vb]")
         atual = "vb"
         if selo:

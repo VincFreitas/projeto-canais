@@ -1,6 +1,7 @@
 """Visuais das cenas (arquivo próprio, Pexels, Pixabay ou fundo gerado) e thumbnail."""
 import contextlib
 import json
+import os
 import random
 from pathlib import Path
 
@@ -205,6 +206,8 @@ ESTILOS_IA = {
     "realista": "Photorealistic cinematic still, 35mm film look, natural lighting, highly detailed, documentary. "
                 + _SEM_TEXTO,
 }
+# rápido (padrão): desenha menor e com menos passos e amplia; "alta" (DARKOPS_IA_QUALIDADE=alta) é o modo antigo
+QUALIDADE_ALTA = os.getenv("DARKOPS_IA_QUALIDADE", "").strip().lower() == "alta"
 # imagem realista feita por IA exige marcar "conteúdo alterado ou sintético" no YouTube Studio
 ESTILOS_SINTETICOS = {"realista", "foto_antiga"}
 
@@ -261,10 +264,13 @@ def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: P
         return final
     bruto = pasta_visuais / f"{indice:02d}-{estilo}-bruto.png"
     # tela cheia vertical pede desenho em pé; o resto (layout post e 16:9) sai deitado
-    w, h = (768, 1344) if altura > largura else (1024, 768)
+    if QUALIDADE_ALTA:
+        w, h = (768, 1344) if altura > largura else (1024, 768)
+    else:  # cerca de metade dos pixels: o desenho sai umas 2x mais rápido e a ampliação quase não aparece no celular
+        w, h = (576, 1024) if altura > largura else (832, 480)
     print(f"  cena {indice}: desenhando no PC, estilo {estilo} (cerca de 2 a 5 min)")
     comando = [str(sd), "--diffusion-model", str(pesos[0]), "--vae", str(pesos[1]), "--llm", str(pesos[2]),
-               "-p", texto, "--cfg-scale", "1.0", "--steps", "8", "--offload-to-cpu",
+               "-p", texto, "--cfg-scale", "1.0", "--steps", "8" if QUALIDADE_ALTA else "6", "--offload-to-cpu",
                "--flash-attn", "off,diffusion=on", "--vae-tiling", "-W", str(w), "-H", str(h),
                "--seed", str(zlib.crc32(semente.encode("utf-8")) % 100000), "-o", str(bruto)]
     # um desenho por vez: dois ao mesmo tempo não cabem numa placa de 4 GB e os dois falham
@@ -278,7 +284,10 @@ def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: P
         print(f"  cena {indice}: gerador local falhou; usando a busca de mídia\n{r.stderr[-400:]}")
         return None
     if not pixel:
-        ImageOps.fit(Image.open(bruto).convert("RGB"), (largura, altura), Image.LANCZOS).save(final)
+        imagem = ImageOps.fit(Image.open(bruto).convert("RGB"), (largura, altura), Image.LANCZOS)
+        if not QUALIDADE_ALTA:  # devolve a nitidez perdida na ampliação
+            imagem = imagem.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
+        imagem.save(final)
         bruto.unlink(missing_ok=True)
         return final
     # grade de pixels da tela (com a folga da panorâmica): cada pixel do desenho vira um bloco

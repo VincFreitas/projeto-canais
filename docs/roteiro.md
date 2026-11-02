@@ -70,7 +70,7 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `edicao` | não | `simples` (sem elementos na tela), `leve` (palavra-herói e até 2 cards) ou `pro` (tudo; padrão). Vem do perfil |
 | `acervo_nasa` | não | `true` usa também o acervo de imagens da NASA (fotos, buscas em inglês) e põe o crédito nos metadados |
 | `notas_roteiro` | não | Lista curta com o que o roteiro escolheu e por quê (gancho, ângulo, fontes); aparece na revisão antes de gerar |
-| `tema_cards` | não | Tema de edição dos cards de animação: `padrao` (vidro escuro), `arquivo_frio`, `jornal_antigo` ou `moderno_limpo`. Vem do perfil; `animacao.tema` muda só uma cena |
+| `tema_cards` | não | Tema de edição dos cards de animação: `padrao` (vidro escuro), `arquivo_frio`, `jornal_antigo`, `moderno_limpo` ou `dossie` (painéis de dados sobre a imagem nítida, ver abaixo). Vem do perfil; `animacao.tema` muda só uma cena |
 | `sintetico` | não | `true` quando há imagem realista feita por IA (os metadados avisam para marcar no YouTube e no Instagram) |
 | `cenas[].variante` | não | Pula as N primeiras opções da busca (o botão **Outra opção** do editor de cenas soma 1) |
 | `fontes` | não | Links usados na pesquisa. Não entram no vídeo; servem para checar os fatos |
@@ -94,6 +94,41 @@ Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do *
 | `linha_do_tempo` | `marcos` [{`valor` (ano; a.C. negativo), `texto`, `rotulo`}] (2 a 5) | `{"tipo": "linha_do_tempo", "marcos": [{"valor": -30, "texto": "30 a.C.", "rotulo": "Cleópatra"}, {"valor": 1969, "texto": "1969", "rotulo": "Lua"}]}` |
 | `icones` | `simbolo` (`coracao`, `estrela`, `cubo`, `circulo`), `quantidade` (até 12), `cor` [r,g,b], `rotulo` | `{"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}` |
 | `barra` | `valor` (0 a 100), `sufixo` (`%`), `titulo`, `rotulo`, `cor` [r,g,b] | `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}` |
+
+### Edição dossiê (`tema_cards: dossie`)
+
+Estilo de reconstituição com dados (usado no Enigma Oculto junto com `estilo: realista`): a imagem da cena fica
+nítida em tela cheia, os dados entram em painéis retos com rótulo em fonte de terminal, a 1ª cena ganha o título
+fixo no topo e toda cena leva a etiqueta "reconstituição ilustrativa · IA" (ou "arquivo · caso real" sem IA).
+Código: `darkops/dossie.py`. Além de `contador` (vira um painel grande), `barra` (medidor com `limite` riscado) e
+dos tipos acima, o dossiê tem:
+
+| Tipo | Campos | Exemplo |
+|---|---|---|
+| `painel` | `itens` (1 ou 2) [{`rotulo`, `ate` (conta) **ou** `texto` (digita), `de`, `casas`, `unidade`, `detalhe`}] | `{"tipo": "painel", "itens": [{"rotulo": "Profundidade", "ate": 3800, "unidade": "m"}, {"rotulo": "Ano", "texto": "1912"}], "em": ["metros", "doze"]}` |
+| `citacao` | `origem`, `texto` (fala ou trecho de documento **real**, com fonte), `detalhe` | `{"tipo": "citacao", "origem": "Diário de bordo · 1872", "texto": "...", "detalhe": "trecho traduzido"}` |
+| `checklist` | `titulo`, `subtitulo`, `itens` (até 5 textos curtos), `em` | `{"tipo": "checklist", "titulo": "O que se sabe", "itens": ["o navio estava inteiro", "o bote sumiu"]}` |
+
+**Modo híbrido (rápido):** com `estilo: realista`, só até `max_imagens_ia` cenas (padrão 4) ganham imagem de IA:
+as que têm `"imagem": true` e, se faltar, a primeira, a última e as do meio. Elas são desenhadas em paralelo com a
+narração. As outras cenas usam uma **cena de código** (campo `codigo`, abaixo, pronta em segundos) ou reaproveitam a
+última imagem desenhada com outro enquadramento. Marque `imagem: true` nas cenas de impacto (abertura, virada,
+final) e ponha `codigo` em 3 a 6 cenas de dado, lugar ou método. Código: `darkops/cenas_codigo.py`.
+
+| `codigo.tipo` | Campos | Uso |
+|---|---|---|
+| `mapa` | `centro` [lat, lon], `raio_km`, `titulo`, `pontos` [{`lat`, `lon`, `rotulo`}], `rota` [[lat, lon], ...] | onde aconteceu; coordenadas reais (Natural Earth, domínio público) |
+| `diagrama` | `titulo`, `tracos` [[[x, y], ...]] (0 a 1 na área do desenho), `rotulos` [{`texto`, `x`, `y`}], `grade` | como funciona, que se desenha sozinho |
+| `escala` | `titulo`, `unidade`, `itens` [{`rotulo`, `valor`}] (até 4) | comparar tamanhos (pessoa x objeto) |
+| `ficha` | `titulo`, `campos` [["rótulo", "valor"], ...] (até 6) | resumo do caso; fatos com fonte, nunca imitação de documento oficial |
+
+Imagem de IA mais rápida: o PC desenha em 576x1024 com 6 passos e amplia (umas 2x mais rápido).
+`DARKOPS_IA_QUALIDADE=alta` no `.env` volta ao modo antigo (768x1344, 8 passos).
+
+Roteiro no dossiê: `titulo_tela` (`"linha 1 | linha 2"`, até 2 linhas curtas, a 2ª sai na cor de destaque) é o
+título fixo da 1ª cena; sem ele, entra o texto da thumbnail. Ponha um painel em quase toda cena que tiver número,
+data, nome de lugar ou de pessoa; `citacao` só com frase real e fonte em `fontes` (nunca invente fala). Alterne os
+tipos: vídeo com o mesmo painel em toda cena parece feito em série.
 
 ## Sincronia, destaques e efeitos
 

@@ -55,6 +55,10 @@ TEMAS = {
                       "cores": [(37, 99, 235), (13, 148, 136), (244, 90, 80), (124, 58, 237)],
                       "forte": _F + "seguibl.ttf", "fonte": _F + "segoeuib.ttf",
                       "fundo": ((252, 252, 254), (236, 239, 245), 242)},
+    # dossiê (dossie.py): painéis retos sobre a imagem nítida; aqui só as cores do desenho dentro do painel
+    "dossie": {"amarelo": (92, 242, 224), "branco": (240, 244, 250), "sombra": 0.5, "brilho": (92, 242, 224),
+               "cores": [(92, 242, 224), (200, 210, 225), (255, 84, 84), (255, 196, 70)],
+               "forte": _F + "consolab.ttf", "fonte": _F + "consola.ttf", "fundo": ((12, 16, 30), (12, 16, 30), 0)},
 }
 
 
@@ -266,6 +270,9 @@ def _entradas(n: int, gatilhos: list[float | None] | None, padrao: float, passo:
 def alvos_automaticos(animacao: dict) -> list[str]:
     """Palavras que disparam cada elemento quando o roteiro não diz ('em')."""
     tipo = animacao.get("tipo")
+    if animacao.get("tema") == "dossie" and tipo in ("painel", "citacao", "checklist"):
+        from .dossie import alvos
+        return alvos(animacao)
     if tipo == "comparacao":
         return [_numero(float(i["valor"]), int(animacao.get("casas", 0))) for i in animacao.get("itens", [])]
     if tipo == "linha_do_tempo":
@@ -548,8 +555,10 @@ def _caixa(largura: int, altura: int) -> tuple[float, float, float, float]:
     return 0.12, 0.07, 0.76, 0.66
 
 
-def posicao(largura: int, altura: int) -> tuple[int, int]:
-    """Canto superior esquerdo do vídeo do card na tela (já descontando a margem)."""
+def posicao(largura: int, altura: int, animacao: dict | None = None) -> tuple[int, int]:
+    """Canto superior esquerdo do vídeo do card na tela (já descontando a margem). O dossiê ocupa a tela toda."""
+    if animacao and animacao.get("tema") == "dossie":
+        return 0, 0
     x, y, _, _ = _caixa(largura, altura)
     return int(largura * x) - MARGEM, int(altura * y) - MARGEM
 
@@ -563,6 +572,9 @@ def quadro_teste(animacao: dict, largura: int, altura: int, t: float, duracao: f
 def eventos(animacao: dict, largura: int, altura: int, duracao: float,
             gatilhos: list[float] | None = None) -> list[tuple[float, str]]:
     """Efeitos sonoros da animação, em segundos dentro da cena: whoosh do card e pop de cada elemento."""
+    if animacao.get("tema") == "dossie":
+        from .dossie import Hud
+        return Hud(animacao, largura, altura, duracao, gatilhos).eventos()
     _, _, cl, ca = _caixa(largura, altura)
     conteudo = TIPOS[animacao["tipo"]](int(largura * cl), int(altura * ca), animacao, duracao, gatilhos)
     return [(0.05, "whoosh")] + conteudo.eventos()
@@ -578,8 +590,13 @@ def gerar(animacao: dict, duracao: float, largura: int, altura: int, destino: Pa
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
 
-    animador = _Animador(animacao, largura, altura, duracao, gatilhos)
-    cw, ch = animador.base.size
+    if animacao.get("tema") == "dossie":  # painéis do dossiê: camada do tamanho da tela
+        from .dossie import Hud
+        animador = Hud(animacao, largura, altura, duracao, gatilhos)
+        cw, ch = largura, altura
+    else:
+        animador = _Animador(animacao, largura, altura, duracao, gatilhos)
+        cw, ch = animador.base.size
     proc = subprocess.Popen([FFMPEG, "-hide_banner", "-loglevel", "error", "-y", "-f", "rawvideo",
                              "-pix_fmt", "rgba", "-s", f"{cw}x{ch}", "-r", str(FPS), "-i", "-",
                              "-c:v", "qtrle", "-pix_fmt", "argb", str(destino)], stdin=subprocess.PIPE)

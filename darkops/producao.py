@@ -108,6 +108,41 @@ def _aplicar_edicao(roteiro: dict) -> None:
                 c.pop("animacao")
 
 
+def _plano_ia(roteiro: dict, pixel: int, post: bool) -> set[int]:
+    """Edição dossiê com imagem de IA: quais cenas ganham desenho próprio. Até "max_imagens_ia" (padrão 4): as
+    marcadas com "imagem": true e, se faltar, a primeira, a última e as do meio. As outras usam cena de código
+    ("codigo") ou reaproveitam a imagem anterior. Fora do dossiê, devolve vazio (cada cena desenha a sua)."""
+    if roteiro.get("tema_cards") != "dossie" or roteiro.get("estilo") not in visuais.ESTILOS_IA or pixel or post:
+        return set()
+    cenas = roteiro["cenas"]
+    candidatas = [i for i, c in enumerate(cenas, 1) if c.get("ilustracao") and not c.get("codigo") and not c.get("arquivo")]
+    if not candidatas:
+        return set()
+    limite = max(int(roteiro.get("max_imagens_ia", 4)), 1)
+    escolhidas = [i for i in candidatas if cenas[i - 1].get("imagem")][:limite]
+    if len(escolhidas) < limite:
+        resto = [i for i in candidatas if i not in escolhidas]
+        falta = min(limite - len(escolhidas), len(resto))
+        # espalha: primeira, última e as do meio, para a imagem mudar ao longo do vídeo
+        passo = (len(resto) - 1) / max(falta - 1, 1)
+        escolhidas += [resto[round(k * passo)] for k in range(falta)]
+    return set(escolhidas)
+
+
+def _cabecalho(roteiro: dict, indice: int) -> tuple[str, list[str]] | None:
+    """Edição dossiê: etiqueta no topo de toda cena e o título da tela na 1ª ("titulo_tela": "linha 1 | linha 2";
+    sem ele, o texto da thumbnail). Imagem realista de IA sempre diz que é ilustração."""
+    if roteiro.get("tema_cards") != "dossie":
+        return None
+    etiqueta = roteiro.get("etiqueta_tela") or (
+        "reconstituição ilustrativa · IA" if roteiro.get("estilo") in visuais.ESTILOS_SINTETICOS else "arquivo · caso real")
+    titulo: list[str] = []
+    if indice == 1:
+        bruto = roteiro.get("titulo_tela") or (roteiro.get("thumbnail") or {}).get("texto") or ""
+        titulo = [p.strip() for p in (bruto if isinstance(bruto, list) else str(bruto).split("|")) if p.strip()]
+    return etiqueta, titulo
+
+
 def _tipo_da_cena(roteiro: dict, indice: int) -> str:
     """'misto' alterna clipe e foto na proporção pedida (proporcao_video = % de cenas com clipe),
     sempre igual para o mesmo roteiro, para o cache das cenas continuar valendo."""
@@ -163,6 +198,16 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         (obra / sub).mkdir(parents=True, exist_ok=True)
 
     usados: set = set()
+    # dossiê com imagem de IA: só as cenas de impacto são desenhadas, já em paralelo com a narração
+    ia_cenas, ia_pedidos = _plano_ia(roteiro, pixel, post), {}
+    if ia_cenas:
+        from concurrent.futures import ThreadPoolExecutor
+        desenhista = ThreadPoolExecutor(max_workers=1)  # a placa de vídeo só desenha um por vez
+        for k in sorted(ia_cenas):
+            ia_pedidos[k] = desenhista.submit(visuais.ilustracao_local, roteiro["cenas"][k - 1]["ilustracao"],
+                                              roteiro.get("personagem", ""), k, obra / "visuais", largura, altura,
+                                              estilo, slug, pixel)
+        desenhista.shutdown(wait=False)
     arquivos_cena, duracoes, visuais_usados = [], [], []
     efeitos: list[tuple[float, str]] = []  # (segundo no vídeo, som)
     total = len(roteiro["cenas"])
@@ -180,7 +225,12 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         visual, depois_img = None, None
         # palco: a cena é programada em código (cenas/<slug>.py), sem desenho de IA nem busca de mídia
         palco = (config.RAIZ / roteiro["palco"]) if roteiro.get("palco") and pixel and not post else None
-        if palco is None and estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):
+        if ia_cenas:
+            if not c.get("codigo") and not c.get("arquivo"):
+                # cena sem imagem própria reaproveita a última imagem desenhada (outro enquadramento no render)
+                fonte = max((k for k in ia_cenas if k <= i), default=min(ia_cenas))
+                visual = ia_pedidos[fonte].result()
+        elif palco is None and estilo in visuais.ESTILOS_IA and c.get("ilustracao") and not c.get("arquivo"):
             visual = visuais.ilustracao_local(c["ilustracao"], roteiro.get("personagem", ""), i, obra / "visuais",
                                               largura, altura, estilo, slug, pixel)
             if visual is not None and c.get("ilustracao_depois"):  # o mesmo objeto depois da mudança
@@ -189,11 +239,15 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         # cena viva: câmera, partículas e etiquetas presas ao objeto (pixel art em tela cheia)
         viva = (visual is not None and pixel and not post and roteiro.get("cena_viva", True)
                 and visual.suffix.lower() in visuais.EXT_IMAGEM)
-        if visual is None and palco is None:
+        if visual is None and palco is None and not (c.get("codigo") and not post):
             visual = visuais.visual_da_cena(c, i, caminho.parent, obra / "visuais", largura, altura,
                                             _tipo_da_cena(roteiro, i), usados)
         dur_cena = render.duracao(audio) + pausa
         inicio_cena = sum(duracoes)
+        if c.get("codigo") and not post and visual is None and palco is None:  # mapa, diagrama, escala ou ficha
+            from .cenas_codigo import gerar as gerar_codigo
+            visual = gerar_codigo(c["codigo"], dur_cena, largura, altura, obra / "visuais" / f"{i:02d}-codigo.mp4",
+                                  roteiro.get("legenda_cor", "#5CF2E0"))
         if i > 1:
             efeitos.append((inicio_cena, "whoosh"))  # transição entre cenas
         card = None
@@ -203,6 +257,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             tema = roteiro.get("tema_cards")
             if tema and tema != "padrao" and "tema" not in c["animacao"]:  # tema de edição do canal
                 c["animacao"] = {**c["animacao"], "tema": tema}
+            if c["animacao"].get("tema") == "dossie" and "destaque" not in c["animacao"]:  # cor do próprio canal
+                c["animacao"] = {**c["animacao"], "destaque": roteiro.get("legenda_cor", "#5CF2E0")}
             alvos = c["animacao"].get("em") or alvos_automaticos(c["animacao"])
             gatilhos, depois = [], 0.0
             for alvo in alvos:  # cada elemento procura a sua palavra; sem achar, fica com o tempo padrão
@@ -211,7 +267,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                 depois = t if t is not None else depois
             gatilhos = gatilhos if any(g is not None for g in gatilhos) else None
             card = (gerar(c["animacao"], dur_cena, largura, altura, obra / "visuais" / f"{i:02d}-animacao.mov",
-                          gatilhos), *posicao(largura, altura))
+                          gatilhos), *posicao(largura, altura, c["animacao"]), c["animacao"].get("tema") == "dossie")
             efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,
                                                                       dur_cena, gatilhos)]
         narrador = None
@@ -290,7 +346,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                  fonte=roteiro.get("legenda_fonte", "Arial Black"),
                                  escala=TAMANHOS_LEGENDA.get(roteiro.get("legenda_tamanho", "media"), 1.0),
                                  cor=roteiro.get("legenda_cor", "#FFE500"),
-                                 palavra=palavra, termo=termo, rotulos=rotulos, grupo=grupo, selo=selo)
+                                 palavra=palavra, termo=termo, rotulos=rotulos, grupo=grupo, selo=selo,
+                                 cabecalho=_cabecalho(roteiro, i))
         # a cena só é refeita se áudio, visual ou legenda mudarem
         assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
@@ -324,7 +381,9 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                         "nome": roteiro.get("canal_nome", perfil.dados.get("nome")),
                         "arroba": roteiro.get("selo", perfil.dados.get("arroba")),
                         "avatar": garantir_foto(perfil), "pixel": pixel,
-                        "cor": None if perfil.id == PULGA else cores_canal(perfil.dados)[0]} if post else None)
+                        "cor": None if perfil.id == PULGA else cores_canal(perfil.dados)[0]} if post else None,
+                  # a barra amarela é da pulga; os outros canais usam a cor de destaque da própria legenda
+                  cor_barra="#FFD400" if perfil.id == PULGA else roteiro.get("legenda_cor", "#FFD400"))
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)
