@@ -28,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 from . import config
 from .render import FFMPEG, FPS
 
-VERSAO = 3
+VERSAO = 4
 _F = "C:/Windows/Fonts/"
 MONO = _F + "consola.ttf"
 MONO_FORTE = _F + "consolab.ttf"
@@ -84,7 +84,7 @@ def _fundo(w: int, h: int, grade: bool = True) -> Image.Image:
 
 def _titulo(d: ImageDraw.ImageDraw, w: int, h: int, texto: str, destaque, alfa: float = 1.0) -> None:
     if texto and alfa > 0.01:
-        d.text((w * 0.06, h * 0.13), str(texto).upper(), font=_fonte(FORTE, h * 0.024),
+        d.text((w * 0.075, h * 0.175), str(texto).upper(), font=_fonte(FORTE, h * 0.024),
                fill=destaque + (int(255 * alfa),))
 
 
@@ -295,7 +295,7 @@ class _Ficha:
         w, h, c = self.w, self.h, self.c
         img = self.base.copy()
         d = ImageDraw.Draw(img, "RGBA")
-        x0, x1, y = w * 0.07, w * 0.93, h * 0.2
+        x0, x1, y = w * 0.075, w * 0.925, h * 0.22
         entra = _suave(t / 0.4)
         d.rounded_rectangle([x0, y, x1, y + h * (0.08 + 0.065 * len(self.campos))], radius=16,
                             fill=(16, 22, 40, int(235 * entra)), outline=(255, 255, 255, int(50 * entra)), width=2)

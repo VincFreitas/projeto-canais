@@ -208,6 +208,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                               roteiro.get("personagem", ""), k, obra / "visuais", largura, altura,
                                               estilo, slug, pixel)
         desenhista.shutdown(wait=False)
+    # dossiê: as cenas se fundem na junção (sem a entrada pelo preto de cada cena)
+    dossie = roteiro.get("tema_cards") == "dossie" and not post
     arquivos_cena, duracoes, visuais_usados = [], [], []
     efeitos: list[tuple[float, str]] = []  # (segundo no vídeo, som)
     total = len(roteiro["cenas"])
@@ -349,7 +351,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                                  palavra=palavra, termo=termo, rotulos=rotulos, grupo=grupo, selo=selo,
                                  cabecalho=_cabecalho(roteiro, i))
         # a cena só é refeita se áudio, visual ou legenda mudarem
-        assinatura = {"render": render.VERSAO, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
+        assinatura = {"render": render.VERSAO, "transicao": not viva and not dossie, "card": [str(card[0]), card[0].stat().st_mtime] if card else None,
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa, "pixel": pixel,
                       "movimento": c.get("movimento"),
@@ -359,7 +361,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             duracoes.append(render.duracao(saida_cena))
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
-                                        narrador, pixel, c.get("movimento"), transicao=not viva))
+                                        narrador, pixel, c.get("movimento"), transicao=not viva and not dossie))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
 
@@ -372,7 +374,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
                   # no palco, o nome do canal já vai na barra de peças, no lugar do selo
-                  selo=None if roteiro.get("palco") else roteiro.get("selo"), efeitos=sfx,
+                  # no dossiê, o topo já tem a etiqueta e o título (o selo cairia por cima deles)
+                  selo=None if roteiro.get("palco") or dossie else roteiro.get("selo"), efeitos=sfx,
                   # a pulga narradora já faz o papel do mascote do canto; a pulga é só do Pulga do Saber,
                   # os outros canais levam a própria foto (emblema do tema) no canto
                   mascote=(roteiro.get("mascote", not roteiro.get("narrador")) and
@@ -383,7 +386,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                         "avatar": garantir_foto(perfil), "pixel": pixel,
                         "cor": None if perfil.id == PULGA else cores_canal(perfil.dados)[0]} if post else None,
                   # a barra amarela é da pulga; os outros canais usam a cor de destaque da própria legenda
-                  cor_barra="#FFD400" if perfil.id == PULGA else roteiro.get("legenda_cor", "#FFD400"))
+                  cor_barra="#FFD400" if perfil.id == PULGA else roteiro.get("legenda_cor", "#FFD400"),
+                  dissolver=0.3 if dossie else 0.0)
     from .musica import _liberadas, salvar_credito
     licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {})         if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
     salvar_credito(video, faixa or "sem música", licenca)

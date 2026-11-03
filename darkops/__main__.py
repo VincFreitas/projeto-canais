@@ -386,6 +386,17 @@ def cmd_atualizar_dependencias(a):
         print("\npara atualizar: python -m darkops atualizar-dependencias --aplicar")
 
 
+def cmd_roteiro_auditar(a):
+    """Confere gancho, estrutura (problema, solução, prova) e CTA do roteiro. A leva roda até sair sem erro."""
+    from .auditoria import relatorio
+    passou = True
+    for nome in a.roteiros:
+        ok, texto = relatorio(Path(nome))
+        print(texto)
+        passou = passou and ok
+    sys.exit(0 if passou else 1)
+
+
 def cmd_palco_testar(a):
     """Desenha alguns quadros de cada cena do palco, sem gravar vídeo: acusa erro no módulo antes da produção.
     É o único comando Python que a leva automática pode rodar (em vez de qualquer código)."""
@@ -772,6 +783,10 @@ def main():
     s = sub.add_parser("atualizar-dependencias", help="verifica (e atualiza) pacotes Python, yt-dlp, n8n e Claude Code")
     s.add_argument("--aplicar", action="store_true")
     s.set_defaults(fn=cmd_atualizar_dependencias)
+
+    s = sub.add_parser("roteiro-auditar", help="confere gancho, estrutura e CTA de roteiros (sai com erro se faltar algo)")
+    s.add_argument("roteiros", nargs="+")
+    s.set_defaults(fn=cmd_roteiro_auditar)
 
     s = sub.add_parser("palco-testar", help="desenha alguns quadros de cada cena do palco de um roteiro (sem gravar)")
     s.add_argument("roteiro")

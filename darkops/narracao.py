@@ -313,7 +313,7 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
          f"&H00FFFFFF,&H00101010,&H96000000,-1,0,0,0,100,100,2,0,1,{int(largura * 0.014)},4,5,40,40,0,1"),
         # termo técnico fixo no topo ("Esse é o tungstênio")
         (f"Style: Termo,Arial Black,{int(largura * 0.075)},{_cor_ass(cor)},&H00FFFFFF,&H00101010,&H96000000,"
-         f"-1,0,0,0,100,100,1,0,1,{int(largura * 0.008)},3,8,40,40,{int(altura * 0.12)},1"),
+         f"-1,0,0,0,100,100,1,0,1,{int(largura * 0.008)},3,8,40,40,{int(altura * (0.165 if cabecalho else 0.12))},1"),
         # etiqueta presa ao objeto: caixa branca (BorderStyle 3) com texto escuro
         (f"Style: Rotulo,Arial Black,{int(largura * 0.036)},{texto_rotulo},&H00FFFFFF,{caixa_rotulo},{caixa_rotulo},"
          f"-1,0,0,0,100,100,0,0,3,{int(largura * 0.012)},0,5,0,0,0,1"),
@@ -382,12 +382,12 @@ def legenda_ass(palavras: list[dict], largura: int, altura: int, duracao: float,
     if cabecalho and vertical:
         etiqueta, titulo = cabecalho
         tam = int(largura * 0.074)
-        y = int(altura * 0.045)
+        y = int(altura * 0.135)  # área segura: o Reels cobre ~250 px do topo
         for k, linha in enumerate(titulo[:2]):
             cor_linha = _cor_ass(cor) if k == len(titulo[:2]) - 1 and len(titulo[:2]) > 1 else "&H00FFFFFF"
             linhas.append(f"Dialogue: 5,{_tempo(0)},{_tempo(duracao)},Base,,0,0,0,,"
                           f"{{\\an8\\pos({largura // 2},{y})\\fnArial Black\\fs{tam}\\bord{max(int(largura * 0.004), 2)}"
-                          f"\\shad3\\c{cor_linha}&\\fad(120,0)}}{_escapar(linha.upper())}")
+                          f"\\shad3\\c{cor_linha}&}}{_escapar(linha.upper())}")
             y += int(tam * 1.12)
         if etiqueta:
             y += int(altura * 0.004) if titulo else 0

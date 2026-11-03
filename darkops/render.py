@@ -333,15 +333,33 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
 
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
            selo: str | None = None, efeitos: Path | None = None, mascote: bool | Path = False,
-           post: dict | None = None, cor_barra: str = "#FFD400") -> None:
+           post: dict | None = None, cor_barra: str = "#FFD400", dissolver: float = 0.0) -> None:
     """Concatena as cenas, põe a barra de progresso (na cor do canal) e o selo do canal (só no vertical) e normaliza o
-    volume para -14 LUFS (padrão das plataformas)."""
+    volume para -14 LUFS (padrão das plataformas). dissolver > 0: as cenas se fundem (dissolvência desse tanto de
+    segundos) em vez de corte seco; o áudio não muda de lugar."""
     cor_barra = "0x" + cor_barra.lstrip("#").upper()
     pasta = cenas[0].parent
     lista = pasta / "lista.txt"
     lista.write_text("".join(f"file '{c.name}'\n" for c in cenas), encoding="utf-8")
     junta = pasta / "junta.mp4"
-    rodar(["-f", "concat", "-safe", "0", "-i", lista.name, "-c", "copy", junta.name], cwd=pasta)
+    if dissolver > 0 and len(cenas) > 1:
+        # cada cena segura o último quadro por 'dissolver' s e a próxima nasce por cima dela, no mesmo segundo em
+        # que a sua fala começa: a imagem funde e a narração continua no lugar
+        durs = [duracao(c) for c in cenas]
+        entradas_d = [x for c in cenas for x in ("-i", c.name)]
+        filtros = [f"[{k}:v]tpad=stop_mode=clone:stop_duration={dissolver:.3f},fps={FPS},settb=AVTB[v{k}]"
+                   for k in range(len(cenas))]
+        atual, inicio = "[v0]", 0.0
+        for k in range(1, len(cenas)):
+            inicio += durs[k - 1]
+            filtros.append(f"{atual}[v{k}]xfade=transition=fade:duration={dissolver:.3f}:offset={inicio:.3f}[x{k}]")
+            atual = f"[x{k}]"
+        filtros.append("".join(f"[{k}:a]" for k in range(len(cenas))) + f"concat=n={len(cenas)}:v=0:a=1[a]")
+        rodar([*entradas_d, "-filter_complex", ";".join(filtros), "-map", atual, "-map", "[a]",
+               "-t", f"{sum(durs):.3f}", "-c:v", "libx264", "-preset", "veryfast", "-crf", "16", "-pix_fmt", "yuv420p",
+               "-c:a", "aac", "-b:a", "192k", junta.name], cwd=pasta)
+    else:
+        rodar(["-f", "concat", "-safe", "0", "-i", lista.name, "-c", "copy", junta.name], cwd=pasta)
 
     total = duracao(junta)
     if musica == "ambiente":
@@ -351,6 +369,9 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
     entradas = ["-i", str(junta)]
     fontes, partes = ["[0:a]"], []
+    if efeitos:  # a voz é a chave do compressor: o efeito baixa enquanto ela fala e fica forte só nas pausas
+        partes.append("[0:a]asplit=2[voz][chave_fx]")
+        fontes[0] = "[voz]"
     if musica:
         fim = max(total - 3, 0)
         entradas += ["-stream_loop", "-1", "-i", str(musica)]
@@ -358,7 +379,9 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         fontes.append("[m]")
     if efeitos:
         entradas += ["-i", str(efeitos)]
-        partes.append(f"[{len(fontes)}:a]volume=1.0[fx]")
+        # sob a fala o efeito cai uns 12 dB (ataque rápido para não pisar na palavra)
+        partes.append(f"[{len(fontes)}:a]volume=1.0[fxb];"
+                      "[fxb][chave_fx]sidechaincompress=threshold=0.015:ratio=12:attack=3:release=180:makeup=1[fx]")
         fontes.append("[fx]")
     if len(fontes) > 1:
         partes.append(f"{''.join(fontes)}amix=inputs={len(fontes)}:duration=first:dropout_transition=0:"

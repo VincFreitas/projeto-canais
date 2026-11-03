@@ -88,6 +88,8 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
     from .perfis import resumo_persona
     d = perfil.dados
     persona = resumo_persona(d)
+    from .auditoria import referencias_de_voz
+    voz = referencias_de_voz(perfil)
     antes = set(perfil.fila.glob("*.json"))
     existentes = sorted(p.stem for p in [*antes, *perfil.publicados.glob("*.json")])
     pedido = (
@@ -100,6 +102,10 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         + mercados.instrucao_roteiro(d)
         + (f"Personalidade do canal (siga à risca): {persona} " if persona else "")
         + f"Nível de edição do canal: {d.get('edicao', 'pro')}. "
+        + ("Voz do canal: escreva no ritmo e no jeito destas narrações que funcionaram no próprio canal (não copie "
+           "frases): " + " | ".join(f"«{t}»" for t in voz) + " " if voz else "")
+        + "Estrutura obrigatória: gancho de até 14 palavras sem abertura genérica, problema, solução, prova (dado com "
+        "fonte) e CTA com palavra-chave em MAIÚSCULAS. "
         + ("Edição dossiê (tema_cards dossie): use os painéis, citações e checklists do dossiê de docs/roteiro.md, "
            "escreva titulo_tela, marque imagem: true com ilustracao em até 4 cenas de impacto e ponha codigo (mapa, "
            "diagrama, escala ou ficha) em 3 a 6 cenas; não escreva palco 3D. "
@@ -108,7 +114,8 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         "com \"aprovado\": false, e \"notas_roteiro\" preenchido. No formato explicativo, escreva também o palco 3D "
         "cenas/<slug>.3d.js (padrão do canal; o 2D cenas/<slug>.py só se o 3D não der) e teste "
         f"com: .venv\\Scripts\\python.exe -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "
-        "até sair sem erro antes de terminar. Não produza o vídeo, não publique nada e não faça commit."
+        "até sair sem erro antes de terminar. Rode também .venv\\Scripts\\python.exe -m darkops roteiro-auditar "
+        f"perfis/{perfil.id}/fila/<arquivo>.json e corrija o roteiro até sair sem erro. Não produza o vídeo, não publique nada e não faça commit."
     )
     # o Claude lê páginas da internet: só pode gravar na fila do perfil e em cenas/, e só roda o teste do palco
     fila = f"perfis/{perfil.id}/fila"
@@ -116,6 +123,8 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
         f"Write({fila}/**)", f"Edit({fila}/**)", "Write(cenas/**)", "Edit(cenas/**)",
         "Bash(.venv/Scripts/python.exe -m darkops palco-testar:*)",
+        "Bash(.venv/Scripts/python.exe -m darkops roteiro-auditar:*)",
+        r"Bash(.venv\Scripts\python.exe -m darkops roteiro-auditar:*)",
         r"Bash(.venv\Scripts\python.exe -m darkops palco-testar:*)"), timeout=30 * 60)
     novos = sorted(set(perfil.fila.glob("*.json")) - antes)
     if not novos:

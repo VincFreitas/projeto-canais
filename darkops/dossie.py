@@ -38,7 +38,7 @@ ALERTA = (255, 84, 84)
 SAIDA_S = 0.3
 
 # áreas da tela (proporção): a legenda do modo grupo fica perto de 0,70 da altura
-TOPO = 0.15  # abaixo do título e da etiqueta do topo
+TOPO = 0.2  # abaixo da etiqueta do topo (área segura do Reels: ~250 px)
 LINHA_PAINEL = 0.555  # caixinhas do "painel", logo acima da legenda
 
 
@@ -119,7 +119,7 @@ class _Painel:
         alt = h * 0.085 * grande
         d = ImageDraw.Draw(c)
         for k, item in enumerate(self.itens):
-            x0 = w * 0.06 if (n > 1 and k == 0) else (w * 0.94 - larg if n > 1 else (w - larg) / 2)
+            x0 = w * 0.075 if (n > 1 and k == 0) else (w * 0.925 - larg if n > 1 else (w - larg) / 2)
             y0 = h * LINHA_PAINEL
             inicio = max(min(0.2 + 0.15 * k, self.fins[k] - 0.6), 0.0)
             entra = _suave((t - inicio) / 0.35)
@@ -180,7 +180,7 @@ class _Citacao:
         if entra <= 0.01:
             return
         fonte = _fonte(TEXTO, h * 0.024)
-        x0, x1 = w * 0.06, w * 0.94
+        x0, x1 = w * 0.075, w * 0.925
         linhas = _quebrar(f"“{a.get('texto', '')}”", fonte, x1 - x0 - w * 0.08, d)[:5]
         alt = h * (0.05 + 0.03 * len(linhas) + (0.018 if a.get("detalhe") else 0))
         y0 = h * TOPO + (1 - entra) * 24
@@ -220,7 +220,7 @@ class _Checklist:
         entra = _suave((t - 0.1) / 0.35)
         if entra <= 0.01:
             return
-        x0, x1, y = w * 0.06, w * 0.94, h * TOPO
+        x0, x1, y = w * 0.075, w * 0.925, h * TOPO
         _escrever(d, (x0, y), str(a.get("titulo", "")).upper(), _fonte(FORTE, h * 0.022), self.destaque, entra)
         if a.get("subtitulo"):
             _escrever(d, (x0, y + h * 0.032), a["subtitulo"], _fonte(MONO, h * 0.012), CINZA, entra)
@@ -234,7 +234,7 @@ class _Checklist:
             _escrever(d, (x0 + w * 0.04, y + h * 0.0225), str(item), fonte, BRANCO, aparece, "lm")
             feito = _suave((t - self.marcas[k]) / 0.2)
             if feito > 0.01:
-                cx, cy, r = x1 - w * 0.06, y + h * 0.0225, h * 0.009 * (0.6 + 0.4 * feito)
+                cx, cy, r = x1 - w * 0.075, y + h * 0.0225, h * 0.009 * (0.6 + 0.4 * feito)
                 d.line([(cx - r, cy), (cx - r * 0.3, cy + r * 0.7), (cx + r, cy - r * 0.8)],
                        fill=self.destaque + (int(255 * feito),), width=max(int(h * 0.0035), 3), joint="curve")
             y += h * 0.054
@@ -294,7 +294,7 @@ class _Legado:
         entra = _suave((t - 0.1) / 0.35)
         if entra <= 0.01:
             return
-        x0, y0 = int(self.w * 0.06), int(self.h * TOPO)
+        x0, y0 = int(self.w * 0.075), int(self.h * TOPO)
         d = ImageDraw.Draw(c)
         _caixa(d, x0, y0, x0 + self.cw, y0 + self.ch, entra)
         miolo = Image.new("RGBA", (self.cw, self.ch), (0, 0, 0, 0))
