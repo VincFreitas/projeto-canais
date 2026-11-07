@@ -23,7 +23,7 @@
     <li data-etapa="estudio"><i></i><span>Estúdio</span><b>pronto</b></li>
     <li data-etapa="n8n"><i></i><span>n8n (postagem 12h e 19h)</span><b>conferindo…</b></li>
     <li data-etapa="nuvem"><i></i><span>Nuvem (PC desligado)</span><b>conferindo…</b></li>
-    <li data-etapa="whatsapp"><i></i><span>WhatsApp</span><b>conferindo…</b></li>
+    {% if whatsapp_visivel %}<li data-etapa="whatsapp"><i></i><span>WhatsApp</span><b>conferindo…</b></li>{% endif %}
   </ul>
   <div class="abertura-barra"><span></span></div>
   <p class="abertura-versao">v{{ autoria.VERSAO }} · por {{ autoria.AUTOR }}</p>
@@ -43,8 +43,8 @@
       () => marcar('n8n', e.n8n === 'ligado' ? true : e.n8n === 'ligando' ? null : false,
                    {ligado: 'ligado', ligando: 'ligando em segundo plano', desligado: 'desligado'}[e.n8n]),
       () => marcar('nuvem', e.nuvem ? true : false, e.nuvem ? 'de reserva' : 'desligada'),
-      () => marcar('whatsapp', e.whatsapp === 'ligado' ? true : e.whatsapp === 'ligando' ? null : false,
-                   {ligado: 'conectado', ligando: 'conectando…', desligado: 'desligado'}[e.whatsapp]),
+      {% if whatsapp_visivel %}() => marcar('whatsapp', e.whatsapp === 'ligado' ? true : e.whatsapp === 'ligando' ? null : false,
+                   {ligado: 'conectado', ligando: 'conectando…', desligado: 'desligado'}[e.whatsapp]),{% endif %}
     ];
     passos.forEach((f, i) => setTimeout(f, calmo ? 0 : 400 + i * 200));
   }).catch(() => {});

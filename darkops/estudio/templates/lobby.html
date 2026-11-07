@@ -88,7 +88,7 @@
       <h2>Atalhos</h2>
       <div class="acoes">
         <a class="botao pequeno secundario" href="{{ url_for('progresso') }}">Progresso da configuração</a>
-        <a class="botao pequeno secundario" href="{{ url_for('whatsapp_pagina') }}">WhatsApp</a>
+        {% if whatsapp_visivel %}<a class="botao pequeno secundario" href="{{ url_for('whatsapp_pagina') }}">WhatsApp</a>{% endif %}
         <a class="botao pequeno secundario" href="{{ url_for('configuracoes') }}">Configurações</a>
         <a class="botao pequeno secundario" href="{{ url_for('sobre') }}">Sobre o projeto</a>
       </div>

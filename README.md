@@ -32,7 +32,7 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 <img src="docs/img/o-que-funcionou.png" width="760" alt="Tela O que funcionou: os vídeos que funcionaram e os que não funcionaram, com nota, e as mudanças aplicadas sozinhas com o botão Desfazer (dados de exemplo)">
 
-**WhatsApp** (API oficial da Meta). Uma vez para todos os canais: avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, manda cada vídeo novo com **Aprovar/Recusar** e obedece comandos como `status`, `criar 3` e `pausar todos`.
+**WhatsApp** (API oficial da Meta; desligado por enquanto, liga com `DARKOPS_WHATSAPP=1` no `.env`). Uma vez para todos os canais: avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, manda cada vídeo novo com **Aprovar/Recusar** e obedece comandos como `status`, `criar 3` e `pausar todos`.
 
 <img src="docs/img/whatsapp.png" width="760" alt="Tela do WhatsApp: conectado uma vez para todos os canais, com o estado da conversa e os canais que recebem avisos">
 

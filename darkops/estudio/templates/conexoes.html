@@ -158,6 +158,7 @@
 {% endif %}
 
 {% set w = whatsapp %}
+{% if whatsapp_visivel %}
 <section class="grupo" id="whatsapp">
   <div class="conectores">
   <article class="conector {{ 'ok' if w.configurado else 'opcional' }}">
@@ -172,6 +173,7 @@
   </article>
   </div>
 </section>
+{% endif %}
 
 <section class="grupo" id="nuvem">
   <div class="conectores">

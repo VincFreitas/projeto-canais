@@ -262,12 +262,18 @@ def _contexto():
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado(),
-            "whatsapp_ligado": _whatsapp_ligado()}
+            "whatsapp_ligado": _whatsapp_ligado(), "whatsapp_visivel": _whatsapp_visivel()}
 
 
 def _whatsapp_ligado() -> bool:
     from .. import whatsapp
     return whatsapp.configurado()
+
+
+def _whatsapp_visivel() -> bool:
+    """WhatsApp desligado (DARKOPS_WHATSAPP sem 1): some da barra, da abertura, do lobby e do Novo canal."""
+    from .. import whatsapp
+    return whatsapp.ligado()
 
 
 def _avancado() -> bool:
@@ -746,7 +752,7 @@ def _status_whatsapp() -> dict:
     return {"situacao": whatsapp.situacao(), "configurado": whatsapp.configurado(),
             "comandos": whatsapp.recebe_comandos(), "janela": whatsapp.janela_aberta(),
             "guardados": len(estado.get("pendentes", [])), "erro": estado.get("tunel_erro", ""),
-            "inscrito": estado.get("inscrito"), "inscrito_erro": estado.get("inscrito_erro", ""),
+            "ligado": whatsapp.ligado(), "inscrito": estado.get("inscrito"), "inscrito_erro": estado.get("inscrito_erro", ""),
             "recebeu": bool(estado.get("ultima_mensagem")), "modelo": whatsapp._modelo(),
             "modelo_status": estado.get("modelo_status", ""), "modelo_erro": estado.get("modelo_erro", ""),
             "valores": {k: ("" if segredo else env.get(k, "")) for k, segredo in WHATSAPP_CAMPOS},
@@ -765,6 +771,8 @@ def whatsapp_salvar():
     """Salva os dados do WhatsApp (segredo vazio = mantém o salvo), testa mandando uma mensagem e, com o app
     completo, liga os comandos: workflow no n8n, túnel e webhook."""
     from .. import whatsapp
+    if not whatsapp.ligado():
+        return redirect(url_for("whatsapp_pagina"))
     voltar = url_for("whatsapp_pagina")
     novos = {}
     for chave, segredo in WHATSAPP_CAMPOS:
@@ -815,6 +823,8 @@ def _religar_whatsapp() -> None:
 @app.post("/whatsapp/religar")
 def whatsapp_religar():
     from .. import whatsapp
+    if not whatsapp.ligado():
+        return redirect(url_for("whatsapp_pagina"))
     whatsapp.ligar()
     flash("Ligando os comandos do WhatsApp: leva uns 20 segundos.", "ok")
     return redirect(url_for("whatsapp_pagina"))

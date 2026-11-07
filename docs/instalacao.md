@@ -126,6 +126,8 @@ O instalador já fez esta parte: n8n na pasta do projeto, workflow importado e l
 4. Se algo falhar: `.\.venv\Scripts\python.exe -m darkops instalar-apps` refaz o que faltar, e `n8n-workflow --importar` reimporta o workflow (fora das 12h e 19h de Brasília, porque reinicia o n8n).
 
 ## 9. WhatsApp (opcional; uma vez, vale para todos os canais)
+> **Desligado por enquanto (2026-11-07).** Pule esta etapa. O WhatsApp só aparece no Estúdio com `DARKOPS_WHATSAPP=1` no `.env`.
+
 Avisos (vídeo no ar, falha, fila acabando, vídeo novo com Aprovar e Recusar, resumo das 21h) e comandos (`status`, `fila`, `criar 3`, `aprovar`, `pausar`...). Usa a API oficial da Meta com um app **separado** do Instagram (a Meta não aceita "WhatsApp" no nome do app).
 - Abra a tela **WhatsApp** na barra lateral e siga o passo a passo dela (criar o app com o produto WhatsApp, número de teste, o seu número como destinatário, token e App Secret). Os campos são colados lá, nunca no chat.
 - Ao salvar, o Estúdio importa o workflow de comandos no n8n, baixa o `cloudflared` oficial (confere a assinatura da Cloudflare) e registra o webhook. Espere a tela mostrar **ligado**.

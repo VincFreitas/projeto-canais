@@ -23,6 +23,8 @@ Variáveis no .env (nunca no código nem no chat):
   WHATSAPP_VERIFICAR    gerado sozinho (verificação do webhook)
   WHATSAPP_MODELO       nome de um modelo aprovado com 1 variável no corpo (opcional; sem ele, o app cria e usa o
                         modelo "aviso_projeto_canais" assim que a Meta aprovar)
+  DARKOPS_WHATSAPP      1 liga o WhatsApp; sem ele (padrão desde 2026-11-07, decisão do dono) tudo fica desligado
+                        e escondido: nada é enviado nem guardado, sem túnel e sem comandos
   WHATSAPP_CONTA_ID     ID da conta do WhatsApp Business (não é segredo; necessário quando o token não mostra a conta)
 """
 import hashlib
@@ -68,8 +70,13 @@ def _env(nome: str) -> str:
     return os.getenv(nome, "").strip()
 
 
+def ligado() -> bool:
+    """Chave geral. Desligado (padrão), o WhatsApp some das telas e nenhuma função manda, guarda ou recebe nada."""
+    return _env("DARKOPS_WHATSAPP") == "1"
+
+
 def configurado() -> bool:
-    return bool(_env("WHATSAPP_TOKEN") and _env("WHATSAPP_NUMERO_ID") and _numero(_env("WHATSAPP_PARA")))
+    return ligado() and bool(_env("WHATSAPP_TOKEN") and _env("WHATSAPP_NUMERO_ID") and _numero(_env("WHATSAPP_PARA")))
 
 
 def recebe_comandos() -> bool:
@@ -164,8 +171,23 @@ def _destino() -> str:
 
 
 def _mandar(mensagem: dict) -> None:
-    _pedir("POST", f"/{_env('WHATSAPP_NUMERO_ID')}/messages",
-           {"messaging_product": "whatsapp", "recipient_type": "individual", "to": _destino(), **mensagem})
+    """Celular do Brasil: a Meta troca 55 DD 9xxxx-xxxx pelo wa_id sem o 9 e, com o número de teste, só entrega nesse
+    formato. Manda primeiro para o wa_id que a Meta devolveu; se ele não estiver na lista de permissão (131030),
+    volta para o número do .env."""
+    estado = ler_estado()
+    destinos = [d for d in dict.fromkeys([estado.get("wa_id"), estado.get("wa_id_meta"), _numero(_env("WHATSAPP_PARA"))]) if d]
+    for i, destino in enumerate(destinos):
+        try:
+            resposta = _pedir("POST", f"/{_env('WHATSAPP_NUMERO_ID')}/messages",
+                              {"messaging_product": "whatsapp", "recipient_type": "individual", "to": destino, **mensagem})
+        except ErroMeta as erro:
+            if erro.codigo == 131030 and i < len(destinos) - 1:
+                continue
+            raise
+        wa_id = ((resposta.get("contacts") or [{}])[0]).get("wa_id", "")
+        if wa_id and wa_id != destino and wa_id != estado.get("wa_id_meta"):
+            _gravar_estado(wa_id_meta=wa_id)  # a próxima mensagem tenta direto o formato da Meta
+        return
 
 
 def _subir_midia(arquivo: Path) -> str:
@@ -872,6 +894,10 @@ def testar() -> str:
     if not configurado():
         raise SystemExit("faltam WHATSAPP_TOKEN, WHATSAPP_NUMERO_ID ou WHATSAPP_PARA no .env")
     numero = _pedir("GET", f"/{_env('WHATSAPP_NUMERO_ID')}?fields=display_phone_number,verified_name")
+    if not janela_aberta():
+        # fora da janela a Meta aceita o texto e só depois descarta (erro 131047 pelo webhook): vai o modelo direto
+        _mandar({"type": "template", "template": {"name": "hello_world", "language": {"code": "en_US"}}})
+        return f"{numero.get('verified_name', '')} ({numero.get('display_phone_number', '')})"
     try:
         _mandar({"type": "text", "text": {"body": "✦ Projeto Canais conectado. Responda *oi* para ver os comandos."}})
     except ErroMeta as erro:

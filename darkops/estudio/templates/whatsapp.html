@@ -6,6 +6,13 @@
   Cada aviso traz o nome do canal; nos comandos, <i>status</i> mostra todos, e <i>canal &lt;nome&gt;</i> escolhe em qual
   os próximos comandos valem (<i>pausar todos</i> e <i>retomar todos</i> valem para todos de uma vez).</p>
 {% set w = whatsapp %}
+{% if not w.ligado %}
+<section class="grupo" id="whatsapp"><div class="cartao" style="max-width:720px">
+  <h3 style="margin-top:0">WhatsApp desligado por enquanto</h3>
+  <p class="suave">Nenhum aviso é mandado nem guardado, e os comandos pelo celular estão parados. As chaves salvas continuam
+    no <code>.env</code>. Para ligar de novo, ponha <code>DARKOPS_WHATSAPP=1</code> no <code>.env</code> e reabra o Estúdio.</p>
+</div></section>
+{% else %}
 <section class="grupo" id="whatsapp">
   <div class="conectores" style="grid-template-columns: minmax(0, 760px)">
   <article class="conector {{ 'ok' if w.configurado else 'falta' }}">
@@ -49,7 +56,8 @@
           seu portfólio empresarial (o mesmo da Página do Facebook) &gt; Criar app.</li>
         <li>No app novo: <b>Casos de uso</b> &gt; WhatsApp &gt; <b>Personalizar</b> &gt; <b>Configuração da API</b>. Copie a
           <b>Identificação do número de telefone</b> (o número de teste grátis serve) e, em <b>Para</b>, cadastre o seu celular
-          (a Meta manda um código pelo WhatsApp para confirmar).</li>
+          (a Meta manda um código pelo WhatsApp para confirmar). Celular do Brasil com o número de teste: cadastre
+          também <b>sem o 9 da frente</b> (55 + DDD + 8 dígitos), senão a Meta aceita as mensagens e não entrega.</li>
         <li>Token permanente: <a href="https://business.facebook.com/settings/system-users" target="_blank" rel="noopener">Usuários
           do sistema ↗</a> &gt; <b>Adicionar</b> (função Administrador) &gt; <b>Atribuir ativos</b> &gt; Apps &gt; o app novo com
           controle total &gt; <b>Gerar token</b> &gt; o app novo, validade <b>Nunca</b>, permissões
@@ -87,5 +95,6 @@
   </div>
   {% endfor %}
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
