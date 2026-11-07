@@ -85,6 +85,59 @@ PAGOS = {
 }
 NOME_SEGURO = re.compile(r"^[\w.-]+$")
 
+# ---------- temas: o seletor mostra primeiro as vozes que combinam com o assunto do canal ----------
+ROTULOS_TEMA = {"misterio": "mistério", "terror": "terror", "curiosidades": "curiosidades", "animais": "animais",
+                "historia": "história", "geopolitica": "geopolítica e notícias", "bizarro": "histórias bizarras",
+                "educativo": "como funciona e ciência"}
+# assunto do canal (preset de config/nichos.json ou texto livre) -> tema; a 1ª regra que bater vale
+REGRAS_TEMA = [
+    ("terror", ["terror", "medo", "assombr", "horror", "sobrenatural", "creepy", "fantasma", "macabr"]),
+    ("misterio", ["mist", "myster", "enigma", "ocult", "conspira", "segredo", "inexplic", "ovni", "alien", "ufo"]),
+    ("bizarro", ["bizarr", "estranh", "inusitad", "weird", "absurd"]),
+    ("geopolitica", ["geopol", "guerra", "polit", "notic", "econom", "pais", "paises", "mundo atual"]),
+    ("historia", ["hist", "antig", "imperi", "civiliza", "arqueolog", "medieval"]),
+    ("animais", ["anima", "bicho", "pet", "natureza", "fauna", "cachorro", "gato"]),
+    ("educativo", ["como funciona", "cienc", "tecnolog", "explic", "fisica", "quimica", "engenharia", "espaco",
+                   "astronom", "inven", "saude", "corpo humano"]),
+    ("curiosidades", ["curios", "fato", "voce sabia", "fun fact"]),
+]
+T = {"mi": "misterio", "te": "terror", "cu": "curiosidades", "an": "animais", "hi": "historia",
+     "ge": "geopolitica", "bi": "bizarro", "ed": "educativo"}
+# o jeito de cada voz (ouvido nas amostras), pelo nome curto; vale para Azure/Edge, Gemini e Chirp
+_TEMAS_VOZ = """
+Thalita=cu,ed,an,hi Francisca=ge,ed Brenda=cu,an Elza=hi,mi Giovanna=cu,an Leila=te,mi Leticia=cu,bi Manuela=an,cu
+Yara=mi,te Antonio=mi,hi,ge Macerio=mi,hi,cu Donato=te,mi Fabio=ge,ed Humberto=hi,ge Julio=cu,bi Nicolau=te,mi
+Valerio=cu,bi Raquel=cu,ed,an Fernanda=hi,ge Duarte=mi,hi,ge Ava=cu,ed,an Emma=cu,an Amanda=ed,ge Phoebe=cu,bi
+Jenny=ed,ge Andrew=mi,hi,ed Brian=cu,bi Adam=mi,te Davis=te,mi Christopher=hi,ge Guy=ge,hi Tony=bi,cu Ada=hi,ed
+Sonia=ge,ed Libby=cu,an Hollie=cu,bi Ollie=cu,ed Ryan=mi,hi Thomas=te,mi Elliot=ge,hi Dalia=cu,ed,an Renata=ge,hi
+Larissa=cu,bi Jorge=mi,hi Gerardo=te,mi Liberto=ge,ed Paloma=cu,ed,an Alonso=mi,hi,ge Arabella=cu,an Ximena=ed,ge
+Isidora=hi,mi Elvira=ge,ed Triana=cu,bi Tristan=mi,te Alvaro=hi,ge Dario=cu,bi Vivienne=cu,ed,an Denise=ge,ed
+Brigitte=hi Remy=mi,te,hi Lucien=ed,cu Henri=mi,hi,ge Alain=te Claude=bi,cu Seraphina=cu,ed Katja=ge,ed Amala=an,cu
+Louisa=cu,bi Florian=mi,hi Conrad=ge,hi Klaus=te,mi Ralf=bi Isabella=cu,ed,an Elsa=ge,ed Fiamma=cu,bi
+Giuseppe=mi,hi Marcello=te,mi Alessio=cu,ed Diego=ge,hi Gianni=bi Gacrux=mi,hi Kore=ge,ed Aoede=cu,an
+Sulafat=an,cu Charon=ed,ge,hi Orus=mi,ge Algenib=te,mi Rasalgethi=hi,mi,ed
+"""
+TEMAS_VOZ = {nome: [T[c] for c in codigos.split(",")]
+             for nome, codigos in (par.split("=") for par in _TEMAS_VOZ.split())}
+
+
+def _sem_acento(texto: str) -> str:
+    import unicodedata
+    return "".join(c for c in unicodedata.normalize("NFD", texto.lower()) if unicodedata.category(c) != "Mn")
+
+
+def tema_de(nicho: str) -> str:
+    """Tema do assunto do canal; sem pista nenhuma, curiosidades (o mais comum nos canais dark)."""
+    texto = _sem_acento(str(nicho or "").replace("-", " "))
+    for tema, palavras in REGRAS_TEMA:
+        if any(p in texto for p in palavras):
+            return tema
+    return "curiosidades"
+
+
+def temas_da_voz(nome: str) -> list[str]:
+    return TEMAS_VOZ.get(nome, [])
+
 
 def _rotulo_azure(voz: str) -> str:
     return voz.split("-", 2)[2].replace("Neural", "").replace("Multilingual", "")
@@ -100,7 +153,7 @@ def azure(cod: str) -> list[dict]:
         voz, g = parte.split(":")
         if not voz.startswith(cod + "-"):
             itens.append({"voz": voz, "genero": g, "fora": True})
-    return [{**i, "motor": "auto", "nome": _rotulo_azure(i["voz"]),
+    return [{**i, "motor": "auto", "nome": _rotulo_azure(i["voz"]), "temas": temas_da_voz(_rotulo_azure(i["voz"])),
              "nota": f"voz {PAIS.get(i['voz'][:5], i['voz'][:5])}, sotaque leve" if i.get("fora") else ""}
             for i in itens]
 
@@ -126,7 +179,7 @@ def gratis(cod: str) -> list[dict]:
     piper = narracao.VOZES_PIPER.get(mercados.MERCADOS[cod]["idioma"])
     # Piper só no país do modelo (pt_BR-faber não serve para Portugal)
     if piper and piper.startswith(cod.replace("-", "_")) and (narracao.PASTA_PIPER / f"{piper}.onnx").exists():
-        itens.append({"motor": "piper", "voz": piper, "genero": "", "nome": "Piper (offline)",
+        itens.append({"motor": "piper", "voz": piper, "genero": "", "nome": "Piper (offline)", "temas": [],
                       "nota": "roda no seu PC sem internet; mais robótica"})
     return [{**i, "url": url(_arquivo_gratis(cod, i["motor"], i["voz"]))} for i in itens]
 
@@ -156,7 +209,8 @@ def pagas(cod: str) -> list[dict]:
     saida = []
     for motor, info in PAGOS.items():
         e = estado.get(motor, {}).get(cod, {})
-        vozes = [{**v, "motor": motor, "url": url(_arquivo_pago(cod, motor, v["voz"]))} for v in e.get("vozes", [])]
+        vozes = [{**v, "motor": motor, "temas": v.get("temas") or temas_da_voz(v.get("nome", "")),
+                  "url": url(_arquivo_pago(cod, motor, v["voz"]))} for v in e.get("vozes", [])]
         if e.get("situacao") == "gerando" and time.time() - e.get("inicio", 0) > 1800:
             e = {**e, "situacao": "erro", "erro": "a geração parou no meio; tente de novo"}
         saida.append({"motor": motor, **info, "tem_chave": _tem_chave(motor), "situacao": e.get("situacao", ""),

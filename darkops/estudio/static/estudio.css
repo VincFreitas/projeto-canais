@@ -513,3 +513,9 @@ body.abertura { display: grid; place-items: center; background: radial-gradient(
 .voz-paga-acao { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .voz-paga-acao input { flex: 1 1 260px; margin: 0; }
 .voz-msg { font-size: 13px; color: var(--suave); }
+.vozes-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.vozes-rec { margin: 0; font-size: 14px; color: var(--suave); }
+.vozes-rec b { color: var(--texto); }
+.vozes-mais { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.vozes-mais [hidden], .vozes-pagas[hidden] { display: none; }
+.vozes-pagas { display: grid; gap: 10px; }

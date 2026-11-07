@@ -472,7 +472,8 @@ def voz_gerar():
 
 def _catalogo_vozes() -> dict:
     from .. import vozes
-    return {cod: vozes.catalogo(cod) for cod in mercados.MERCADOS}
+    return {"mercados": {cod: vozes.catalogo(cod) for cod in mercados.MERCADOS},
+            "regras": vozes.REGRAS_TEMA, "rotulos": vozes.ROTULOS_TEMA}
 
 
 # ---------- painel do perfil ----------

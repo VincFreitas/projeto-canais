@@ -85,7 +85,7 @@
         {% endfor %}
         <h2 style="margin-top:22px">Qual voz narra os vídeos?</h2>
         <p class="suave">Toque no ▶ para ouvir e no cartão para escolher. Dá para trocar depois em Ajustes.</p>
-        {{ vozes.seletor(catalogo_vozes, mercado_padrao, 'auto', voz_padrao) }}
+        {{ vozes.seletor(catalogo_vozes, mercado_padrao, 'auto', voz_padrao, auto=True) }}
       </section>
 
       {# 4. plataformas #}
