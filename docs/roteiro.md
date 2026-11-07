@@ -153,7 +153,8 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 | `selo` | cena | Carimbo que bate na tela por 1,6 s: `{"texto": "Vaza água", "tipo": "ruim", "em": "vaza"}`. `ruim` = caixa vermelha (o problema dos "Mas..."), `bom` = caixa verde (a solução no "Pronto"). De 1 a 3 palavras; não use `bom` em cena com `nova_peca` (o aviso NOVA PEÇA! já ocupa o meio da tela) |
 | `termo` (`termo_em`) | cena | O nome técnico ("evaporador") aparece no topo, em caixa alta, no segundo em que é falado, e fica até o fim da cena |
 | `rotulos` | cena | Etiquetas brancas presas ao objeto: `[{"texto": "gás refrigerante", "x": 0.5, "y": 0.6, "em": "refrigerante"}]`. `x` e `y` vão de 0 a 1 na tela, e `em` é a palavra falada que faz a etiqueta aparecer (sem `em`, vale o texto) |
-| `expressao` | cena | Rosto da pulga narradora: `normal`, `feliz`, `surpresa` ou `preocupada` |
+| `expressao` | cena | Rosto da pulga narradora: `normal`, `feliz`, `surpresa`, `preocupada` ou `duvida` |
+| `reacoes` | cena | A pulga já reage sozinha: susto com `!` na palavra-herói (`destaque`), aflição no `selo` `ruim`, estrelinhas no `selo` `bom` e `?` no fim de cada pergunta. Cada reação dura 1,3 s, com um pulinho. Para acrescentar outras: `[{"em": "palavra", "tipo": "surpresa"}]` (tipos de `expressao`) |
 | `personagem` | roteiro | No explicativo, descreve o **cenário fixo** (a mesma cozinha, a mesma caixa) para o objeto ir mudando na mesma cena |
 
 - Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e a pulga desce para o canto de baixo.
@@ -198,7 +199,7 @@ No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops
 ## Estilo cartoon
 
 - `"estilo": "cartoon"`: a legenda vai para baixo da imagem, para não cobrir o personagem.
-- `"narrador": true`: a pulga mascote (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca e balança as antenas.
+- `"narrador": true`: a pulga mascote (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca, balança as antenas e reage ao que é dito (veja `reacoes`).
 - Ilustração de cada cena em `cenas[].arquivo` (ex.: `../midia/<slug>/cena1.png`, relativo à pasta da fila). Para manter o mesmo estilo e personagem, gere a 1ª imagem e use-a como **referência** nas outras, com o mesmo trecho de estilo no prompt: *"Flat 2D cartoon illustration in a clean vector explainer style (Kurzgesagt-inspired): bold simple shapes, soft gradients, vibrant saturated colors, rounded forms, NO text, NO letters, NO watermark"*. Proporção 4:3 para a janela do layout post.
 - Cartoon gerado por IA não é "realista", então não precisa da marcação de conteúdo sintético; mesmo assim, cite no roteiro (`"ilustracoes": "IA"`) para controle.
 

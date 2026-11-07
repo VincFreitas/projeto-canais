@@ -273,16 +273,6 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                           gatilhos), *posicao(largura, altura, c["animacao"]), c["animacao"].get("tema") == "dossie")
             efeitos += [(inicio_cena + t, nome) for t, nome in eventos(c["animacao"], largura, altura,
                                                                       dur_cena, gatilhos)]
-        narrador = None
-        if roteiro.get("narrador") and perfil.id == PULGA:  # pulga que fala junto com a voz: só no Pulga do Saber
-            from .narrador import gerar as gerar_narrador
-            lado = int(largura * (0.19 if altura < largura else 0.26))
-            # com a legenda de uma palavra, o meio de baixo fica livre e a pulga desce para o canto
-            margem = 0.02 if altura < largura else 0.04 if palavra else 0.2
-            y = altura - lado - int(altura * margem)
-            narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov",
-                                       pixel, c.get("expressao", "normal")),
-                        int(largura * 0.01), y)
         destaque = None
         if c.get("destaque") and not c.get("animacao"):  # palavra-herói no segundo em que é falada
             from .sincronia import momento
@@ -311,6 +301,18 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             rotulos.append((r["texto"], float(r.get("x", 0.5)), float(r.get("y", 0.4)), t if t is not None else 0.3))
             rotulos_vivos.append((*rotulos[-1], r.get("alvo")))
             efeitos.append((inicio_cena + rotulos[-1][3], "pop"))
+        narrador = None
+        if roteiro.get("narrador") and perfil.id == PULGA:  # pulga que fala junto com a voz: só no Pulga do Saber
+            from .narrador import gerar as gerar_narrador, reacoes_da_cena
+            lado = int(largura * (0.19 if altura < largura else 0.26))
+            # com a legenda de uma palavra, o meio de baixo fica livre e a pulga desce para o canto
+            margem = 0.02 if altura < largura else 0.04 if palavra else 0.2
+            y = altura - lado - int(altura * margem)
+            # reage na palavra-herói, no carimbo e no fim das perguntas (susto, alegria, aflição, dúvida)
+            narrador = (gerar_narrador(audio, dur_cena, lado, obra / "visuais" / f"{i:02d}-narrador.mov",
+                                       pixel, c.get("expressao", "normal"),
+                                       reacoes_da_cena(c, palavras, destaque, selo)),
+                        int(largura * 0.01), y)
         visuais_usados.append(visual)
         if viva:
             from .cinema import gerar as gerar_cena_viva
