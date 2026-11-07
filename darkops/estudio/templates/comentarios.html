@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block titulo %}Comentários · {{ d.nome }}{% endblock %}
+{% set nomes_cat = {'pergunta': 'pergunta', 'correcao': 'correção de fato', 'ideia': 'ideia de vídeo', 'elogio': 'elogio',
+                    'critica': 'crítica', 'conversa': 'conversa', 'spam': 'spam/ofensa'} %}
+{% set nomes_estado = {'pendente': 'esperando você', 'conferir': 'confira a fonte', 'respondido': 'respondido',
+                       'sem_resposta': 'não precisa', 'novo': 'ainda sem triagem', 'ignorado': 'ignorado'} %}
+{% block corpo %}
+<div class="aprendizado-topo">
+  <div>
+    <h1>Comentários</h1>
+    <p class="suave">A cada 3 horas o canal lê os comentários novos, separa por tipo e escreve uma resposta curta no tom
+      do canal. Você aprova, edita ou ignora. O que o público disse também entra nos Resultados e na análise da IA.</p>
+  </div>
+  <form method="post" action="{{ url_for('comentarios_acao', pid=p.id, acao='buscar') }}"><button class="botao">Buscar agora</button></form>
+</div>
+
+{% for a in dados.avisos %}<p class="aviso erro">{{ a }}
+  {% if 'Liberar comentários' in a %}<form method="post" action="{{ url_for('comentarios_acao', pid=p.id, acao='liberar') }}" style="display:inline">
+    <button class="botao claro">Liberar comentários do YouTube</button></form>{% endif %}</p>{% endfor %}
+
+<section class="cartao" style="margin-bottom:16px">
+  <div class="numeros">
+    <div><b>{{ resumo.coletados }}</b><span>comentários lidos</span></div>
+    <div><b>{{ resumo.esperando }}</b><span>esperando resposta</span></div>
+    <div><b>{{ resumo.respondidos }}</b><span>respondidos</span></div>
+    <div><b>{{ '—' if resumo.positivos_pct is none else resumo.positivos_pct ~ '%' }}</b><span>positivos</span></div>
+    <div><b>{{ '—' if resumo.negativos_pct is none else resumo.negativos_pct ~ '%' }}</b><span>negativos</span></div>
+    <div><b>{{ resumo.perguntas }}</b><span>perguntas</span></div>
+    <div><b>{{ resumo.correcoes }}</b><span>correções de fato</span></div>
+    <div><b>{{ resumo.ideias }}</b><span>ideias de vídeo</span></div>
+  </div>
+  <p class="dica">{{ 'Última busca: ' ~ dados.atualizado if dados.atualizado else 'Ainda não buscou: clique em Buscar agora.' }}</p>
+</section>
+
+<div class="abas-mini">
+  {% for chave, rotulo in [('esperando', 'Esperando você'), ('respondidos', 'Respondidos'), ('sem_resposta', 'Não precisam'), ('ignorados', 'Ignorados'), ('todos', 'Todos')] %}
+  <a class="botao claro {{ 'ativo' if filtro == chave }}" href="{{ url_for('comentarios', pid=p.id, ver=chave) }}">{{ rotulo }}</a>
+  {% endfor %}
+</div>
+
+{% for c in lista %}
+<section class="cartao comentario" style="margin-bottom:10px">
+  <div class="acoes" style="justify-content:space-between">
+    <span><b>{{ c.autor }}</b> · <span class="suave">{{ c.data }} · {{ 'YouTube' if c.plataforma == 'youtube' else 'Instagram' }} ·
+      {{ c.curtidas or 0 }} curtida(s)</span></span>
+    <span>
+      {% if c.categoria %}<span class="selo manual">{{ nomes_cat.get(c.categoria, c.categoria) }}</span>{% endif %}
+      {% if c.sentimento %}<span class="selo {{ 'pronta' if c.sentimento == 'positivo' else 'falta' if c.sentimento == 'negativo' else 'manual' }}">{{ c.sentimento }}</span>{% endif %}
+      <span class="selo {{ 'pronta' if c.estado == 'respondido' else 'falta' if c.estado in ('pendente', 'conferir') else 'manual' }}">{{ nomes_estado.get(c.estado, c.estado) }}</span>
+    </span>
+  </div>
+  <p style="margin:8px 0;white-space:pre-wrap">{{ c.texto }}</p>
+  <p class="dica" style="margin:0">Vídeo: {{ c.video_titulo or c.video_id }} · <a href="{{ c.url }}" target="_blank" rel="noopener">abrir ↗</a>
+    {% if c.ideia %} · ideia: <b>{{ c.ideia }}</b>{% endif %}</p>
+  {% if c.estado == 'respondido' %}
+  <p style="margin:8px 0 0">↳ <b>{{ d.nome }}:</b> {{ c.resposta }} <span class="suave">({{ 'automático' if c.por == 'auto' else 'respondido fora do app' if c.por == 'fora do app' else 'aprovado por você' }}{{ ', ' ~ c.respondido_em if c.respondido_em }})</span></p>
+  {% elif c.estado in ('pendente', 'conferir', 'sem_resposta', 'novo') %}
+  {% if c.estado == 'conferir' %}<p class="aviso erro" style="margin:8px 0">Correção de fato: confira a fonte antes de responder. Se o comentário estiver certo, corrija o roteiro e fixe uma errata.</p>{% endif %}
+  {% if c.erro %}<p class="aviso erro" style="margin:8px 0">Última tentativa falhou: {{ c.erro }}</p>{% endif %}
+  <form method="post" action="{{ url_for('decidir_comentario', pid=p.id, cid=c.id, decisao='responder') }}" style="margin-top:8px">
+    <input type="hidden" name="ver" value="{{ filtro }}">
+    <textarea name="texto" rows="2" maxlength="1000" placeholder="Escreva a resposta">{{ c.rascunho or '' }}</textarea>
+    <div class="acoes" style="margin-top:6px">
+      <button class="botao" {{ 'disabled title="Libere os comentários do YouTube primeiro"' if c.plataforma == 'youtube' and not pode_youtube }}>Responder</button>
+      <button class="botao claro" formaction="{{ url_for('decidir_comentario', pid=p.id, cid=c.id, decisao='ignorar') }}">Ignorar</button>
+    </div>
+  </form>
+  {% elif c.estado == 'ignorado' %}
+  <form method="post" action="{{ url_for('decidir_comentario', pid=p.id, cid=c.id, decisao='reabrir') }}" style="margin-top:8px">
+    <input type="hidden" name="ver" value="{{ filtro }}"><button class="botao claro">Responder mesmo assim</button></form>
+  {% endif %}
+</section>
+{% else %}
+<p class="suave">Nada aqui por enquanto.</p>
+{% endfor %}
+
+{% if ideias %}
+<section class="cartao" style="margin-top:16px">
+  <h2>Ideias de vídeo pedidas pelo público</h2>
+  <ul>{% for i in ideias %}<li><b>{{ i.tema }}</b> <span class="suave">· {{ i.vezes }} pedido(s), {{ i.curtidas }} curtida(s) · “{{ i.exemplo }}”</span></li>{% endfor %}</ul>
+  <p class="dica">Para virar vídeo: Novo vídeo com o tema. A análise da IA também recebe essas ideias.</p>
+</section>
+{% endif %}
+
+<section class="cartao" style="margin-top:16px">
+  <h2>Responder sozinho</h2>
+  <form method="post" action="{{ url_for('comentarios_acao', pid=p.id, acao='auto') }}">
+    <label style="font-weight:400"><input type="radio" name="modo" value="nao" {{ 'checked' if d.get('comentarios_auto', 'nao') != 'simples' }}> Não: toda resposta espera a minha aprovação</label><br>
+    <label style="font-weight:400"><input type="radio" name="modo" value="simples" {{ 'checked' if d.get('comentarios_auto') == 'simples' }}> Sim, só o simples: elogios e perguntas em que a IA tem certeza, até {{ limite_auto }} por dia</label>
+    <div class="acoes" style="margin-top:8px"><button class="botao secundario">Salvar</button></div>
+  </form>
+  <p class="dica">Correções de fato, críticas, spam e ofensas nunca são respondidos sozinhos. Nenhuma resposta leva link ou @.
+    {% if not pode_youtube and d.youtube %}No YouTube, ler e responder pedem uma permissão a mais:
+    <form method="post" action="{{ url_for('comentarios_acao', pid=p.id, acao='liberar') }}" style="display:inline"><button class="botao claro">Liberar comentários do YouTube</button></form>{% endif %}
+    {% if d.instagram %} No Instagram, se os comentários não aparecerem, conecte a conta de novo em Ajustes &gt; Contas (a permissão de comentários foi acrescentada).{% endif %}</p>
+</section>
+{% endblock %}

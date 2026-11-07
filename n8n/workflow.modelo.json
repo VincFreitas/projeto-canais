@@ -274,6 +274,39 @@
         140
       ],
       "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "15 */3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "8707e978-608e-4f1f-90d5-49cc7e1bc10f",
+      "name": "A cada 3 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops comentarios --todos"
+      },
+      "id": "508526b5-438c-417a-ae54-0b725a679d4e",
+      "name": "Comentários: ler e rascunhar",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        960
+      ]
     }
   ],
   "connections": {
@@ -481,6 +514,17 @@
         [
           {
             "node": "Marcar execução com erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A cada 3 horas": {
+      "main": [
+        [
+          {
+            "node": "Comentários: ler e rascunhar",
             "type": "main",
             "index": 0
           }

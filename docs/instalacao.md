@@ -85,7 +85,7 @@ Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
 App OAuth do Google, **um só para todos os canais** (nunca crie um por canal; com o app em modo de teste, cada Gmail de canal entra em Público > Usuários de teste):
 1. console.cloud.google.com, logado na conta do canal: criar o projeto, ativar a **YouTube Data API v3**.
 2. Google Auth Platform: Branding (nome do app, e-mail), Público **Externo**, usuário de teste = o Gmail do canal.
-3. Acesso a dados: adicionar os escopos em "Adicionar escopos manualmente" (o campo de cima é só filtro): `https://www.googleapis.com/auth/youtube.upload` e `https://www.googleapis.com/auth/youtube.readonly`, depois Atualizar e Salvar.
+3. Acesso a dados: adicionar os escopos em "Adicionar escopos manualmente" (o campo de cima é só filtro): `https://www.googleapis.com/auth/youtube.upload` e `https://www.googleapis.com/auth/youtube.readonly` (e, para ler e responder comentários pelo Estúdio, `https://www.googleapis.com/auth/youtube.force-ssl`), depois Atualizar e Salvar.
 4. Para o token não vencer em 7 dias, **publicar o app** (Público > Publicar app). Isso exige página inicial, política de privacidade e termos no Branding: a pasta `site/` tem modelos para publicar no GitHub Pages (workflow `.github/workflows/pages.yml`, Settings > Pages > Source: GitHub Actions **antes** do primeiro push).
 5. Clientes > Criar cliente > **App para computador** > Baixar JSON. Salvar como `credenciais/client_secret.json`.
 6. No Estúdio, Ajustes > Contas > **Conectar YouTube** e escolher a conta do canal (depois de criar o canal no passo 7, ou no canal de exemplo).

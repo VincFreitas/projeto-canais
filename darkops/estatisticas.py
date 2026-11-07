@@ -151,6 +151,7 @@ def coletar(perfil) -> dict:
     for dados in resultado["plataformas"].values():  # nenhum token vai parar no arquivo ou na tela
         dados["avisos"] = [ocultar(x) for x in dados["avisos"]]
     _ligar_roteiros(perfil, resultado)
+    juntar_comentarios(perfil, resultado)
     perfil.controle.mkdir(parents=True, exist_ok=True)
     (perfil.controle / "estatisticas.json").write_text(json.dumps(resultado, ensure_ascii=False, indent=2), encoding="utf-8")
     with (perfil.controle / "estatisticas-historico.jsonl").open("a", encoding="utf-8") as f:
@@ -169,9 +170,22 @@ def _ligar_roteiros(perfil, resultado: dict) -> None:
             v["roteiro"] = por_id.get(v["id"])
 
 
+def juntar_comentarios(perfil, resultado: dict) -> None:
+    """Põe em cada vídeo o resumo dos comentários coletados (sentimento, perguntas, correções, ideias, respondidos)."""
+    from .comentarios import resumo_por_video
+    resumo = resumo_por_video(perfil)
+    for dados in (resultado.get("plataformas") or {}).values():
+        for v in dados["videos"]:
+            v["comentarios_resumo"] = resumo.get(v["id"])
+
+
 def ler(perfil) -> dict:
+    """Números gravados, com o resumo dos comentários sempre atual (a coleta de comentários roda mais vezes)."""
     arquivo = perfil.controle / "estatisticas.json"
-    return json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
+    dados = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
+    if dados:
+        juntar_comentarios(perfil, dados)
+    return dados
 
 
 def totais(dados: dict) -> dict:
@@ -180,11 +194,18 @@ def totais(dados: dict) -> dict:
     for p, d in (dados.get("plataformas") or {}).items():
         vids = d["videos"]
         com_ret = [v["retencao_pct"] for v in vids if v.get("retencao_pct") is not None]
+        res = [v["comentarios_resumo"] for v in vids if v.get("comentarios_resumo")]
+        com_sent = [(r["positivos_pct"], r["negativos_pct"], r["coletados"]) for r in res if r.get("positivos_pct") is not None]
+        peso = sum(n for _, _, n in com_sent)
         saida[p] = {**d["conta"], "n_videos": len(vids),
                     "visualizacoes_videos": sum(v.get("visualizacoes") or 0 for v in vids),
                     "curtidas": sum(v.get("curtidas") or 0 for v in vids),
                     "comentarios": sum(v.get("comentarios") or 0 for v in vids),
                     "compartilhamentos": sum(v.get("compartilhamentos") or 0 for v in vids),
                     "minutos": sum(v.get("minutos") or 0 for v in vids),
-                    "retencao_media": round(sum(com_ret) / len(com_ret), 1) if com_ret else None}
+                    "retencao_media": round(sum(com_ret) / len(com_ret), 1) if com_ret else None,
+                    "positivos_pct": round(sum(p * n for p, _, n in com_sent) / peso) if peso else None,
+                    "negativos_pct": round(sum(g * n for _, g, n in com_sent) / peso) if peso else None,
+                    "perguntas": sum(r["perguntas"] for r in res), "respondidos": sum(r["respondidos"] for r in res),
+                    "esperando": sum(r["esperando"] for r in res)}
     return saida

@@ -49,13 +49,13 @@ Hoje o celular conversa com o projeto pelo **WhatsApp**: avisos, Aprovar/Recusar
 ### Google (YouTube)
 Hoje cada pessoa cria o **próprio** app OAuth ("App para computador"), e por isso nenhuma verificação é necessária. Se o produto passar a usar **um app OAuth do autor** para todos:
 - [ ] Tela de consentimento com domínio verificado, privacidade e termos do produto.
-- [ ] **Verificação do app OAuth**: `youtube.upload`, `youtube.readonly` e `yt-analytics.readonly` são escopos que o Google trata como sensíveis. Pede vídeo de demonstração e justificativa de cada escopo. https://support.google.com/cloud/answer/13463073
+- [ ] **Verificação do app OAuth**: `youtube.upload`, `youtube.readonly`, `youtube.force-ssl` (comentários) e `yt-analytics.readonly` são escopos que o Google trata como sensíveis. Pede vídeo de demonstração e justificativa de cada escopo. https://support.google.com/cloud/answer/13463073
 - [ ] **YouTube API Services Audit**: sem ela, os vídeos enviados pela API ficam privados. Ela também é o caminho para pedir mais cota. https://support.google.com/youtube/contact/yt_api_form
 - [ ] Respeitar a Política de Dados do Usuário (Uso Limitado), já citada na privacidade.
 
 ### Meta (Instagram e WhatsApp)
 Hoje cada pessoa cria o próprio app, e o token vale só para as contas dela (função de administrador ou testador no app).
-- [ ] Para um app do autor servir contas de outras pessoas: **Verificação da Empresa** e **App Review** com **Acesso Avançado** de `instagram_business_basic`, `instagram_business_content_publish` e `instagram_business_manage_insights`. https://developers.facebook.com/docs/instagram-platform/app-review
+- [ ] Para um app do autor servir contas de outras pessoas: **Verificação da Empresa** e **App Review** com **Acesso Avançado** de `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_insights` e `instagram_business_manage_comments`. https://developers.facebook.com/docs/instagram-platform/app-review
 - [ ] WhatsApp em produção (fora do número de teste): número próprio verificado, aprovação do nome de exibição, **modelos de mensagem aprovados** para avisos fora da janela de 24 h e token permanente de usuário do sistema. https://developers.facebook.com/docs/whatsapp/cloud-api/get-started
 - [ ] O URL de exclusão de dados e o de política de privacidade do app apontam para o site.
 

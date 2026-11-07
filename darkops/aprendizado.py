@@ -90,8 +90,19 @@ def _videos_do_ciclo(perfil, arquivos: list[str], estat: dict) -> list[dict]:
                 continue
             item = por_slug.setdefault(slug, {"slug": slug, "titulo": v.get("titulo"), "links": {},
                                               "visualizacoes": 0, "curtidas": 0, "comentarios": 0,
-                                              "compartilhamentos": 0, "retencoes": []})
+                                              "compartilhamentos": 0, "retencoes": [], "ids": [],
+                                              "negativos": 0, "positivos": 0, "classificados": 0, "perguntas": 0,
+                                              "correcoes": 0})
             item["links"][plataforma] = v.get("url")
+            item["ids"].append(v["id"])
+            r = v.get("comentarios_resumo") or {}
+            if r.get("positivos_pct") is not None:  # o que o público disse (comentarios.py)
+                n = r["coletados"] - r.get("spam", 0)  # a porcentagem já é sem o spam
+                item["classificados"] += n
+                item["positivos"] += round(r["positivos_pct"] * n / 100)
+                item["negativos"] += round(r["negativos_pct"] * n / 100)
+            item["perguntas"] += r.get("perguntas", 0)
+            item["correcoes"] += r.get("correcoes", 0)
             for chave in ("visualizacoes", "curtidas", "comentarios", "compartilhamentos"):
                 item[chave] += v.get(chave) or 0
             if v.get("retencao_pct") is not None:
@@ -101,6 +112,10 @@ def _videos_do_ciclo(perfil, arquivos: list[str], estat: dict) -> list[dict]:
         nome, roteiro = slug_de[slug]
         cenas = roteiro.get("cenas") or []
         retencoes = item.pop("retencoes")
+        n = item.pop("classificados")
+        pos, neg = item.pop("positivos"), item.pop("negativos")
+        item["positivos_pct"] = round(100 * pos / n) if n else None
+        item["negativos_pct"] = round(100 * neg / n) if n else None
         retencao = round(sum(retencoes) / len(retencoes), 1) if retencoes else None
         meta = roteiro.get("metadados") or {}
         saida.append({**item, "retencao_pct": retencao, "arquivo": nome,
@@ -114,13 +129,15 @@ def _videos_do_ciclo(perfil, arquivos: list[str], estat: dict) -> list[dict]:
 
 def _pontuar(videos: list[dict]) -> list[dict]:
     """Nota de 0 a 100 pela posição em cada métrica (robusto a um vídeo que explode): visualizações pesam 50%,
-    retenção 30% (quando existe) e engajamento (curtidas, comentários x2, compartilhamentos x3 por visualização) 20%."""
+    retenção 30% (quando existe) e engajamento (curtidas, comentários x2, compartilhamentos x3 por visualização) 20%.
+    Comentários negativos (quando a triagem de comentarios.py já classificou) não contam como engajamento."""
     def posicao(valores: list[float]) -> list[float]:
         ordem = sorted(valores)
         return [100 * ordem.index(v) / max(1, len(ordem) - 1) for v in valores]
 
     vis = posicao([v["visualizacoes"] for v in videos])
-    eng = posicao([(v["curtidas"] + 2 * v["comentarios"] + 3 * v["compartilhamentos"]) / max(1, v["visualizacoes"])
+    eng = posicao([(v["curtidas"] + 2 * v["comentarios"] * (1 - (v.get("negativos_pct") or 0) / 100)
+                    + 3 * v["compartilhamentos"]) / max(1, v["visualizacoes"])
                    for v in videos])
     com_ret = all(v["retencao_pct"] is not None for v in videos)
     ret = posicao([v["retencao_pct"] for v in videos]) if com_ret else [0] * len(videos)
@@ -132,7 +149,7 @@ def _pontuar(videos: list[dict]) -> list[dict]:
 # ---------- IA ----------
 
 def _pedir_ia(perfil, bons: list[dict], ruins: list[dict]) -> dict | None:
-    from .analise import CAMPOS
+    from .analise import CAMPOS, _bloco_comentarios
     from .leva import _claude, rodar_claude
     if not _claude():
         return None
@@ -141,6 +158,7 @@ def _pedir_ia(perfil, bons: list[dict], ruins: list[dict]) -> dict | None:
                                           "tema_cards", "estilo", "horarios", "diretrizes") if d.get(k) is not None}
     resumo = lambda vs: [{k: v.get(k) for k in ("titulo", "gancho", "duracao_s", "cenas", "velocidade", "nota",  # noqa: E731
                                                "visualizacoes", "retencao_pct", "curtidas", "comentarios",
+                                               "positivos_pct", "negativos_pct", "perguntas", "correcoes",
                                                "compartilhamentos", "tags")} for v in vs]
     pedido = (
         "Você é analista de um canal de vídeos curtos. Os vídeos abaixo são do mesmo ciclo de publicação, separados "
@@ -157,6 +175,7 @@ def _pedir_ia(perfil, bons: list[dict], ruins: list[dict]) -> dict | None:
         f"Configuração atual: {json.dumps(config_canal, ensure_ascii=False)}\n"
         f"FUNCIONOU: {json.dumps(resumo(bons), ensure_ascii=False)}\n"
         f"NÃO FUNCIONOU: {json.dumps(resumo(ruins), ensure_ascii=False)}"
+        + _bloco_comentarios(perfil, {i for v in bons + ruins for i in v.get("ids", [])})
     )
     try:
         proc = rodar_claude(pedido, timeout=6 * 60)  # sem ferramentas: só os números que vão no pedido

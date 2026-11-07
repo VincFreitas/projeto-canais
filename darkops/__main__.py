@@ -84,7 +84,7 @@ def cmd_efeitos_baixar(a):
 
 def cmd_autorizar_youtube(a):
     from .publicar import autorizar_youtube, canal
-    arquivo = autorizar_youtube(analytics=getattr(a, "analytics", False))
+    arquivo = autorizar_youtube(analytics=getattr(a, "analytics", False), comentarios=getattr(a, "comentarios", False))
     print(f"token salvo em {arquivo}")
     from .perfis import carregar
     c = canal()
@@ -453,6 +453,28 @@ def cmd_estatisticas(_):
             print(f"  aviso: {aviso}")
 
 
+def cmd_comentarios(a):
+    """Coleta e triagem dos comentários; com --todos, cada perfil ativo (o n8n roda a cada 3 horas)."""
+    import os
+    from . import comentarios
+    from .perfis import carregar, listar
+    perfis = [p for p in listar() if p.dados.get("ativo")] if a.todos else [carregar()]
+    for p in perfis:
+        os.environ["DARKOPS_PERFIL"] = p.id  # tokens e helpers do perfil certo
+        r = comentarios.ciclo(p, ia=not a.sem_ia)
+        print(f"{p.id}: {r['total']} comentário(s), {r['classificados']} classificado(s) agora, "
+              f"{r['esperando']} esperando resposta, {r['respondidos_auto']} respondido(s) no automático")
+        for aviso in r["avisos"]:
+            print(f"  aviso: {aviso}")
+
+
+def cmd_comentario_responder(a):
+    from . import comentarios
+    from .perfis import carregar
+    c = comentarios.responder(carregar(), a.id, a.texto)
+    print(f"ok: respondido no {c['plataforma']}: {c['resposta']}")
+
+
 def cmd_analisar(_):
     from .analise import analisar
     from .perfis import carregar
@@ -787,7 +809,18 @@ def main():
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")
+    s.add_argument("--comentarios", action="store_true", help="também libera responder comentários")
     s.set_defaults(fn=cmd_autorizar_youtube)
+
+    s = sub.add_parser("comentarios", help="busca os comentários novos, classifica pela IA e rascunha respostas")
+    s.add_argument("--todos", action="store_true", help="todos os perfis ativos (o que o n8n roda)")
+    s.add_argument("--sem-ia", action="store_true", help="só busca, sem classificar nem responder")
+    s.set_defaults(fn=cmd_comentarios)
+
+    s = sub.add_parser("comentario-responder", help="publica a resposta de um comentário (o rascunho aprovado)")
+    s.add_argument("id")
+    s.add_argument("--texto", help="outra resposta no lugar do rascunho")
+    s.set_defaults(fn=cmd_comentario_responder)
 
     s = sub.add_parser("abrir", help="abre o Estúdio (o que o atalho da Área de Trabalho roda)")
     s.set_defaults(fn=cmd_abrir)

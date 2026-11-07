@@ -18,16 +18,28 @@ def _token_youtube() -> Path:
 CATEGORIA_EDUCACAO = "27"
 
 
-def autorizar_youtube(analytics: bool = False) -> Path:
+def autorizar_youtube(analytics: bool = False, comentarios: bool = False) -> Path:
     """Abre o navegador uma vez para o dono do canal permitir o acesso e salva o token local.
-    analytics=True pede também a leitura do YouTube Analytics (minutos assistidos e retenção)."""
+    analytics=True pede também a leitura do YouTube Analytics (minutos assistidos e retenção).
+    comentarios=True pede também a permissão de responder comentários (youtube.force-ssl).
+    As permissões extras que o token atual já tem continuam: liberar uma não tira a outra."""
+    from .comentarios import ESCOPO_COMENTARIOS
     from .estatisticas import ESCOPO_ANALYTICS
     from .monetizacao import ESCOPO_RECEITA
     from google_auth_oauthlib.flow import InstalledAppFlow
 
     if not CLIENT_SECRET.exists():
         raise SystemExit(f"falta {CLIENT_SECRET} (baixe o JSON do cliente OAuth no Google Cloud)")
-    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), ESCOPOS + ([ESCOPO_ANALYTICS, ESCOPO_RECEITA] if analytics else []))
+    escopos = list(ESCOPOS)
+    try:
+        anteriores = json.loads(_token_youtube().read_text(encoding="utf-8")).get("scopes") or []
+    except (OSError, ValueError):
+        anteriores = []
+    for extra in ([ESCOPO_ANALYTICS, ESCOPO_RECEITA] if analytics else []) + ([ESCOPO_COMENTARIOS] if comentarios else []) \
+            + [e for e in anteriores if e in (ESCOPO_ANALYTICS, ESCOPO_RECEITA, ESCOPO_COMENTARIOS)]:
+        if extra not in escopos:
+            escopos.append(extra)
+    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), escopos)
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
     # select_account: deixa escolher a conta do Google do canal deste perfil
     cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")

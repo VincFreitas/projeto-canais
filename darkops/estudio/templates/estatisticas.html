@@ -8,6 +8,11 @@
   <div><b>O que funcionou</b><br><span class="suave">A cada 15 vídeos no ar, o canal descobre o que deu certo e se ajusta sozinho.</span></div>
   <span class="link">Ver →</span>
 </a>
+<a class="cartao destaque-aprendizado" href="{{ url_for('comentarios', pid=p.id) }}">
+  <span class="escolha-icone">💬</span>
+  <div><b>Comentários</b><br><span class="suave">O que o público disse em cada vídeo, com respostas prontas para você aprovar.</span></div>
+  <span class="link">{% set esperando = totais.values() | map(attribute='esperando') | select | sum %}{{ (esperando ~ ' esperando · ') if esperando }}Ver →</span>
+</a>
 <div class="acoes" style="margin-bottom:12px">
   <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='atualizar') }}"><button class="botao">Atualizar dados</button></form>
   <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='analisar') }}"><button class="botao secundario">Analisar com a IA</button></form>
@@ -27,6 +32,8 @@
     <div><b>{{ numero(t.compartilhamentos) }}</b><span>compartilhamentos</span></div>
     <div><b>{{ numero(t.minutos) }}</b><span>minutos assistidos</span></div>
     <div><b>{{ numero(t.retencao_media, '%') }}</b><span>retenção média</span></div>
+    {% if t.positivos_pct is not none %}<div><b>{{ numero(t.positivos_pct, '%') }}</b><span>comentários positivos</span></div>
+    <div><b>{{ numero(t.negativos_pct, '%') }}</b><span>comentários negativos</span></div>{% endif %}
   </div>
   {% for a in info.avisos %}<p class="aviso erro" style="margin:8px 0 0">{{ a }}
     {% if 'permissão extra' in a or 'Liberar retenção e receita' in a %}<form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='retencao') }}" style="display:inline">
@@ -100,12 +107,12 @@
   <div style="overflow-x:auto;margin-top:10px">
   <table class="tabela-estat">
     <tr><th>Vídeo</th><th>Data</th><th>Visualizações</th>{% if plataforma == 'instagram' %}<th>Alcance</th>{% endif %}
-      <th>Curtidas</th><th>Comentários</th><th>Compart.</th>{% if plataforma == 'instagram' %}<th>Salvos</th>{% endif %}
+      <th>Curtidas</th><th>Comentários</th><th title="positivos / negativos, entre os comentários lidos">Clima</th><th>Compart.</th>{% if plataforma == 'instagram' %}<th>Salvos</th>{% endif %}
       <th>Minutos</th><th>Duração média</th>{% if plataforma == 'youtube' %}<th>Retenção</th>{% endif %}</tr>
     {% for v in info.videos %}
     <tr><td><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
       <td>{{ v.publicado }}</td><td>{{ numero(v.visualizacoes) }}</td>{% if plataforma == 'instagram' %}<td>{{ numero(v.alcance) }}</td>{% endif %}
-      <td>{{ numero(v.curtidas) }}</td><td>{{ numero(v.comentarios) }}</td><td>{{ numero(v.compartilhamentos) }}</td>
+      <td>{{ numero(v.curtidas) }}</td><td>{{ numero(v.comentarios) }}</td><td>{% set r = v.comentarios_resumo %}{% if r and r.positivos_pct is not none %}<span title="{{ r.perguntas }} pergunta(s), {{ r.correcoes }} correção(ões), {{ r.respondidos }} respondido(s)">{{ r.positivos_pct }}% 👍 · {{ r.negativos_pct }}% 👎</span>{% else %}—{% endif %}</td><td>{{ numero(v.compartilhamentos) }}</td>
       {% if plataforma == 'instagram' %}<td>{{ numero(v.salvos) }}</td>{% endif %}
       <td>{{ numero(v.minutos) }}</td><td>{{ numero(v.duracao_media_s, ' s') }}</td>
       {% if plataforma == 'youtube' %}<td>{{ numero(v.retencao_pct, '%') }}</td>{% endif %}</tr>

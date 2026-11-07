@@ -1569,6 +1569,60 @@ def estatisticas_acao(pid, acao):
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=voltar))
 
 
+@app.get("/p/<pid>/comentarios")
+def comentarios(pid):
+    """Comentários dos vídeos: o que espera resposta (rascunho da IA para aprovar ou editar), o resto e as ideias."""
+    from .. import comentarios as com
+    p = _perfil(pid)
+    filtro = request.args.get("ver", "esperando")
+    if filtro not in ("esperando", "respondidos", "sem_resposta", "ignorados", "todos"):
+        filtro = "esperando"
+    dados = com.ler(p)
+    return render_template("comentarios.html", p=p, d=p.dados, filtro=filtro, lista=com.listar(p, filtro)[:200],
+                           resumo=com.resumo_geral(p), ideias=com.ideias(p), dados=dados,
+                           pode_youtube=com.pode_responder_youtube(p), limite_auto=com.LIMITE_AUTO_DIA)
+
+
+@app.post("/p/<pid>/comentarios/<acao>")
+def comentarios_acao(pid, acao):
+    p = _perfil(pid)
+    voltar = url_for("comentarios", pid=pid)
+    if acao == "auto":
+        modo = request.form.get("modo")
+        p.salvar({"comentarios_auto": "simples" if modo == "simples" else "nao"})
+        flash("Modo automático ligado: só elogios e perguntas simples, até 20 por dia. O resto espera você."
+              if modo == "simples" else "Modo automático desligado: toda resposta espera a sua aprovação.", "ok")
+        return redirect(voltar)
+    comandos = {"buscar": ("Buscar comentários", [["estatisticas"], ["comentarios"]]),
+                "liberar": ("Liberar comentários do YouTube", [["autorizar-youtube", "--comentarios"], ["comentarios", "--sem-ia"]])}
+    if acao not in comandos:
+        abort(404)
+    if acao == "liberar":
+        flash("Abrimos o login do Google: escolha a conta do canal e permita gerenciar os comentários.", "ok")
+    titulo, lista = comandos[acao]
+    job = _iniciar_job(p, titulo, lista)
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=voltar))
+
+
+@app.post("/p/<pid>/comentario/<cid>/<decisao>")
+def decidir_comentario(pid, cid, decisao):
+    from .. import comentarios as com
+    p = _perfil(pid)
+    voltar = url_for("comentarios", pid=pid, ver=request.form.get("ver", "esperando"))
+    if decisao == "responder":
+        try:
+            c = com.responder(p, cid, request.form.get("texto", ""))
+            flash(f"Respondido no {'YouTube' if c['plataforma'] == 'youtube' else 'Instagram'}.", "ok")
+        except SystemExit as erro:
+            flash(str(erro), "erro")
+    elif decisao in ("ignorar", "reabrir"):
+        if not com.decidir(p, cid, "ignorado" if decisao == "ignorar" else "pendente"):
+            flash("Esse comentário já foi respondido ou não existe mais.", "erro")
+    else:
+        abort(404)
+    return redirect(voltar)
+
+
 @app.get("/p/<pid>/aprendizado")
 def aprendizado(pid):
     """O que funcionou e o que não funcionou em cada ciclo de 15 vídeos, e o que mudou sozinho por causa disso."""

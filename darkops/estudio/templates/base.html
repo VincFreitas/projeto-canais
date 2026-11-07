@@ -67,7 +67,7 @@
     {% set trava = ' 🔒' if guiado else '' %}
     <a href="{{ url_for('painel', pid=p.id) }}" class="{{ 'atual' if aba == 'painel' or (aba in ('ver','editar','lotes') and not avancado) }}">Início{{ trava }}</a>
     <a href="{{ url_for('novo', pid=p.id) }}" class="{{ 'atual' if aba == 'novo' }}">Novo vídeo{{ trava }}</a>
-    <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba in ('estatisticas',) or (aba == 'historico' and not avancado) }}">Resultados</a>
+    <a href="{{ url_for('estatisticas', pid=p.id) }}" class="{{ 'atual' if aba in ('estatisticas','comentarios','aprendizado') or (aba == 'historico' and not avancado) }}">Resultados</a>
     <a href="{{ url_for('configurar', pid=p.id) }}" class="{{ 'atual' if aba == 'configurar' or (aba in ('conexoes','identidade_pagina','contas_criar') and not avancado) }}">Ajustes</a>
     {% if avancado %}
     <span class="abas-separador" title="Modo avançado"></span>
