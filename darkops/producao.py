@@ -2,9 +2,10 @@
 import hashlib
 import json
 import random
+import subprocess
 from pathlib import Path
 
-from . import config, narracao, render, visuais
+from . import config, hyperframes, narracao, render, visuais
 from .perfis import TAMANHOS_LEGENDA
 
 PAUSA_PADRAO = 0.35
@@ -169,7 +170,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
               "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
               "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade"),
               "tema_cards": perfil.dados.get("tema_cards"), "edicao": perfil.dados.get("edicao"),
-              "visual_3d": perfil.dados.get("visual_3d")}
+              "visual_3d": perfil.dados.get("visual_3d"), "animacao_motor": perfil.dados.get("animacao_motor")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     _aplicar_edicao(roteiro)
     visuais.ACERVO_NASA = bool(roteiro.get("acervo_nasa", perfil.dados.get("acervo_nasa")))
@@ -289,14 +290,15 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             t = momento(palavras, c.get("destaque_em") or texto)
             if t is not None:
                 destaque = (texto, t)
-                efeitos.append((inicio_cena + t, "thud"))
+                # revelação: o riser cresce e termina no quadro exato em que a palavra-herói bate na tela
+                efeitos += [(inicio_cena + t, "riser"), (inicio_cena + t, "impacto")]
         selo = None
         if c.get("selo"):  # carimbo de problema (vermelho) ou solução (verde) na palavra que o dispara
             from .sincronia import momento
             s = c["selo"]
             t = momento(palavras, s.get("em") or s["texto"])
             selo = (s["texto"], s.get("tipo", "ruim"), t if t is not None else 0.2)
-            efeitos.append((inicio_cena + selo[2], "thud"))
+            efeitos += [(inicio_cena + selo[2], "riser"), (inicio_cena + selo[2], "impacto")]
         termo, rotulos, rotulos_vivos = None, [], []
         if c.get("termo"):  # "Esse é o tungstênio": o nome técnico fica no topo até o fim da cena
             from .sincronia import momento
@@ -339,7 +341,20 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
 
         saida_cena = obra / "cenas" / f"cena{i:02d}.mp4"
         ass = None
-        if usar_legenda:
+        # HyperFrames: a legenda e os destaques saem na camada animada, por cima da cena-base sem legenda
+        hf = roteiro.get("animacao_motor") == "hyperframes" and hyperframes.disponivel()
+        cabecalho = _cabecalho(roteiro, i)
+        if hf:
+            if cabecalho:
+                hf_etiqueta, hf_titulo = cabecalho
+            else:
+                bruto = (roteiro.get("titulo_tela") or (roteiro.get("thumbnail") or {}).get("texto") or "") if i == 1 else ""
+                hf_etiqueta = None
+                hf_titulo = [x.strip() for x in (bruto if isinstance(bruto, list) else str(bruto).split("|")) if x.strip()]
+            hf_dados = {"v": hyperframes.VERSAO, "palavras": palavras, "destaque": destaque, "termo": termo, "selo": selo,
+                        "rotulos": rotulos, "etiqueta": hf_etiqueta, "titulo": hf_titulo, "cor": roteiro.get("legenda_cor"),
+                        "fonte": roteiro.get("legenda_fonte"), "modo": roteiro.get("legenda_modo"), "usar": usar_legenda}
+        if usar_legenda and not hf:
             ass = obra / "cenas" / f"cena{i:02d}.ass"
             narracao.legenda_ass(palavras, largura, altura, dur_cena, ass,
                                  # no cartoon a legenda fica embaixo para não cobrir o personagem
@@ -355,10 +370,35 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
                       "narrador": [str(narrador[0]), narrador[0].stat().st_mtime] if narrador else None, "audio": audio.name, "audio_mtime": audio.stat().st_mtime, "visual": str(visual),
                       "visual_mtime": visual.stat().st_mtime, "pausa": pausa, "pixel": pixel,
                       "movimento": c.get("movimento"),
-                      "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None}
+                      "legenda": hashlib.md5(ass.read_bytes()).hexdigest() if ass else None,
+                      "hyperframes": hashlib.md5(json.dumps(hf_dados, ensure_ascii=False, default=str).encode()).hexdigest()
+                      if hf else None}
         marca = saida_cena.with_suffix(".json")
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
+        elif hf:
+            base = obra / "cenas" / f"base{i:02d}.mp4"
+            dur_base = render.cena(visual, audio, None, base, largura, altura, i, pausa, card, narrador, pixel,
+                                   c.get("movimento"), transicao=not viva and not dossie)
+            try:
+                duracoes.append(hyperframes.cena(
+                    base, palavras if usar_legenda else [], dur_base, largura, altura, i, saida_cena,
+                    cor=roteiro.get("legenda_cor", "#FFE500"), fonte=roteiro.get("legenda_fonte", "Arial Black"),
+                    semente=slug, etiqueta=hf_etiqueta, titulo=hf_titulo, destaque=destaque, termo=termo, selo=selo,
+                    rotulos=rotulos, maximo=1 if palavra and not grupo else 3,
+                    baixo=bool(c.get("animacao")) or estilo in ("cartoon", "pixel"), pixel=pixel, entrada=False))
+            except (RuntimeError, OSError, subprocess.SubprocessError) as erro:  # nunca trava o vídeo: volta ao antigo
+                print(f"  {str(erro)[:200]}\n  cena {i} sem HyperFrames")
+                if usar_legenda:
+                    ass = obra / "cenas" / f"cena{i:02d}.ass"
+                    narracao.legenda_ass(palavras, largura, altura, dur_cena, ass, destaque=destaque, grande=post,
+                                         fonte=roteiro.get("legenda_fonte", "Arial Black"),
+                                         cor=roteiro.get("legenda_cor", "#FFE500"), palavra=palavra, termo=termo,
+                                         rotulos=rotulos, grupo=grupo, selo=selo, cabecalho=cabecalho)
+                duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
+                                            narrador, pixel, c.get("movimento"), transicao=not viva and not dossie))
+                assinatura["hyperframes"] = "falhou"
+            marca.write_text(json.dumps(assinatura), encoding="utf-8")
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
                                         narrador, pixel, c.get("movimento"), transicao=not viva and not dossie))
@@ -370,7 +410,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     print("juntando cenas e mixando áudio")
     faixa = _musica(roteiro, caminho.parent)
     from .sincronia import trilha_efeitos
-    sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav") \
+    sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav", semente=slug) \
         if roteiro.get("efeitos", True) else None
     render.juntar(arquivos_cena, faixa, video, float(roteiro.get("volume_musica", 0.12)),
                   # no palco, o nome do canal já vai na barra de peças, no lugar do selo

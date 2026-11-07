@@ -30,7 +30,7 @@ Um serviço online com várias pessoas (SaaS) **não** faz parte do plano. Ele e
 - [ ] **Domínio próprio**, apontado para o GitHub Pages (Settings > Pages > Custom domain) com HTTPS forçado. Verifique o domínio no Google Search Console (exigido pelo Google para apps OAuth verificados) e no Business Manager da Meta.
 - [ ] **Página do produto**, separada da página do canal Pulga do Saber (que é o site atual): o que faz, prints, requisitos (Windows, Python, Claude Code) e botão de download.
 - [ ] **Textos legais do produto**: a privacidade e os termos de hoje descrevem uma "ferramenta interna" do canal. Para o produto, reescreva dizendo que **os dados ficam no PC de quem usa**, que o autor não recebe nada e que cada pessoa autoriza as próprias contas.
-- [ ] **Licença**: o PolyForm Noncommercial continua valendo. Deixe isso claro na página de download.
+- [ ] **Licença**: o PolyForm Shield continua valendo (uso comercial liberado, produto concorrente não). Deixe isso claro na página de download.
 
 ## 3. Aplicativo para PC (Windows)
 - [x] Atalho, abertura animada, sem janelas de prompt e atualização automática pelo GitHub.

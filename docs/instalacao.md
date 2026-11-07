@@ -70,6 +70,16 @@ Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
 - **Voz: Azure Speech (recomendado, grátis).** Botão **Entrar com a Microsoft e criar a chave** (no card Azure Speech), ou `python -m darkops conectar-azure`. A pessoa só faz o login com o código que aparece. O projeto cria o recurso de voz no nível **grátis F0**, em Brazil South, e salva a chave já testada. Se já existir um F0, ele reaproveita, e nunca cria o S0 pago. Se a conta da Microsoft ainda não tiver assinatura do Azure, a pessoa cria a conta grátis em azure.microsoft.com/free; essa parte é com ela. Para fazer à mão, o caminho continua no próprio card.
 - **Imagens: Pixabay (grátis).** pixabay.com/api/docs mostra a chave depois do login (o Pexels pausou chaves novas). Sem chave de imagens o modo guiado não libera, a menos que o desenho local em pixel art (opcional) esteja instalado.
 - Sem Azure, a voz cai no Edge e no Piper, que já funcionam.
+- **Voz mais natural (opcional): Google Chirp 3 HD.** Grátis até 1 milhão de caracteres por mês (um vídeo de 60 s usa cerca de 900). No card **Google Chirp 3 HD** (Ajustes > Contas > Voz):
+  1. console.cloud.google.com com a conta Google (pode ser o mesmo projeto do YouTube).
+  2. Ligar o faturamento (Faturamento > Vincular conta de faturamento). Isso é com a pessoa: no Brasil o Google costuma cobrar um valor na ativação, tanto no Pix (R$ 200) quanto no cartão (já vimos R$ 125). Ele vira crédito e só volta ao encerrar a conta de faturamento, e o cartão precisa ter esse limite livre. Depois disso, nada é cobrado dentro da cota. Sugira um alerta de orçamento de R$ 1. Sem cartão, fique com o Gemini TTS, que não pede faturamento.
+  3. Ativar a **Cloud Text-to-Speech API**.
+  4. APIs e serviços > Credenciais > Criar credenciais > **Chave de API**, e restringir a chave só à Cloud Text-to-Speech API.
+  5. Colar a chave no card (é testada na hora) e, se quiser, o nome da voz (Charon, Kore, Fenrir...).
+  6. Ajustes > Motor da voz > **Google Chirp 3 HD**.
+- **Voz dirigida por instrução (opcional, para testar): Gemini TTS.** aistudio.google.com/apikey > Criar chave de API, sem faturamento. Colar no card **Gemini TTS**, com voz e estilo opcionais ("documentário de mistério, voz grave"). A cota grátis é pequena (há relatos de 10 pedidos por dia, um por cena), então serve para provar o tom; para a leva diária, prefira o Chirp.
+- **Voz no próprio PC (opcional): Chatterbox.** Sem chave e sem cota, mas lento (cerca de 3 min para 16 s de fala numa placa de 4 GB). Fica em `dados/apps/vozes`, separado do `.venv`.
+- Para ouvir as vozes lado a lado antes de escolher: `.\dark.ps1 comparar-vozes` (arquivos em `saida\vozes-teste`).
 
 ## 5. YouTube (se escolhido; uma vez por instalação, depois um clique por canal)
 App OAuth do Google, **um só para todos os canais** (nunca crie um por canal; com o app em modo de teste, cada Gmail de canal entra em Público > Usuários de teste):

@@ -21,7 +21,9 @@ Variáveis no .env (nunca no código nem no chat):
   WHATSAPP_APP_ID       ID do app da Meta           } só para receber comandos
   WHATSAPP_APP_SECRET   chave secreta do app        }
   WHATSAPP_VERIFICAR    gerado sozinho (verificação do webhook)
-  WHATSAPP_MODELO       nome de um modelo aprovado com 1 variável no corpo (opcional)
+  WHATSAPP_MODELO       nome de um modelo aprovado com 1 variável no corpo (opcional; sem ele, o app cria e usa o
+                        modelo "aviso_projeto_canais" assim que a Meta aprovar)
+  WHATSAPP_CONTA_ID     ID da conta do WhatsApp Business (não é segredo; necessário quando o token não mostra a conta)
 """
 import hashlib
 import hmac
@@ -55,6 +57,8 @@ CAMINHO_WEBHOOK = "/webhook/whatsapp"            # o que a Meta chama (no túnel
 N8N_WEBHOOK = "http://127.0.0.1:5678/webhook/whatsapp-canais"
 ID_WORKFLOW = "whatsappcanais1"
 JANELA_S = 24 * 3600 - 15 * 60                  # janela de atendimento da Meta, com folga
+MODELO_PADRAO = "aviso_projeto_canais"          # modelo de utilidade criado pelo app para avisar fora da janela
+MAX_GUARDADOS = 60
 LIMITE_VIDEO = 16 * 1024 * 1024                 # vídeo no WhatsApp: até 16 MB
 
 
@@ -177,7 +181,7 @@ def _subir_midia(arquivo: Path) -> str:
 
 
 def _guardar(texto: str) -> None:
-    pendentes = ler_estado().get("pendentes", [])[-19:]
+    pendentes = ler_estado().get("pendentes", [])[-(MAX_GUARDADOS - 1):]
     _gravar_estado(pendentes=pendentes + [{"quando": time.strftime("%d/%m %H:%M"), "texto": texto[:900]}])
 
 
@@ -216,8 +220,22 @@ def enviar(texto: str, botoes: list[tuple[str, str]] | None = None, video: Path 
     return False
 
 
+def _modelo() -> str:
+    """O modelo para avisar fora da janela: o do .env ou o criado pelo app, quando a Meta já aprovou."""
+    if _env("WHATSAPP_MODELO"):
+        return _env("WHATSAPP_MODELO")
+    estado = ler_estado()
+    if estado.get("modelo_status") == "PENDING" and time.time() - estado.get("modelo_conferido", 0) > 15 * 60:
+        try:
+            garantir_modelo()
+        except (ErroMeta, OSError):
+            pass
+        estado = ler_estado()
+    return MODELO_PADRAO if estado.get("modelo_status") == "APPROVED" else ""
+
+
 def _fora_da_janela(texto: str) -> bool:
-    modelo = _env("WHATSAPP_MODELO")
+    modelo = _modelo()
     if modelo:
         try:
             _mandar({"type": "template", "template": {
@@ -434,7 +452,10 @@ def _criar(perfil, quantidade: int, tema: str) -> str:
     if (perfil.controle / "leva.trava").exists():
         return "Já tem uma leva criando vídeos neste canal. Aviso quando cada um ficar pronto."
     quantidade = max(1, min(quantidade, leva.LIMITE_LEVA))
-    leva.em_segundo_plano(perfil, quantidade, tema)
+    faltam = leva.em_segundo_plano(perfil, quantidade, tema)
+    if faltam:
+        return (f"⏸️ Produção pausada em {perfil.dados['nome']} até terminar a configuração do canal "
+                f"(falta: {'; '.join(faltam)}). Os {quantidade} vídeo(s) começam sozinhos depois.")
     est = leva.estimar(perfil.dados, quantidade)
     return (f"🛠️ Criando {quantidade} vídeo(s)" + (f" sobre *{tema}*" if tema else "") +
             f" para {perfil.dados['nome']} ({est['texto']}). Mando cada um aqui quando ficar pronto.")
@@ -568,8 +589,7 @@ def receber(arquivo: Path) -> int:
                 pendentes = ler_estado().get("pendentes", [])
                 if pendentes:
                     _gravar_estado(pendentes=[])
-                    enviar("📬 Avisos enquanto você estava fora:\n" +
-                           "\n".join(f"[{p['quando']}] {p['texto']}" for p in pendentes)[:990])
+                    _entregar_guardados(pendentes)
                 texto = (msg.get("text", {}).get("body")
                          or msg.get("interactive", {}).get("button_reply", {}).get("id")
                          or msg.get("button", {}).get("payload") or msg.get("button", {}).get("text") or "")
@@ -757,6 +777,21 @@ def _esperar_tunel(endereco: str, prazo_s: int = 90) -> None:
     raise OSError("o endereço do túnel não ficou acessível pela internet em 90 s")
 
 
+def _entregar_guardados(pendentes: list[dict]) -> None:
+    """Os avisos guardados chegam em várias mensagens (cada uma até 990 caracteres), sem cortar nenhum."""
+    blocos, atual = [], f"📬 {len(pendentes)} aviso(s) enquanto você estava fora:"
+    for p in pendentes:
+        item = f"[{p['quando']}] {p['texto']}"[:900]
+        if len(atual) + len(item) + 2 > 990:
+            blocos.append(atual)
+            atual = item
+        else:
+            atual += "\n\n" + item
+    blocos.append(atual)
+    for bloco in blocos:
+        enviar(bloco)
+
+
 def _token_app() -> str:
     return f"{_env('WHATSAPP_APP_ID')}|{_env('WHATSAPP_APP_SECRET')}"
 
@@ -775,19 +810,61 @@ def registrar_webhook(url: str) -> None:
             if tentativa == 2:
                 raise
             time.sleep(6)
-    for waba in contas_business():
-        _pedir("POST", f"/{waba}/subscribed_apps")
+    inscrever_app()
+
+
+def inscrever_app() -> bool:
+    """Inscreve o app na conta do WhatsApp Business (sem isso a Meta não entrega o que o dono escreve) e garante o
+    modelo de aviso. Anota no estado o que deu, para a tela mostrar."""
+    contas = contas_business()
+    if not contas:
+        _gravar_estado(inscrito=False, inscrito_erro="o token não alcança nenhuma conta do WhatsApp Business: atribua a "
+                       "conta ao usuário do sistema ou cole o ID da conta do WhatsApp Business")
+        return False
+    try:
+        for waba in contas:
+            _pedir("POST", f"/{waba}/subscribed_apps")
+        _gravar_estado(inscrito=True, inscrito_erro="")
+    except ErroMeta as erro:
+        _gravar_estado(inscrito=False, inscrito_erro=ocultar(f"a Meta não deixou inscrever o app na conta: {erro}")[:300])
+        return False
+    try:
+        garantir_modelo()
+    except (ErroMeta, OSError) as erro:
+        _gravar_estado(modelo_status="ERRO", modelo_erro=ocultar(str(erro))[:300])
+    return True
 
 
 def contas_business() -> list[str]:
     """IDs das contas do WhatsApp Business que o token alcança (pelo debug_token do próprio app)."""
     q = urllib.parse.urlencode({"input_token": _env("WHATSAPP_TOKEN")})
     dados = _pedir("GET", f"/debug_token?{q}", token=_token_app()).get("data", {})
-    ids = []
+    ids = [_numero(_env("WHATSAPP_CONTA_ID"))] if _numero(_env("WHATSAPP_CONTA_ID")) else []
     for escopo in dados.get("granular_scopes", []):
         if escopo.get("scope") in ("whatsapp_business_management", "whatsapp_business_messaging"):
             ids += [i for i in escopo.get("target_ids", []) if i not in ids]
     return ids
+
+
+def garantir_modelo() -> str:
+    """Cria (uma vez) o modelo de utilidade usado fora da janela de 24 h e anota o status que a Meta deu."""
+    if _env("WHATSAPP_MODELO"):
+        return "proprio"
+    contas = contas_business()
+    if not contas:
+        return ""
+    waba = contas[0]
+    q = urllib.parse.urlencode({"name": MODELO_PADRAO, "fields": "name,status,language"})
+    achados = [m for m in _pedir("GET", f"/{waba}/message_templates?{q}").get("data", []) if m.get("name") == MODELO_PADRAO]
+    if achados:
+        status = achados[0].get("status", "")
+    else:
+        status = _pedir("POST", f"/{waba}/message_templates", {
+            "name": MODELO_PADRAO, "language": "pt_BR", "category": "UTILITY",
+            "components": [{"type": "BODY", "text": "Aviso do Projeto Canais: {{1}}\n\nResponda oi para ver os comandos.",
+                            "example": {"body_text": [["Pulga do Saber postou: Como funciona a caneta"]]}}]}).get("status", "")
+    _gravar_estado(modelo_status=status, modelo_conferido=time.time(), modelo_erro="")
+    return status
 
 
 def testar() -> str:

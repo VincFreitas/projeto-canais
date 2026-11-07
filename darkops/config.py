@@ -24,6 +24,14 @@ ELEVENLABS_VOZ = os.getenv("ELEVENLABS_VOZ", "").strip()
 ELEVENLABS_MODELO = os.getenv("ELEVENLABS_MODELO", "eleven_multilingual_v2").strip()
 AZURE_SPEECH_KEY = os.getenv("AZURE_SPEECH_KEY", "").strip()
 AZURE_SPEECH_REGION = os.getenv("AZURE_SPEECH_REGION", "").strip()
+GOOGLE_TTS_API_KEY = os.getenv("GOOGLE_TTS_API_KEY", "").strip()
+GOOGLE_TTS_VOZ = os.getenv("GOOGLE_TTS_VOZ", "Charon").strip()        # Chirp 3 HD: o nome vira pt-BR-Chirp3-HD-Charon
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_TTS_VOZ = os.getenv("GEMINI_TTS_VOZ", "Charon").strip()
+GEMINI_TTS_MODELO = os.getenv("GEMINI_TTS_MODELO", "gemini-2.5-flash-preview-tts").strip()
+GEMINI_TTS_ESTILO = os.getenv("GEMINI_TTS_ESTILO", "Narre como um documentário de mistério, voz grave, "
+                              "ritmo envolvente e natural").strip()
+VOZES_LOCAIS = RAIZ / "dados" / "apps" / "vozes"                      # ambiente separado do Chatterbox (torch)
 
 FORMATOS = {
     "longo": (1920, 1080),     # YouTube tradicional

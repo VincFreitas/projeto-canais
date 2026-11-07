@@ -73,6 +73,51 @@ GRUPOS = [
                        chaves=[("ELEVENLABS_API_KEY", "Chave", True), ("ELEVENLABS_VOZ", "ID da voz", False)],
                        link="https://elevenlabs.io/app/settings/api-keys",
                        custo="10 mil créditos grátis por mês; uso comercial a partir de US$ 6"),
+              Conector("chirp", "Google Chirp 3 HD", "Vozes novas do Google, muito naturais, com pt-BR.", "chave",
+                       chaves=[("GOOGLE_TTS_API_KEY", "Chave da API", True), ("GOOGLE_TTS_VOZ", "Voz (ex.: Charon, Kore)", False)],
+                       link="https://console.cloud.google.com/apis/library/texttospeech.googleapis.com",
+                       passos=["Abra console.cloud.google.com com a sua conta Google. Pode usar o mesmo projeto do "
+                               "YouTube (seletor de projeto no topo) ou criar um novo.",
+                               "Ligue o faturamento: menu ☰ > Faturamento > Vincular uma conta de faturamento. Atenção: no "
+                               "Brasil o Google costuma cobrar um valor na ativação, no Pix (R$ 200) e também no cartão "
+                               "(já vimos R$ 125). Esse valor vira crédito na conta e só volta se você encerrar a conta de "
+                               "faturamento; o cartão precisa ter esse limite livre. Depois disso, dentro de 1 milhão de "
+                               "caracteres por mês nada é cobrado (um vídeo de 60 s usa cerca de 900). Crie um alerta de "
+                               "R$ 1 em Faturamento > Orçamentos e alertas. Sem querer adiantar dinheiro? Use o Gemini TTS, "
+                               "que não pede faturamento.",
+                               "Clique em “1. Abrir a página da chave” abaixo: é a página da Cloud Text-to-Speech API. "
+                               "Clique em Ativar.",
+                               "Menu ☰ > APIs e serviços > Credenciais > Criar credenciais > Chave de API.",
+                               "Na chave criada, clique em Editar chave > Restrições de API > Restringir chave > marque "
+                               "só “Cloud Text-to-Speech API” > Salvar. Assim, se a chave vazar, ela não serve para "
+                               "mais nada.",
+                               "Copie a chave e cole no campo abaixo: o Estúdio testa e salva sozinho.",
+                               "Voz (opcional): Charon é grave e informativa (padrão), Kore é feminina firme, Fenrir é "
+                               "animada, Algenib é rouca, Enceladus é sussurrada. Escreva só o nome.",
+                               "Por último, em Ajustes > Motor da voz, escolha “Google Chirp 3 HD”. Para ouvir antes, "
+                               "rode .\\dark.ps1 comparar-vozes e abra saida\\vozes-teste."],
+                       custo="1 milhão de caracteres grátis por mês; depois US$ 30 por milhão"),
+              Conector("gemini", "Gemini TTS", "Voz dirigida por instrução (tom, emoção, ritmo). Boa para testar.",
+                       "chave", chaves=[("GEMINI_API_KEY", "Chave", True), ("GEMINI_TTS_VOZ", "Voz (ex.: Charon, Kore)", False),
+                                        ("GEMINI_TTS_ESTILO", "Estilo da narração (ex.: documentário de mistério, voz grave)", False)],
+                       link="https://aistudio.google.com/apikey",
+                       passos=["Clique em “1. Abrir a página da chave” abaixo e entre com a sua conta Google "
+                               "(é o Google AI Studio). Aceite os termos se for a primeira vez.",
+                               "Clique em Criar chave de API e escolha um projeto (ou deixe o AI Studio criar um). "
+                               "Não ligue faturamento: assim fica no plano grátis.",
+                               "Copie a chave e cole no campo abaixo: o Estúdio testa e salva sozinho.",
+                               "Voz (opcional): os mesmos nomes do Chirp (Charon, Kore, Fenrir...).",
+                               "Estilo (opcional): escreva como a voz deve narrar, por exemplo “documentário de "
+                               "mistério, voz grave, ritmo envolvente”. O Gemini segue a instrução.",
+                               "Em Ajustes > Motor da voz, escolha “Gemini TTS”. A cota grátis é pequena (há relatos "
+                               "de 10 pedidos por dia, e cada cena é um pedido): use para testar o tom e prefira o "
+                               "Chirp para a leva diária.",
+                               "No plano grátis o Google pode usar o texto enviado para melhorar o produto. Os "
+                               "roteiros não têm dado pessoal, mas fica o aviso."],
+                       custo="Cota grátis pequena (há relatos de 10 pedidos por dia)"),
+              Conector("chatterbox", "Chatterbox (no seu PC)", "Voz aberta (licença MIT) que roda na placa de vídeo, "
+                       "sem chave nem cota. Pode clonar a sua própria voz.", "embutido",
+                       custo="Grátis; mais lento que os serviços"),
           ]),
     Grupo("midia", "Imagens e vídeos",
           "Busca clipes e fotos de licença livre para cada cena. Mídia gerada por IA, desenho e 3D são filtrados.", [

@@ -164,6 +164,12 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
     trava = perfil.controle / "leva.trava"
     pendentes_arq = perfil.controle / "leva-pendentes.json"
     perfil.controle.mkdir(parents=True, exist_ok=True)
+    faltam = falta_configurar(perfil)
+    if faltam:
+        _adiar(perfil, quantidade, tema)
+        print(f"produção pausada até terminar a configuração do canal (falta: {'; '.join(faltam)}); "
+              f"a leva de {quantidade} vídeo(s) começa sozinha depois")
+        return []
     if trava.exists():
         pid = int(trava.read_text(encoding="utf-8").strip() or 0)
         if pid and _vivo(pid):
@@ -180,6 +186,11 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
     feitos = []
     try:
         for n in range(1, quantidade + 1):
+            faltam = falta_configurar(perfil)  # a configuração pode ter sido desfeita no meio (token revogado)
+            if faltam:
+                _adiar(perfil, quantidade - n + 1, tema)
+                print(f"produção pausada no vídeo {n}/{quantidade}: falta {'; '.join(faltam)}", flush=True)
+                break
             if pendentes:
                 roteiro = pendentes[0]
                 print(f"vídeo {n}/{quantidade}: retomando a prévia de {roteiro.name}", flush=True)
@@ -216,12 +227,49 @@ def precisa_reabastecer(perfil) -> bool:
     return bool(d.get("leva_reabastecer")) and len(list(perfil.fila.glob("*.json"))) <= int(d.get("leva_minimo", 3))
 
 
-def em_segundo_plano(perfil, quantidade: int, tema: str = "") -> None:
-    """Dispara a leva num processo separado e volta na hora (o n8n não fica esperando horas)."""
-    log = (perfil.controle / "leva-ultima.log").open("w", encoding="utf-8")
+def falta_configurar(perfil) -> list[str]:
+    """O que ainda falta configurar no canal. Enquanto faltar algo, nenhum vídeo é produzido (decisão do usuário
+    em 2026-11-01): a leva fica guardada em controle/leva-adiada.json e começa sozinha quando tudo estiver pronto."""
+    from .plataformas import pendencias
+    return [e.nome for e in pendencias(perfil)]
+
+
+def _adiar(perfil, quantidade: int, tema: str = "") -> None:
+    arquivo = perfil.controle / "leva-adiada.json"
+    perfil.controle.mkdir(parents=True, exist_ok=True)
+    antes = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
+    arquivo.write_text(json.dumps({"quantidade": min(max(quantidade, int(antes.get("quantidade", 0))), LIMITE_LEVA),
+                                   "tema": tema or antes.get("tema", "")}, ensure_ascii=False), encoding="utf-8")
+
+
+def retomar_adiada(perfil) -> bool:
+    """Começa a leva guardada se a configuração do canal já terminou. O Estúdio confere de tempos em tempos."""
+    arquivo = perfil.controle / "leva-adiada.json"
+    if not arquivo.exists() or falta_configurar(perfil):
+        return False
+    trava = perfil.controle / "leva.trava"
+    if trava.exists():
+        pid = int(trava.read_text(encoding="utf-8").strip() or 0)
+        if pid and _vivo(pid):
+            return False  # já tem leva rodando; a trava velha (PC desligado no meio) a própria leva limpa
+    adiada = json.loads(arquivo.read_text(encoding="utf-8"))
+    arquivo.unlink()
+    em_segundo_plano(perfil, int(adiada.get("quantidade") or 1), adiada.get("tema", ""))
+    return True
+
+
+def em_segundo_plano(perfil, quantidade: int, tema: str = "") -> list[str]:
+    """Dispara a leva num processo separado e volta na hora (o n8n não fica esperando horas).
+    Com a configuração do canal incompleta, só guarda a leva e devolve o que falta."""
+    faltam = falta_configurar(perfil)
+    if faltam:
+        _adiar(perfil, quantidade, tema)
+        return faltam
+    log =(perfil.controle / "leva-ultima.log").open("w", encoding="utf-8")
     sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
     tema_args = ["--tema", tema] if tema else []  # lista de argumentos: o tema nunca passa pelo cmd.exe
     subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", perfil.id, "leva", "--quantidade", str(quantidade),
                       *tema_args],
                      cwd=config.RAIZ, stdout=log, stderr=subprocess.STDOUT, creationflags=sinais,
                      env={**os.environ, "PYTHONIOENCODING": "utf-8"})
+    return []

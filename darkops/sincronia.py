@@ -2,8 +2,9 @@
 
 - momento(): em que segundo da cena uma palavra (ou número) é falada, a partir dos tempos por
   palavra que o motor de voz devolve.
-- Efeitos sonoros sintetizados (whoosh, pop, ding, thud): livres de direitos, sem download.
-  A produção junta os eventos de todas as cenas numa única trilha que a mixagem final soma.
+- Efeitos sonoros (whoosh, pop, ding, thud, riser, impacto): o sintetizado daqui mais os sons CC0 do banco
+  assets/efeitos (efeitos.py), sorteados por vídeo. O riser termina no tempo do evento (a revelação), o resto
+  começa nele. A produção junta os eventos de todas as cenas numa única trilha que a mixagem final soma.
 """
 import re
 import unicodedata
@@ -82,26 +83,70 @@ def _thud(rng) -> np.ndarray:
     return (grave + estalo) * 0.9
 
 
-SONS = {"whoosh": _whoosh, "pop": _pop, "ding": _ding, "thud": _thud}
-VOLUMES = {"whoosh": 0.22, "pop": 0.32, "ding": 0.26, "thud": 0.42}
+def _riser(rng) -> np.ndarray:
+    """Subida de tensão: ruído que abre e um tom que sobe, crescendo até o fim (o fim cai no impacto)."""
+    n = int(1.2 * TAXA)
+    t = np.arange(n) / TAXA
+    p = t / t[-1]
+    tom = np.sin(2 * np.pi * np.cumsum(180 + 900 * p ** 2) / TAXA)
+    ruido = np.convolve(rng.standard_normal(n), np.ones(6) / 6, mode="same")
+    return (tom * 0.5 + ruido * (0.3 + 0.9 * p)) * p ** 2.2
 
 
-def trilha_efeitos(eventos: list[tuple[float, str]], duracao: float, destino: Path) -> Path | None:
-    """Monta um WAV estéreo com os efeitos nos tempos absolutos do vídeo. None se não houver eventos."""
+def _impacto(rng) -> np.ndarray:
+    """Batida grave de revelação: queda de 70 para 35 Hz, estalo no ataque e cauda curta."""
+    n = int(1.1 * TAXA)
+    t = np.arange(n) / TAXA
+    grave = np.sin(2 * np.pi * np.cumsum(35 + 35 * np.exp(-t * 9)) / TAXA) * _env(n, 0.002, 4.5)
+    estalo = rng.standard_normal(n) * _env(n, 0.0005, 60) * 0.5
+    return grave + estalo
+
+
+SONS = {"whoosh": _whoosh, "pop": _pop, "ding": _ding, "thud": _thud, "riser": _riser, "impacto": _impacto}
+VOLUMES = {"whoosh": 0.22, "pop": 0.32, "ding": 0.26, "thud": 0.42, "riser": 0.2, "impacto": 0.5}
+ANTES = {"riser"}  # som que termina no tempo do evento, em vez de começar nele
+
+
+def _carregar(arquivo: Path) -> np.ndarray:
+    with wave.open(str(arquivo)) as w:
+        dados = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(float) / 32768
+        if w.getnchannels() > 1:
+            dados = dados.reshape(-1, w.getnchannels()).mean(axis=1)
+    return dados
+
+
+def _variacoes(nome: str, rng) -> list[np.ndarray]:
+    """Sintetizado + os sons CC0 do banco (assets/efeitos), já no volume do tipo."""
+    from .efeitos import do_tipo
+    sons = [SONS[nome](rng)]
+    for arquivo in do_tipo(nome):
+        try:
+            sons.append(_carregar(arquivo))
+        except (OSError, wave.Error, EOFError):
+            continue
+    return [s / (np.abs(s).max() or 1) * VOLUMES[nome] for s in sons if len(s)]
+
+
+def trilha_efeitos(eventos: list[tuple[float, str]], duracao: float, destino: Path, semente: str = "") -> Path | None:
+    """Monta um WAV estéreo com os efeitos nos tempos absolutos do vídeo. None se não houver eventos.
+    Cada vídeo (semente = slug) sorteia uma variação por tipo e alterna entre elas a cada uso."""
     if not eventos:
         return None
-    rng = np.random.default_rng(7)
+    rng = np.random.default_rng(sum(map(ord, semente)) or 7)
     n = int((duracao + 1) * TAXA)
     mix = np.zeros(n)
-    cache = {}
+    cache, usos = {}, {}
     for t, nome in sorted(eventos):
         if nome not in SONS or t < 0:
             continue
         if nome not in cache:
-            som = SONS[nome](rng)
-            cache[nome] = som / (np.abs(som).max() or 1) * VOLUMES[nome]
-        som = cache[nome]
-        i = int(t * TAXA)
+            variacoes = _variacoes(nome, rng)
+            cache[nome] = [variacoes[k] for k in rng.permutation(len(variacoes))]
+        som = cache[nome][usos.get(nome, 0) % len(cache[nome])]
+        usos[nome] = usos.get(nome, 0) + 1
+        i = int(t * TAXA) - (len(som) if nome in ANTES else 0)
+        if i < 0:
+            som, i = som[-i:], 0
         fim = min(i + len(som), n)
         if i < n:
             mix[i:fim] += som[: fim - i]

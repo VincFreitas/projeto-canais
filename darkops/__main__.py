@@ -68,6 +68,20 @@ def cmd_vozes(a):
         print(v)
 
 
+def cmd_comparar_vozes(a):
+    from .comparar_vozes import TEXTO, comparar
+    for r in comparar(a.texto or TEXTO):
+        print(f"{r['motor']:<11} " + (f"{r['arquivo']} ({r['segundos_para_gerar']} s)" if "arquivo" in r
+                                      else f"pulado: {r['pulado']}"))
+
+
+def cmd_efeitos_baixar(a):
+    from .efeitos import PASTA, baixar
+    for tipo, n in baixar(a.por_tipo).items():
+        print(f"{tipo:<8} {n} som(ns) CC0")
+    print(f"banco em {PASTA} (licenças em licencas.csv)")
+
+
 def cmd_autorizar_youtube(a):
     from .publicar import autorizar_youtube, canal
     arquivo = autorizar_youtube(analytics=getattr(a, "analytics", False))
@@ -323,8 +337,9 @@ def cmd_leva(a):
     est = leva.estimar(perfil.dados, quantidade)
     print(f"leva de {quantidade} vídeo(s): {est['texto']}. {est['aviso']}")
     if a.fundo:
-        leva.em_segundo_plano(perfil, quantidade)
-        print("leva iniciada em segundo plano (log em controle/leva-ultima.log)")
+        faltam = leva.em_segundo_plano(perfil, quantidade)
+        print(f"produção pausada até terminar a configuração do canal (falta: {'; '.join(faltam)})" if faltam
+              else "leva iniciada em segundo plano (log em controle/leva-ultima.log)")
         return
     leva.criar(perfil, quantidade, a.tema or "")
 
@@ -761,6 +776,14 @@ def main():
     s = sub.add_parser("vozes", help="lista vozes do edge-tts")
     s.add_argument("prefixo", nargs="?", default="pt-BR")
     s.set_defaults(fn=cmd_vozes)
+
+    s = sub.add_parser("efeitos-baixar", help="baixa efeitos sonoros CC0 do Openverse para assets/efeitos")
+    s.add_argument("--por-tipo", type=int, default=6)
+    s.set_defaults(fn=cmd_efeitos_baixar)
+
+    s = sub.add_parser("comparar-vozes", help="gera o mesmo trecho em cada motor de voz para ouvir lado a lado")
+    s.add_argument("--texto")
+    s.set_defaults(fn=cmd_comparar_vozes)
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")

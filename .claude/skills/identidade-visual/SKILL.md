@@ -7,7 +7,7 @@ description: Gera e aplica a identidade visual das contas de um perfil (foto de 
 
 Argumentos recebidos: $ARGUMENTS (id do perfil; padrão `pulga-do-saber`)
 
-Objetivo: as contas do canal ficam com a mesma cara dos vídeos (pixel art). A aplicação só acontece depois de alguém aprovar. Fale em português, um passo por vez.
+Objetivo: as contas do canal ficam com a mesma cara dos vídeos daquele canal (o pixel art do Pulga, o dossiê do Enigma, a aparência tirada do tema nos outros). A aplicação só acontece depois de alguém aprovar. Fale em português, um passo por vez.
 
 **Regras (obrigatórias):**
 - **Identidade nova a partir do tema.** Nunca copie a foto, a mascote, as cores ou o estilo de outro canal ou de outro perfil daqui. A pulga e o amarelo são só do `pulga-do-saber`. Os outros canais usam a foto e as cores do próprio perfil (`cor_marca`, `cor_fundo_marca` e `avatar.png`, criados por `darkops/aparencia.py` a partir do tema).

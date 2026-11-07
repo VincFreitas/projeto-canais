@@ -366,20 +366,24 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         musica = ambiente(total, pasta / "ambiente.wav")
     elif musica in ("animada", "chiptune"):
         musica = animada(total, pasta / f"{musica}.wav", saida.stem, chip=musica == "chiptune")
-    normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11"
+    # o loudnorm de uma passada deixa escapar pico (o AAC ainda soma um pouco): o limitador segura em -1,5 dB
+    normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11,alimiter=limit=0.84:attack=5:release=50:level=0"
     entradas = ["-i", str(junta)]
     fontes, partes = ["[0:a]"], []
-    if efeitos:  # a voz é a chave do compressor: o efeito baixa enquanto ela fala e fica forte só nas pausas
-        partes.append("[0:a]asplit=2[voz][chave_fx]")
+    # a voz é a chave dos compressores: música e efeitos baixam sozinhos enquanto ela fala e voltam nas pausas
+    chaves = [n for n, ativo in (("chave_m", musica), ("chave_fx", efeitos)) if ativo]
+    if chaves:
+        partes.append(f"[0:a]asplit={len(chaves) + 1}[voz]" + "".join(f"[{n}]" for n in chaves))
         fontes[0] = "[voz]"
     if musica:
         fim = max(total - 3, 0)
         entradas += ["-stream_loop", "-1", "-i", str(musica)]
-        partes.append(f"[1:a]volume={volume_musica},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[m]")
+        partes.append(f"[1:a]volume={volume_musica * 1.6:.3f},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[mb];"
+                      "[mb][chave_m]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[m]")
         fontes.append("[m]")
     if efeitos:
         entradas += ["-i", str(efeitos)]
-        # sob a fala o efeito cai uns 12 dB (ataque rápido para não pisar na palavra)
+        # efeito forte só no silêncio: sob a fala ele cai uns 12 dB (ataque rápido para não pisar na palavra)
         partes.append(f"[{len(fontes)}:a]volume=1.0[fxb];"
                       "[fxb][chave_fx]sidechaincompress=threshold=0.015:ratio=12:attack=3:release=180:makeup=1[fx]")
         fontes.append("[fx]")

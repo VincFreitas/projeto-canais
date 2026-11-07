@@ -87,7 +87,10 @@ def resumo_persona(dados: dict) -> str:
     return texto.strip()
 
 MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azure": "Azure Speech (grátis até 500 mil caracteres)",
-               "elevenlabs": "ElevenLabs (pago; precisa da chave)"}
+               "elevenlabs": "ElevenLabs (pago; precisa da chave)",
+               "chirp": "Google Chirp 3 HD (grátis até 1 milhão de caracteres; precisa da chave)",
+               "gemini": "Gemini TTS (cota grátis pequena; precisa da chave)",
+               "chatterbox": "Chatterbox (no seu PC, grátis; mais lento)"}
 TIPOS_VISUAL = {"foto": "Só imagens", "video": "Só vídeos (foto quando faltar clipe)", "misto": "Imagens e vídeos"}
 RITMOS = [2, 3, 4, 6, 8]
 TAMANHOS_LEGENDA = {"pequena": 0.8, "media": 1.0, "grande": 1.25}

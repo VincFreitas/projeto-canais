@@ -14,7 +14,7 @@ Argumento: o roteiro (`perfis/<perfil>/fila/NNN-*.json`) ou o tema. Argumentos r
    - sem mentira e sem exagero que o vídeo não cumpre.
 3. Dê nota de 0 a 10 para cada um em: curiosidade, clareza em 1 segundo e fidelidade ao vídeo. Escolha o de maior soma; a fidelidade abaixo de 8 desclassifica.
 4. **Thumbnail** (só para vídeos longos): de 2 a 4 palavras que **complementam** o título, sem repetir ("SANGUE AZUL?" para o título do polvo). Sugira a imagem de fundo como busca em inglês para o Pixabay.
-5. **Instagram**: legenda de 1 frase com o gancho + "Você sabia?" + chamada para seguir, e até 10 hashtags (3 amplas, 4 do tema, 3 do canal).
+5. **Instagram**: legenda de 1 frase com o gancho + "Você sabia?" + chamada para seguir, e de 3 a 5 hashtags (1 ampla, 2 a 3 do tema, 1 do canal).
 6. Mostre a tabela com os 8 títulos e as notas, a escolha e o porquê. Só grave no roteiro (`metadados.youtube_shorts.titulo`, `metadados.instagram`) depois que o usuário aprovar.
 
 ## Alcance

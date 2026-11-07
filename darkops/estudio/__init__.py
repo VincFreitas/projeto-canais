@@ -35,6 +35,8 @@ CHAVES = [
     ("PIXABAY_API_KEY", "Pixabay", True),
     ("PEXELS_API_KEY", "Pexels", True),
     ("ELEVENLABS_API_KEY", "ElevenLabs (opcional)", True),
+    ("GOOGLE_TTS_API_KEY", "Google Text-to-Speech, vozes Chirp 3 HD (opcional)", True),
+    ("GEMINI_API_KEY", "Gemini TTS (opcional)", True),
 ]
 JOBS: dict[str, dict] = {}
 
@@ -399,7 +401,11 @@ def perfil_novo():
         flash(f"Canal {nome} criado, mas os vídeos não começaram: falta o Claude Code, que escreve os roteiros. "
               f"Instale em claude.com/claude-code, faça login e crie a leva inicial de {LEVA_INICIAL} vídeos em Ajustes.", "erro")
         return redirect(url_for("conexoes", pid=pid))
-    leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
+    faltam = leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
+    if faltam:
+        flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos começam sozinhos quando a configuração do canal "
+              f"terminar (falta: {'; '.join(faltam)}). Crie as contas do canal.", "ok")
+        return redirect(url_for("contas_criar", pid=pid))
     est = leva.estimar(canal.dados, LEVA_INICIAL)
     flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos já estão sendo criados ({est['texto']}); deixe o PC "
           "ligado. Enquanto isso, crie as contas do canal.", "ok")
@@ -730,7 +736,8 @@ def conexoes(pid):
 
 
 WHATSAPP_CAMPOS = [("WHATSAPP_TOKEN", True), ("WHATSAPP_NUMERO_ID", False), ("WHATSAPP_PARA", False),
-                   ("WHATSAPP_APP_ID", False), ("WHATSAPP_APP_SECRET", True), ("WHATSAPP_MODELO", False)]
+                   ("WHATSAPP_APP_ID", False), ("WHATSAPP_APP_SECRET", True), ("WHATSAPP_CONTA_ID", False),
+                   ("WHATSAPP_MODELO", False)]
 
 
 def _status_whatsapp() -> dict:
@@ -739,6 +746,9 @@ def _status_whatsapp() -> dict:
     return {"situacao": whatsapp.situacao(), "configurado": whatsapp.configurado(),
             "comandos": whatsapp.recebe_comandos(), "janela": whatsapp.janela_aberta(),
             "guardados": len(estado.get("pendentes", [])), "erro": estado.get("tunel_erro", ""),
+            "inscrito": estado.get("inscrito"), "inscrito_erro": estado.get("inscrito_erro", ""),
+            "recebeu": bool(estado.get("ultima_mensagem")), "modelo": whatsapp._modelo(),
+            "modelo_status": estado.get("modelo_status", ""), "modelo_erro": estado.get("modelo_erro", ""),
             "valores": {k: ("" if segredo else env.get(k, "")) for k, segredo in WHATSAPP_CAMPOS},
             "salvas": {k: bool(env.get(k)) for k, _ in WHATSAPP_CAMPOS},
             "canal_atual": (whatsapp._perfil_atual().id if whatsapp._perfil_atual() else "")}
@@ -813,7 +823,7 @@ def whatsapp_religar():
 @app.post("/p/<pid>/conexoes/chaves")
 def salvar_chaves_conector(pid):
     _perfil(pid)
-    permitidas = {k for k, _, _ in CHAVES} | {"ELEVENLABS_VOZ"}
+    permitidas = {k for k, _, _ in CHAVES} | {"ELEVENLABS_VOZ", "GOOGLE_TTS_VOZ", "GEMINI_TTS_VOZ", "GEMINI_TTS_ESTILO"}
     _salvar_conferindo({k: v.strip() for k, v in request.form.items() if k in permitidas and v.strip()})
     return redirect(url_for("conexoes", pid=pid) + "#" + request.form.get("ancora", ""))
 
@@ -1709,7 +1719,21 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
         threading.Thread(target=webbrowser.open, args=(url + "/abertura",), daemon=True).start()
     os.environ["PORT"] = str(porta)  # o Estúdio reaberto depois de uma atualização usa a mesma porta
     threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
+    threading.Thread(target=_vigiar_levas_adiadas, daemon=True).start()
     servidor.serve_forever()
+
+
+def _vigiar_levas_adiadas() -> None:
+    """A produção espera a configuração do canal terminar: a cada 2 min, começa a leva guardada de quem já está pronto."""
+    from .. import leva
+    while True:
+        for p in listar():
+            try:
+                if leva.retomar_adiada(p):
+                    print(f"configuração de {p.dados.get('nome', p.id)} pronta: leva adiada iniciada")
+            except (SystemExit, OSError, ValueError) as erro:
+                print(seguranca.ocultar(f"leva adiada de {p.id}: {erro}"))
+        time.sleep(120)
 
 
 def _vigiar_atualizacao() -> None:

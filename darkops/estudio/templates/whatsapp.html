@@ -12,7 +12,7 @@
     <header>
       <div><h3>WhatsApp: avisos e comandos no celular</h3><span class="escopo">todos os canais</span></div>
       <span class="estado {{ 'ok' if w.configurado else 'falta' }}">
-        {% if not w.configurado %}✗ desligado{% elif w.comandos and w.situacao == 'ligado' %}✓ avisos e comandos{% elif w.comandos %}conectando comandos…{% else %}✓ só avisos{% endif %}</span>
+        {% if not w.configurado %}✗ desligado{% elif w.comandos and w.inscrito == false %}⚠ suas mensagens não chegam{% elif w.comandos and w.situacao == 'ligado' %}✓ avisos e comandos{% elif w.comandos %}conectando comandos…{% else %}✓ só avisos{% endif %}</span>
     </header>
     <p class="funcao">Avisa quando um vídeo vai ao ar, quando algo falha, quando a fila está acabando, quando sai versão nova do Projeto Canais (número, data, hora e o que mudou) e manda cada vídeo novo
       com os botões <b>Aprovar</b> e <b>Recusar</b>. Você também manda comandos: <i>status</i>, <i>fila</i>, <i>criar 3</i>,
@@ -23,8 +23,20 @@
       <ul class="lista">
         <li><span>Conversa aberta (24 h)</span><b>{{ 'sim' if w.janela else 'não: mande "oi" para abrir' }}</b></li>
         <li><span>Avisos guardados</span><b>{{ w.guardados }}</b></li>
+        <li><span>Avisos fora das 24 h</span><b>{% if w.modelo %}pelo modelo {{ w.modelo }}{% elif w.modelo_status == 'PENDING' %}modelo esperando a Meta aprovar{% elif w.modelo_status == 'REJECTED' %}modelo recusado pela Meta{% else %}ficam guardados{% endif %}</b></li>
+        {% if w.modelo_erro %}<li><span>Modelo de aviso</span><b class="ok-x nao">{{ w.modelo_erro }}</b></li>{% endif %}
         {% if w.erro %}<li><span>Comandos</span><b class="ok-x nao">{{ w.erro }}</b></li>{% endif %}
       </ul>
+      {% if w.comandos and w.inscrito == false %}
+      <p class="dica">⚠ <b>O app não está inscrito na conta do WhatsApp Business</b>, então o que você escreve não chega
+        aqui e a conversa de 24 h nunca abre ({{ w.inscrito_erro }}). Resolva de um destes jeitos e clique em
+        <b>Religar os comandos</b>: em <a href="https://business.facebook.com/settings/whatsapp-business-accounts" target="_blank" rel="noopener">Contas
+        do WhatsApp ↗</a>, escolha a conta &gt; <b>Atribuir pessoas</b> &gt; o usuário do sistema com controle total; ou cole abaixo
+        a <b>Identificação da conta do WhatsApp Business</b> (fica em Configuração da API, ao lado da identificação do número).</p>
+      {% elif w.configurado and not w.recebeu %}
+      <p class="dica">💬 Ainda não chegou nenhuma mensagem sua. Mande <b>oi</b> para o número do WhatsApp do app: isso abre a conversa
+        de 24 h e entrega os avisos guardados.</p>
+      {% endif %}
       {% if w.comandos %}
       <form method="post" action="{{ url_for('whatsapp_religar') }}" style="margin-top:8px">
         <button class="botao pequeno secundario">Religar os comandos</button></form>
@@ -56,7 +68,8 @@
         <input type="text" name="WHATSAPP_APP_ID" value="{{ w.valores.WHATSAPP_APP_ID }}" placeholder="ID do app (para os comandos)">
         <input type="password" name="WHATSAPP_APP_SECRET" autocomplete="off"
                placeholder="chave secreta do app (para os comandos){{ ' (salva, deixe vazio para manter)' if w.salvas.WHATSAPP_APP_SECRET }}">
-        <input type="text" name="WHATSAPP_MODELO" value="{{ w.valores.WHATSAPP_MODELO }}" placeholder="modelo aprovado para avisos fora das 24 h (opcional)">
+        <input type="text" name="WHATSAPP_CONTA_ID" value="{{ w.valores.WHATSAPP_CONTA_ID }}" placeholder="Identificação da conta do WhatsApp Business (WABA ID, se o app não achar sozinho)">
+        <input type="text" name="WHATSAPP_MODELO" value="{{ w.valores.WHATSAPP_MODELO }}" placeholder="modelo próprio para avisos fora das 24 h (opcional; vazio = o app cria o dele)">
         <button class="botao pequeno">Salvar e mandar mensagem de teste</button>
       </form>
     </details>

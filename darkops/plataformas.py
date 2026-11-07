@@ -112,17 +112,19 @@ def calcular(perfil=None, novo: bool = False) -> list[Plataforma]:
 ESSENCIAIS = ("Arquivo .env", "Voz offline (Piper)", "Pelo menos um perfil", "Claude Code (escreve os roteiros)")
 
 
-def pendencias() -> list[Etapa]:
+def pendencias(perfil=None) -> list[Etapa]:
     """Etapas que travam o modo guiado: o essencial da base e tudo das plataformas automáticas marcadas
-    em algum perfil. Vazia = configuração concluída, Estúdio liberado."""
+    em algum perfil. Vazia = configuração concluída, Estúdio liberado. Com perfil, só as plataformas
+    marcadas nele: é o que falta para esse canal poder produzir vídeos (leva.falta_configurar)."""
     from .perfis import listar
     comum = base()
     faltando = [e for e in comum if e.nome in ESSENCIAIS and not e.feita]
     imagens = [e for e in comum if e.nome.startswith(("Imagens", "Desenho local"))]
     if imagens and not any(e.feita for e in imagens):
         faltando.append(imagens[0])
-    marcadas = {chave for p in listar() for chave in ("youtube", "instagram") if p.dados.get(chave)}
-    for r in calcular():
+    canais = [perfil] if perfil else listar()
+    marcadas = {chave for p in canais for chave in ("youtube", "instagram") if p.dados.get(chave)}
+    for r in calcular(perfil):
         if r.id in marcadas:
             faltando += [Etapa(f"{r.nome}: {e.nome}", e.feita, e.como, e.link) for e in r.etapas if not e.feita]
     return faltando

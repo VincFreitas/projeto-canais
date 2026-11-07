@@ -36,6 +36,12 @@ def _teste(nome: str, valor: str, env: dict) -> tuple[str, int]:
         return "Pexels", _pedir("https://api.pexels.com/v1/search?query=sky&per_page=1", {"Authorization": valor})
     if nome == "ELEVENLABS_API_KEY":
         return "ElevenLabs", _pedir("https://api.elevenlabs.io/v1/user", {"xi-api-key": valor})
+    if nome == "GOOGLE_TTS_API_KEY":
+        return "Google Text-to-Speech", _pedir("https://texttospeech.googleapis.com/v1/voices?languageCode=pt-BR",
+                                               {"X-Goog-Api-Key": valor})
+    if nome == "GEMINI_API_KEY":
+        return "Gemini", _pedir("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1",
+                                {"x-goog-api-key": valor})
     return "", 0
 
 

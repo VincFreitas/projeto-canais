@@ -1,6 +1,7 @@
 """Autoria, versão e conferência de créditos.
 
-O projeto é público para teste e estudo, sob a licença PolyForm Noncommercial (arquivo LICENSE).
+O projeto é público, sob a licença PolyForm Shield (arquivo LICENSE): uso comercial liberado, inclusive
+monetizar canais, menos oferecer um produto concorrente.
 A versão aparece no Estúdio, no README e na CLI; se alguém apagar os créditos de autoria (LICENSE e
 README), o Estúdio mostra um aviso de cópia modificada com o link do projeto original.
 """

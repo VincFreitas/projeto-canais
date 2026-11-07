@@ -7,6 +7,10 @@ Motores:
 - elevenlabs: pago (ELEVENLABS_API_KEY), melhor qualidade, tempos por caractere.
 - azure: oficial da Microsoft (AZURE_SPEECH_KEY + AZURE_SPEECH_REGION), mesmas vozes do edge,
   camada grátis de 500 mil caracteres/mês.
+- chirp: Google Cloud Text-to-Speech, vozes Chirp 3 HD (GOOGLE_TTS_API_KEY), 1 milhão de caracteres grátis/mês.
+- gemini: Gemini TTS (GEMINI_API_KEY), voz dirigida por instrução; cota grátis pequena e não publicada.
+- chatterbox: Chatterbox Multilingual (MIT) no próprio PC, no ambiente dados/apps/vozes; clona voz própria.
+Os três últimos não devolvem o tempo das palavras: ele é estimado por frase, como no Piper.
 """
 import asyncio
 import base64
@@ -158,7 +162,88 @@ def _azure(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, lis
     return wav, _estimar(partes, 24000, wav)
 
 
-MOTORES = {"edge": _edge, "piper": _piper, "elevenlabs": _elevenlabs, "azure": _azure}
+def _locale(idioma: str) -> str:
+    return "-".join(config.VOZ_PADRAO.get(idioma, config.VOZ_PADRAO["pt"]).split("-")[:2])  # "pt" -> "pt-BR"
+
+
+def _chirp(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+    """Google Cloud Text-to-Speech, vozes Chirp 3 HD. A chave vai no cabeçalho, nunca na URL (que pode ir para log)."""
+    if not config.GOOGLE_TTS_API_KEY:
+        raise SystemExit("motor chirp exige GOOGLE_TTS_API_KEY (Estúdio > Chaves)")
+    lingua = "-".join(voz.split("-")[:2])
+    partes = []
+    for frase in _frases(texto):
+        r = requests.post("https://texttospeech.googleapis.com/v1/text:synthesize",
+                          headers={"X-Goog-Api-Key": config.GOOGLE_TTS_API_KEY},
+                          json={"input": {"text": frase}, "voice": {"languageCode": lingua, "name": voz},
+                                "audioConfig": {"audioEncoding": "LINEAR16", "sampleRateHertz": 24000,
+                                                "speakingRate": _fator(velocidade)}},
+                          timeout=120)
+        r.raise_for_status()
+        with wave.open(io.BytesIO(base64.b64decode(r.json()["audioContent"]))) as w:
+            partes.append((frase, w.readframes(w.getnframes())))
+    wav = base.with_suffix(".wav")
+    return wav, _estimar(partes, 24000, wav)
+
+
+def _gemini(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+    """Gemini TTS: voz dirigida por instrução (GEMINI_TTS_ESTILO). Um pedido por cena, porque a cota grátis é pequena."""
+    if not config.GEMINI_API_KEY:
+        raise SystemExit("motor gemini exige GEMINI_API_KEY (Estúdio > Chaves)")
+    fator = _fator(velocidade)
+    ritmo = " Fale um pouco mais rápido." if fator > 1 else " Fale um pouco mais devagar." if fator < 1 else ""
+    import time
+    for _ in range(8):
+        r = requests.post(
+            f"https://generativelanguage.googleapis.com/v1beta/models/{config.GEMINI_TTS_MODELO}:generateContent",
+            headers={"x-goog-api-key": config.GEMINI_API_KEY},
+            json={"contents": [{"parts": [{"text": f"{config.GEMINI_TTS_ESTILO}.{ritmo}\n\n{texto}"}]}],
+                  "generationConfig": {"responseModalities": ["AUDIO"],
+                                       "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voz}}}}},
+            timeout=300)
+        if r.status_code not in (429, 500, 503):
+            break
+        # cota grátis: poucos pedidos por minuto; espera o tempo que o Google pede (ou 25 s) e tenta de novo
+        if r.status_code == 429 and "PerDay" in r.text:
+            raise SystemExit("Gemini TTS: a cota grátis do dia acabou; tente amanhã ou use outro motor")
+        espera = re.search(r'"retryDelay":\s*"(\d+)', r.text)
+        time.sleep(min(int(espera.group(1)) + 2, 70) if espera else 25)
+    r.raise_for_status()
+    pcm = base64.b64decode(r.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"])
+    wav = base.with_suffix(".wav")
+    return wav, _estimar([(texto, pcm)], 24000, wav)  # PCM 16 bits, 24 kHz, mono
+
+
+def _chatterbox(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+    """Chatterbox Multilingual no próprio PC (MIT). voz = "idioma" ou "idioma|WAV de referência" para clonar uma
+    voz própria (ex.: "pt|assets/vozes/minha.wav")."""
+    import subprocess
+    import tempfile
+    python = config.VOZES_LOCAIS / "Scripts" / "python.exe"
+    if not python.exists():
+        raise SystemExit("motor chatterbox exige o ambiente dados/apps/vozes (instale o Chatterbox)")
+    idioma, _, referencia = voz.partition("|")
+    frases = _frases(texto)
+    with tempfile.TemporaryDirectory() as pasta:
+        proc = subprocess.run([str(python), str(Path(__file__).with_name("chatterbox_ponte.py"))],
+                              input=json.dumps({"frases": frases, "idioma": idioma or "pt",
+                                                "voz": referencia if referencia and Path(referencia).is_file() else "",
+                                                "pasta": pasta}),
+                              capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800,
+                              creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if proc.returncode != 0:
+            raise SystemExit(f"Chatterbox falhou: {proc.stderr.strip()[-400:]}")
+        taxa = json.loads(proc.stdout.strip().splitlines()[-1])["taxa"]
+        partes = []
+        for i, frase in enumerate(frases):
+            with wave.open(str(Path(pasta) / f"frase-{i}.wav")) as w:
+                partes.append((frase, w.readframes(w.getnframes())))
+    wav = base.with_suffix(".wav")
+    return wav, _estimar(partes, taxa, wav)
+
+
+MOTORES = {"edge": _edge, "piper": _piper, "elevenlabs": _elevenlabs, "azure": _azure, "chirp": _chirp,
+           "gemini": _gemini, "chatterbox": _chatterbox}
 
 
 def voz_padrao(motor: str, idioma: str) -> str:
@@ -168,7 +253,26 @@ def voz_padrao(motor: str, idioma: str) -> str:
         if not config.ELEVENLABS_VOZ:
             raise SystemExit("defina 'voz' no roteiro ou ELEVENLABS_VOZ no .env com o voice_id")
         return config.ELEVENLABS_VOZ
+    if motor == "chirp":
+        return f"{_locale(idioma)}-Chirp3-HD-{config.GOOGLE_TTS_VOZ}"
+    if motor == "gemini":
+        return config.GEMINI_TTS_VOZ
+    if motor == "chatterbox":
+        return idioma
     return config.VOZ_PADRAO.get(idioma, config.VOZ_PADRAO["pt"])  # edge e azure usam os mesmos nomes
+
+
+def _serve(motor: str, voz: str) -> bool:
+    """A voz pedida é do formato desse motor? (nomes do Azure/Edge têm 'Neural'; Chirp tem 'Chirp'.)"""
+    if motor in ("edge", "azure"):
+        return "Neural" in voz
+    if motor == "chirp":
+        return "Chirp" in voz
+    if motor == "gemini":
+        return voz.isalpha()
+    if motor == "chatterbox":
+        return len(voz.partition("|")[0]) == 2
+    return True
 
 
 def narrar(texto: str, motor: str, voz: str | None, velocidade: str, idioma: str,
@@ -193,6 +297,8 @@ def narrar(texto: str, motor: str, voz: str | None, velocidade: str, idioma: str
 
     if escolhido not in MOTORES:
         raise SystemExit(f"motor de voz '{motor}' inválido. Opções: auto, {', '.join(MOTORES)}")
+    if voz and not _serve(escolhido, voz):  # o perfil guarda a voz do Azure; outro motor usa a voz padrão dele
+        voz = None
     try:
         audio, palavras = MOTORES[escolhido](texto, voz or voz_padrao(escolhido, idioma), velocidade, base)
     except (ConnectionError, requests.RequestException) as erro:

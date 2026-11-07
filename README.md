@@ -1,12 +1,12 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.40.13%20beta-f5c518)](darkops/__init__.py)
-[![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Noncommercial-blue)](LICENSE)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.44.2%20beta-f5c518)](darkops/__init__.py)
+[![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.29.1 (beta)** · criado por Vinicius Freitas · licença não comercial ([LICENSE](LICENSE))
+> **Projeto Canais v0.29.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -146,4 +146,4 @@ O Estúdio só responde no próprio PC e se protege de DNS rebinding, CSRF e cli
 
 ## Licença e autoria
 
-Criado por **Vinicius Freitas**. Distribuído sob a [PolyForm Noncommercial 1.0.0](LICENSE): pode baixar, testar, estudar e modificar para uso pessoal e não comercial, mantendo o crédito. Vender, revender ou usar comercialmente exige autorização do autor. A versão atual está em `darkops/__init__.py` (`python -m darkops --version`).
+Criado por **Vinicius Freitas**. Distribuído sob a [PolyForm Shield 1.0.0](LICENSE): pode baixar, usar, estudar e modificar para qualquer finalidade, inclusive produzir vídeos e monetizar os seus próprios canais, mantendo o crédito. Só não pode usar o projeto para oferecer um produto concorrente (vender ou revender o app, ou oferecê-lo como serviço pago); para isso, fale com o autor. A versão atual está em `darkops/__init__.py` (`python -m darkops --version`).
