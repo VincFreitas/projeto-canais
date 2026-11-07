@@ -138,7 +138,9 @@ def coerente(dados: dict) -> dict:
     cod = codigo(dados)
     m = MERCADOS[cod]
     voz = dados.get("voz")
-    return {"mercado": cod, "idioma": m["idioma"], "voz": voz if voz_combina(cod, voz) else m["vozes"][0]}
+    from .vozes import combina  # Thalita, Remy (multilíngue de fora), Charon do Gemini...: o catálogo decide
+    return {"mercado": cod, "idioma": m["idioma"],
+            "voz": voz if combina(cod, dados.get("motor_voz") or "auto", voz) else m["vozes"][0]}
 
 
 def texto(dados: dict, chave: str, **campos) -> str | list:

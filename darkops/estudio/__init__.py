@@ -301,7 +301,8 @@ def inicio():
 @app.get("/perfis")
 def perfis_pagina():
     return render_template("perfis.html", modelo=MODELO, status=plataformas.calcular(novo=True), nichos=config.nichos(),
-                           mercados=mercados.opcoes(), mercado_padrao=mercados.PADRAO)
+                           mercados=mercados.opcoes(), mercado_padrao=mercados.PADRAO,
+                           catalogo_vozes=_catalogo_vozes(), voz_padrao=mercados.MERCADOS[mercados.PADRAO]["vozes"][0])
 
 
 @app.post("/perfis/sugerir")
@@ -428,6 +429,52 @@ def chaves():
                                                    "" if segredo else env.get(k, "")) for k, rotulo, segredo in CHAVES])
 
 
+# ---------- amostras de voz (Novo canal e Ajustes) ----------
+
+@app.get("/vozes/amostra/<origem>/<cod>/<arquivo>")
+def voz_amostra(origem, cod, arquivo):
+    from .. import vozes
+    pasta = {"gratis": vozes.GRATIS, "pagas": vozes.PAGAS}.get(origem)
+    if not pasta or cod not in mercados.MERCADOS or not vozes.NOME_SEGURO.match(arquivo) \
+            or not arquivo.endswith(".mp3") or not (pasta / cod / arquivo).is_file():
+        abort(404)
+    return send_file(pasta / cod / arquivo, mimetype="audio/mpeg", max_age=3600)
+
+
+@app.get("/vozes/pagas/<cod>")
+def voz_pagas(cod):
+    from .. import vozes
+    if cod not in mercados.MERCADOS:
+        abort(404)
+    return jsonify(vozes.pagas(cod))
+
+
+@app.post("/vozes/gerar")
+def voz_gerar():
+    """Gera as amostras de uma opção paga. Se vier a chave, testa no serviço e salva no .env antes."""
+    from .. import vozes
+    from ..chaves import validar
+    dados = request.get_json(silent=True) or {}
+    motor, cod, chave = dados.get("motor"), dados.get("mercado"), str(dados.get("chave") or "").strip()
+    if motor not in vozes.PAGOS or cod not in mercados.MERCADOS:
+        return jsonify(ok=False, erro="opção inválida"), 400
+    nome = vozes.PAGOS[motor]["chave"]
+    if chave:
+        ok, texto = validar(nome, chave, _env())
+        if ok is False:
+            return jsonify(ok=False, erro=texto)
+        _salvar_env({nome: chave})
+    elif not _env().get(nome):
+        return jsonify(ok=False, erro=f"Cole a chave da {vozes.PAGOS[motor]['rotulo']} para gerar as amostras.")
+    vozes.gerar_paga_em_segundo_plano(motor, cod)
+    return jsonify(ok=True)
+
+
+def _catalogo_vozes() -> dict:
+    from .. import vozes
+    return {cod: vozes.catalogo(cod) for cod in mercados.MERCADOS}
+
+
 # ---------- painel do perfil ----------
 
 @app.get("/p/<pid>")
@@ -478,6 +525,7 @@ def configurar(pid):
                            motores_voz=MOTORES_VOZ, tipos_visual=TIPOS_VISUAL, ritmos=RITMOS,
                            tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS, edicoes=EDICOES, persona=PERSONA,
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p),
+                           catalogo_vozes=_catalogo_vozes(),
                            proposta=canal_ia.ler(p), rotulos=canal_ia.ROTULOS, resumo=_resumo_contas(p))
 
 

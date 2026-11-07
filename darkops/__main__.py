@@ -75,6 +75,20 @@ def cmd_comparar_vozes(a):
                                       else f"pulado: {r['pulado']}"))
 
 
+def cmd_vozes_amostras(a):
+    from . import vozes
+    if a.motor:
+        r = vozes.gerar_paga(a.motor, a.mercado or "pt-BR")
+        print(f"{a.motor} {a.mercado}: {r['situacao']}, {r['vozes']} amostras")
+        for f in r["falhas"]:
+            print(f"  {f}")
+        return
+    r = vozes.gerar_gratis([a.mercado] if a.mercado else None, a.refazer)
+    print(f"{r['geradas']} amostras novas em {vozes.GRATIS.relative_to(vozes.config.RAIZ)}")
+    for f in r["falhas"]:
+        print(f"  falhou: {f}")
+
+
 def cmd_efeitos_baixar(a):
     from .efeitos import PASTA, baixar
     for tipo, n in baixar(a.por_tipo).items():
@@ -806,6 +820,12 @@ def main():
     s = sub.add_parser("comparar-vozes", help="gera o mesmo trecho em cada motor de voz para ouvir lado a lado")
     s.add_argument("--texto")
     s.set_defaults(fn=cmd_comparar_vozes)
+
+    s = sub.add_parser("vozes-amostras", help="amostras das vozes para escolher a voz do canal (grátis ou, com a chave, pagas)")
+    s.add_argument("--mercado", help="só um público, ex.: pt-BR")
+    s.add_argument("--motor", choices=["gemini", "chirp", "elevenlabs"], help="opção paga (precisa da chave)")
+    s.add_argument("--refazer", action="store_true")
+    s.set_defaults(fn=cmd_vozes_amostras)
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")

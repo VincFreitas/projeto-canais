@@ -90,7 +90,8 @@ MOTORES_VOZ = {"auto": "Automático (Azure, depois Edge e Piper; grátis)", "azu
                "elevenlabs": "ElevenLabs (pago; precisa da chave)",
                "chirp": "Google Chirp 3 HD (grátis até 1 milhão de caracteres; precisa da chave)",
                "gemini": "Gemini TTS (cota grátis pequena; precisa da chave)",
-               "chatterbox": "Chatterbox (no seu PC, grátis; mais lento)"}
+               "chatterbox": "Chatterbox (no seu PC, grátis; mais lento)",
+               "piper": "Piper (no seu PC, offline e grátis; mais robótica)"}
 TIPOS_VISUAL = {"foto": "Só imagens", "video": "Só vídeos (foto quando faltar clipe)", "misto": "Imagens e vídeos"}
 RITMOS = [2, 3, 4, 6, 8]
 TAMANHOS_LEGENDA = {"pequena": 0.8, "media": 1.0, "grande": 1.25}
@@ -107,7 +108,9 @@ def campos_padrao(form) -> dict:
         except ValueError:
             return padrao
     cor = form.get("legenda_cor", "")
-    return {"motor_voz": form.get("motor_voz") if form.get("motor_voz") in MOTORES_VOZ else "auto",
+    from .vozes import escolha
+    motor = escolha(form.get("voz_escolha", "")).get("motor_voz") or form.get("motor_voz")  # o cartão da voz manda
+    return {"motor_voz": motor if motor in MOTORES_VOZ else "auto",
             "tipo_visual": form.get("tipo_visual") if form.get("tipo_visual") in TIPOS_VISUAL else "video",
             "proporcao_video": numero("proporcao_video", 50, 0, 100),
             "ritmo_corte_s": numero("ritmo_corte_s", 4, 1, 15),
@@ -173,7 +176,9 @@ def campos_canal(form) -> dict:
             return padrao
     # língua e região do público (mercados.py); sem o campo no formulário, fica a do perfil
     mercado = {"mercado": form.get("mercado")} if form.get("mercado") in mercados.MERCADOS else {}
-    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado,
+    from .vozes import escolha
+    voz = escolha(form.get("voz_escolha", ""))  # cartão escolhido no seletor de voz (motor + voz)
+    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado, **voz,
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
             "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
             "leva_quantidade": inteiro("leva_quantidade", 15, 1, 15), "leva_reabastecer": bool(form.get("leva_reabastecer")),

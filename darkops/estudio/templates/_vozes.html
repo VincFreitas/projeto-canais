@@ -1,0 +1,144 @@
+{# Seletor da voz do canal com amostras para ouvir: grátis prontas no projeto; pagas com a chave da pessoa.
+   Uso: {% import "_vozes.html" as vozes %} ... {{ vozes.seletor(catalogo, mercado, motor, voz) }}
+   Manda "motor|voz" no campo voz_escolha (perfis.campos_canal / campos_padrao). #}
+
+{% macro cartao(v) %}
+<div class="voz" role="button" tabindex="0" data-valor="{{ v.motor }}|{{ v.voz }}" data-genero="{{ v.genero }}">
+  <button type="button" class="voz-ouvir" data-src="{{ v.url or '' }}" {{ 'disabled' if not v.url }}
+          aria-label="Ouvir {{ v.nome }}" title="{{ 'Ouvir' if v.url else 'Amostra ainda não gerada' }}">▶</button>
+  <span class="voz-texto"><b>{{ v.nome }}</b>
+    <small>{{ {'F': 'feminina', 'M': 'masculina'}.get(v.genero, '') }}{{ ' · ' if v.genero and v.nota }}{{ v.nota }}</small></span>
+</div>
+{% endmacro %}
+
+{% macro seletor(catalogo, mercado, motor, voz) %}
+<div class="vozes" data-vozes>
+  <input type="hidden" name="voz_escolha" value="{{ motor }}|{{ voz }}">
+  <audio data-tocador preload="none"></audio>
+  <div class="vozes-filtro" role="group" aria-label="Filtrar vozes">
+    <button type="button" data-genero="" aria-pressed="true">Todas</button>
+    <button type="button" data-genero="F" aria-pressed="false">Femininas</button>
+    <button type="button" data-genero="M" aria-pressed="false">Masculinas</button>
+  </div>
+  {% for cod, c in catalogo.items() %}
+  <div class="vozes-mercado" data-mercado="{{ cod }}" {{ 'hidden' if cod != mercado }}>
+    <h3>Grátis <small>prontas para ouvir; com a chave do Azure (500 mil caracteres por mês) ou sem chave nenhuma, pelo Edge</small></h3>
+    <div class="vozes-grade">{% for v in c.gratis %}{{ cartao(v) }}{% endfor %}</div>
+    <h3>Pagas <small>com a sua chave; as amostras são geradas na hora, uma vez</small></h3>
+    {% for p in c.pagas %}
+    <div class="voz-paga" data-motor="{{ p.motor }}" data-situacao="{{ p.situacao }}">
+      <div class="voz-paga-topo"><b>{{ p.rotulo }}</b><small>{{ p.preco }}</small></div>
+      <div class="vozes-grade" data-grade>{% for v in p.vozes %}{{ cartao(v) }}{% endfor %}</div>
+      <div class="voz-paga-acao">
+        {% if not p.tem_chave %}
+        <input type="password" data-chave autocomplete="off" spellcheck="false"
+               placeholder="Cole aqui a chave da API ({{ p.onde }})" aria-label="Chave da {{ p.rotulo }}">
+        {% endif %}
+        <button type="button" class="botao secundario" data-gerar>
+          {{ 'Salvar a chave e gerar amostras' if not p.tem_chave else ('Gerar de novo' if p.vozes else 'Gerar amostras') }}</button>
+        <span class="voz-msg" data-msg>{{ 'Gerando as amostras…' if p.situacao == 'gerando' else p.erro }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+<script>
+(() => {
+  const raiz = document.currentScript.previousElementSibling;
+  const campo = raiz.querySelector('[name=voz_escolha]'), tocador = raiz.querySelector('[data-tocador]');
+  const form = raiz.closest('form'), mercadoSel = form && form.querySelector('[name=mercado]');
+  const motorSel = form && form.querySelector('select[name=motor_voz]');
+  const normal = v => v.replace(/^(azure|edge)\|/, 'auto|');
+  const visivel = () => raiz.querySelector('.vozes-mercado:not([hidden])');
+  let tocando = null;
+
+  const marcar = () => {
+    raiz.querySelectorAll('.voz').forEach(c => c.classList.toggle('escolhida', c.dataset.valor === normal(campo.value)));
+  };
+  const escolher = cartao => {
+    campo.value = cartao.dataset.valor;
+    const motor = cartao.dataset.valor.split('|')[0];
+    if (motorSel && motorSel.querySelector(`option[value="${motor}"]`)) motorSel.value = motor;
+    marcar();
+  };
+  const ouvir = botao => {
+    if (tocando === botao && !tocador.paused) { tocador.pause(); return; }
+    raiz.querySelectorAll('.voz-ouvir').forEach(b => b.textContent = '▶');
+    tocador.src = botao.dataset.src; tocador.play(); tocando = botao; botao.textContent = '❚❚';
+  };
+  tocador.addEventListener('pause', () => tocando && (tocando.textContent = '▶'));
+  tocador.addEventListener('ended', () => tocando && (tocando.textContent = '▶'));
+
+  raiz.addEventListener('click', e => {
+    const ouvirBtn = e.target.closest('.voz-ouvir');
+    if (ouvirBtn) { e.stopPropagation(); if (!ouvirBtn.disabled) ouvir(ouvirBtn); return; }  // ouvir não troca a escolha
+    const cartao = e.target.closest('.voz');
+    if (cartao) escolher(cartao);
+  });
+  raiz.addEventListener('keydown', e => {
+    const cartao = e.target.closest('.voz');
+    if (cartao && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); escolher(cartao); }
+  });
+
+  // filtro por gênero
+  raiz.querySelectorAll('.vozes-filtro button').forEach(b => b.addEventListener('click', () => {
+    raiz.querySelectorAll('.vozes-filtro button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    raiz.querySelectorAll('.voz').forEach(c => c.hidden = !!b.dataset.genero && c.dataset.genero !== b.dataset.genero);
+  }));
+
+  // trocou o público: mostra as vozes de lá e, se a escolhida não fala essa língua, marca a primeira
+  const trocarMercado = () => {
+    raiz.querySelectorAll('.vozes-mercado').forEach(m => m.hidden = m.dataset.mercado !== mercadoSel.value);
+    const area = visivel();
+    if (area && !area.querySelector(`.voz[data-valor="${CSS.escape(normal(campo.value))}"]`)) {
+      const primeira = area.querySelector('.voz'); if (primeira) escolher(primeira);
+    }
+  };
+  if (mercadoSel) mercadoSel.addEventListener('change', trocarMercado);
+
+  // opções pagas: salva a chave (testada no serviço) e gera as amostras em segundo plano
+  const desenhar = (bloco, p) => {
+    const grade = bloco.querySelector('[data-grade]'); grade.textContent = '';
+    p.vozes.forEach(v => {
+      const c = document.createElement('div'); c.className = 'voz'; c.tabIndex = 0; c.setAttribute('role', 'button');
+      c.dataset.valor = `${v.motor}|${v.voz}`; c.dataset.genero = v.genero || '';
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'voz-ouvir'; b.textContent = '▶';
+      b.dataset.src = v.url; b.setAttribute('aria-label', `Ouvir ${v.nome}`);
+      const t = document.createElement('span'); t.className = 'voz-texto';
+      const n = document.createElement('b'); n.textContent = v.nome;
+      const s = document.createElement('small');
+      s.textContent = [{F: 'feminina', M: 'masculina'}[v.genero] || '', v.nota || ''].filter(Boolean).join(' · ');
+      t.append(n, s); c.append(b, t); grade.append(c);
+    });
+    marcar();
+  };
+  const acompanhar = (bloco, cod) => {
+    const msg = bloco.querySelector('[data-msg]');
+    const vez = async () => {
+      const lista = await fetch(`/vozes/pagas/${cod}`).then(r => r.json()).catch(() => null);
+      const p = lista && lista.find(x => x.motor === bloco.dataset.motor);
+      if (p) desenhar(bloco, p);
+      if (p && p.situacao === 'gerando') { msg.textContent = `Gerando as amostras… ${p.vozes.length} prontas`; setTimeout(vez, 4000); return; }
+      msg.textContent = p ? (p.situacao === 'pronto' ? `${p.vozes.length} amostras prontas. Toque no ▶ para ouvir.` : (p.erro || 'Não deu para gerar.')) : '';
+      const chave = bloco.querySelector('[data-chave]'); if (chave && p && p.situacao === 'pronto') chave.remove();
+    };
+    vez();
+  };
+  raiz.querySelectorAll('[data-gerar]').forEach(botao => botao.addEventListener('click', async () => {
+    const bloco = botao.closest('.voz-paga'), cod = bloco.closest('.vozes-mercado').dataset.mercado;
+    const chave = bloco.querySelector('[data-chave]'), msg = bloco.querySelector('[data-msg]');
+    botao.disabled = true; msg.textContent = chave ? 'Testando a chave…' : 'Começando…';
+    const r = await fetch('/vozes/gerar', {method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({motor: bloco.dataset.motor, mercado: cod, chave: chave ? chave.value.trim() : ''})})
+      .then(r => r.json()).catch(() => ({ok: false, erro: 'O Estúdio não respondeu.'}));
+    botao.disabled = false;
+    if (!r.ok) { msg.textContent = r.erro; return; }
+    if (chave) chave.value = '';
+    acompanhar(bloco, cod);
+  }));
+  raiz.querySelectorAll('.voz-paga[data-situacao=gerando]').forEach(b => acompanhar(b, b.closest('.vozes-mercado').dataset.mercado));
+  marcar();
+})();
+</script>
+{% endmacro %}

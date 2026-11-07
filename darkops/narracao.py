@@ -140,14 +140,17 @@ def _elevenlabs(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path
     return mp3, palavras
 
 
-def _azure(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+def _azure(texto: str, voz: str, velocidade: str, base: Path, fala: str | None = None) -> tuple[Path, list[dict]]:
+    """fala = língua do roteiro (ex.: "pt-BR"). Voz Multilingual de outro país (fr-FR-Remy...) fala nessa língua."""
     if not (config.AZURE_SPEECH_KEY and config.AZURE_SPEECH_REGION):
         raise SystemExit("motor azure exige AZURE_SPEECH_KEY e AZURE_SPEECH_REGION no .env")
     lingua = "-".join(voz.split("-")[:2])
+    trocar = bool(fala) and "Multilingual" in voz and fala != lingua
     partes = []
     for frase in _frases(texto):
+        corpo = f"<lang xml:lang='{fala}'>{escape(frase)}</lang>" if trocar else escape(frase)
         ssml = (f"<speak version='1.0' xml:lang='{lingua}'><voice name='{voz}'>"
-                f"<prosody rate='{velocidade}'>{escape(frase)}</prosody></voice></speak>")
+                f"<prosody rate='{velocidade}'>{corpo}</prosody></voice></speak>")
         r = requests.post(
             f"https://{config.AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1",
             headers={"Ocp-Apim-Subscription-Key": config.AZURE_SPEECH_KEY,
@@ -300,7 +303,10 @@ def narrar(texto: str, motor: str, voz: str | None, velocidade: str, idioma: str
     if voz and not _serve(escolhido, voz):  # o perfil guarda a voz do Azure; outro motor usa a voz padrão dele
         voz = None
     try:
-        audio, palavras = MOTORES[escolhido](texto, voz or voz_padrao(escolhido, idioma), velocidade, base)
+        if escolhido == "azure":
+            audio, palavras = _azure(texto, voz or voz_padrao(escolhido, idioma), velocidade, base, _locale(idioma))
+        else:
+            audio, palavras = MOTORES[escolhido](texto, voz or voz_padrao(escolhido, idioma), velocidade, base)
     except (ConnectionError, requests.RequestException) as erro:
         if motor != "auto":
             raise

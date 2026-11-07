@@ -34,6 +34,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 .\dark.ps1 vozes pt-BR
 .\dark.ps1 efeitos-baixar [--por-tipo 6]            # efeitos sonoros CC0 do Openverse/Freesound em assets\efeitos
 .\dark.ps1 comparar-vozes                     # mesmo trecho em cada motor de voz, em saida\vozes-teste
+.\dark.ps1 vozes-amostras [--motor gemini --mercado pt-BR]   # amostras do seletor de voz (grátis no repo; pagas com a chave)
 .\dark.ps1 referencia <link> [<link> ...]      # mede o estilo de vídeos de referência e propõe o padrão do perfil
 .\dark.ps1 conferir saida\<slug>-vertical.mp4  # tela preta, silêncio, volume, duração e resolução do vídeo pronto
 .\dark.ps1 descricao perfis\<perfil>\fila\<roteiro>.json [--refazer]  # descrição e tags pela IA (manual ou automático por vídeo)
@@ -42,7 +43,7 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 .\dark.ps1 atalhos --area-de-trabalho --menu-iniciar   # atalhos para abrir sem PowerShell
 .\dark.ps1 leva --quantidade 7                  # escreve N roteiros com o Claude Code e gera as prévias (--se-faltar --fundo: reabastecimento pelo n8n)
 ```
-- Motores de voz: `azure`, `edge`, `piper`, `elevenlabs`, `chirp` (Google Chirp 3 HD, `GOOGLE_TTS_API_KEY`), `gemini` (`GEMINI_API_KEY`) e `chatterbox` (local, licença MIT, chamado por `darkops/chatterbox_ponte.py` num ambiente separado em `dados/apps/vozes`, que foi apagado em 2026-11-03: o motor só funciona se esse ambiente for reinstalado; nunca instale torch no `.venv`). Chaves em Estúdio > Chaves ou Conexões > Voz. Vozes de licença não comercial (XTTS, F5-TTS, Fish) não entram: canal monetizado é uso comercial.
+- Motores de voz: `azure`, `edge`, `piper`, `elevenlabs`, `chirp` (Google Chirp 3 HD, `GOOGLE_TTS_API_KEY`), `gemini` (`GEMINI_API_KEY`) e `chatterbox` (local, licença MIT, chamado por `darkops/chatterbox_ponte.py` num ambiente separado em `dados/apps/vozes`, que foi apagado em 2026-11-03: o motor só funciona se esse ambiente for reinstalado; nunca instale torch no `.venv`). Chaves em Estúdio > Chaves ou Conexões > Voz. A voz do canal se escolhe ouvindo (`darkops/vozes.py` + `_vozes.html`, no Novo canal e em Ajustes): toda voz grátis do catálogo precisa ter amostra pronta em `assets/vozes/amostras/<mercado>/` (rode `vozes-amostras` ao mudar o catálogo); as pagas pedem a chave no cartão e geram as amostras na hora. Vozes de licença não comercial (XTTS, F5-TTS, Fish) não entram: canal monetizado é uso comercial.
 - Rode `produzir` pelo PowerShell, não pelo Bash: o sandbox do Bash às vezes derruba a conexão com o serviço de voz.
 - Formato do roteiro: [docs/roteiro.md](docs/roteiro.md).
 - Presets de nicho: `config/nichos.json` (idioma + buscas).

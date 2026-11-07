@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "_canal.html" as canal with context %}
+{% import "_vozes.html" as vozes %}
 {% block titulo %}Perfil · {{ d.nome }}{% endblock %}
 {% block corpo %}
 {% if proposta %}
@@ -56,15 +57,16 @@
       {% for k, m in mercados.items() %}<option value="{{ k }}" {{ 'selected' if k == mercado }}>{{ m.nome }}</option>{% endfor %}</select></div>
   </div>
   <p class="dica">O público decide a língua dos roteiros, da voz, da descrição e das tags, a língua informada ao YouTube
-    e o fuso dos horários de postagem (horário de {{ mercados[mercado].cidade }}). Ao trocar, a voz muda para uma da nova
+    e o fuso dos horários de postagem (horário de {{ mercados[mercado].cidade }}). Ao trocar, a voz muda para uma que fale a língua da nova
     região. Os vídeos que já estão na fila continuam na língua em que foram escritos.</p>
   <label>Descrição</label>
   <textarea name="descricao">{{ d.descricao }}</textarea>
   <details class="mais" {{ 'open' if avancado }}>
   <summary>Mostrar mais opções (voz, visual, formato, plataformas, legenda, personalidade)</summary>
+  <h2 style="margin-top:14px">Voz do narrador</h2>
+  <p class="dica">Toque no ▶ para ouvir e no cartão para escolher. Vale para os próximos vídeos.</p>
+  {{ vozes.seletor(catalogo_vozes, mercado, d.motor_voz, d.voz) }}
   <div class="grade">
-    <div><label>Voz</label><select name="voz" id="voz">{% for k, m in mercados.items() %}<optgroup label="{{ m.nome }}" data-mercado="{{ k }}">
-      {% for v in m.vozes %}<option {{ 'selected' if v == d.voz }}>{{ v }}</option>{% endfor %}</optgroup>{% endfor %}</select></div>
     <div><label>Layout</label><select name="layout">
       <option value="post" {{ 'selected' if d.layout == 'post' }}>Post (fundo branco + manchete)</option>
       <option value="cheio" {{ 'selected' if d.layout != 'post' }}>Tela cheia</option></select></div>
@@ -87,22 +89,6 @@
     (o mesmo em todas as cenas). Cada cena leva de 2 a 5 minutos. * Imagem realista feita por IA: marque
     “conteúdo alterado ou sintético” no YouTube Studio.</p>
   <p class="dica">O n8n confere a cada 30 minutos e posta quando chega um destes horários, no fuso do público escolhido.</p>
-  <script>
-  // só as vozes do público escolhido; ao trocar de público, marca a primeira voz da nova região
-  (() => {
-    const mercado = document.getElementById('mercado'), voz = document.getElementById('voz');
-    if (!mercado || !voz) return;
-    const filtrar = (trocou) => {
-      voz.querySelectorAll('optgroup').forEach(g => {
-        const ativo = g.dataset.mercado === mercado.value;
-        g.hidden = !ativo; g.disabled = !ativo;
-        if (ativo && trocou) g.querySelector('option').selected = true;
-      });
-    };
-    mercado.addEventListener('change', () => filtrar(true));
-    filtrar(false);
-  })();
-  </script>
   {{ canal.campos(d, status) }}
   <h2 style="margin-top:20px">Personalidade do canal</h2>
   <p class="dica">O Claude segue isso em todo roteiro (no /escrever-roteiro e nas levas). Deixe em branco o que não quiser fixar.</p>
