@@ -421,7 +421,7 @@ def _status() -> str:
         horarios = " e ".join(d.get("horarios", ["12:00", "19:00"]))
         linhas.append(f"*{d['nome']}* ({'no ar' if d.get('ativo') else 'pausado'})\n"
                       f"  aprovados na fila: {restantes(p)} · esperando você: {len(_pendentes(p))}\n"
-                      f"  posta às {horarios}" + (f" · leva criando vídeos" if (p.controle / 'leva.trava').exists() else ""))
+                      f"  posta às {horarios}" + (" · leva criando vídeos" if (p.controle / 'leva.trava').exists() else ""))
     return "\n".join(linhas) or "Nenhum canal criado ainda."
 
 

@@ -13,8 +13,9 @@
 </head>
 <body>
 <div id="carregando"></div>
-<aside class="lateral">
+<aside class="lateral" id="menu-lateral">
   <a class="marca" href="{{ url_for('inicio') }}"><span class="logo">✦</span> Projeto Canais</a>
+  <button type="button" class="botao-menu" aria-expanded="false" aria-controls="menu-lateral" onclick="const a=this.closest('.lateral');a.classList.toggle('aberta');this.setAttribute('aria-expanded',a.classList.contains('aberta'))">☰ Menu</button>
   <p class="rotulo">Canais</p>
   <nav class="perfis">
     {% for item in perfis %}

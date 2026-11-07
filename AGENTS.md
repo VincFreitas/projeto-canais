@@ -77,4 +77,4 @@ Método: oferta e demanda. Achar demanda comprovada, estudar os outliers, extrai
 - `obra/`: intermediários de produção (cache por cena; pode apagar)
 - `assets/musica/`: músicas livres; `assets/vozes/`: modelos do Piper
 - `perfis/<id>/`: um canal por perfil: `perfil.json` (nome, @, plataformas, `formato` vertical/longo, `duracao_s`, `video_exemplo`, estilo, postagem ligada), `credenciais/` (tokens, fora do Git), `fila/` (só sai o que tem `"aprovado": true`), `publicados/` e `controle/` (estado.json, testes.csv, falhas.log)
-- `darkops/estudio/`: o Estúdio, painel local em Flask (`.\.venv\Scripts\python.exe -m darkops estudio`, em http://127.0.0.1:8765)
+- `darkops/estudio/`: o Estúdio, painel local em Flask (`.\.venv\Scripts\python.exe -m darkops estudio`, em http://127.0.0.1:8765). Toda tela precisa caber de 320 px a monitor grande, sem rolagem lateral (no celular a lateral vira o botão Menu); confira em 320, 375, 768 e 1920 px ao mexer em template ou CSS. Acesso pelo celular continua bloqueado até a revisão de segurança de [docs/app-e-site.md](docs/app-e-site.md)

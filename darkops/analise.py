@@ -14,7 +14,7 @@ import subprocess
 import time
 import uuid
 
-from . import config
+from . import config  # noqa: F401 (carrega o .env)
 
 
 def _validar(perfil, campo: str, valor):

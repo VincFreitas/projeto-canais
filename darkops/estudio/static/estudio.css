@@ -519,3 +519,40 @@ body.abertura { display: grid; place-items: center; background: radial-gradient(
 .vozes-mais { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .vozes-mais [hidden], .vozes-pagas[hidden] { display: none; }
 .vozes-pagas { display: grid; gap: 10px; }
+
+/* ---------- telas de qualquer tamanho (celular, tablet, monitor grande) ---------- */
+html { -webkit-text-size-adjust: 100%; }
+img, video, canvas, iframe { max-width: 100%; }
+.conteudo { min-width: 0; }
+.conectores { grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); }
+.dupla > *, .duas-colunas > * { min-width: 0; }
+.celular { max-width: 360px; margin-inline: auto; box-sizing: border-box; }
+.abertura-palco { max-width: 100%; box-sizing: border-box; }
+.conteudo a, .conteudo p, .conteudo li { overflow-wrap: anywhere; }
+@media (max-width: 360px) { .abertura-palco { padding: 16px 8px; } }
+.botao-menu { display: none; }
+table { max-width: 100%; }
+@media (min-width: 1600px) { .conteudo { max-width: 1400px; } }
+@media (max-width: 900px) {
+  .lateral { padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top)); flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 20; }
+  .lateral > :not(.marca):not(.botao-menu) { display: none; }
+  .lateral.aberta > :not(.marca):not(.botao-menu) { display: flex; flex-basis: 100%; }
+  .lateral.aberta > .rotulo { display: block; }
+  .lateral.aberta { max-height: 100vh; overflow-y: auto; }
+  .botao-menu { display: inline-flex; align-items: center; gap: 6px; background: #2d2a26; color: #f1ede6; border: 0; border-radius: 10px; padding: 9px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+  .conteudo { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); padding-bottom: max(40px, env(safe-area-inset-bottom)); }
+  .abas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .abas::-webkit-scrollbar { display: none; }
+  .abas a { white-space: nowrap; flex: none; }
+  .topo { flex-wrap: wrap; gap: 12px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  input, select, textarea { font-size: 16px; max-width: 100%; }
+  textarea { width: 100%; box-sizing: border-box; }
+  .botao, button { min-height: 40px; }
+  .numeros { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+}
+@media (max-width: 480px) {
+  h1 { font-size: 24px; }
+  .conteudo { padding-top: 16px; }
+  .acoes { flex-wrap: wrap; }
+}

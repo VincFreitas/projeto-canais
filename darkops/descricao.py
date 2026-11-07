@@ -14,7 +14,7 @@ import re
 import subprocess
 from pathlib import Path
 
-from . import config
+from . import config  # noqa: F401 (carrega o .env)
 
 LIMITE_LINHA_1 = 125
 MAX_HASHTAGS = 5

@@ -71,3 +71,20 @@ dados/apps/
 dados/bin/
 n8n/whatsapp.json
 dados/amostras-voz/
+
+# estado de execução de cada canal (muda a todo minuto; fica só no PC)
+perfis/*/controle/estado.json
+perfis/*/controle/slots.json
+perfis/*/controle/falhas.log
+perfis/*/controle/levas.log
+perfis/*/controle/youtube_canal.json
+perfis/*/controle/comentarios.json
+perfis/*/controle/leva-adiada.json
+perfis/*/controle/descricoes/
+perfis/*/publicados/
+/controle/
+saida/*-musica.json
+saida/*-metadados.md
+!saida/exemplo-*-metadados.md
+saida/amostras-voz/
+saida/vozes-teste/

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import requests
 
-from . import config
+from . import config  # noqa: F401 (carrega o .env)
 
 VERSAO = "v23.0"
 GRAPH = f"https://graph.instagram.com/{VERSAO}"

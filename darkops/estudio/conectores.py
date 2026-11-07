@@ -3,10 +3,8 @@
 Cada conector diz para que serve, onde se consegue o acesso, se vale para um perfil ou para todos,
 e como está agora. Os "em breve" aparecem para mostrar o que existe no mercado, sem fingir que funciona.
 """
-import os
 import shutil
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from .. import config
 

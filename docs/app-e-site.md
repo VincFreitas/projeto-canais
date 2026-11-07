@@ -40,9 +40,12 @@ Um serviço online com várias pessoas (SaaS) **não** faz parte do plano. Ele e
 - [ ] Opcional: publicar na **Microsoft Store**, que pede MSIX e conta de desenvolvedor.
 
 ## 4. Aplicativo no celular
-Hoje o celular conversa com o projeto pelo **WhatsApp**: avisos, Aprovar/Recusar e comandos. Abrir o Estúdio no celular exige que ele aceite conexões de fora do PC, e isso está **bloqueado** pelas regras de segurança. Caminhos possíveis, todos pedindo a revisão de segurança da seção 7:
-- PWA do Estúdio por um túnel com login (ex.: Cloudflare Access), sem abrir a rede local.
-- App na Google Play por TWA (Trusted Web Activity), que exige o Estúdio num endereço HTTPS.
+**Já pronto (v0.48.1):** o Estúdio se ajusta a qualquer tela, de celular pequeno (320 px) a monitor grande. No celular, a lateral vira uma barra com o botão **Menu**, as abas rolam para o lado, as tabelas rolam dentro do cartão, os campos usam letra de 16 px (o iPhone não dá zoom sozinho) e a página respeita o recorte da tela (`env(safe-area-inset-*)`). Cada mudança de tela é conferida sem barra de rolagem lateral em 320, 375, 768 e 1920 px.
+
+**Ainda falta:** o celular alcançar o Estúdio. O Estúdio só aceita 127.0.0.1, e abrir para a rede está **bloqueado** pelas regras de segurança. O aviso pelo WhatsApp está desligado desde 2026-11-07, por decisão do dono. Caminhos possíveis, do mais simples ao mais trabalhoso, todos pedindo antes a revisão de segurança da seção 7:
+- **Rede privada (Tailscale ou WireGuard)**: só os aparelhos do dono entram, sem porta aberta na internet. Pede login no Estúdio e liberar o endereço da rede privada em `ambiente.py`.
+- **PWA por túnel com login (ex.: Cloudflare Access)**: abre de qualquer lugar e a porta do PC continua fechada.
+- **App na Google Play por TWA (Trusted Web Activity)**: o mesmo PWA dentro de um app de loja, que exige o Estúdio num endereço HTTPS.
 
 ## 5. Autorizações das plataformas
 

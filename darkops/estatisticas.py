@@ -13,7 +13,6 @@ Resultado em controle/estatisticas.json; um resumo por dia vai para controle/est
 import json
 import time
 from datetime import date
-from pathlib import Path
 
 import requests
 

@@ -1,32 +1,42 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.48.0%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.48.1%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.29.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.48.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
 **Veja funcionando:** o canal de exemplo é o **Pulga do Saber**, curiosidades rápidas narradas por uma pulga em pixel art, no [YouTube](https://www.youtube.com/@pulgadosaber) e no [Instagram](https://www.instagram.com/pulgadosaber).
 
-Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico. Ele **aprende sozinho**: a cada 15 vídeos no ar, descobre o que funcionou e ajusta os próximos. E avisa (e obedece) pelo **WhatsApp**. Posta mesmo com o PC desligado, pela **nuvem** (GitHub Actions + n8n).
+Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico. Ele **aprende sozinho**: a cada 15 vídeos no ar, descobre o que funcionou e ajusta os próximos. **Lê os comentários** e prepara respostas para você aprovar. Posta mesmo com o PC desligado, pela **nuvem** (GitHub Actions + n8n). Funciona em qualquer tela, do monitor ao celular.
 
 ![Estúdio do Projeto Canais: início do perfil Pulga do Saber, com fila, próximas postagens e conexões por função](docs/img/estudio.png)
 
-**Neste README:** [Novidades](#novidades-v029) · [Começar em 3 passos](#começar-em-3-passos-com-o-claude-code) · [Sem o Claude](#sem-o-claude-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
+**Neste README:** [Novidades](#novidades-v048) · [Começar em 3 passos](#começar-em-3-passos-com-qualquer-agente-de-ia) · [Sem agente](#sem-agente-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
 
-## Novidades (v0.29)
+## Novidades (v0.48)
+
+**Comentários com resposta aprovada.** A cada 3 horas o canal lê os comentários do YouTube e do Instagram, separa perguntas, correções de fato, ideias de vídeo, elogios, críticas e spam, e escreve uma resposta curta no tom do canal. Você aprova, edita ou ignora em Resultados > **Comentários**. O que o público disse entra nas Estatísticas, na análise da IA e no aprendizado. Responder sozinho é opcional e só vale para elogios e perguntas simples.
+
+**Voz escolhida ouvindo.** No Novo canal e em Ajustes, as 6 vozes recomendadas para o assunto do canal aparecem primeiro, cada uma com ▶ para ouvir. Também dá para ver mais vozes ou todas.
+
+**Animações pelo HyperFrames.** Legenda que acende a palavra falada, título letra a letra, números que contam, carimbos e etiquetas, sincronizados com a narração.
+
+**Estúdio em qualquer tela.** No celular, a lateral vira o botão **Menu**, as abas rolam para o lado e os campos ficam do tamanho do dedo. Abrir o Estúdio pelo celular ainda depende de um acesso seguro, planejado em [docs/app-e-site.md](docs/app-e-site.md).
+
+### Anteriores
 
 **Abertura animada.** O executável abre direto numa tela que confere o Estúdio, o n8n, a nuvem e o WhatsApp, e o logo "voa" para a lateral. Sem janelas de prompt piscando.
 
 <img src="docs/img/abertura.png" width="760" alt="Abertura animada do Projeto Canais: o logo, o nome e a conferência do Estúdio, do n8n, da nuvem e do WhatsApp">
 
-**Novo canal em 5 passos.** Assunto em cartões, nome com sugestões da IA, formato e duração, plataformas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**.
+**Novo canal em 6 passos.** Assunto em cartões, nome com sugestões da IA, formato e voz, plataformas, contas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**.
 
-<img src="docs/img/novo-canal.png" width="760" alt="Novo canal em 5 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal">
+<img src="docs/img/novo-canal.png" width="760" alt="Novo canal em 6 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal">
 
 **O que funcionou** (em Resultados). A cada 15 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.*
 
@@ -97,20 +107,22 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Criar as contas sem procurar nada | No Novo canal (passo **Contas**) e em Ajustes > **Criar as contas**: Gmail, canal do YouTube, Instagram, app do Google, app da Meta, GitHub e Microsoft na ordem, com nomes sugeridos a partir do nome do canal (um clique copia), o link oficial de cada passo e o que já está pronto. Os nomes dos repositórios do GitHub você escolhe ali |
 | Escolher a língua e a região do público | Estúdio > Ajustes > **Público (língua e região)**, ou no 1º passo do Novo canal: português do Brasil ou de Portugal, inglês dos EUA ou do Reino Unido, espanhol do México, dos EUA ou da Espanha, francês, alemão e italiano. Roteiro, voz, descrição, tags e bio saem na língua de lá, com referências e unidades de lá; o YouTube recebe a língua certa; e os horários valem no fuso de lá (`python -m darkops mercados` lista todos) |
 | Conectar contas sem copiar chave | Estúdio > Ajustes > Contas: **Entrar com a Microsoft** cria a chave grátis da voz (Azure F0), **Entrar com o GitHub** cria a fila da nuvem e a passagem do Instagram, **Entrar com Instagram** traz o token e o renova sozinho. Você só faz login; criar as contas continua com você |
-| Acompanhar e mandar pelo WhatsApp | Estúdio > barra lateral > **WhatsApp** (conecta uma vez e vale para todos os canais; API oficial da Meta, só o seu número): avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, e manda cada vídeo novo com **Aprovar** e **Recusar**. Comandos: `status`, `fila`, `aprovar`, `criar 3`, `criar sobre <tema>`, `pausar`, `retomar`, `ajustar <pedido>`, `canal <nome>`. Os comandos chegam pelo n8n, com o PC ligado (`python -m darkops whatsapp testar`) |
+| Acompanhar e mandar pelo WhatsApp (desligado por enquanto; liga com `DARKOPS_WHATSAPP=1` no `.env`) | Estúdio > barra lateral > **WhatsApp** (conecta uma vez e vale para todos os canais; API oficial da Meta, só o seu número): avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, e manda cada vídeo novo com **Aprovar** e **Recusar**. Comandos: `status`, `fila`, `aprovar`, `criar 3`, `criar sobre <tema>`, `pausar`, `retomar`, `ajustar <pedido>`, `canal <nome>`. Os comandos chegam pelo n8n, com o PC ligado (`python -m darkops whatsapp testar`) |
 | Aprender com o que funcionou | Todo canal começa com **15 vídeos**. A cada 15 vídeos no ar há 2 dias, o n8n (20h) busca os números, separa o que **funcionou** do que **não funcionou** e muda sozinho os próximos vídeos usando **só o que funcionou**. Estúdio > Resultados > **O que funcionou** mostra os dois grupos e as mudanças, com **Desfazer** (`python -m darkops aprender`, `aprender-desfazer`) |
 | Instalar como aplicativo | No Chrome ou no Edge, com o Estúdio aberto: ícone **Instalar** na barra de endereço. Abre numa janela própria, com o ícone ✦. Os planos e as autorizações para virar aplicativo e site (cookies, LGPD, Google, Meta, lojas) ficam em [docs/app-e-site.md](docs/app-e-site.md) |
-| Títulos, agenda da semana, comentários | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
+| Responder comentários | Estúdio > Resultados > **Comentários**: a cada 3 horas o n8n lê os comentários novos e a IA separa por tipo e rascunha a resposta; você aprova, edita ou ignora. No YouTube, clique uma vez em **Liberar comentários do YouTube**; no Instagram, conecte de novo se conectou antes da v0.46.0 (`python -m darkops comentarios --todos`) |
+| Usar no celular ou no tablet | O Estúdio se ajusta a qualquer tela (menu recolhido, abas que rolam, campos maiores). O acesso pelo celular ainda não está liberado, por segurança: o plano está em [docs/app-e-site.md](docs/app-e-site.md) |
+| Títulos, agenda da semana | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
 | Medir e decidir | `/revisar-desempenho` |
 
 ## Conectores
 
 | Função | Conectores | Custo |
 |---|---|---|
-| Publicação | YouTube Shorts (OAuth), Instagram Reels (token) · TikTok e Facebook em breve | Grátis |
-| Voz | Azure Speech (principal), Edge, Piper offline, ElevenLabs | Grátis no F0 do Azure |
-| Imagens e vídeos | Pixabay, Pexels, arquivos próprios (sem mídia de IA, desenho ou 3D) | Grátis |
-| Música | Trilhas geradas pelo código, biblioteca própria com licença registrada | Grátis |
+| Publicação e comentários | YouTube Shorts (OAuth), Instagram Reels (token) · TikTok e Facebook em breve | Grátis |
+| Voz | Azure Speech (principal), Edge, Piper offline, Google Chirp 3 HD, Gemini TTS, ElevenLabs | Grátis no F0 do Azure; Chirp grátis até 1 milhão de caracteres por mês |
+| Imagens e vídeos | Pixabay, Pexels, acervo da NASA (com crédito), arquivos próprios e cenas desenhadas no PC (pixel art, 2D, 3D e HyperFrames) | Grátis |
+| Música e efeitos | Trilhas geradas pelo código, biblioteca própria com licença registrada, efeitos sonoros CC0 | Grátis |
 | Roteiros e pesquisa | Claude Code, yt-dlp | Conforme o seu plano |
 | Automação | n8n local | Grátis |
 
@@ -119,7 +131,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 - `darkops/`: o código (CLI `python -m darkops`, com `--perfil <id>` em qualquer comando)
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
-- `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/whatsapp.py`: avisos e comandos; `darkops/nuvem.py`: postagem com o PC desligado
+- `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/comentarios.py`: coleta, triagem e respostas dos comentários; `darkops/whatsapp.py`: avisos e comandos (desligado por padrão); `darkops/nuvem.py`: postagem com o PC desligado
 - `n8n/`: modelos dos workflows (postagem e análise do que funcionou; WhatsApp e resumo do dia) e lançadores
 - `site/`: página inicial, privacidade (LGPD), termos e política de cookies com aviso de consentimento (GitHub Pages)
 - `docs/img/`: imagens do README

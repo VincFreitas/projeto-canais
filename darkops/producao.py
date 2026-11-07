@@ -296,7 +296,7 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
             termo = (c["termo"], t if t is not None else 0.2)
             efeitos.append((inicio_cena + termo[1], "thud"))
         for r in c.get("rotulos", []):  # etiquetas presas ao objeto, cada uma na sua palavra
-            from .sincronia import momento
+            from .sincronia import momento  # noqa: F811
             t = momento(palavras, r.get("em") or r["texto"])
             rotulos.append((r["texto"], float(r.get("x", 0.5)), float(r.get("y", 0.4)), t if t is not None else 0.3))
             rotulos_vivos.append((*rotulos[-1], r.get("alvo")))
