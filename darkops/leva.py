@@ -85,6 +85,9 @@ def _claude() -> str | None:
 # esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
 ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
            "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium"}
+# modelo por tarefa (roteador por nível): tarefa curta vai para um modelo menor e mais rápido, que gasta menos do
+# limite do plano; roteiro, análise, aprendizado e ajuste ficam no modelo padrão do Claude Code (o maior)
+MODELO = {"descricao": "haiku", "comentarios": "haiku", "nomes": "haiku", "visual": "sonnet", "carrossel": "sonnet"}
 _LIMITE = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|out of (extra )?usage|"
                      r"limite de uso|resets? (at|às|as)? ?\d", re.I)
 
@@ -117,9 +120,12 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
     # chamadas automáticas, que ficam previsíveis e não gastam limite carregando contexto que não é do pedido
     args = [claude, "-p", "--setting-sources", "project,local"] + (["--allowedTools", *ferramentas] if ferramentas else [])
     esforco = ESFORCO.get(tarefa)
+    modelo = MODELO.get(tarefa) if os.environ.get("DARKOPS_MODELO_POR_TAREFA", "1") != "0" else None
     rodar = lambda extra: subprocess.run(args + extra, input=pedido, cwd=config.RAIZ, capture_output=True,  # noqa: E731
                                          text=True, encoding="utf-8", errors="replace", timeout=timeout)
-    proc = rodar(["--effort", esforco] if esforco else [])
+    proc = rodar((["--effort", esforco] if esforco else []) + (["--model", modelo] if modelo else []))
+    if modelo and proc.returncode != 0 and not bateu_limite(proc) and "model" in (proc.stderr + proc.stdout).lower():
+        proc = rodar(["--effort", esforco] if esforco else [])  # modelo indisponível no plano: usa o padrão
     if proc.returncode != 0 and "unknown option" in (proc.stderr or "").lower():  # Claude Code antigo
         args[:] = [x for x in args if x not in ("--setting-sources", "project,local")]
         proc = rodar([])

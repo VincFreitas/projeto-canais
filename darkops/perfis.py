@@ -59,6 +59,7 @@ MODELO = {
     "tema_cards": "padrao",
     "edicao": "pro",            # quantos elementos na tela: simples, leve ou pro (pro = tudo que o roteiro trouxer)
     "acervo_nasa": False,       # usar o acervo de imagens da NASA (domínio público, com crédito)
+    "instagram_teste": "",      # trial reels: "" (normal), "automatico" ou "manual" (instagram.TESTE)
     # personalidade do canal: o /escrever-roteiro e a leva seguem isso em todo roteiro
     "persona_narrador": "",
     "persona_tom": "",
@@ -180,7 +181,10 @@ def campos_canal(form) -> dict:
     mercado = {"mercado": form.get("mercado")} if form.get("mercado") in mercados.MERCADOS else {}
     from .vozes import escolha
     voz = escolha(form.get("voz_escolha", ""))  # cartão escolhido no seletor de voz (motor + voz)
-    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado, **voz,
+    # trial reels do Instagram (instagram.TESTE); sem o campo no formulário, fica o do perfil
+    teste = ({"instagram_teste": form.get("instagram_teste") if form.get("instagram_teste") in ("manual", "automatico")
+              else ""} if "instagram_teste" in form else {})
+    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado, **voz, **teste,
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
             "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
             "leva_quantidade": _par(form.get("leva_quantidade"), 14), "leva_reabastecer": bool(form.get("leva_reabastecer")),

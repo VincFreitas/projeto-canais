@@ -115,7 +115,7 @@ Isidora=hi,mi Elvira=ge,ed Triana=cu,bi Tristan=mi,te Alvaro=hi,ge Dario=cu,bi V
 Brigitte=hi Remy=mi,te,hi Lucien=ed,cu Henri=mi,hi,ge Alain=te Claude=bi,cu Seraphina=cu,ed Katja=ge,ed Amala=an,cu
 Louisa=cu,bi Florian=mi,hi Conrad=ge,hi Klaus=te,mi Ralf=bi Isabella=cu,ed,an Elsa=ge,ed Fiamma=cu,bi
 Giuseppe=mi,hi Marcello=te,mi Alessio=cu,ed Diego=ge,hi Gianni=bi Gacrux=mi,hi Kore=ge,ed Aoede=cu,an
-Sulafat=an,cu Charon=ed,ge,hi Orus=mi,ge Algenib=te,mi Rasalgethi=hi,mi,ed
+Sulafat=an,cu Charon=ed,ge,hi Orus=mi,ge Algenib=te,mi Rasalgethi=hi,mi,ed Dora=cu,ed,an Alex=mi,hi,ge Santa=bi,cu
 """
 TEMAS_VOZ = {nome: [T[c] for c in codigos.split(",")]
              for nome, codigos in (par.split("=") for par in _TEMAS_VOZ.split())}
@@ -181,6 +181,12 @@ def gratis(cod: str) -> list[dict]:
     if piper and piper.startswith(cod.replace("-", "_")) and (narracao.PASTA_PIPER / f"{piper}.onnx").exists():
         itens.append({"motor": "piper", "voz": piper, "genero": "", "nome": "Piper (offline)", "temas": [],
                       "nota": "roda no seu PC sem internet; mais robótica"})
+    from . import voz_local
+    if cod == "pt-BR" and voz_local.tem_voz():  # Kokoro (Apache 2.0): grátis, no PC, sem chave
+        for voz, nome in voz_local.VOZES_PT.items():
+            curto = nome.split()[0]
+            itens.append({"motor": "kokoro", "voz": voz, "genero": "F" if voz[1] == "f" else "M", "nome": curto,
+                          "temas": temas_da_voz(curto), "nota": "Kokoro: roda no seu PC, sem chave"})
     return [{**i, "url": url(_arquivo_gratis(cod, i["motor"], i["voz"]))} for i in itens]
 
 
@@ -293,7 +299,7 @@ def escolha(valor: str) -> dict:
     voz = voz.strip()[:120]
     if motor == "chatterbox" and voz == "minha-voz":
         return {"motor_voz": motor, "voz": voz}
-    if motor not in ("auto", "piper", *PAGOS) or not voz or not re.match(r"^[\w.:-]+$", voz):
+    if motor not in ("auto", "piper", "kokoro", *PAGOS) or not voz or not re.match(r"^[\w.:-]+$", voz):
         return {}
     return {"motor_voz": motor, "voz": voz}
 
@@ -311,6 +317,9 @@ def combina(cod: str, motor: str, voz: str | None) -> bool:
         return v.isalpha()
     if motor == "piper":
         return v in narracao.VOZES_PIPER.values()
+    if motor == "kokoro":
+        from .voz_local import LINGUA
+        return narracao._serve("kokoro", v) and LINGUA.get(v[:1], "").lower() == cod.lower()
     return True  # ElevenLabs (voice_id da conta) e Chatterbox (código da língua)
 
 

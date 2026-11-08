@@ -22,6 +22,12 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 **Canal de notícias com reconstituição animada.** Escolha o assunto **Notícias do momento** no Novo canal. A cada leva, o canal lê os assuntos em alta no Google no país do público, escolhe uma notícia de verdade, confirma cada fato em duas fontes e conta com as próprias palavras. A imagem nunca é foto ou vídeo de jornal: é uma reconstituição animada em 3D, com o selo "reconstituição animada" e a data na tela. Nada de vítimas, boatos ou fofoca. Pelo terminal: `python -m darkops tendencias`.
 
+**Voz grátis no seu PC.** Rode `.\dark.ps1 instalar-voz-local` uma vez e o seletor de voz ganha as vozes Kokoro em português (Dora, Alex e Santa, licença Apache 2.0, uso comercial liberado), sem chave e sem internet na hora de narrar. O mesmo pacote transcreve no PC os vídeos sem legenda na pesquisa de outliers (faster-whisper).
+
+**Reels de teste.** Em Ajustes do canal, "Reels de teste no Instagram" publica cada Reel primeiro só para quem não segue o canal (trial reels da API oficial); dá para testar mais ideias sem cansar os seguidores.
+
+**Excluir canal.** Em Ajustes, lá embaixo, "Excluir canal" abre um aviso com tudo o que vai acontecer e pede o nome do canal para confirmar. Apaga o canal do app, corta o acesso do app ao YouTube e ao Instagram e tira o canal da nuvem. O canal e a conta nas plataformas só você apaga (o aviso traz os links oficiais).
+
 **Sua própria voz.** Em Ajustes > Voz do narrador > **Sua própria voz**, grave 20 segundos no navegador (ou envie um áudio) e o canal passa a narrar com a sua voz, clonada no seu PC pelo Chatterbox pt-BR (licença MIT). A gravação nunca sai do PC.
 
 **Animações com princípios de movimento.** Tudo entra passando um pouco do ponto e assenta, a palavra de destaque bate e quica, as etiquetas chegam pelo pino e depois pelo texto, e nada some de estalo. As regras estão em [docs/movimento.md](docs/movimento.md) e valem também para as cenas 3D.

@@ -3,6 +3,7 @@
 Envio por upload resumível (rupload.facebook.com): o vídeo sai do disco local,
 sem precisar de URL pública.
 """
+import json
 import os
 import time
 from pathlib import Path
@@ -92,12 +93,20 @@ def legenda_instagram(roteiro: dict, video: Path | None = None, publicacao: dict
     return (f"{texto}\n\n{' '.join(hashtags)}" if hashtags else texto)[:2200]
 
 
-def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600, publicar: bool = True) -> str:
+TESTE = {"manual": "MANUAL", "automatico": "SS_PERFORMANCE"}  # trial reels: perfil "instagram_teste"
+
+
+def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600, publicar: bool = True,
+                  teste: str = "") -> str:
     """Cria o contêiner, espera o processamento e publica. Devolve o ID da mídia (ou do contêiner, sem publicar).
 
     Com o Instagram Login (graph.instagram.com) a Meta não aceita o envio do arquivo (upload resumível é só do
     Facebook Login for Business): o contêiner exige um video_url público. O vídeo passa pelo repositório
-    público de passagem (nuvem.video_publico) só enquanto a Meta baixa, e é apagado em seguida."""
+    público de passagem (nuvem.video_publico) só enquanto a Meta baixa, e é apagado em seguida.
+
+    teste = "manual" ou "automatico" publica como trial reel (Reel de teste): aparece primeiro só para quem não
+    segue o canal. "automatico" deixa o Instagram mostrar aos seguidores se for bem; "manual" espera o dono
+    liberar no app (a API não libera). Se a conta não puder (ex.: poucos seguidores), sai como Reel normal."""
     from . import nuvem
     if not nuvem.passagem_configurada():
         raise SystemExit("o Instagram precisa de um link público do vídeo: configure o repositório de passagem "
@@ -106,9 +115,18 @@ def publicar_reel(video: Path, legenda: str, espera_max_s: int = 600, publicar: 
     ig_id = conta()["user_id"]
     url, apagar = nuvem.video_publico(video)
     try:
-        conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data={
-            "media_type": "REELS", "video_url": url, "caption": legenda,
-            "share_to_feed": "true", "access_token": tk}))["id"]
+        dados = {"media_type": "REELS", "video_url": url, "caption": legenda, "share_to_feed": "true",
+                 "access_token": tk}
+        if teste in TESTE:
+            try:
+                conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data={
+                    **dados, "trial_params": json.dumps({"graduation_strategy": TESTE[teste]})}))["id"]
+            except SystemExit as erro:
+                from .seguranca import ocultar
+                print(f"  trial reel recusado ({ocultar(str(erro))[:160]}); publicando como Reel normal")
+                conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data=dados))["id"]
+        else:
+            conteiner = _checar(requests.post(f"{GRAPH}/{ig_id}/media", timeout=60, data=dados))["id"]
         _esperar(conteiner, tk, espera_max_s)
     finally:
         apagar()

@@ -10,6 +10,7 @@ Motores:
 - chirp: Google Cloud Text-to-Speech, vozes Chirp 3 HD (GOOGLE_TTS_API_KEY), 1 milhão de caracteres grátis/mês.
 - gemini: Gemini TTS (GEMINI_API_KEY), voz dirigida por instrução; cota grátis pequena e não publicada.
 - chatterbox: Chatterbox Multilingual (MIT) no próprio PC, no ambiente dados/apps/vozes; clona voz própria.
+- kokoro: Kokoro-82M (Apache 2.0) no próprio PC, grátis e sem chave, no ambiente dados/apps/voz-local (voz_local.py).
 Os três últimos não devolvem o tempo das palavras: ele é estimado por frase, como no Piper.
 """
 import asyncio
@@ -283,8 +284,25 @@ def _chatterbox(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path
     return wav, _estimar(partes, taxa, wav)
 
 
+def _kokoro(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+    """Kokoro no próprio PC (Apache 2.0, grátis, sem chave), pelo ambiente separado de voz_local."""
+    import tempfile
+    from . import voz_local
+    numero = re.search(r"-?\d+", velocidade or "")
+    fator = min(max(1 + (int(numero.group()) if numero else 0) / 100, .7), 1.5)  # "+15%" -> 1,15
+    frases = _frases(texto)
+    with tempfile.TemporaryDirectory() as pasta:
+        taxa = voz_local.falar(frases, voz, fator, Path(pasta))
+        partes = []
+        for i, frase in enumerate(frases):
+            with wave.open(str(Path(pasta) / f"frase-{i}.wav")) as w:
+                partes.append((frase, w.readframes(w.getnframes())))
+    wav = base.with_suffix(".wav")
+    return wav, _estimar(partes, taxa, wav)
+
+
 MOTORES = {"edge": _edge, "piper": _piper, "elevenlabs": _elevenlabs, "azure": _azure, "chirp": _chirp,
-           "gemini": _gemini, "chatterbox": _chatterbox}
+           "gemini": _gemini, "chatterbox": _chatterbox, "kokoro": _kokoro}
 
 
 def voz_padrao(motor: str, idioma: str) -> str:
@@ -300,6 +318,9 @@ def voz_padrao(motor: str, idioma: str) -> str:
         return config.GEMINI_TTS_VOZ
     if motor == "chatterbox":
         return idioma
+    if motor == "kokoro":
+        from .voz_local import VOZ_PADRAO
+        return VOZ_PADRAO.get(idioma[:2], VOZ_PADRAO["pt"])
     return config.VOZ_PADRAO.get(idioma, config.VOZ_PADRAO["pt"])  # edge e azure usam os mesmos nomes
 
 
@@ -313,6 +334,8 @@ def _serve(motor: str, voz: str) -> bool:
         return voz.isalpha()
     if motor == "chatterbox":
         return len(voz.partition("|")[0]) == 2
+    if motor == "kokoro":
+        return bool(re.fullmatch(r"[abefhijpz][fm]_[a-z]+", voz))
     return True
 
 

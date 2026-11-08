@@ -543,6 +543,7 @@ def configurar(pid):
         horarios = [h.strip() for h in f.get("horarios", "").split(",") if re.match(r"^\d{1,2}:\d{2}$", h.strip())]
         horarios = [h for h in horarios if int(h.split(":")[0]) < 24 and int(h.split(":")[1]) < 60]
         agenda_antes = (mercados.codigo(p.dados), p.dados.get("horarios"))
+        voz_antes = (p.dados.get("motor_voz"), p.dados.get("voz"))
         p.salvar({"nome": f.get("nome", "").strip() or p.dados["nome"],
                   "arroba": f.get("arroba", "").strip() or p.dados["arroba"],
                   "nicho": f.get("nicho", "").strip(), "descricao": f.get("descricao", "").strip(),
@@ -558,6 +559,8 @@ def configurar(pid):
             img = ImageOps.exif_transpose(Image.open(foto.stream)).convert("RGB")
             img.thumbnail((512, 512))
             img.save(p.pasta / "avatar.png")
+        if voz_antes != (p.dados.get("motor_voz"), p.dados.get("voz")):
+            _refazer_previas_com_voz_nova(p)
         if agenda_antes != (mercados.codigo(p.dados), p.dados.get("horarios")) and canal_nuvem.configurada():
             _iniciar_job(p, "Acertar os horários da nuvem", [["nuvem-agenda"]])  # o Actions roda no fuso novo
         m = mercados.de(p.dados)
@@ -569,7 +572,45 @@ def configurar(pid):
                            tamanhos_legenda=TAMANHOS_LEGENDA, fontes_legenda=FONTES_LEGENDA, temas_cards=TEMAS_CARDS, edicoes=EDICOES, persona=PERSONA,
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p),
                            catalogo_vozes=_catalogo_vozes(),
-                           proposta=canal_ia.ler(p), rotulos=canal_ia.ROTULOS, resumo=_resumo_contas(p))
+                           proposta=canal_ia.ler(p), rotulos=canal_ia.ROTULOS, resumo=_resumo_contas(p),
+                           exclusao=_plano_exclusao(p))
+
+
+def _plano_exclusao(p) -> dict:
+    from ..excluir import plano
+    return plano(p)
+
+
+@app.post("/p/<pid>/excluir")
+def excluir_canal(pid):
+    """Excluir canal (Ajustes, lá embaixo): só com o nome do canal digitado no aviso. Apaga do app, revoga o acesso do
+    app ao YouTube, apaga o token do Instagram e tira o canal da nuvem (darkops/excluir.py)."""
+    from ..excluir import excluir
+    p = _perfil(pid)
+    nome = (p.dados.get("nome") or p.id).strip()
+    if request.form.get("confirmacao", "").strip().casefold() != nome.casefold():
+        flash(f"Para excluir, digite o nome do canal exatamente: {nome}", "erro")
+        return redirect(url_for("configurar", pid=pid) + "#excluir")
+    if any(j["perfil"] == p.id and j["estado"] == "rodando" for j in JOBS.values()):
+        flash("Este canal tem uma tarefa rodando agora. Espere ela terminar e tente de novo.", "erro")
+        return redirect(url_for("configurar", pid=pid) + "#excluir")
+    try:
+        passos = excluir(p)
+    except (SystemExit, OSError) as erro:
+        flash(f"Não consegui excluir o canal: {seguranca.ocultar(str(erro))[:200]}", "erro")
+        return redirect(url_for("configurar", pid=pid) + "#excluir")
+    flash(f"Canal {nome} excluído. " + " · ".join(passos), "ok")
+    return redirect(url_for("inicio"))
+
+
+def _refazer_previas_com_voz_nova(p) -> None:
+    """Trocou a voz: as prévias ainda não aprovadas são refeitas com ela (as aprovadas e as postadas ficam como estão)."""
+    pendentes = [c for c in fila_mod.roteiros(p) if not fila_mod.aprovado(c)]
+    if pendentes:
+        _iniciar_job(p, f"Refazer {len(pendentes)} prévias com a voz nova",
+                     [["fila-produzir", str(c)] for c in pendentes])
+        flash(f"Voz trocada. As {len(pendentes)} prévias que esperam aprovação estão sendo refeitas com a voz nova; "
+              "os vídeos já aprovados e os postados continuam como estão.", "ok")
 
 
 def _resumo_contas(p) -> list:

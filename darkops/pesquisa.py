@@ -221,16 +221,44 @@ def _melhor_legenda(info: dict, idioma: str) -> str | None:
     return None
 
 
+def _ouvir(url: str, idioma: str) -> str:
+    """Baixa só o áudio e transcreve no PC com o faster-whisper (voz_local). Vazio se a escuta local não estiver
+    instalada ou se algo falhar: a pesquisa segue com os vídeos que têm legenda."""
+    import tempfile
+    from . import voz_local
+    if not voz_local.tem_escuta():
+        return ""
+    with tempfile.TemporaryDirectory() as pasta:
+        try:
+            opcoes = {"quiet": True, "no_warnings": True, "format": "bestaudio/best",
+                      "outtmpl": str(Path(pasta) / "audio.%(ext)s")}
+            with yt_dlp.YoutubeDL(opcoes) as ydl:
+                ydl.download([url])
+            audio = next(Path(pasta).glob("audio.*"), None)
+            if not audio:
+                return ""
+            print(f"  sem legenda: transcrevendo o áudio no PC ({url})")
+            return voz_local.transcrever(audio, idioma)["texto"]
+        except (SystemExit, OSError, ValueError, DownloadError) as erro:
+            from .seguranca import ocultar
+            print(f"  transcrição local falhou: {ocultar(str(erro))[:160]}")
+            return ""
+
+
 def transcrever(url: str, destino: Path, idioma: str) -> Path | None:
     destino.mkdir(parents=True, exist_ok=True)
     with _ydl(idioma, extract_flat=False) as ydl:
         info = ydl.extract_info(url, download=False)
         link = _melhor_legenda(info, idioma)
-        if not link:
+        if link:
+            dados = json.loads(ydl.urlopen(link).read().decode("utf-8"))
+    if link:
+        texto = "".join(s.get("utf8", "") for e in dados.get("events", []) if "segs" in e for s in e["segs"])
+    else:
+        texto = _ouvir(url, idioma)  # sem legenda: transcreve o áudio no PC (faster-whisper), se instalado
+        if not texto:
             print(f"  sem legenda: {url}")
             return None
-        dados = json.loads(ydl.urlopen(link).read().decode("utf-8"))
-    texto = "".join(s.get("utf8", "") for e in dados.get("events", []) if "segs" in e for s in e["segs"])
     arquivo = destino / f"{info['id']}.txt"
     cabecalho = f"# {info.get('title')}\n# {url}\n# canal: {info.get('channel')} | views: {info.get('view_count')}\n\n"
     arquivo.write_text(cabecalho + texto.replace("\n", " "), encoding="utf-8")

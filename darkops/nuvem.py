@@ -415,6 +415,25 @@ def _sincronizar(perfil, enviar_videos: bool = True) -> dict:
     return resumo
 
 
+def remover_perfil(pid: str) -> None:
+    """Apaga o canal da nuvem (Excluir canal): todos os arquivos de perfis/<pid>/ no repositório de fila, os vídeos
+    dele na release e o Secret com as credenciais. A agenda é refeita por quem chama (atualizar_agenda)."""
+    def arquivos(pasta: str) -> list[str]:
+        status, dados = _pedir("GET", f"/repos/{_repo()}/contents/{urllib.parse.quote(pasta)}")
+        if status != 200 or not isinstance(dados, list):
+            return []
+        saida = []
+        for d in dados:
+            saida += [d["path"]] if d["type"] == "file" else arquivos(d["path"]) if d["type"] == "dir" else []
+        return saida
+    for caminho in arquivos(f"perfis/{pid}"):
+        _apagar(caminho, f"{pid}: canal excluído")
+    for nome, asset in _assets().items():
+        if nome.startswith(f"{pid}__"):
+            _apagar_asset(asset)
+    _pedir("DELETE", f"/repos/{_repo()}/actions/secrets/{nome_segredo(pid)}")
+
+
 def enviar_segredos(perfis) -> list[str]:
     """Credenciais de cada perfil (e o app OAuth do Google) como Secrets do repositório de fila."""
     enviados = []

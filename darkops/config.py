@@ -33,6 +33,7 @@ GEMINI_TTS_ESTILO = os.getenv("GEMINI_TTS_ESTILO", "Narre como um documentário 
                               "ritmo envolvente e natural").strip()
 VOZES_LOCAIS = RAIZ / "dados" / "apps" / "vozes"                      # ambiente separado do Chatterbox (torch)
 CHATTERBOX_PTBR = RAIZ / "dados" / "apps" / "tts-teste" / "chatterbox-ptbr"  # ajuste fino oficial em pt-BR (MIT)
+VOZ_LOCAL = RAIZ / "dados" / "apps" / "voz-local"  # ambiente separado: Kokoro (voz, Apache 2.0) e faster-whisper (MIT)
 MINHA_VOZ = RAIZ / "dados" / "minha-voz" / "referencia.wav"           # gravação do dono para clonar a voz (fora do Git)
 
 FORMATOS = {

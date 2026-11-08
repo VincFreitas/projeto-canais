@@ -175,4 +175,46 @@
   {% endif %}
 </section>
 </details>
+
+{% set e = exclusao %}
+<section class="cartao zona-perigo" id="excluir">
+  <div>
+    <h2>Excluir canal</h2>
+    <p class="suave">Apaga o {{ e.nome }} do app e corta o acesso do app às contas conectadas. Não dá para desfazer.</p>
+  </div>
+  <button type="button" class="botao perigo" onclick="document.getElementById('dialogo-excluir').showModal()">Excluir canal</button>
+</section>
+
+<dialog id="dialogo-excluir" class="dialogo" aria-labelledby="titulo-excluir">
+  <form method="post" action="{{ url_for('excluir_canal', pid=p.id) }}">
+    <h2 id="titulo-excluir">Excluir o canal {{ e.nome }}?</h2>
+    <p><b>Isto não tem volta.</b> Veja o que acontece:</p>
+    <h3>No app</h3>
+    <ul>
+      <li>O canal some do Estúdio com tudo dele: ajustes, voz, {{ e.na_fila }} vídeo(s) na fila,
+        o histórico de {{ e.publicados }} publicado(s), estatísticas e comentários.</li>
+      <li>Os {{ e.arquivos_saida }} arquivo(s) de vídeo, thumbnail e carrossel feitos só para ele são apagados.</li>
+      {% if e.nuvem %}<li>A nuvem para de postar por ele: os vídeos e as credenciais dele saem do repositório de fila.</li>{% endif %}
+    </ul>
+    <h3>Nas plataformas</h3>
+    <ul>
+      {% if e.youtube %}<li><b>YouTube:</b> o app perde o acesso ao canal na hora (a autorização é revogada no Google).</li>{% endif %}
+      {% if e.instagram %}<li><b>Instagram:</b> o acesso guardado aqui é apagado. Para cortar também do lado do Instagram,
+        remova o app em <a href="{{ e.links.instagram_acessos }}" target="_blank" rel="noopener">Apps e sites</a>.</li>{% endif %}
+      {% if not e.youtube and not e.instagram %}<li>Nenhuma conta conectada: nada muda nas plataformas.</li>{% endif %}
+      <li><b>O canal do YouTube e a conta do Instagram continuam existindo, com os vídeos já publicados no ar.</b>
+        O YouTube e o Instagram não deixam nenhum app apagar canal ou conta: só você, no site deles.
+        Se quiser apagar de vez:
+        <a href="{{ e.links.youtube_excluir }}" target="_blank" rel="noopener">excluir o canal do YouTube</a> ·
+        <a href="{{ e.links.instagram_excluir }}" target="_blank" rel="noopener">excluir ou desativar a conta do Instagram</a>.</li>
+    </ul>
+    <label for="confirmacao-excluir">Para confirmar, digite o nome do canal: <b>{{ e.nome }}</b></label>
+    <input id="confirmacao-excluir" name="confirmacao" autocomplete="off" required data-nome="{{ e.nome }}"
+      oninput="this.form.querySelector('[data-confirmar]').disabled = this.value.trim().toLowerCase() !== this.dataset.nome.trim().toLowerCase()">
+    <div class="acoes" style="margin-top:16px">
+      <button type="button" class="botao secundario" onclick="this.closest('dialog').close()">Cancelar</button>
+      <button class="botao perigo" data-confirmar disabled>Excluir canal para sempre</button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}

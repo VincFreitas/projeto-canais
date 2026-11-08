@@ -213,7 +213,7 @@ def cmd_publicar_instagram(a):
         else:
             print(f"publicando Reel de {video.name}")
             try:
-                midia_id = publicar_reel(video, legenda)
+                midia_id = publicar_reel(video, legenda, teste=carregar().dados.get("instagram_teste", ""))
             except (SystemExit, OSError, ValueError) as erro:
                 # o Instagram não segura a fila: o vídeo segue no YouTube e o próximo horário recebe o próximo vídeo
                 from .fila import registrar_falha
@@ -627,7 +627,8 @@ def cmd_nuvem(a):
         if not roteiro:
             sys.exit("nenhum vídeo aprovado na fila para testar")
         _, _, _, video = _roteiro_e_video(str(roteiro), "vertical")
-        conteiner = publicar_reel(video, "teste (não publicado)", publicar=False)
+        conteiner = publicar_reel(video, "teste (não publicado)", publicar=False,
+                                  teste=carregar().dados.get("instagram_teste", ""))
         print(f"ok: a Meta baixou e processou {video.name} pelo link de passagem (contêiner {conteiner}, não publicado)")
     elif a.acao == "testar":
         nuvem.disparar(simular=True)
@@ -877,6 +878,13 @@ def main():
     s.add_argument("--minha-voz", action="store_true", help="amostra da sua própria voz (gravação em dados/minha-voz)")
     s.add_argument("--refazer", action="store_true")
     s.set_defaults(fn=cmd_vozes_amostras)
+    s = sub.add_parser("instalar-voz-local", help="voz Kokoro e transcrição faster-whisper no PC (grátis, sem chave)")
+    s.set_defaults(fn=lambda a: __import__("darkops.voz_local", fromlist=["instalar"]).instalar())
+    s = sub.add_parser("ouvir", help="transcreve um áudio ou vídeo no PC (faster-whisper)")
+    s.add_argument("arquivo")
+    s.add_argument("--idioma", default="pt")
+    s.set_defaults(fn=lambda a: print(__import__("darkops.voz_local", fromlist=["transcrever"])
+                                      .transcrever(Path(a.arquivo).resolve(), a.idioma)["texto"]))
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")

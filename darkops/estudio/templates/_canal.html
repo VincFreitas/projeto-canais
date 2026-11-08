@@ -89,6 +89,14 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <input type="text" name="outra_plataforma" value="{{ d.outra_plataforma }}" placeholder="Outra plataforma (opcional)">
 <p class="dica">A postagem automática funciona no YouTube e no Instagram; as outras ficam registradas para postar à mão.
   Dá para marcar uma plataforma que ainda falta configurar: ela só posta depois de pronta.</p>
+<label for="instagram_teste">Reels de teste no Instagram (trial reels)</label>
+<select id="instagram_teste" name="instagram_teste">
+  <option value="" {{ 'selected' if not d.get('instagram_teste') }}>Não: todo Reel vai para todo mundo</option>
+  <option value="automatico" {{ 'selected' if d.get('instagram_teste') == 'automatico' }}>Sim, e o Instagram mostra aos seguidores se o Reel for bem</option>
+  <option value="manual" {{ 'selected' if d.get('instagram_teste') == 'manual' }}>Sim, e eu libero para os seguidores no app</option>
+</select>
+<p class="dica">O Reel de teste aparece primeiro só para quem ainda não segue o canal: dá para testar mais ideias sem cansar
+  os seguidores. Se a conta ainda não puder usar (o Instagram pode exigir mais seguidores), o Reel sai normal.</p>
 <label>Formato</label>
 {% for chave, nome in formatos.items() %}
 <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
