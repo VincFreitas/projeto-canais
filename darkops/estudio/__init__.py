@@ -697,7 +697,7 @@ def manifesto():
         "name": "Projeto Canais", "short_name": "Canais", "lang": "pt-BR",
         "description": "Estúdio do Projeto Canais: cria, aprova e publica os vídeos dos seus canais.",
         "start_url": "/", "scope": "/", "display": "standalone",
-        "background_color": "#111111", "theme_color": "#111111",
+        "background_color": "#f5f5f7", "theme_color": "#f5f5f7",
         "icons": [{"src": url_for("static", filename=f"icone-{n}.png"), "sizes": f"{n}x{n}", "type": "image/png",
                    "purpose": "any"} for n in (192, 512)],
     }), 200, {"Content-Type": "application/manifest+json"}

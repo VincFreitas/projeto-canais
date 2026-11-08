@@ -83,7 +83,7 @@
   <section class="cartao">
     <h2 style="margin-top:0">Últimos publicados</h2>
     {% if historico %}
-      <ul class="lista">{% for h in historico %}<li><span>{{ h.data_publicacao }} · {{ h.video }}</span><a href="{{ h.url }}" target="_blank" rel="noopener">{{ h.plataforma }} ↗</a></li>{% endfor %}</ul>
+      <ul class="lista">{% for h in historico %}<li><span>{{ h.data_publicacao }} · {{ h.video }}</span><a class="plataforma" href="{{ h.url }}" target="_blank" rel="noopener">{{ h.plataforma }} ↗</a></li>{% endfor %}</ul>
     {% else %}<p class="suave">Nada publicado ainda.</p>{% endif %}
   </section>
 </div>
