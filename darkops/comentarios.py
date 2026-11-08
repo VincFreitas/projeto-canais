@@ -236,7 +236,7 @@ def _pedir_ia(perfil, lote: list[dict]) -> dict:
         f"Comentários: {json.dumps(entrada, ensure_ascii=False)}"
     )
     try:
-        proc = rodar_claude(pedido, timeout=6 * 60)  # sem ferramentas: só classifica o texto que vai no pedido
+        proc = rodar_claude(pedido, timeout=6 * 60, tarefa="comentarios")  # sem ferramentas: só classifica o texto que vai no pedido
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         itens = json.loads(bloco.group(0)).get("itens", []) if bloco else []
         return {str(i.get("id")): i for i in itens if isinstance(i, dict)}

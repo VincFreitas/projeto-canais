@@ -92,7 +92,7 @@ def _pedir_ia(perfil, estat: dict) -> dict | None:
         + _bloco_comentarios(perfil)
     )
     try:
-        proc = rodar_claude(pedido, timeout=6 * 60)  # sem ferramentas: só lê os números que vão no pedido
+        proc = rodar_claude(pedido, timeout=6 * 60, tarefa="analise")  # sem ferramentas: só lê os números que vão no pedido
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         return json.loads(bloco.group(0)) if bloco else None
     except (subprocess.TimeoutExpired, json.JSONDecodeError):

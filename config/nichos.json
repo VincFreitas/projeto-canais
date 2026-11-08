@@ -24,6 +24,11 @@
     "descricao": "Países, conflitos, poder e economia explicados",
     "buscas": ["geopolítica explicada", "por que esse país", "países mais poderosos", "o que está acontecendo na"]
   },
+  "o-que-acontece-se": {
+    "idioma": "pt",
+    "descricao": "Perguntas estranhas respondidas com animação 3D em 30 a 45 segundos (o que acontece se...?)",
+    "buscas": ["o que acontece se você", "o que aconteceria se", "e se a terra", "o que acontece com o corpo"]
+  },
   "noticias": {
     "idioma": "pt",
     "descricao": "Notícias do momento contadas com fatos checados e reconstituição animada (sem imagem de veículo)",

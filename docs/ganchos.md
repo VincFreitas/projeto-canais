@@ -1,6 +1,6 @@
 # Banco de ganchos (primeiros 2 segundos)
 
-O gancho é a primeira frase do vídeo e decide se a pessoa fica. **Formato atual do Pulga do Saber: o explicativo (abaixo), que abre direto com "Se você..." e sem bordão.** As 21 fórmulas da tabela servem aos vídeos curtos de curiosidade (formato antigo do canal, em que o gancho vinha depois do bordão "Tá com a pulga atrás da orelha? Então escuta essa:") e a perfis novos. Regras:
+O gancho é a primeira frase do vídeo e decide se a pessoa fica. **Formato atual do Pulga do Saber: o explicativo (abaixo), que abre direto com "Se você..." e sem bordão.** As 22 fórmulas da tabela servem aos vídeos curtos de curiosidade (formato antigo do canal, em que o gancho vinha depois do bordão "Tá com a pulga atrás da orelha? Então escuta essa:") e a perfis novos. Regras:
 - No máximo **12 palavras** e uma ideia só.
 - Tem que ser **verdade** e ser **entregue** no vídeo (sem clickbait).
 - Use o fato mais estranho que você tem, não o contexto.
@@ -29,11 +29,20 @@ O gancho é a primeira frase do vídeo e decide se a pessoa fica. **Formato atua
 | 19 | Recorde | "o [maior/menor/mais] [coisa] do mundo [fato]" | (citar a fonte do recorde) |
 | 20 | Contagem regressiva curta | "[número] segundos para você entender [tema]" | "30 segundos para entender por que Saturno boiaria" |
 | 21 | Consequência inesperada | "se [condição], [consequência estranha]" | "se existisse uma banheira gigante, Saturno ficaria por cima" |
+| 22 | O que acontece se...? | "O que acontece se [ação estranha e concreta]?" | "O que acontece se você engolir um chiclete?" |
 
 ## Fechamento (últimos 2 segundos)
 - Feche com uma frase de efeito curta que amarra o gancho ("Três corações, e às vezes um dá uma pausa").
 - Sem "se inscreva" no meio. Nos vídeos curtos de curiosidade, o CTA fica só na legenda.
 - No formato explicativo (abaixo), o CTA falado entra só na última frase e é um pedido de comentário com uma palavra ligada ao tema ("Comenta GELO se você não sabia que..."). Nunca "se inscreva" nem "deixa o like".
+
+## Formato "O que acontece se...?" (pergunta estranha em 3D)
+O formato que levou um canal sem rosto a dezenas de milhões de inscritos: uma pergunta esquisita e concreta, respondida em 30 a 45 segundos com animação 3D mostrando por dentro o que acontece.
+1. **Pergunta** (título, gancho e texto da tela): "O que acontece se [ação]?" Concreta, com objeto ou parte do corpo que dá para mostrar.
+2. **Passo a passo**, de 3 a 5 etapas: "Primeiro, [o que acontece]. Depois, [a etapa seguinte]." Cada etapa vira uma cena do palco 3D, com a câmera entrando no corte do corpo, do objeto ou do planeta.
+3. **Virada**: o detalhe que ninguém espera ("e o chiclete não fica sete anos no estômago").
+4. **Fechamento**: a resposta em uma frase e o CTA com uma palavra.
+Ciência confirmada em fontes. Se a pergunta envolve risco (comer, beber, cair, eletricidade), a resposta diz o risco com clareza e nunca ensina a fazer. Nicho pronto no Novo canal: **O que acontece se...?** (ou `"formato_conteudo": "e-se"` no perfil).
 
 ## Formato explicativo ("você monta")
 Para temas "como funciona" (objetos e sistemas do dia a dia), com 75 a 110 s. Começa direto na ação, **sem o bordão**, e a primeira frase já é o primeiro passo.

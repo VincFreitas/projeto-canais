@@ -285,6 +285,7 @@ _PRONTOS = {
     "terror": ["Arquivo do Terror", "Relatos da Meia-Noite", "Casa Fria", "Lenda Viva", "Sussurro Sombrio"],
     "curiosidades": ["Fato Rápido", "Você Sabia Hoje", "Mente Curiosa", "Minuto Curioso"],
     "animais": ["Bicho Raro", "Planeta Selvagem", "Zoo de Bolso", "Fera Curiosa", "Mundo Animal Já"],
+    "o-que-acontece-se": ["E Se Fosse Assim", "Pergunta Esquisita", "Aconteceria Isso", "Teste Mental", "E Daí Acontece"],
     "noticias": ["Aconteceu Hoje", "Plantão Animado", "Notícia em 3D", "Giro do Dia", "Fato do Momento"],
     "geopolitica": ["Mapa do Poder", "Xadrez Global", "Por Trás do Mapa", "Fronteira Explicada", "Mundo em 1 Minuto"],
 }
@@ -303,7 +304,7 @@ def sugerir_nomes(nicho: str, formato: str = "vertical", mercado: str = mercados
               "Responda SÓ um JSON, sem texto em volta: "
               '[{"nome": "...", "arroba": "@...", "bio": "uma frase de até 120 caracteres"}]')
     try:
-        proc = rodar_claude(pedido, timeout=120)
+        proc = rodar_claude(pedido, timeout=120, tarefa="nomes")
         achado = re.search(r"\[.*\]", proc.stdout, re.S)
         lista = json.loads(achado.group(0)) if achado else []
         nomes = [{"nome": str(s["nome"])[:60], "bio": str(s.get("bio", ""))[:200],

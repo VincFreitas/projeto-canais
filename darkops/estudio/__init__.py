@@ -510,13 +510,23 @@ def _catalogo_vozes() -> dict:
 
 # ---------- painel do perfil ----------
 
+def _leva_espera(p) -> str:
+    """Leva parada esperando o limite do plano do Claude renovar: quando volta (no relógio do PC)."""
+    from .. import leva
+    guardada = leva.adiada(p)
+    volta = float(guardada.get("retomar_em") or 0)
+    if not volta or volta < time.time():
+        return ""
+    return f"{guardada.get('quantidade', 1)} vídeo(s) às {datetime.fromtimestamp(volta).strftime('%H:%M')}"
+
+
 @app.get("/p/<pid>")
 def painel(pid):
     p = _perfil(pid)
     itens = [_situacao(c) for c in fila_mod.roteiros(p)]
     from .conectores import resumo
     online = _n8n_online()
-    return render_template("painel.html", p=p, d=p.dados, itens=itens, conexoes=_conexoes(p),
+    return render_template("painel.html", p=p, d=p.dados, itens=itens, conexoes=_conexoes(p), leva_espera=_leva_espera(p),
                            resumo=resumo(p, _conexoes(p), online),
                            aprovados=sum(1 for i in itens if i["aprovado"]), n8n=online,
                            horarios=_proximos_horarios(p), historico=fila_mod.historico(p)[-6:][::-1],

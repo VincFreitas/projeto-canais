@@ -84,7 +84,7 @@ def _pedir_ia(perfil, pedido_usuario: str) -> dict | None:
         f"{pedido_usuario[:1500]}"
     )
     try:
-        proc = rodar_claude(pedido, timeout=5 * 60)  # sem ferramentas: só lê o pedido e a configuração
+        proc = rodar_claude(pedido, timeout=5 * 60, tarefa="ajuste")  # sem ferramentas: só lê o pedido e a configuração
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         return json.loads(bloco.group(0)) if bloco else None
     except (subprocess.TimeoutExpired, json.JSONDecodeError):

@@ -5,6 +5,7 @@
 {% set aprovados_lista = itens | selectattr('aprovado') | list %}
 {% set produzindo = itens | rejectattr('aprovado') | rejectattr('estado', 'equalto', 'pronta') | list %}
 {% set faltando = resumo | rejectattr('nivel', 'equalto', 'ok') | list %}
+{% if leva_espera %}<p class="aviso">O plano do Claude bateu no limite de uso no meio da criação dos vídeos. Nada se perdeu: a criação continua sozinha ({{ leva_espera }}).</p>{% endif %}
 
 <section class="cartao destaque-status">
   <div>

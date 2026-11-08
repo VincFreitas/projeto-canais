@@ -124,7 +124,7 @@ def _com_ia(roteiro: dict, perfil) -> dict | None:
         f"Título: {roteiro.get('titulo')}\nNarração:\n{falas}\nFontes: {', '.join(roteiro.get('fontes') or []) or 'nenhuma'}"
     )
     try:
-        proc = rodar_claude(pedido, timeout=5 * 60)  # sem ferramentas: só escreve o texto
+        proc = rodar_claude(pedido, timeout=5 * 60, tarefa="descricao")  # sem ferramentas: só escreve o texto
         bloco = re.search(r"\{.*\}", proc.stdout, re.S)
         dados = json.loads(bloco.group(0)) if bloco else None
     except (subprocess.TimeoutExpired, json.JSONDecodeError):

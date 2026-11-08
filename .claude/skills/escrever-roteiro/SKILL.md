@@ -74,6 +74,9 @@ Quando o canal é de notícias (`"noticias": true` no perfil ou nicho de notíci
 - **Tom:** em tragédia, sóbrio e respeitoso, sem trilha animada, sem selo de humor e sem tratar a desgraça como curiosidade. Lembre que o YouTube limita anúncios em vídeo sobre tragédia.
 - **Fora da pauta:** boato, fofoca sobre pessoa comum, nome de menor ou de vítima não divulgado oficialmente, e eleição ou saúde sem fonte oficial.
 
+## 3e. Formato "O que acontece se...?" (30 a 45 s)
+Quando o nicho é "o que acontece se" ou o perfil tem `"formato_conteudo": "e-se"`, siga o formato de [docs/ganchos.md](../../../docs/ganchos.md#formato-o-que-acontece-se-pergunta-estranha-em-3d): pergunta estranha e concreta no título e no gancho (fórmula 22), de 3 a 5 etapas com uma cena de palco 3D cada (`cenas/<slug>.3d.js`, corte do corpo, do objeto ou do planeta, seguindo [docs/movimento.md](../../../docs/movimento.md)), uma virada e o fechamento. Cada etapa com fonte. Pergunta sobre algo arriscado: diga o risco e nunca ensine a fazer.
+
 ## 4. Verticais derivados (2 ou 3)
 - Arquivos `roteiros/<slug>-v1.json`, `-v2.json`... com `"formato": "vertical"`, 30 a 60 s (80 a 150 palavras), `velocidade` `+10%`.
 - Cada um é um recorte com gancho próprio na 1ª frase (o curiosity gap mais forte do tema), não um resumo do longo.

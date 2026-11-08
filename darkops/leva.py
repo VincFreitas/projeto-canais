@@ -11,6 +11,7 @@ Tudo roda no seu PC, então ele precisa ficar ligado até a leva terminar.
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -70,16 +71,59 @@ def _claude() -> str | None:
         or next((str(c) for c in (Path(os.environ.get("APPDATA", "")) / "npm" / "claude.cmd",) if c.exists()), None)
 
 
-def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 300) -> subprocess.CompletedProcess:
+# esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
+ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
+           "descricao": "low", "comentarios": "low", "nomes": "low"}
+_LIMITE = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|out of (extra )?usage|"
+                     r"limite de uso|resets? (at|às|as)? ?\d", re.I)
+
+
+class LimiteClaude(Exception):
+    """O plano do Claude bateu no limite. `volta` é a hora (epoch) em que o limite renova, se o Claude disse."""
+
+    def __init__(self, volta: float | None = None):
+        super().__init__("limite do Claude")
+        self.volta = volta
+
+
+def bateu_limite(proc: subprocess.CompletedProcess) -> LimiteClaude | None:
+    texto = (proc.stdout or "") + (proc.stderr or "")
+    if not _LIMITE.search(texto[-2000:]):
+        return None
+    epoca = re.search(r"limit reached\|(\d{10})", texto)  # formato "Claude AI usage limit reached|<epoch>"
+    return LimiteClaude(float(epoca.group(1)) if epoca else None)
+
+
+def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 300,
+                 tarefa: str = "") -> subprocess.CompletedProcess:
     """Roda o Claude Code sem interação. O pedido vai pela entrada padrão (nunca como argumento: textos vindos da
     internet ou do roteiro não viram comando no cmd.exe). Só as ferramentas listadas são permitidas; o resto é
-    negado sozinho no modo -p, sem aceitar edições em qualquer pasta."""
+    negado sozinho no modo -p, sem aceitar edições em qualquer pasta. `tarefa` escolhe o esforço (ESFORCO)."""
     claude = _claude()
     if not claude:
         raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code")
     args = [claude, "-p"] + (["--allowedTools", *ferramentas] if ferramentas else [])
-    return subprocess.run(args, input=pedido, cwd=config.RAIZ, capture_output=True, text=True, encoding="utf-8",
-                          errors="replace", timeout=timeout)
+    esforco = ESFORCO.get(tarefa)
+    rodar = lambda extra: subprocess.run(args + extra, input=pedido, cwd=config.RAIZ, capture_output=True,  # noqa: E731
+                                         text=True, encoding="utf-8", errors="replace", timeout=timeout)
+    proc = rodar(["--effort", esforco] if esforco else [])
+    if esforco and proc.returncode != 0 and "effort" in (proc.stderr or "").lower() and "unknown" in (proc.stderr or "").lower():
+        proc = rodar([])  # Claude Code antigo, sem --effort
+    return proc
+
+
+E_SE = ("Formato \"O que acontece se...?\" (seção 3e da skill /escrever-roteiro): o título e o gancho são uma "
+        "pergunta estranha e concreta (\"O que acontece se você engolir um chiclete?\"), respondida passo a passo "
+        "com ciência confirmada em fontes, em 30 a 45 segundos, com o palco 3D mostrando cada etapa por dentro "
+        "(corpo, objeto ou planeta em corte). Nada de perigo imitável: se a pergunta é sobre algo arriscado, a "
+        "resposta deixa claro o risco e não ensina a fazer. ")
+
+
+def _formato_e_se(dados: dict) -> str:
+    from .aparencia import _sem_acento
+    nicho = _sem_acento(dados.get("nicho") or "").replace("-", " ")
+    return E_SE if dados.get("formato_conteudo") == "e-se" or any(
+        p in nicho for p in ("acontece se", "aconteceria", "what happens if", "what if")) else ""
 
 
 def _pauta_noticias(dados: dict, tema: str) -> str:
@@ -115,7 +159,7 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
     voz = referencias_de_voz(perfil)
     antes = set(perfil.fila.glob("*.json"))
     existentes = sorted(p.stem for p in [*antes, *perfil.publicados.glob("*.json")])
-    noticia = _pauta_noticias(d, tema)
+    noticia = _pauta_noticias(d, tema) + _formato_e_se(d)
     pedido = (
         f"Use a skill /escrever-roteiro para escrever UM roteiro novo para o perfil {perfil.id} "
         f"(canal {d['nome']}, nicho: {d.get('nicho') or 'curiosidades'}, formato {d.get('formato', 'vertical')}, "
@@ -146,7 +190,7 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
     )
     # o Claude lê páginas da internet: só pode gravar na fila do perfil e em cenas/, e só roda o teste do palco
     fila = f"perfis/{perfil.id}/fila"
-    proc = rodar_claude(pedido, (
+    proc = rodar_claude(pedido, tarefa="roteiro", ferramentas=(
         "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
         f"Write({fila}/**)", f"Edit({fila}/**)", "Write(cenas/**)", "Edit(cenas/**)",
         "Bash(.venv/Scripts/python.exe -m darkops palco-testar:*)",
@@ -155,6 +199,9 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         r"Bash(.venv\Scripts\python.exe -m darkops palco-testar:*)"), timeout=30 * 60)
     novos = sorted(set(perfil.fila.glob("*.json")) - antes)
     if not novos:
+        limite = bateu_limite(proc)
+        if limite:
+            raise limite
         print(f"  o Claude não criou roteiro: {(proc.stdout + proc.stderr).strip()[-400:]}")
         return None
     roteiro = novos[0]
@@ -223,7 +270,13 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
                 print(f"vídeo {n}/{quantidade}: retomando a prévia de {roteiro.name}", flush=True)
             else:
                 print(f"vídeo {n}/{quantidade}: escrevendo o roteiro", flush=True)
-                roteiro = _escrever_roteiro(perfil, tema)
+                try:
+                    roteiro = _escrever_roteiro(perfil, tema)
+                except LimiteClaude as limite:
+                    volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite)
+                    print(f"o Claude bateu no limite do plano no vídeo {n}/{quantidade}; a leva continua sozinha "
+                          f"às {time.strftime('%H:%M', time.localtime(volta))}", flush=True)
+                    break
                 if not roteiro:
                     continue
                 pendentes.append(roteiro)
@@ -241,6 +294,8 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
         trava.unlink(missing_ok=True)
         if not pendentes:
             pendentes_arq.unlink(missing_ok=True)
+    if feitos:  # o limite do Claude renovou: a próxima espera volta a ser curta
+        (perfil.controle / "leva-limite.json").unlink(missing_ok=True)
     registro = perfil.controle / "levas.log"
     with registro.open("a", encoding="utf-8") as f:
         f.write(json.dumps({"quando": time.strftime("%Y-%m-%d %H:%M"), "pedidos": quantidade,
@@ -261,12 +316,34 @@ def falta_configurar(perfil) -> list[str]:
     return [e.nome for e in pendencias(perfil)]
 
 
-def _adiar(perfil, quantidade: int, tema: str = "") -> None:
+def _adiar(perfil, quantidade: int, tema: str = "", limite: LimiteClaude | None = None) -> float:
+    """Guarda a leva para depois. Com `limite`, ela recomeça quando o limite do Claude renovar: na hora que o
+    Claude informou ou, sem ela, em 30 min, 1 h, 2 h e no máximo 4 h a cada nova tentativa."""
     arquivo = perfil.controle / "leva-adiada.json"
     perfil.controle.mkdir(parents=True, exist_ok=True)
     antes = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
-    arquivo.write_text(json.dumps({"quantidade": min(max(quantidade, int(antes.get("quantidade", 0))), LIMITE_LEVA),
-                                   "tema": tema or antes.get("tema", "")}, ensure_ascii=False), encoding="utf-8")
+    dados = {"quantidade": min(max(quantidade, int(antes.get("quantidade", 0))), LIMITE_LEVA),
+             "tema": tema or antes.get("tema", "")}
+    volta = 0.0
+    if limite:  # quantas vezes seguidas bateu no limite fica à parte e só zera quando um vídeo sair
+        contagem = perfil.controle / "leva-limite.json"
+        tentativas = (json.loads(contagem.read_text(encoding="utf-8")).get("tentativas", 0)
+                      if contagem.exists() else 0) + 1
+        contagem.write_text(json.dumps({"tentativas": tentativas}), encoding="utf-8")
+        volta = limite.volta + 60 if limite.volta and limite.volta > time.time() else \
+            time.time() + min(30 * 2 ** (tentativas - 1), 240) * 60
+        dados.update({"motivo": "limite do Claude", "retomar_em": volta})
+    arquivo.write_text(json.dumps(dados, ensure_ascii=False), encoding="utf-8")
+    return volta
+
+
+def adiada(perfil) -> dict:
+    """A leva guardada (para a tela mostrar por que parou e quando volta), ou {}."""
+    arquivo = perfil.controle / "leva-adiada.json"
+    try:
+        return json.loads(arquivo.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
 
 
 def retomar_adiada(perfil) -> bool:
@@ -279,10 +356,13 @@ def retomar_adiada(perfil) -> bool:
         pid = int(trava.read_text(encoding="utf-8").strip() or 0)
         if pid and _vivo(pid):
             return False  # já tem leva rodando; a trava velha (PC desligado no meio) a própria leva limpa
-    adiada = json.loads(arquivo.read_text(encoding="utf-8"))
+    guardada = json.loads(arquivo.read_text(encoding="utf-8"))
+    if float(guardada.get("retomar_em") or 0) > time.time():
+        return False  # esperando o limite do Claude renovar
     arquivo.unlink()
-    em_segundo_plano(perfil, int(adiada.get("quantidade") or 1), adiada.get("tema", ""))
+    em_segundo_plano(perfil, int(guardada.get("quantidade") or 1), guardada.get("tema", ""))
     return True
+
 
 
 def em_segundo_plano(perfil, quantidade: int, tema: str = "") -> list[str]:
