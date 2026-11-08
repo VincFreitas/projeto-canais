@@ -24,7 +24,16 @@ from . import config
 MINUTOS_ROTEIRO = (2, 5)    # Claude pesquisando os fatos e escrevendo, por roteiro
 MINUTOS_DESENHO = (2, 5)    # gerador local, por cena desenhada
 MINUTOS_CLIPES = (0.5, 1.5)  # busca e download dos clipes de um vídeo
-LIMITE_LEVA = 15
+LIMITE_LEVA = 14  # sempre par: 2 vídeos por dia (12h e 19h); 14 = uma semana
+
+
+def par(quantidade, padrao: int = 4) -> int:
+    """Quantidade de vídeos de uma leva: sempre par, de 2 a LIMITE_LEVA (ímpar sobe para o par seguinte)."""
+    try:
+        n = int(quantidade)
+    except (TypeError, ValueError):
+        n = padrao
+    return min(max(n + n % 2, 2), LIMITE_LEVA)
 # tema especial do Novo vídeo: sem tema escrito, a leva segue a linha dos vídeos anteriores que mais funcionaram
 SEGUIR_ANTERIORES = "@anteriores"
 
@@ -397,7 +406,7 @@ def _adiar(perfil, quantidade: int, tema: str = "", limite: LimiteClaude | None 
     arquivo = perfil.controle / "leva-adiada.json"
     perfil.controle.mkdir(parents=True, exist_ok=True)
     antes = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
-    dados = {"quantidade": min(max(quantidade, int(antes.get("quantidade", 0))), LIMITE_LEVA),
+    dados = {"quantidade": par(max(quantidade, int(antes.get("quantidade", 0)))),
              "tema": tema or antes.get("tema", "")}
     volta = 0.0
     if limite:  # quantas vezes seguidas bateu no limite fica à parte e só zera quando um vídeo sair

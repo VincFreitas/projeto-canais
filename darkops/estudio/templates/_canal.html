@@ -105,10 +105,10 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <div class="leva" data-min="{{ est.por_video[0] }}" data-max="{{ est.por_video[1] }}">
   <label>Quantos vídeos criar de uma vez</label>
   <div class="acoes">
-    <input type="number" name="leva_quantidade" min="1" max="15" value="{{ d.leva_quantidade }}" style="width:90px" oninput="estimarLeva(this.form)">
+    <input type="number" name="leva_quantidade" min="2" max="14" step="2" value="{{ (d.leva_quantidade or 4) + (d.leva_quantidade or 4) % 2 if (d.leva_quantidade or 4) < 14 else 14 }}" style="width:90px" oninput="estimarLeva(this.form)">
     <span class="suave" data-estimativa></span>
   </div>
-  <p class="dica">{{ est.aviso }} O tempo é uma estimativa para o estilo e a duração atuais: cada roteiro é escrito pelo
+  <p class="dica">Sempre em número par: 2 vídeos por dia (12h e 19h). {{ est.aviso }} O tempo é uma estimativa para o estilo e a duração atuais: cada roteiro é escrito pelo
     Claude Code no seu PC (com pesquisa e fontes) e depois vira prévia. Nada vai ao ar sem a sua aprovação.</p>
   <label style="font-weight:400"><input type="checkbox" name="leva_reabastecer" {{ 'checked' if d.leva_reabastecer }}>
     Criar outra leva sozinho quando sobrarem
@@ -122,7 +122,7 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <p class="dica">Um vídeo de referência do estilo que você quer. Ele serve de modelo para os roteiros, nunca para copiar.</p>
 <script>
 function estimarLeva(form) {
-  const caixa = form.querySelector('.leva'), n = Math.max(1, Math.min(15, +form.leva_quantidade.value || 1));
+  const caixa = form.querySelector('.leva'), n = Math.max(2, Math.min(14, Math.ceil((+form.leva_quantidade.value || 2) / 2) * 2));
   const fmt = m => m < 60 ? `${Math.round(m)} min` : `${Math.floor(m / 60)} h${Math.round(m % 60) ? ' ' + Math.round(m % 60) + ' min' : ''}`;
   caixa.querySelector('[data-estimativa]').textContent =
     `cerca de ${fmt(caixa.dataset.min * n)} a ${fmt(caixa.dataset.max * n)} para ${n} vídeo(s)`;

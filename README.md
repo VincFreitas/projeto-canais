@@ -1,18 +1,18 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.53.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.53.2%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.53.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.53.2 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
 **Veja funcionando:** o canal de exemplo é o **Pulga do Saber**, curiosidades rápidas narradas por uma pulga em pixel art, no [YouTube](https://www.youtube.com/@pulgadosaber) e no [Instagram](https://www.instagram.com/pulgadosaber).
 
-Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico. Ele **aprende sozinho**: a cada 15 vídeos no ar, descobre o que funcionou e ajusta os próximos. **Lê os comentários** e prepara respostas para você aprovar. Posta mesmo com o PC desligado, pela **nuvem** (GitHub Actions + n8n). Funciona em qualquer tela, do monitor ao celular.
+Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por canal), conexões explicadas por função, fila com prévia e aprovação, editor e histórico. Ele **aprende sozinho**: a cada 14 vídeos no ar, descobre o que funcionou e ajusta os próximos. **Lê os comentários** e prepara respostas para você aprovar. Posta mesmo com o PC desligado, pela **nuvem** (GitHub Actions + n8n). Funciona em qualquer tela, do monitor ao celular.
 
 ![Estúdio do Projeto Canais: início do perfil Pulga do Saber, com fila, próximas postagens e conexões por função](docs/img/estudio.png)
 
@@ -43,11 +43,11 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 <img src="docs/img/abertura.png" width="760" alt="Abertura animada do Projeto Canais: o logo, o nome e a conferência do Estúdio, do n8n, da nuvem e do WhatsApp">
 
-**Novo canal em 6 passos.** Assunto em cartões, nome com sugestões da IA, formato e voz, plataformas, contas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **15 primeiros vídeos**.
+**Novo canal em 6 passos.** Assunto em cartões, nome com sugestões da IA, formato e voz, plataformas, contas e revisão, com uma prévia do canal mudando ao vivo. Ao criar, o canal já começa a produzir os **14 primeiros vídeos**.
 
 <img src="docs/img/novo-canal.png" width="760" alt="Novo canal em 6 passos: assunto em cartões, nome com sugestões da IA, formato, plataformas e revisão, com prévia ao vivo do canal">
 
-**O que funcionou** (em Resultados). A cada 15 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.*
+**O que funcionou** (em Resultados). A cada 14 vídeos no ar há 2 dias, o canal ranqueia os vídeos (visualizações, retenção e engajamento), separa o que funcionou do que não funcionou e **muda sozinho os próximos vídeos usando só o que funcionou**, com **Desfazer**. *Print com dados de exemplo.*
 
 <img src="docs/img/o-que-funcionou.png" width="760" alt="Tela O que funcionou: os vídeos que funcionaram e os que não funcionaram, com nota, e as mudanças aplicadas sozinhas com o botão Desfazer (dados de exemplo)">
 
@@ -117,7 +117,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Escolher a língua e a região do público | Estúdio > Ajustes > **Público (língua e região)**, ou no 1º passo do Novo canal: português do Brasil ou de Portugal, inglês dos EUA ou do Reino Unido, espanhol do México, dos EUA ou da Espanha, francês, alemão e italiano. Roteiro, voz, descrição, tags e bio saem na língua de lá, com referências e unidades de lá; o YouTube recebe a língua certa; e os horários valem no fuso de lá (`python -m darkops mercados` lista todos) |
 | Conectar contas sem copiar chave | Estúdio > Ajustes > Contas: **Entrar com a Microsoft** cria a chave grátis da voz (Azure F0), **Entrar com o GitHub** cria a fila da nuvem e a passagem do Instagram, **Entrar com Instagram** traz o token e o renova sozinho. Você só faz login; criar as contas continua com você |
 | Acompanhar e mandar pelo WhatsApp (desligado por enquanto; liga com `DARKOPS_WHATSAPP=1` no `.env`) | Estúdio > barra lateral > **WhatsApp** (conecta uma vez e vale para todos os canais; API oficial da Meta, só o seu número): avisa quando um vídeo vai ao ar, quando algo falha e quando a fila está acabando, e manda cada vídeo novo com **Aprovar** e **Recusar**. Comandos: `status`, `fila`, `aprovar`, `criar 3`, `criar sobre <tema>`, `pausar`, `retomar`, `ajustar <pedido>`, `canal <nome>`. Os comandos chegam pelo n8n, com o PC ligado (`python -m darkops whatsapp testar`) |
-| Aprender com o que funcionou | Todo canal começa com **15 vídeos**. A cada 15 vídeos no ar há 2 dias, o n8n (20h) busca os números, separa o que **funcionou** do que **não funcionou** e muda sozinho os próximos vídeos usando **só o que funcionou**. Estúdio > Resultados > **O que funcionou** mostra os dois grupos e as mudanças, com **Desfazer** (`python -m darkops aprender`, `aprender-desfazer`) |
+| Aprender com o que funcionou | Todo canal começa com **14 vídeos** (uma semana, 2 por dia). A cada 14 vídeos no ar há 2 dias, o n8n (20h) busca os números, separa o que **funcionou** do que **não funcionou** e muda sozinho os próximos vídeos usando **só o que funcionou**. Estúdio > Resultados > **O que funcionou** mostra os dois grupos e as mudanças, com **Desfazer** (`python -m darkops aprender`, `aprender-desfazer`) |
 | Instalar como aplicativo | No Chrome ou no Edge, com o Estúdio aberto: ícone **Instalar** na barra de endereço. Abre numa janela própria, com o ícone ✦. Os planos e as autorizações para virar aplicativo e site (cookies, LGPD, Google, Meta, lojas) ficam em [docs/app-e-site.md](docs/app-e-site.md) |
 | Responder comentários | Estúdio > Resultados > **Comentários**: a cada 3 horas o n8n lê os comentários novos e a IA separa por tipo e rascunha a resposta; você aprova, edita ou ignora. No YouTube, clique uma vez em **Liberar comentários do YouTube**; no Instagram, conecte de novo se conectou antes da v0.46.0 (`python -m darkops comentarios --todos`) |
 | Usar no celular ou no tablet | O Estúdio se ajusta a qualquer tela (menu recolhido, abas que rolam, campos maiores). O acesso pelo celular ainda não está liberado, por segurança: o plano está em [docs/app-e-site.md](docs/app-e-site.md) |
@@ -149,7 +149,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 - `darkops/`: o código (CLI `python -m darkops`, com `--perfil <id>` em qualquer comando)
 - `darkops/estudio/`: o painel (Flask, só em 127.0.0.1)
 - `perfis/<id>/`: um canal por perfil (configuração, fila, publicados, controle; credenciais ficam fora do Git). Ao criar o perfil no Estúdio, escolha as plataformas (YouTube, Instagram, Facebook, TikTok, Kwai ou outra), o formato (Shorts/Reels vertical ou vídeo convencional 16:9), a duração de cada vídeo e um link de vídeo de exemplo. Só YouTube e Instagram postam sozinhos.
-- `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 15 vídeos; `darkops/comentarios.py`: coleta, triagem e respostas dos comentários; `darkops/whatsapp.py`: avisos e comandos (desligado por padrão); `darkops/nuvem.py`: postagem com o PC desligado
+- `darkops/aprendizado.py`: o ciclo "o que funcionou" a cada 14 vídeos; `darkops/comentarios.py`: coleta, triagem e respostas dos comentários; `darkops/whatsapp.py`: avisos e comandos (desligado por padrão); `darkops/nuvem.py`: postagem com o PC desligado
 - `n8n/`: modelos dos workflows (postagem e análise do que funcionou; WhatsApp e resumo do dia) e lançadores
 - `site/`: página inicial, privacidade (LGPD), termos e política de cookies com aviso de consentimento (GitHub Pages)
 - `docs/img/`: imagens do README

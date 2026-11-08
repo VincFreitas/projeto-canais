@@ -133,7 +133,7 @@
           <input type="url" name="video_exemplo" placeholder="https://www.youtube.com/shorts/...">
           <p class="dica">Um vídeo de referência do estilo que você quer. Serve de modelo, nunca para copiar.</p>
           <label>Quantos vídeos criar de uma vez</label>
-          <input type="number" name="leva_quantidade" min="1" max="15" value="{{ modelo.leva_quantidade }}" style="width:90px">
+          <input type="number" name="leva_quantidade" min="2" max="14" step="2" value="{{ modelo.leva_quantidade }}" style="width:90px">
           <label style="font-weight:400"><input type="checkbox" name="leva_reabastecer" {{ 'checked' if modelo.leva_reabastecer }}>
             Criar outra leva sozinho quando sobrarem
             <input type="number" name="leva_minimo" min="0" max="14" value="{{ modelo.leva_minimo }}" style="width:70px;display:inline-block"> vídeos ou menos</label>

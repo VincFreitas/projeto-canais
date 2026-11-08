@@ -12,7 +12,7 @@ DICAS = [
     "Todo fato precisa de fonte. Lenda se conta como lenda (\"dizem que\"), nunca como verdade.",
     "Conteúdo original rende mais e não é desmonetizado: nunca reescreva o roteiro de outro canal.",
     "Responda os primeiros comentários de cada vídeo: conversa no começo ajuda o vídeo a ser mostrado para mais gente.",
-    "A cada 15 vídeos no ar, o canal aprende sozinho o que funcionou (Resultados > O que funcionou).",
+    "A cada 14 vídeos no ar, o canal aprende sozinho o que funcionou (Resultados > O que funcionou).",
     "Compartilhamentos pesam muito no Reels: termine o vídeo convidando a mandar para alguém.",
     "Poste sempre nos mesmos horários: o público se acostuma, e o Estúdio já faz isso pelo fuso do canal.",
     "Ligue a nuvem de reserva: ela posta mesmo com o PC desligado.",

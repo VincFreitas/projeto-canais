@@ -22,7 +22,7 @@
     <input type="hidden" name="base" value="anteriores">
     <label class="sr-only" for="qtd-anteriores">Quantos vídeos</label>
     <select id="qtd-anteriores" name="leva_quantidade" style="width:auto">
-      {% for n in (3, 5, 7, 10, 15) %}<option value="{{ n }}" {{ 'selected' if n == 5 }}>{{ n }} vídeos</option>{% endfor %}
+      {% for n in (2, 4, 6, 8, 10, 12, 14) %}<option value="{{ n }}" {{ 'selected' if n == 4 }}>{{ n }} vídeos ({{ n // 2 }} {{ 'dia' if n == 2 else 'dias' }})</option>{% endfor %}
     </select>
     <label class="sr-only" for="formato-anteriores">Tipo de vídeo</label>
     <select id="formato-anteriores" name="formato" style="width:auto" title="Vídeo longo vai só para o YouTube (o Reels aceita só vertical)">

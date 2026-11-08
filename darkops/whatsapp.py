@@ -473,7 +473,7 @@ def _criar(perfil, quantidade: int, tema: str) -> str:
     from . import leva
     if (perfil.controle / "leva.trava").exists():
         return "Já tem uma leva criando vídeos neste canal. Aviso quando cada um ficar pronto."
-    quantidade = max(1, min(quantidade, leva.LIMITE_LEVA))
+    quantidade = leva.par(quantidade)
     faltam = leva.em_segundo_plano(perfil, quantidade, tema)
     if faltam:
         return (f"⏸️ Produção pausada em {perfil.dados['nome']} até terminar a configuração do canal "

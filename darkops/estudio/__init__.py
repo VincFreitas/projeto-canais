@@ -408,7 +408,7 @@ def perfil_novo():
         flash(f"Canal {nome} criado, mas os vídeos não começaram: falta o Claude Code, que escreve os roteiros. "
               f"Instale em claude.com/claude-code, faça login e crie a leva inicial de {LEVA_INICIAL} vídeos em Ajustes.", "erro")
         return redirect(url_for("conexoes", pid=pid))
-    faltam = leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 15 vídeos; depois deles vem a 1ª análise
+    faltam = leva.em_segundo_plano(canal, LEVA_INICIAL)  # todo canal começa com 14 vídeos; depois deles vem a 1ª análise
     if faltam:
         flash(f"Canal {nome} criado. Os {LEVA_INICIAL} primeiros vídeos começam sozinhos quando a configuração do canal "
               f"terminar (falta: {'; '.join(faltam)}). Crie as contas do canal.", "ok")
@@ -649,12 +649,12 @@ def _estimar_leva(dados: dict, quantidade: int) -> dict:
 @app.post("/p/<pid>/leva")
 def criar_leva(pid):
     """Salva a quantidade escolhida e cria a leva num processo de fundo (pode levar horas)."""
-    from ..leva import LIMITE_LEVA, _claude
+    from ..leva import _claude, par
     p = _perfil(pid)
     try:
-        quantidade = min(max(int(request.form.get("leva_quantidade", 7)), 1), LIMITE_LEVA)
+        quantidade = par(request.form.get("leva_quantidade"), 4)  # sempre par: 2 vídeos por dia
     except ValueError:
-        quantidade = 7
+        quantidade = 4
     if not _claude():
         flash("A leva precisa do Claude Code instalado neste PC (claude.com/claude-code).", "erro")
         return redirect(url_for("configurar", pid=pid))
@@ -1804,7 +1804,7 @@ def decidir_comentario(pid, cid, decisao):
 
 @app.get("/p/<pid>/aprendizado")
 def aprendizado(pid):
-    """O que funcionou e o que não funcionou em cada ciclo de 15 vídeos, e o que mudou sozinho por causa disso."""
+    """O que funcionou e o que não funcionou em cada ciclo de 14 vídeos, e o que mudou sozinho por causa disso."""
     from .. import aprendizado as apr
     p = _perfil(pid)
     return render_template("aprendizado.html", p=p, d=p.dados, prog=apr.progresso(p),

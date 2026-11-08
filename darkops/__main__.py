@@ -381,7 +381,7 @@ def cmd_leva(a):
     from . import leva
     from .perfis import carregar
     perfil = carregar()
-    quantidade = min(a.quantidade or int(perfil.dados.get("leva_quantidade", 7)), leva.LIMITE_LEVA)
+    quantidade = leva.par(a.quantidade or perfil.dados.get("leva_quantidade", 4))
     if a.se_faltar and not leva.precisa_reabastecer(perfil):
         print(f"fila com {len(list(perfil.fila.glob('*.json')))} vídeo(s); reabastecimento não necessário")
         return
@@ -646,7 +646,7 @@ def cmd_registrar_falha(a):
 
 
 def cmd_aprender(a):
-    """O n8n roda todo dia: cada canal ativo com 15 vídeos novos no ar há 2 dias tem o ciclo analisado e ajustado."""
+    """O n8n roda todo dia: cada canal ativo com 14 vídeos novos no ar há 2 dias tem o ciclo analisado e ajustado."""
     from . import aprendizado
     from .perfis import carregar, listar
     perfis = [carregar()] if a.perfil_unico or a.forcar else [p for p in listar() if p.dados.get("ativo")]
@@ -966,7 +966,7 @@ def main():
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_fila_concluir)
 
-    s = sub.add_parser("aprender", help="analisa o que funcionou a cada 15 vídeos no ar e ajusta o canal sozinho")
+    s = sub.add_parser("aprender", help="analisa o que funcionou a cada 14 vídeos no ar e ajusta o canal sozinho")
     s.add_argument("--forcar", action="store_true", help="analisa agora, mesmo sem completar o ciclo")
     s.add_argument("--perfil-unico", action="store_true", help="só o perfil de --perfil (sem isso: todos os ativos)")
     s.set_defaults(fn=cmd_aprender)

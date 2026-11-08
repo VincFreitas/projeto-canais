@@ -1,8 +1,8 @@
-"""Aprendizado automático: a cada 15 vídeos no ar, o canal descobre o que funcionou e se ajusta sozinho.
+"""Aprendizado automático: a cada 14 vídeos no ar, o canal descobre o que funcionou e se ajusta sozinho.
 
 Ciclo:
-  1. Todo canal novo começa com uma leva de 15 vídeos (LEVA_INICIAL).
-  2. Quando 15 vídeos novos estão publicados há pelo menos DIAS_NO_AR dias, `python -m darkops aprender`
+  1. Todo canal novo começa com uma leva de 14 vídeos (LEVA_INICIAL).
+  2. Quando 14 vídeos novos estão publicados há pelo menos DIAS_NO_AR dias, `python -m darkops aprender`
      (o n8n roda todo dia às 20h) busca os números nas plataformas e ranqueia os vídeos do ciclo.
   3. O terço de cima é "funcionou"; o de baixo, "não funcionou". A IA compara os dois grupos e propõe mudanças
      tiradas SÓ do que funcionou (nunca copia o que foi mal).
@@ -18,7 +18,7 @@ import subprocess
 import time
 from datetime import date, datetime
 
-LEVA_INICIAL = 15
+LEVA_INICIAL = 14  # uma semana com 2 vídeos por dia (decisão do usuário em 2026-11-08; antes 15)
 DIAS_NO_AR = 2
 MINIMO_COM_DADOS = 6   # menos que isso com visualizações, não dá para separar o que funcionou
 ROTULOS = {"duracao_s": "duração (s)", "ritmo_corte_s": "corte de cena (s)", "velocidade": "velocidade da voz",
@@ -249,7 +249,7 @@ def rodar(perfil, forcar: bool = False) -> dict:
                           "mudancas": _aplicar(perfil, resposta.get("mudancas") or [])})
     estado.setdefault("ciclos", []).append(ciclo)
     if ciclo["mudancas"] or len(videos) >= MINIMO_COM_DADOS:
-        estado["analisados"] = ja + len(ciclo_arquivos)  # o próximo ciclo conta 15 vídeos a partir daqui
+        estado["analisados"] = ja + len(ciclo_arquivos)  # o próximo ciclo conta 14 vídeos a partir daqui
     _gravar(perfil, estado)
     _avisar(perfil, ciclo)
     return ciclo
