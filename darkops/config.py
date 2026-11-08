@@ -32,6 +32,8 @@ GEMINI_TTS_MODELO = os.getenv("GEMINI_TTS_MODELO", "gemini-2.5-flash-preview-tts
 GEMINI_TTS_ESTILO = os.getenv("GEMINI_TTS_ESTILO", "Narre como um documentário de mistério, voz grave, "
                               "ritmo envolvente e natural").strip()
 VOZES_LOCAIS = RAIZ / "dados" / "apps" / "vozes"                      # ambiente separado do Chatterbox (torch)
+CHATTERBOX_PTBR = RAIZ / "dados" / "apps" / "tts-teste" / "chatterbox-ptbr"  # ajuste fino oficial em pt-BR (MIT)
+MINHA_VOZ = RAIZ / "dados" / "minha-voz" / "referencia.wav"           # gravação do dono para clonar a voz (fora do Git)
 
 FORMATOS = {
     "longo": (1920, 1080),     # YouTube tradicional

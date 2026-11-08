@@ -53,6 +53,27 @@
       </div>
       {% endfor %}
     </div>
+    {% set pr = c.propria %}
+    <div class="voz-paga voz-propria" data-propria data-situacao="{{ pr.situacao }}">
+      <div class="voz-paga-topo"><b>Sua própria voz</b><small>grátis, gerada no seu PC a partir da sua gravação</small></div>
+      <div class="vozes-grade" data-grade>{% if pr.cartao.url %}{{ cartao(pr.cartao) }}{% endif %}</div>
+      {% if pr.disponivel %}
+      <details class="voz-gravar" {{ 'open' if not pr.cartao.url }}>
+        <summary>{{ 'Gravar de novo' if pr.gravada else 'Gravar a sua voz (20 segundos)' }}</summary>
+        <p class="dica">Num lugar quieto, leia em voz alta, no tom que você quer no canal:</p>
+        <blockquote>{{ pr.texto }}</blockquote>
+        <div class="voz-paga-acao">
+          <button type="button" class="botao" data-gravar>● Gravar</button>
+          <label class="botao secundario">Enviar um áudio do PC<input type="file" accept="audio/*" data-arquivo hidden></label>
+          <label class="voz-consentimento"><input type="checkbox" data-consentimento> A gravação é a minha voz</label>
+        </div>
+        <span class="voz-msg" data-msg>{{ 'Gerando a amostra com a sua voz (cerca de 3 min)…' if pr.situacao == 'gerando' else pr.erro }}</span>
+        <p class="dica">A gravação fica só neste PC (dados/minha-voz), nunca no Git. Use só a sua voz ou a de quem autorizou por escrito.</p>
+      </details>
+      {% else %}
+      <p class="dica">Precisa do Chatterbox instalado no PC ({{ 'dados/apps/tts-teste/chatterbox-ptbr' if cod.startswith('pt') else 'dados/apps/vozes' }}).</p>
+      {% endif %}
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -204,7 +225,60 @@
     if (chave) chave.value = '';
     acompanhar(bloco, cod);
   }));
-  raiz.querySelectorAll('.voz-paga[data-situacao=gerando]').forEach(b => {
+  // ---------- sua própria voz: grava no navegador (ou envia um arquivo), confirma e gera a amostra no PC ----------
+  raiz.querySelectorAll('[data-propria]').forEach(bloco => {
+    const cod = bloco.closest('.vozes-mercado').dataset.mercado, msg = bloco.querySelector('[data-msg]');
+    const gravar = bloco.querySelector('[data-gravar]'), envio = bloco.querySelector('[data-arquivo]');
+    const ok = bloco.querySelector('[data-consentimento]');
+    if (!gravar) return;
+    const esperar = () => {
+      const vez = async () => {
+        const p = await fetch(`/vozes/minha/${cod}`).then(r => r.json()).catch(() => null);
+        if (!p || p.situacao === 'gerando') { setTimeout(vez, 5000); return; }
+        if (p.situacao === 'erro') { msg.textContent = p.erro || 'Não deu certo; tente de novo.'; return; }
+        const grade = bloco.querySelector('[data-grade]');
+        grade.innerHTML = `<div class="voz" role="button" tabindex="0" data-valor="chatterbox|minha-voz" data-genero="" data-temas="" data-i="0">
+          <button type="button" class="voz-ouvir" data-src="${p.cartao.url}" aria-label="Ouvir a sua voz">▶</button>
+          <span class="voz-texto"><b>Sua voz</b><small>clonada da sua gravação, no seu PC</small></span></div>`;
+        msg.textContent = 'Pronto: ouça e toque no cartão para usar a sua voz no canal.';
+        marcar();
+      };
+      vez();
+    };
+    const enviar = async (blob, nome) => {
+      if (!ok.checked) { msg.textContent = 'Marque "A gravação é a minha voz" antes.'; return; }
+      const dados = new FormData();
+      dados.append('arquivo', blob, nome); dados.append('mercado', cod); dados.append('consentimento', '1');
+      msg.textContent = 'Enviando…';
+      const r = await fetch('/vozes/minha', {method: 'POST', body: dados}).then(r => r.json())
+        .catch(() => ({ok: false, erro: 'O Estúdio não respondeu.'}));
+      if (!r.ok) { msg.textContent = r.erro; return; }
+      msg.textContent = `Recebi ${r.duracao} s de fala. Gerando a amostra com a sua voz (cerca de 3 min)…`;
+      esperar();
+    };
+    let gravador = null, partes = [], fim = null;
+    gravar.addEventListener('click', async () => {
+      if (gravador) { gravador.stop(); return; }
+      if (!ok.checked) { msg.textContent = 'Marque "A gravação é a minha voz" antes.'; return; }
+      let fluxo;
+      try { fluxo = await navigator.mediaDevices.getUserMedia({audio: true}); }
+      catch (e) { msg.textContent = 'O navegador não liberou o microfone. Libere ou envie um áudio do PC.'; return; }
+      partes = []; gravador = new MediaRecorder(fluxo);
+      gravador.ondataavailable = e => e.data.size && partes.push(e.data);
+      gravador.onstop = () => {
+        clearTimeout(fim); fluxo.getTracks().forEach(t => t.stop());
+        gravar.textContent = '● Gravar'; gravador = null;
+        enviar(new Blob(partes, {type: partes[0] ? partes[0].type : 'audio/webm'}), 'gravacao.webm');
+      };
+      gravador.start(); gravar.textContent = '■ Parar';
+      msg.textContent = 'Gravando… leia o texto acima (para sozinho em 30 s).';
+      fim = setTimeout(() => gravador && gravador.stop(), 30000);
+    });
+    envio.addEventListener('change', () => envio.files[0] && enviar(envio.files[0], envio.files[0].name));
+    if (bloco.dataset.situacao === 'gerando') esperar();
+  });
+
+  raiz.querySelectorAll('.voz-paga[data-motor][data-situacao=gerando]').forEach(b => {
     todas = true; acompanhar(b, b.closest('.vozes-mercado').dataset.mercado);
   });
   // a voz já escolhida é paga: abre tudo para ela aparecer no lugar dela

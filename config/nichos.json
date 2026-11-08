@@ -24,6 +24,12 @@
     "descricao": "Países, conflitos, poder e economia explicados",
     "buscas": ["geopolítica explicada", "por que esse país", "países mais poderosos", "o que está acontecendo na"]
   },
+  "noticias": {
+    "idioma": "pt",
+    "descricao": "Notícias do momento contadas com fatos checados e reconstituição animada (sem imagem de veículo)",
+    "noticias": true,
+    "buscas": ["notícia hoje", "aconteceu hoje", "o que aconteceu", "entenda o caso"]
+  },
   "historias-bizarras": {
     "idioma": "pt",
     "descricao": "Histórias reais bizarras, casos absurdos",

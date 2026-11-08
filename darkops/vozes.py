@@ -218,14 +218,81 @@ def pagas(cod: str) -> list[dict]:
     return saida
 
 
+def propria(cod: str) -> dict:
+    """A voz do próprio dono, clonada no PC pelo Chatterbox (MIT) a partir de uma gravação dele."""
+    idioma = mercados.MERCADOS[cod]["idioma"]
+    e = _estado().get("chatterbox", {}).get(cod, {})
+    if e.get("situacao") == "gerando" and time.time() - e.get("inicio", 0) > 1800:
+        e = {**e, "situacao": "erro", "erro": "a geração parou no meio; tente de novo"}
+    amostra = url(_arquivo_pago(cod, "chatterbox", "minha-voz"))
+    return {"disponivel": narracao.tem_chatterbox(idioma), "gravada": config.MINHA_VOZ.is_file(),
+            "situacao": e.get("situacao", ""), "erro": e.get("erro", ""), "texto": TEXTO_GRAVAR,
+            "cartao": {"motor": "chatterbox", "voz": "minha-voz", "nome": "Sua voz", "genero": "",
+                       "nota": "clonada da sua gravação, no seu PC", "temas": [], "url": amostra}}
+
+
 def catalogo(cod: str) -> dict:
-    return {"gratis": gratis(cod), "pagas": pagas(cod)}
+    return {"gratis": gratis(cod), "pagas": pagas(cod), "propria": propria(cod)}
+
+
+# o dono lê em voz alta: frases variadas, com pergunta e número, cobrem bem o jeito de falar
+TEXTO_GRAVAR = ("Você sabia que o coração de um polvo bate em três ritmos diferentes? Pois é. Em mil novecentos e "
+                "oitenta e dois, uma equipe de mergulhadores registrou isso pela primeira vez, e a descoberta mudou "
+                "o que a gente pensava sobre esses animais. Hoje eu vou te contar como tudo aconteceu.")
+
+
+def salvar_minha_voz(origem: Path) -> float:
+    """Converte a gravação (qualquer formato do navegador ou do PC) para WAV mono 24 kHz, sem os silêncios das
+    pontas, com até 30 s. Devolve a duração. Fica em dados/minha-voz, fora do Git: é a voz de uma pessoa."""
+    destino = config.MINHA_VOZ
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    temporario = destino.with_suffix(".novo.wav")
+    proc = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y", "-i",
+                           str(origem), "-vn", "-ac", "1", "-ar", "24000", "-t", "30", "-af",
+                           "silenceremove=start_periods=1:start_threshold=-45dB,areverse,"
+                           "silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm",
+                           str(temporario)], capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    if proc.returncode != 0 or not temporario.is_file():
+        temporario.unlink(missing_ok=True)
+        raise SystemExit("não consegui ler a gravação: envie um áudio (mp3, wav, m4a, webm ou ogg)")
+    import wave
+    with wave.open(str(temporario)) as w:
+        duracao = w.getnframes() / w.getframerate()
+    if duracao < 8:
+        temporario.unlink(missing_ok=True)
+        raise SystemExit(f"a gravação tem {duracao:.0f} s de fala; grave pelo menos 10 s (o ideal é de 15 a 25 s)")
+    temporario.replace(destino)
+    return duracao
+
+
+def gerar_minha_amostra(cod: str) -> dict:
+    if cod not in mercados.MERCADOS:
+        raise SystemExit("mercado inválido")
+    _gravar_estado("chatterbox", cod, {"situacao": "gerando", "inicio": time.time()})
+    try:
+        _sintetizar("chatterbox", "minha-voz", cod, _arquivo_pago(cod, "chatterbox", "minha-voz"))
+    except (SystemExit, OSError, subprocess.CalledProcessError) as erro:
+        _gravar_estado("chatterbox", cod, {"situacao": "erro", "erro": ocultar(str(erro))[:200]})
+        return {"situacao": "erro"}
+    _gravar_estado("chatterbox", cod, {"situacao": "pronto"})
+    return {"situacao": "pronto"}
+
+
+def gerar_minha_amostra_em_segundo_plano(cod: str) -> None:
+    if cod not in mercados.MERCADOS:
+        return
+    _gravar_estado("chatterbox", cod, {"situacao": "gerando", "inicio": time.time()})
+    subprocess.Popen([sys.executable, "-m", "darkops", "vozes-amostras", "--minha-voz", "--mercado", cod],
+                     cwd=config.RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
 
 
 def escolha(valor: str) -> dict:
     """'motor|voz' do seletor -> campos do perfil. A voz é conferida com o mercado em mercados.coerente."""
     motor, _, voz = str(valor or "").partition("|")
     voz = voz.strip()[:120]
+    if motor == "chatterbox" and voz == "minha-voz":
+        return {"motor_voz": motor, "voz": voz}
     if motor not in ("auto", "piper", *PAGOS) or not voz or not re.match(r"^[\w.:-]+$", voz):
         return {}
     return {"motor_voz": motor, "voz": voz}
@@ -267,6 +334,8 @@ def _sintetizar(motor: str, voz: str, cod: str, destino: Path) -> None:
             else:
                 audio, _ = narracao._edge(texto, voz, "+0%", base)
         else:
+            if motor == "chatterbox" and voz == "minha-voz":
+                voz = f"{mercados.MERCADOS[cod]['idioma']}|minha-voz"
             audio, _ = narracao.MOTORES[motor](texto, voz, "+0%", base)
         _mp3(audio, destino)
 

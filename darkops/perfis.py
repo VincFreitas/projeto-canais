@@ -285,6 +285,7 @@ _PRONTOS = {
     "terror": ["Arquivo do Terror", "Relatos da Meia-Noite", "Casa Fria", "Lenda Viva", "Sussurro Sombrio"],
     "curiosidades": ["Fato Rápido", "Você Sabia Hoje", "Mente Curiosa", "Minuto Curioso"],
     "animais": ["Bicho Raro", "Planeta Selvagem", "Zoo de Bolso", "Fera Curiosa", "Mundo Animal Já"],
+    "noticias": ["Aconteceu Hoje", "Plantão Animado", "Notícia em 3D", "Giro do Dia", "Fato do Momento"],
     "geopolitica": ["Mapa do Poder", "Xadrez Global", "Por Trás do Mapa", "Fronteira Explicada", "Mundo em 1 Minuto"],
 }
 

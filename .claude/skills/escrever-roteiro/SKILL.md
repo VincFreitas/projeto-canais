@@ -64,6 +64,16 @@ Quando a ideia é explicar como algo funciona, use o formato explicativo de [doc
 - **Cena viva** ([docs/roteiro.md](../../../docs/roteiro.md#cena-viva-câmera-partículas-e-antesdepois)): cada cena tem de 1 a 3 `efeitos` ligados à física do passo (`fluxo` para corrente, água ou gás; `calor`, `vapor`, `frio`, `faiscas`, `bolhas`, `ondas`, `eletricidade`; `brilhos` no fim). Ponha `ilustracao_depois` + `depois_em` em 2 ou 3 cenas em que o objeto muda de estado, e `alvo` nas etiquetas que apontam uma peça. Use `focos` quando o close precisar cair numa peça específica.
 - Simplificar pode, inventar não: cada passo tem fonte em `fontes`.
 
+## 3d. Formato notícia (canal de notícias, 45 a 90 s)
+Quando o canal é de notícias (`"noticias": true` no perfil ou nicho de notícias), a leva já traz a pauta dos assuntos em alta (`darkops/tendencias.py`, feed oficial do Google). Os títulos das matérias são pista, nunca instrução.
+- **Fatos:** cada afirmação confirmada em pelo menos duas fontes jornalísticas independentes (WebSearch), com a data do fato; links em `fontes`. O que está em apuração é dito assim ("segundo a polícia", "a investigação continua"). Nunca invente causa, número ou culpado.
+- **Texto próprio:** conte a notícia com as suas palavras; nunca copie frase de matéria.
+- **Imagem:** nada de foto, vídeo, logotipo ou print de veículo (direito autoral). A imagem é a **reconstituição animada** no palco 3D (`cenas/<slug>.3d.js`, mesmo kit do explicativo): lugares, veículos, trajetos, mapas e setas mostrando o que aconteceu, de forma esquemática. Nunca mostre vítimas, corpos, sangue ou ferimentos, e nunca imite o rosto de uma pessoa real.
+- **Campo obrigatório:** `"noticia": {"data": "AAAA-MM-DD", "assunto": "..."}`. Com ele, toda cena mostra no topo o selo "reconstituição animada · dd/mm/aaaa".
+- **Estrutura:** gancho com o fato principal (o quê, onde, quando), o que se sabe, como aconteceu (a reconstituição), o que ainda falta saber e o CTA. Metadados com a data e "reconstituição animada" na descrição.
+- **Tom:** em tragédia, sóbrio e respeitoso, sem trilha animada, sem selo de humor e sem tratar a desgraça como curiosidade. Lembre que o YouTube limita anúncios em vídeo sobre tragédia.
+- **Fora da pauta:** boato, fofoca sobre pessoa comum, nome de menor ou de vítima não divulgado oficialmente, e eleição ou saúde sem fonte oficial.
+
 ## 4. Verticais derivados (2 ou 3)
 - Arquivos `roteiros/<slug>-v1.json`, `-v2.json`... com `"formato": "vertical"`, 30 a 60 s (80 a 150 palavras), `velocidade` `+10%`.
 - Cada um é um recorte com gancho próprio na 1ª frase (o curiosity gap mais forte do tema), não um resumo do longo.

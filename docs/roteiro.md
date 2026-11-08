@@ -95,6 +95,9 @@ Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do *
 | `icones` | `simbolo` (`coracao`, `estrela`, `cubo`, `circulo`), `quantidade` (até 12), `cor` [r,g,b], `rotulo` | `{"tipo": "icones", "simbolo": "coracao", "quantidade": 3, "rotulo": "3 corações"}` |
 | `barra` | `valor` (0 a 100), `sufixo` (`%`), `titulo`, `rotulo`, `cor` [r,g,b] | `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}` |
 
+### Notícia com reconstituição animada (`noticia`)
+Nos canais de notícias, o roteiro leva `"noticia": {"data": "AAAA-MM-DD", "assunto": "..."}` e um palco 3D que reconstitui o fato de forma esquemática. Toda cena mostra no topo "reconstituição animada · dd/mm/aaaa" (`producao._cabecalho`; troque o texto com `etiqueta_tela`). Regras completas na seção 3d da skill `/escrever-roteiro`.
+
 ### Edição dossiê (`tema_cards: dossie`)
 
 Estilo de reconstituição com dados (usado no Enigma Oculto junto com `estilo: realista`): a imagem da cena fica

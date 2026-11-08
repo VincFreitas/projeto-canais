@@ -77,6 +77,9 @@ def cmd_comparar_vozes(a):
 
 def cmd_vozes_amostras(a):
     from . import vozes
+    if getattr(a, "minha_voz", False):
+        print(f"sua voz {a.mercado or 'pt-BR'}: {vozes.gerar_minha_amostra(a.mercado or 'pt-BR')['situacao']}")
+        return
     if a.motor:
         r = vozes.gerar_paga(a.motor, a.mercado or "pt-BR")
         print(f"{a.motor} {a.mercado}: {r['situacao']}, {r['vozes']} amostras")
@@ -266,6 +269,15 @@ def cmd_mercados(_):
     from .mercados import MERCADOS
     for cod, m in MERCADOS.items():
         print(f"{cod:<7} {m['nome']:<36} voz {m['vozes'][0]:<34} horário de {m['cidade']}")
+
+
+def cmd_tendencias(args):
+    from .perfis import carregar
+    from .tendencias import em_alta
+    for a in em_alta(carregar(args.perfil).dados if args.perfil else {"mercado": args.mercado}, args.quantidade):
+        print(f"{a['assunto']} ({a['buscas']} buscas)")
+        for m in a["materias"][:3]:
+            print(f"   · {m['titulo'][:110]} ({m['veiculo']})")
 
 
 def cmd_perfis(_):
@@ -728,6 +740,10 @@ def main():
     s.add_argument("--na-hora", action="store_true", help="só os que chegaram agora a um horário (fuso do mercado)")
     s.set_defaults(fn=cmd_perfis_ativos)
 
+    s = sub.add_parser("tendencias", help="assuntos em alta agora no país do público (pauta dos canais de notícias)")
+    s.add_argument("--mercado", default="pt-BR")
+    s.add_argument("--quantidade", type=int, default=10)
+    s.set_defaults(fn=cmd_tendencias)
     s = sub.add_parser("mercados", help="línguas e regiões de público disponíveis para os canais")
     s.set_defaults(fn=cmd_mercados)
 
@@ -824,6 +840,7 @@ def main():
     s = sub.add_parser("vozes-amostras", help="amostras das vozes para escolher a voz do canal (grátis ou, com a chave, pagas)")
     s.add_argument("--mercado", help="só um público, ex.: pt-BR")
     s.add_argument("--motor", choices=["gemini", "chirp", "elevenlabs"], help="opção paga (precisa da chave)")
+    s.add_argument("--minha-voz", action="store_true", help="amostra da sua própria voz (gravação em dados/minha-voz)")
     s.add_argument("--refazer", action="store_true")
     s.set_defaults(fn=cmd_vozes_amostras)
 

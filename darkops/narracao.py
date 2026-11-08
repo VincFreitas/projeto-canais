@@ -217,19 +217,55 @@ def _gemini(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, li
     return wav, _estimar([(texto, pcm)], 24000, wav)  # PCM 16 bits, 24 kHz, mono
 
 
-def _chatterbox(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
-    """Chatterbox Multilingual no próprio PC (MIT). voz = "idioma" ou "idioma|WAV de referência" para clonar uma
-    voz própria (ex.: "pt|assets/vozes/minha.wav")."""
-    import subprocess
-    import tempfile
+def _ambiente_chatterbox(idioma: str) -> tuple[Path, str]:
+    """(python, pasta do código): em português, o ajuste fino oficial em pt-BR (sem sotaque de Portugal); nas outras
+    línguas, o Chatterbox Multilingual de dados/apps/vozes."""
+    ptbr = config.CHATTERBOX_PTBR / "venv" / "Scripts" / "python.exe"
+    if idioma == "pt" and ptbr.exists():
+        return ptbr, str(config.CHATTERBOX_PTBR / "chatterbox" / "src")
     python = config.VOZES_LOCAIS / "Scripts" / "python.exe"
     if not python.exists():
         raise SystemExit("motor chatterbox exige o ambiente dados/apps/vozes (instale o Chatterbox)")
+    return python, ""
+
+
+def tem_chatterbox(idioma: str = "pt") -> bool:
+    try:
+        _ambiente_chatterbox(idioma)
+        return True
+    except SystemExit:
+        return False
+
+
+def _acelerar(pcm: bytes, taxa: int, fator: float) -> bytes:
+    """Muda o ritmo sem mudar o tom (atempo do ffmpeg), para o Chatterbox seguir a velocidade do canal."""
+    if abs(fator - 1) < .01:
+        return pcm
+    import subprocess
+    import imageio_ffmpeg
+    proc = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-f", "s16le",
+                           "-ar", str(taxa), "-ac", "1", "-i", "pipe:0", "-filter:a", f"atempo={fator:.3f}",
+                           "-f", "s16le", "pipe:1"], input=pcm, capture_output=True, check=True,
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    return proc.stdout
+
+
+def _chatterbox(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, list[dict]]:
+    """Chatterbox no próprio PC (MIT). voz = "idioma", "idioma|minha-voz" (a gravação do dono, config.MINHA_VOZ)
+    ou "idioma|WAV de referência" para clonar uma voz própria."""
+    import subprocess
+    import tempfile
     idioma, _, referencia = voz.partition("|")
+    idioma = idioma or "pt"
+    python, codigo = _ambiente_chatterbox(idioma)
+    if referencia == "minha-voz":
+        if not config.MINHA_VOZ.is_file():
+            raise SystemExit("falta a gravação da sua voz (Ajustes > Voz do narrador > Sua própria voz)")
+        referencia = str(config.MINHA_VOZ)
     frases = _frases(texto)
     with tempfile.TemporaryDirectory() as pasta:
         proc = subprocess.run([str(python), str(Path(__file__).with_name("chatterbox_ponte.py"))],
-                              input=json.dumps({"frases": frases, "idioma": idioma or "pt",
+                              input=json.dumps({"frases": frases, "idioma": idioma, "codigo": codigo,
                                                 "voz": referencia if referencia and Path(referencia).is_file() else "",
                                                 "pasta": pasta}),
                               capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800,
@@ -237,10 +273,12 @@ def _chatterbox(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path
         if proc.returncode != 0:
             raise SystemExit(f"Chatterbox falhou: {proc.stderr.strip()[-400:]}")
         taxa = json.loads(proc.stdout.strip().splitlines()[-1])["taxa"]
+        numero = re.search(r"-?\d+", velocidade or "")
+        fator = min(max(1 + (int(numero.group()) if numero else 0) / 100, .7), 1.5)  # "+15%" -> 1,15
         partes = []
         for i, frase in enumerate(frases):
             with wave.open(str(Path(pasta) / f"frase-{i}.wav")) as w:
-                partes.append((frase, w.readframes(w.getnframes())))
+                partes.append((frase, _acelerar(w.readframes(w.getnframes()), taxa, fator)))
     wav = base.with_suffix(".wav")
     return wav, _estimar(partes, taxa, wav)
 
@@ -288,8 +326,12 @@ def narrar(texto: str, motor: str, voz: str | None, velocidade: str, idioma: str
         escolhido = "azure" if config.AZURE_SPEECH_KEY and config.AZURE_SPEECH_REGION else "edge"
     else:
         escolhido = motor
+    if escolhido == "chatterbox" and voz == "minha-voz":  # a voz do dono, na língua do roteiro
+        voz = f"{idioma[:2]}|minha-voz"
     marcas = base.with_suffix(".json")
     assinatura = {"texto": texto, "motor": motor, "voz": voz, "velocidade": velocidade}
+    if voz and voz.endswith("|minha-voz") and config.MINHA_VOZ.is_file():  # gravação nova refaz a narração
+        assinatura["referencia"] = config.MINHA_VOZ.stat().st_mtime
     if marcas.exists():
         salvo = json.loads(marcas.read_text(encoding="utf-8"))
         audio = base.with_name(salvo.get("arquivo") or "_")

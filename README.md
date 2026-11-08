@@ -1,12 +1,12 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.48.1%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.49.0%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.48.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.49.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -16,9 +16,18 @@ Tudo se controla pelo **Estúdio**, um painel no navegador com perfis (um por ca
 
 ![Estúdio do Projeto Canais: início do perfil Pulga do Saber, com fila, próximas postagens e conexões por função](docs/img/estudio.png)
 
-**Neste README:** [Novidades](#novidades-v048) · [Começar em 3 passos](#começar-em-3-passos-com-qualquer-agente-de-ia) · [Sem agente](#sem-agente-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
+**Neste README:** [Novidades](#novidades-v049) · [Começar em 3 passos](#começar-em-3-passos-com-qualquer-agente-de-ia) · [Sem agente](#sem-agente-manual) · [Como funciona](#como-funciona) · [Conectores](#conectores) · [Estrutura](#estrutura) · [Regras](#regras-que-mantêm-o-canal-vivo) · [Testando?](#testando-sua-opinião-ajuda) · [Licença](#licença-e-autoria)
 
-## Novidades (v0.48)
+## Novidades (v0.49)
+
+**Canal de notícias com reconstituição animada.** Escolha o assunto **Notícias do momento** no Novo canal. A cada leva, o canal lê os assuntos em alta no Google no país do público, escolhe uma notícia de verdade, confirma cada fato em duas fontes e conta com as próprias palavras. A imagem nunca é foto ou vídeo de jornal: é uma reconstituição animada em 3D, com o selo "reconstituição animada" e a data na tela. Nada de vítimas, boatos ou fofoca. Pelo terminal: `python -m darkops tendencias`.
+
+**Sua própria voz.** Em Ajustes > Voz do narrador > **Sua própria voz**, grave 20 segundos no navegador (ou envie um áudio) e o canal passa a narrar com a sua voz, clonada no seu PC pelo Chatterbox pt-BR (licença MIT). A gravação nunca sai do PC.
+
+**Animações com princípios de movimento.** Tudo entra passando um pouco do ponto e assenta, a palavra de destaque bate e quica, as etiquetas chegam pelo pino e depois pelo texto, e nada some de estalo. As regras estão em [docs/movimento.md](docs/movimento.md) e valem também para as cenas 3D.
+
+
+### v0.48
 
 **Comentários com resposta aprovada.** A cada 3 horas o canal lê os comentários do YouTube e do Instagram, separa perguntas, correções de fato, ideias de vídeo, elogios, críticas e spam, e escreve uma resposta curta no tom do canal. Você aprova, edita ou ignora em Resultados > **Comentários**. O que o público disse entra nas Estatísticas, na análise da IA e no aprendizado. Responder sozinho é opcional e só vale para elogios e perguntas simples.
 
@@ -112,6 +121,8 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Instalar como aplicativo | No Chrome ou no Edge, com o Estúdio aberto: ícone **Instalar** na barra de endereço. Abre numa janela própria, com o ícone ✦. Os planos e as autorizações para virar aplicativo e site (cookies, LGPD, Google, Meta, lojas) ficam em [docs/app-e-site.md](docs/app-e-site.md) |
 | Responder comentários | Estúdio > Resultados > **Comentários**: a cada 3 horas o n8n lê os comentários novos e a IA separa por tipo e rascunha a resposta; você aprova, edita ou ignora. No YouTube, clique uma vez em **Liberar comentários do YouTube**; no Instagram, conecte de novo se conectou antes da v0.46.0 (`python -m darkops comentarios --todos`) |
 | Usar no celular ou no tablet | O Estúdio se ajusta a qualquer tela (menu recolhido, abas que rolam, campos maiores). O acesso pelo celular ainda não está liberado, por segurança: o plano está em [docs/app-e-site.md](docs/app-e-site.md) |
+| Canal de notícias | Novo canal > assunto **Notícias do momento**: pauta dos assuntos em alta no Google, fatos em 2 fontes e reconstituição animada em 3D com selo na tela (`python -m darkops tendencias`) |
+| Narrar com a sua voz | Ajustes > Voz do narrador > **Sua própria voz**: grave 20 s ou envie um áudio; clonada no PC pelo Chatterbox pt-BR (MIT), a gravação nunca sai do PC |
 | Títulos, agenda da semana | `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios` |
 | Medir e decidir | `/revisar-desempenho` |
 

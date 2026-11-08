@@ -133,10 +133,16 @@ def _plano_ia(roteiro: dict, pixel: int, post: bool) -> set[int]:
 def _cabecalho(roteiro: dict, indice: int) -> tuple[str, list[str]] | None:
     """Edição dossiê: etiqueta no topo de toda cena e o título da tela na 1ª ("titulo_tela": "linha 1 | linha 2";
     sem ele, o texto da thumbnail). Imagem realista de IA sempre diz que é ilustração."""
-    if roteiro.get("tema_cards") != "dossie":
+    noticia = roteiro.get("noticia") if isinstance(roteiro.get("noticia"), dict) else None
+    if roteiro.get("tema_cards") != "dossie" and not noticia:
         return None
-    etiqueta = roteiro.get("etiqueta_tela") or (
-        "reconstituição ilustrativa · IA" if roteiro.get("estilo") in visuais.ESTILOS_SINTETICOS else "arquivo · caso real")
+    if noticia:  # notícia: a tela sempre avisa que a imagem é uma reconstituição, com a data do fato
+        data = str(noticia.get("data") or "")
+        etiqueta = roteiro.get("etiqueta_tela") or ("reconstituição animada" + (f" · {data[8:10]}/{data[5:7]}/{data[:4]}"
+                                                                                 if len(data) == 10 else ""))
+    else:
+        etiqueta = roteiro.get("etiqueta_tela") or (
+            "reconstituição ilustrativa · IA" if roteiro.get("estilo") in visuais.ESTILOS_SINTETICOS else "arquivo · caso real")
     titulo: list[str] = []
     if indice == 1:
         bruto = roteiro.get("titulo_tela") or (roteiro.get("thumbnail") or {}).get("texto") or ""

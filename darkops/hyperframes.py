@@ -24,7 +24,16 @@ from . import config
 
 PASTA = config.RAIZ / "dados" / "apps" / "hyperframes-teste"
 NODE = config.RAIZ / "dados" / "apps" / "node"
-VERSAO = 2  # sobe quando a camada muda, para refazer as cenas guardadas
+VERSAO = 3  # sobe quando a camada muda, para refazer as cenas guardadas
+
+# Princípios de movimento (docs/movimento.md): toda animação usa estes tempos e curvas, nunca valores soltos.
+# Rápido = reação a uma palavra; médio = entrada de elemento; lento = respiração do ambiente.
+TEMPO = {"rapido": .14, "medio": .28, "lento": .5}
+CURVA = {"entra": "back.out(1.8)",   # entra passando um pouco do ponto e assenta (follow-through)
+         "bate": "power4.in",        # cai acelerando, como objeto pesado (impacto)
+         "assenta": "elastic.out(1, .5)",  # depois do impacto, um quique curto
+         "sai": "power2.in",         # sai acelerando: some sem chamar atenção
+         "respira": "sine.inOut"}    # movimento contínuo de câmera e luz, nunca linear
 
 
 def disponivel() -> bool:
@@ -81,7 +90,9 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
                      f'{" ".join(spans)}</div>')
         lado = -1 if i % 2 else 1
         anim.append(f'tl.fromTo("#g{i}",{{opacity:0,y:{int(50 * escala)},rotation:{3 * lado},scale:.8,filter:"blur(8px)"}},'
-                    f'{{opacity:1,y:0,rotation:0,scale:1,filter:"blur(0px)",duration:.2,ease:"back.out(2.2)"}},{ini:.3f});')
+                    f'{{opacity:1,y:0,rotation:0,scale:1,filter:"blur(0px)",duration:.2,ease:"{CURVA["entra"]}"}},{ini:.3f});')
+        if fim - ini > .45:  # saída: some subindo um pouco, nos últimos instantes do grupo
+            anim.append(f'tl.to("#g{i}",{{opacity:0,y:{-int(18 * escala)},duration:.1,ease:"{CURVA["sai"]}"}},{fim - .1:.3f});')
 
     # ambiente: poeira com semente fixa (o mesmo vídeo sai igual a cada render), grão e luz
     rng = random.Random(f"{semente}-{indice}")
@@ -93,7 +104,7 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
         anim.append(f'tl.to("#d{k}",{{x:{rng.uniform(-60, 60):.0f},y:{rng.uniform(-220, -50):.0f},duration:{dur:.3f},ease:"none"}},0);')
     if not pixel:
         anim.append(f'for(let f=0;f<{int(dur * 15)};f++)tl.set("#grao",{{x:((f*37)%13-6)*12,y:((f*53)%11-5)*12}},f/15);')
-    anim.append(f'tl.fromTo("#base",{{scale:1}},{{scale:1.04,duration:{dur:.3f},ease:"none"}},0);')
+    anim.append(f'tl.fromTo("#base",{{scale:1}},{{scale:1.04,duration:{dur:.3f},ease:"{CURVA["respira"]}"}},0);')
     if entrada:
         anim.append('tl.fromTo("#cortina",{opacity:1},{opacity:0,duration:.28,ease:"power2.out"},0);')
     anim.append(f'tl.fromTo("#vazamento",{{opacity:{.85 if indice == 1 else .35}}},{{opacity:0,duration:{1.1 if indice == 1 else .6},ease:"power2.out"}},0);')
@@ -116,7 +127,8 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
         corpo.append(f'<div id="heroi" class="clip" data-start="{max(t - .1, 0):.3f}" data-duration="{max(dur - t + .1, .1):.3f}">'
                      + (f'{html.escape(texto[:numero.start()].upper())}<span id="num">0</span>{html.escape(texto[numero.end():].upper())}'
                         if numero else html.escape(texto.upper())) + "</div>")
-        anim.append(f'tl.fromTo("#heroi",{{opacity:0,scale:2.4}},{{opacity:1,scale:1,duration:.25,ease:"power4.in"}},{max(t - .1, 0):.3f});')
+        anim.append(f'tl.fromTo("#heroi",{{opacity:0,scale:2.4}},{{opacity:1,scale:1,duration:.25,ease:"{CURVA["bate"]}"}},{max(t - .1, 0):.3f});')
+        anim.append(f'tl.fromTo("#heroi",{{scale:.92}},{{scale:1,duration:{TEMPO["lento"]},ease:"{CURVA["assenta"]}",immediateRender:false}},{max(t - .1, 0) + .25:.3f});')
         if numero:
             alvo = float(numero.group().replace(".", "").replace(",", "."))
             casas = 0 if alvo.is_integer() else 1
@@ -129,7 +141,10 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
         corpo.append(f'<div id="selo" class="clip {"bom" if tipo == "bom" else "ruim"}" data-start="{t:.3f}" '
                      f'data-duration="{min(1.6, max(dur - t, .1)):.3f}">{html.escape(texto.upper())}</div>')
         anim.append(f'tl.fromTo("#selo",{{opacity:0,scale:1.8,rotation:{4 if tipo == "bom" else -6}}},'
-                    f'{{opacity:1,scale:1,duration:.14,ease:"power4.in"}},{t:.3f});')
+                    f'{{opacity:1,scale:1,duration:{TEMPO["rapido"]},ease:"{CURVA["bate"]}"}},{t:.3f});')
+        fica = min(1.6, max(dur - t, .1))
+        if fica > .5:
+            anim.append(f'tl.to("#selo",{{opacity:0,scale:.9,duration:.15,ease:"{CURVA["sai"]}"}},{t + fica - .15:.3f});')
         impacto = impacto or t + .14
     if impacto is not None:  # clarão e tremor de câmera quadro a quadro
         anim.append(f'tl.fromTo("#flash",{{opacity:0}},{{opacity:.5,duration:.05}},{impacto:.3f});')
@@ -141,11 +156,13 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
         texto, t = termo
         corpo.append(f'<div id="termo" class="clip" data-start="{t:.3f}" data-duration="{max(dur - t, .1):.3f}">'
                      f'{html.escape(texto.upper())}</div>')
-        anim.append(f'tl.fromTo("#termo",{{opacity:0,scale:.4,y:-30}},{{opacity:1,scale:1,y:0,duration:.3,ease:"back.out(2.5)"}},{t:.3f});')
+        anim.append(f'tl.fromTo("#termo",{{opacity:0,scale:.4,y:-30}},{{opacity:1,scale:1,y:0,duration:{TEMPO["medio"]},ease:"{CURVA["entra"]}"}},{t:.3f});')
     for k, (texto, x, y, t) in enumerate(rotulos or []):  # etiquetas com pino, cada uma na sua palavra
         corpo.append(f'<div class="rotulo clip" id="r{k}" data-start="{t:.3f}" data-duration="{max(dur - t, .1):.3f}" '
                      f'style="left:{int(W * x)}px;top:{int(H * y)}px"><i></i><b>{html.escape(texto.upper())}</b></div>')
-        anim.append(f'tl.fromTo("#r{k}",{{opacity:0,scale:.3}},{{opacity:1,scale:1,duration:.28,ease:"back.out(3)"}},{t:.3f});')
+        anim.append(f'tl.fromTo("#r{k}",{{opacity:0}},{{opacity:1,duration:.05}},{t:.3f});')
+        anim.append(f'tl.fromTo("#r{k} i",{{scale:0}},{{scale:1,duration:{TEMPO["rapido"]},ease:"{CURVA["entra"]}"}},{t:.3f});')
+        anim.append(f'tl.fromTo("#r{k} b",{{opacity:0,x:{-int(30 * escala)}}},{{opacity:1,x:0,duration:{TEMPO["medio"]},ease:"{CURVA["entra"]}"}},{t + .08:.3f});')
 
     grao = "" if pixel else ('<div id="grao" class="clip" data-start="0" data-duration="{d}"></div>').format(d=f"{dur:.3f}")
     return f"""<!doctype html>

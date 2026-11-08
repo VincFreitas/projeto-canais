@@ -449,6 +449,38 @@ def voz_pagas(cod):
     return jsonify(vozes.pagas(cod))
 
 
+@app.post("/vozes/minha")
+def voz_minha():
+    """Recebe a gravação da voz do dono (gravada no navegador ou enviada do PC) e gera a amostra clonada."""
+    import tempfile
+    from .. import vozes
+    cod = request.form.get("mercado", "")
+    arquivo = request.files.get("arquivo")
+    if cod not in mercados.MERCADOS or not arquivo:
+        return jsonify(ok=False, erro="Grave ou escolha um áudio."), 400
+    if request.form.get("consentimento") != "1":
+        return jsonify(ok=False, erro="Confirme que a gravação é a sua voz."), 400
+    if not vozes.propria(cod)["disponivel"]:
+        return jsonify(ok=False, erro="O Chatterbox não está instalado neste PC."), 400
+    with tempfile.TemporaryDirectory() as pasta:
+        origem = Path(pasta) / "gravacao"
+        arquivo.save(origem)
+        try:
+            duracao = vozes.salvar_minha_voz(origem)
+        except SystemExit as erro:
+            return jsonify(ok=False, erro=str(erro))
+    vozes.gerar_minha_amostra_em_segundo_plano(cod)
+    return jsonify(ok=True, duracao=round(duracao))
+
+
+@app.get("/vozes/minha/<cod>")
+def voz_minha_estado(cod):
+    from .. import vozes
+    if cod not in mercados.MERCADOS:
+        abort(404)
+    return jsonify(vozes.propria(cod))
+
+
 @app.post("/vozes/gerar")
 def voz_gerar():
     """Gera as amostras de uma opção paga. Se vier a chave, testa no serviço e salva no .env antes."""
