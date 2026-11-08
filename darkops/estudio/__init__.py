@@ -660,8 +660,11 @@ def criar_leva(pid):
         return redirect(url_for("configurar", pid=pid))
     if request.form.get("base") == "anteriores":  # Novo vídeo, sem tema: segue a linha dos vídeos anteriores
         from ..leva import SEGUIR_ANTERIORES
-        job = _iniciar_job(p, f"Mais {quantidade} vídeo(s) a partir dos anteriores",
-                           [["leva", "--quantidade", str(quantidade), "--tema", SEGUIR_ANTERIORES]])
+        formato = request.form.get("formato") if request.form.get("formato") in ("vertical", "longo") else ""
+        rotulo = {"vertical": " curtos", "longo": " longos"}.get(formato, "")
+        job = _iniciar_job(p, f"Mais {quantidade} vídeo(s){rotulo} a partir dos anteriores",
+                           [["leva", "--quantidade", str(quantidade), "--tema", SEGUIR_ANTERIORES,
+                             *(["--formato", formato] if formato else [])]])
         return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("novo", pid=pid)))
     p.salvar({"leva_quantidade": quantidade})
     job = _iniciar_job(p, f"Leva de {quantidade} vídeo(s)", [["leva", "--quantidade", str(quantidade)]])

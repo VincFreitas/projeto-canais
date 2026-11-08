@@ -622,7 +622,7 @@ img, video, canvas, iframe { max-width: 100%; }
 .resumo-monetizacao .linha-barra { width: 100%; max-width: 520px; }
 .leva-anteriores { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
 .leva-anteriores > div { flex: 1 1 320px; }
-.leva-anteriores .acoes { flex-wrap: nowrap; }
+.leva-anteriores .acoes { flex-wrap: wrap; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .botao-menu { display: none; }
 table { max-width: 100%; }

@@ -182,12 +182,15 @@ def _pauta_noticias(dados: dict, tema: str) -> str:
 
 
 
-def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
+def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
     """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila.
     Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte."""
     from . import mercados
     from .perfis import resumo_persona
-    d = perfil.dados
+    from .perfis import campos_video
+    # tipo deste vídeo: o escolhido no Novo vídeo (curto ou longo) ou o padrão do perfil
+    tipo = campos_video({"formato": formato}, perfil.dados)
+    d = {**perfil.dados, "formato": tipo["formato"], "duracao_s": tipo["duracao_alvo_s"]}
     persona = resumo_persona(d)
     from .auditoria import referencias_de_voz
     voz = referencias_de_voz(perfil)
@@ -247,6 +250,9 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
         return None
     roteiro = novos[0]
     dados = json.loads(roteiro.read_text(encoding="utf-8"))
+    if formato:  # garante o tipo pedido mesmo se o roteiro vier com outro
+        dados.update(tipo)
+        roteiro.write_text(json.dumps(dados, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if dados.get("palco") and not (config.RAIZ / dados["palco"]).exists():
         # sem o módulo da cena programada, o vídeo sai com a cena viva (desenho por IA) em vez de quebrar
         print(f"  {dados['palco']} não foi criado; o vídeo usa a cena viva")
@@ -299,7 +305,7 @@ def _vivo(pid: int) -> bool:
         return False
 
 
-def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
+def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Path]:
     """Escreve e produz uma leva. Uma trava impede duas levas ao mesmo tempo no mesmo perfil; se o PC desligou
     no meio, a próxima leva primeiro termina as prévias dos roteiros que ficaram sem vídeo."""
     trava = perfil.controle / "leva.trava"
@@ -338,7 +344,7 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
             else:
                 print(f"vídeo {n}/{quantidade}: escrevendo o roteiro", flush=True)
                 try:
-                    roteiro = _escrever_roteiro(perfil, tema)
+                    roteiro = _escrever_roteiro(perfil, tema, formato)
                 except LimiteClaude as limite:
                     volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite)
                     print(f"o Claude bateu no limite do plano no vídeo {n}/{quantidade}; a leva continua sozinha "

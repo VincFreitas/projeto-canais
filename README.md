@@ -1,12 +1,12 @@
 # Projeto Canais (canais-dark)
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.53.0%20beta-f5c518)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.53.1%20beta-f5c518)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue)](LICENSE)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222)](https://vincfreitas.github.io/projeto-canais/)
 [![YouTube](https://img.shields.io/badge/YouTube-@PulgadoSaber-red?logo=youtube)](https://www.youtube.com/@pulgadosaber)
 [![Instagram](https://img.shields.io/badge/Instagram-@pulgadosaber-E4405F?logo=instagram&logoColor=white)](https://www.instagram.com/pulgadosaber)
 
-> **Projeto Canais v0.53.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.53.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais "dark" (sem rosto) que **roda sozinha**: pesquisa temas que já dão certo, escreve roteiros com fatos checados, gera Shorts e Reels com narração, legendas, clipes reais, animações sincronizadas com a fala, efeitos sonoros e música livre, e **posta no YouTube e no Instagram nos horários marcados**, só o que você aprovou.
 
@@ -124,7 +124,7 @@ O passo a passo completo de cada conta está em [docs/instalacao.md](docs/instal
 | Revisão visual pela IA | Depois de cada prévia, o Claude olha 12 quadros do vídeo e aponta texto cortado, legenda em cima do objeto, cena vazia ou imagem que não combina com a fala, com o tempo de cada ponto. Também no botão **Revisão visual pela IA** da tela do vídeo (`python -m darkops revisar-visual <roteiro>`) |
 | Carrossel do Instagram | Cada vídeo de canal com Instagram ganha um carrossel de 7 a 10 slides com os mesmos fatos (capa com a pergunta, um fato por slide, último para salvar), desenhado com quadros do próprio vídeo. Você vê na tela do vídeo e publica com **Aprovar e publicar no Instagram** (`python -m darkops carrossel <roteiro>`) |
 | Texto sem cara de IA e com opinião | A checagem do roteiro barra os vícios de texto de IA ("mergulhe", "desvende", "não é apenas X, é Y", travessão) e pede o ponto de vista do canal; a personalidade ganhou o campo **Opinião do canal** |
-| Mais vídeos sem pensar em tema | Novo vídeo > **Sem ideia de tema?**: escolha quantos e clique em **Gerar mais uma leva**; a IA segue a linha dos vídeos que mais funcionaram e das ideias dos comentários, sem repetir tema |
+| Mais vídeos sem pensar em tema | Novo vídeo > **Sem ideia de tema?**: escolha quantos, se são **curtos** (Shorts/Reels) ou **longos** (YouTube, 10 min; o Reels não aceita) e clique em **Gerar mais uma leva**; a IA segue a linha dos vídeos que mais funcionaram e das ideias dos comentários, sem repetir tema |
 | Resultados enxutos | Cada plataforma mostra 2 vídeos, **Ver mais** abre outros 5 e **Ver todos** abre uma tela só com a lista; a monetização aparece em uma linha, com **Ver monetização** para o detalhe. As telas cheias têm **Voltar para Resultados** |
 | Pergunta estranha em 3D | Novo canal > assunto **O que acontece se...?**: pergunta concreta respondida em 30 a 45 s com animação 3D por dentro (fórmula 22 de [docs/ganchos.md](docs/ganchos.md)) |
 | Gastar menos do plano do Claude | Cada tarefa usa o esforço certo (baixo para comentários e descrição, alto para roteiro); se o plano bater no limite no meio de uma leva, ela espera renovar e continua sozinha |

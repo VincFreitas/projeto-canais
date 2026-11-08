@@ -24,6 +24,11 @@
     <select id="qtd-anteriores" name="leva_quantidade" style="width:auto">
       {% for n in (3, 5, 7, 10, 15) %}<option value="{{ n }}" {{ 'selected' if n == 5 }}>{{ n }} vídeos</option>{% endfor %}
     </select>
+    <label class="sr-only" for="formato-anteriores">Tipo de vídeo</label>
+    <select id="formato-anteriores" name="formato" style="width:auto" title="Vídeo longo vai só para o YouTube (o Reels aceita só vertical)">
+      <option value="vertical" {{ 'selected' if d.get('formato', 'vertical') == 'vertical' }}>Curtos (Shorts/Reels)</option>
+      <option value="longo" {{ 'selected' if d.get('formato') == 'longo' }}>Longos (YouTube)</option>
+    </select>
     <button class="botao">Gerar mais uma leva</button>
   </form>
 </section>

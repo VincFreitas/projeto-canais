@@ -392,7 +392,7 @@ def cmd_leva(a):
         print(f"produção pausada até terminar a configuração do canal (falta: {'; '.join(faltam)})" if faltam
               else "leva iniciada em segundo plano (log em controle/leva-ultima.log)")
         return
-    leva.criar(perfil, quantidade, a.tema or "")
+    leva.criar(perfil, quantidade, a.tema or "", a.formato or "")
 
 
 def cmd_descricao(a):
@@ -789,6 +789,7 @@ def main():
     s.add_argument("--se-faltar", action="store_true", help="só cria se a fila estiver no mínimo do perfil")
     s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
     s.add_argument("--tema", help="assunto do vídeo (sem ele, o Claude escolhe um tema forte)")
+    s.add_argument("--formato", choices=["vertical", "longo"], help="curto (vertical) ou longo; sem ele, o do perfil")
     s.set_defaults(fn=cmd_leva)
 
     s = sub.add_parser("descricao", help="cria pela IA a descrição e as tags do vídeo que estiverem no modo automático")
