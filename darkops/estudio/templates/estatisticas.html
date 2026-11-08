@@ -2,7 +2,15 @@
 {% block titulo %}Estatísticas · {{ d.nome }}{% endblock %}
 {# número com ponto de milhar; "—" quando a plataforma não informou (sem permissão ou ainda sem dados) #}
 {% macro numero(v, sufixo='') %}{{ '—' if v is not defined or v is none else ('{:,}'.format(v).replace(',', '.') ~ sufixo) }}{% endmacro %}
+{% set modo = modo or 'resumo' %}
+{% set RESUMO_VIDEOS = 2 %}
 {% block corpo %}
+{% if modo != 'resumo' %}
+<div class="tela-cheia-topo">
+  <a class="botao secundario" href="{{ url_for('estatisticas', pid=p.id) }}#{{ so }}">‹ Voltar para Resultados</a>
+  <h1>{{ 'Todos os vídeos' if modo == 'videos' else 'Monetização' }} · {{ 'YouTube' if so == 'youtube' else 'Instagram' }}</h1>
+</div>
+{% else %}
 <a class="cartao destaque-aprendizado" href="{{ url_for('aprendizado', pid=p.id) }}">
   <span class="escolha-icone">🧠</span>
   <div><b>O que funcionou</b><br><span class="suave">A cada 15 vídeos no ar, o canal descobre o que deu certo e se ajusta sozinho.</span></div>
@@ -18,11 +26,13 @@
   <form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='analisar') }}"><button class="botao secundario">Analisar com a IA</button></form>
   <span class="suave">{{ 'Atualizado em ' ~ dados.atualizado if dados.atualizado else 'Ainda sem dados: clique em Atualizar dados.' }}</span>
 </div>
+{% endif %}
 
-{% for plataforma, t in totais.items() %}
+{% for plataforma, t in totais.items() if not so or plataforma == so %}
 {% set info = dados.plataformas[plataforma] %}
-<section class="cartao" style="margin-bottom:16px">
+<section class="cartao" style="margin-bottom:16px" id="{{ plataforma }}">
   <h2>{{ 'YouTube' if plataforma == 'youtube' else 'Instagram' }} · {{ t.nome }}</h2>
+  {% if modo == 'resumo' %}
   <div class="numeros">
     <div><b>{{ numero(t.seguidores) }}</b><span>{{ 'inscritos' if plataforma == 'youtube' else 'seguidores' }}</span></div>
     <div><b>{{ numero(t.n_videos) }}</b><span>vídeos</span></div>
@@ -38,8 +48,24 @@
   {% for a in info.avisos %}<p class="aviso erro" style="margin:8px 0 0">{{ a }}
     {% if 'permissão extra' in a or 'Liberar retenção e receita' in a %}<form method="post" action="{{ url_for('estatisticas_acao', pid=p.id, acao='retencao') }}" style="display:inline">
       <button class="botao claro">Liberar retenção e receita do YouTube</button></form>{% endif %}</p>{% endfor %}
+  {% endif %}
   {% set m = info.monetizacao %}
-  {% if plataforma == 'youtube' and m %}
+  {% if modo == 'resumo' %}
+  {# monetização em uma linha; o detalhe fica na tela própria #}
+  <div class="monetizacao resumo-monetizacao">
+    <h3>Monetização</h3>
+    {% if plataforma == 'youtube' and m and m.monetizado %}
+    <p style="margin:4px 0">✓ Canal monetizado · <b>US$ {{ '%.2f' | format(m.receita['28d'].valor) }}</b> nos últimos 28 dias.</p>
+    {% elif plataforma == 'youtube' and m and m.niveis %}{% set n = m.niveis[0] %}{% set b = n.barras[0] %}
+    <p style="margin:4px 0">{{ '✓ ' ~ n.nome ~ ': requisitos de números atingidos.' if n.atingiu else 'Ainda não monetizado. ' ~ n.nome ~ ':' }}</p>
+    {% if not n.atingiu %}<div class="linha-barra"><span>{{ b.rotulo }}: <b>{{ numero(b.atual) }}</b> de {{ numero(b.meta) }}</span>
+      <div class="barra {{ '' if b.ok else 'falta' }}"><span style="width: {{ b.pct }}%"></span></div></div>{% endif %}
+    {% elif plataforma == 'instagram' and m and m.ferramentas %}{% set prontas = m.ferramentas | selectattr('ok') | list %}
+    <p style="margin:4px 0">{{ prontas | length }} de {{ m.ferramentas | length }} ferramentas de ganho com a meta de seguidores atingida.</p>
+    {% else %}<p class="suave" style="margin:4px 0">Sem dados ainda: clique em Atualizar dados.</p>{% endif %}
+    {% if m %}<a class="botao secundario pequeno" href="{{ url_for('estatisticas_tela', pid=p.id, plataforma=plataforma, modo='monetizacao') }}">Ver monetização ›</a>{% endif %}
+  </div>
+  {% elif modo == 'monetizacao' and plataforma == 'youtube' and m %}
   <div class="monetizacao">
     <h3>Monetização</h3>
     {% if m.monetizado %}
@@ -77,7 +103,7 @@
     <p class="dica">Horas e Shorts são estimativas (o YouTube conta só as "qualificadas"; o número oficial está no YouTube Studio). Requisitos conferidos na
       <a href="{{ m.fonte }}" target="_blank" rel="noopener">página oficial ↗</a>{% if m.aviso_2027 %}; a partir de 01/02/2027, o programa completo passa a pedir 8.000 horas ou 20 milhões de visualizações de Shorts{% endif %}.</p>
   </div>
-  {% elif plataforma == 'instagram' %}
+  {% elif modo == 'monetizacao' and plataforma == 'instagram' %}
   <div class="monetizacao">
     <h3>Monetização</h3>
     <p class="dica" style="margin:4px 0">O Instagram não informa pela API se a conta já ganha dinheiro nem quanto. Situação real e ganhos:
@@ -103,14 +129,15 @@
     {% endif %}
   </div>
   {% endif %}
-  {% if info.videos %}
+  {% if modo != 'monetizacao' and info.videos %}
+  {% set limite = info.videos | length if modo == 'videos' else RESUMO_VIDEOS + 5 %}
   <div style="overflow-x:auto;margin-top:10px">
   <table class="tabela-estat">
     <tr><th>Vídeo</th><th>Data</th><th>Visualizações</th>{% if plataforma == 'instagram' %}<th>Alcance</th>{% endif %}
       <th>Curtidas</th><th>Comentários</th><th title="positivos / negativos, entre os comentários lidos">Clima</th><th>Compart.</th>{% if plataforma == 'instagram' %}<th>Salvos</th>{% endif %}
       <th>Minutos</th><th>Duração média</th>{% if plataforma == 'youtube' %}<th>Retenção</th>{% endif %}</tr>
-    {% for v in info.videos %}
-    <tr><td><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
+    {% for v in info.videos[:limite] %}
+    <tr{% if modo == 'resumo' and loop.index > RESUMO_VIDEOS %} class="extra" hidden{% endif %}><td><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
       <td>{{ v.publicado }}</td><td>{{ numero(v.visualizacoes) }}</td>{% if plataforma == 'instagram' %}<td>{{ numero(v.alcance) }}</td>{% endif %}
       <td>{{ numero(v.curtidas) }}</td><td>{{ numero(v.comentarios) }}</td><td>{% set r = v.comentarios_resumo %}{% if r and r.positivos_pct is not none %}<span title="{{ r.perguntas }} pergunta(s), {{ r.correcoes }} correção(ões), {{ r.respondidos }} respondido(s)">{{ r.positivos_pct }}% 👍 · {{ r.negativos_pct }}% 👎</span>{% else %}—{% endif %}</td><td>{{ numero(v.compartilhamentos) }}</td>
       {% if plataforma == 'instagram' %}<td>{{ numero(v.salvos) }}</td>{% endif %}
@@ -119,11 +146,20 @@
     {% endfor %}
   </table>
   </div>
-  {% else %}<p class="suave">Nenhum vídeo publicado ainda nesta plataforma.</p>{% endif %}
+  {% if modo == 'resumo' and info.videos | length > RESUMO_VIDEOS %}
+  <div class="acoes" style="margin-top:10px">
+    <button type="button" class="botao secundario pequeno" data-ver-mais>Ver mais</button>
+    <a class="botao claro pequeno" href="{{ url_for('estatisticas_tela', pid=p.id, plataforma=plataforma, modo='videos') }}">Ver todos os {{ info.videos | length }} vídeos ›</a>
+  </div>
+  {% endif %}
+  {% elif modo != 'monetizacao' %}<p class="suave">Nenhum vídeo publicado ainda nesta plataforma.</p>{% endif %}
 </section>
 {% else %}
-<p class="suave">Nenhuma plataforma conectada com dados. Conecte o YouTube ou o Instagram em Conexões e clique em Atualizar dados.</p>
+{% if modo == 'resumo' %}<p class="suave">Nenhuma plataforma conectada com dados. Conecte o YouTube ou o Instagram em Conexões e clique em Atualizar dados.</p>{% endif %}
 {% endfor %}
+{% if modo != 'resumo' %}
+<p><a class="botao secundario" href="{{ url_for('estatisticas', pid=p.id) }}#{{ so }}">‹ Voltar para Resultados</a></p>
+{% else %}
 
 <section class="cartao" id="sugestoes">
   <h2>Análise da IA</h2>
@@ -146,4 +182,13 @@
   <p class="dica">O /escrever-roteiro e as levas seguem essas diretrizes.</p>{% endif %}
 </section>
 <p style="margin-top:16px"><a class="botao secundario" href="{{ url_for('historico', pid=p.id) }}">Tudo que já foi publicado</a></p>
+<script>
+// "Ver mais": mostra mais 5 vídeos da lista; os demais ficam na tela "Ver todos"
+document.querySelectorAll('[data-ver-mais]').forEach(b => b.addEventListener('click', () => {
+  const ocultos = [...b.closest('section').querySelectorAll('tr.extra[hidden]')];
+  ocultos.slice(0, 5).forEach(t => t.hidden = false);
+  if (ocultos.length <= 5) b.remove();
+}));
+</script>
+{% endif %}
 {% endblock %}

@@ -658,6 +658,11 @@ def criar_leva(pid):
     if not _claude():
         flash("A leva precisa do Claude Code instalado neste PC (claude.com/claude-code).", "erro")
         return redirect(url_for("configurar", pid=pid))
+    if request.form.get("base") == "anteriores":  # Novo vídeo, sem tema: segue a linha dos vídeos anteriores
+        from ..leva import SEGUIR_ANTERIORES
+        job = _iniciar_job(p, f"Mais {quantidade} vídeo(s) a partir dos anteriores",
+                           [["leva", "--quantidade", str(quantidade), "--tema", SEGUIR_ANTERIORES]])
+        return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("novo", pid=pid)))
     p.salvar({"leva_quantidade": quantidade})
     job = _iniciar_job(p, f"Leva de {quantidade} vídeo(s)", [["leva", "--quantidade", str(quantidade)]])
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("fila", pid=pid)))
@@ -1707,6 +1712,21 @@ def estatisticas(pid):
     dados = est.ler(p)
     return render_template("estatisticas.html", p=p, d=p.dados, dados=dados, totais=est.totais(dados),
                            sugestoes=analise.ler_sugestoes(p))
+
+
+@app.get("/p/<pid>/estatisticas/<plataforma>/<modo>")
+def estatisticas_tela(pid, plataforma, modo):
+    """Tela cheia de Resultados: todos os vídeos ou a monetização de uma plataforma, com o Voltar."""
+    from .. import estatisticas as est
+    if plataforma not in ("youtube", "instagram") or modo not in ("videos", "monetizacao"):
+        abort(404)
+    p = _perfil(pid)
+    dados = est.ler(p)
+    totais = est.totais(dados)
+    if plataforma not in totais:
+        abort(404)
+    return render_template("estatisticas.html", p=p, d=p.dados, dados=dados, totais=totais, modo=modo, so=plataforma,
+                           sugestoes={})
 
 
 @app.post("/p/<pid>/estatisticas/<acao>")

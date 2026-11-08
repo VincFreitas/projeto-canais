@@ -12,6 +12,22 @@
     Nada vai ao ar sem a sua aprovação.</p>
 </section>
 
+<section class="cartao leva-anteriores" style="margin-bottom:16px">
+  <div>
+    <h2 style="margin:0">Sem ideia de tema?</h2>
+    <p class="suave" style="margin:4px 0 0">Crie mais uma leva a partir dos vídeos anteriores: a IA segue a linha dos que mais
+      funcionaram e as ideias pedidas nos comentários, sem repetir nenhum tema.</p>
+  </div>
+  <form method="post" action="{{ url_for('criar_leva', pid=p.id) }}" class="acoes">
+    <input type="hidden" name="base" value="anteriores">
+    <label class="sr-only" for="qtd-anteriores">Quantos vídeos</label>
+    <select id="qtd-anteriores" name="leva_quantidade" style="width:auto">
+      {% for n in (3, 5, 7, 10, 15) %}<option value="{{ n }}" {{ 'selected' if n == 5 }}>{{ n }} vídeos</option>{% endfor %}
+    </select>
+    <button class="botao">Gerar mais uma leva</button>
+  </form>
+</section>
+
 <details class="mais" id="mais-opcoes" {{ 'open' if descoberta.termo or avancado }}>
 <summary>Mais opções: ideias de tema, roteiro ou narração prontos</summary>
 <section class="cartao" id="assuntos" style="margin-bottom:16px">

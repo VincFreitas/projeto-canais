@@ -616,6 +616,14 @@ img, video, canvas, iframe { max-width: 100%; }
 .voz-consentimento { display: flex; flex: 1 1 100%; align-items: center; gap: 6px; font-weight: 400; font-size: 14px; white-space: nowrap; }
 .carrossel-slides { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0; }
 .carrossel-slides img { width: 132px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 8px; border: 1px solid var(--linha); flex: none; }
+.tela-cheia-topo { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; margin: 8px 0 22px; }
+.tela-cheia-topo h1 { margin: 0; font-size: 28px; }
+.resumo-monetizacao { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.resumo-monetizacao .linha-barra { width: 100%; max-width: 520px; }
+.leva-anteriores { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.leva-anteriores > div { flex: 1 1 320px; }
+.leva-anteriores .acoes { flex-wrap: nowrap; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .botao-menu { display: none; }
 table { max-width: 100%; }
 @media (min-width: 1600px) { .conteudo { max-width: 1400px; } }
