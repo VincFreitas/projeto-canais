@@ -188,7 +188,7 @@ def conferir_passagem() -> dict:
     return dados
 
 
-def video_publico(video: Path):
+def video_publico(video: Path, tipo: str = "video/mp4"):
     """O Instagram (com Instagram Login) só aceita o vídeo por um link público: sobe o arquivo para a release
     "transito" do repositório PÚBLICO de passagem e devolve o link direto e a função que apaga depois.
     O vídeo fica lá só enquanto a Meta baixa (1 a 2 minutos) e vai ao ar em seguida."""
@@ -204,7 +204,7 @@ def video_publico(video: Path):
                                                              "body": "Vídeos de passagem para o Instagram."})
     nome = f"{int(time.time())}-{video.name}"
     _, asset = _pedir("POST", f"{UPLOADS}/repos/{repo}/releases/{rel['id']}/assets?name={urllib.parse.quote(nome)}",
-                      binario=video.read_bytes(), tipo="video/mp4")
+                      binario=video.read_bytes(), tipo=tipo)
 
     def apagar():
         try:

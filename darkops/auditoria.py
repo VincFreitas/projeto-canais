@@ -1,10 +1,13 @@
 """Auditoria do roteiro antes de ir para a fila: gancho, estrutura e voz do canal.
 
-Três checagens, as mesmas que um roteirista faria:
+Quatro checagens, as mesmas que um roteirista faria:
 - Gancho: a 1ª fala cabe nos 3 primeiros segundos, não começa com abertura genérica ("oi", "hoje eu trago",
   "neste vídeo") e cria tensão (pergunta, número, contraste ou algo que parece errado).
 - Estrutura: Gancho, Problema, Solução, Prova e CTA. A prova é um dado, nome, data ou fonte; o CTA do fim pede
   uma ação com palavra-chave ("Comenta NAZCA").
+- Texto humano: nada dos vícios de texto de IA (CARA_DE_IA: "mergulhe", "desvende", "não é apenas X, é Y",
+  travessão em excesso...) e um ponto de vista próprio ("ponto_de_vista" no roteiro). Vídeo automático sem
+  opinião vira a média do que já existe, e o YouTube trata produção em massa sem valor como "inautêntica".
 - Voz: o canal tem uma voz própria. referencias_de_voz devolve as narrações dos vídeos que mais funcionaram, para
   o pedido de roteiro imitar o ritmo e o jeito de falar do próprio canal (não o de outro canal).
 
@@ -23,6 +26,18 @@ TENSAO = re.compile(r"\?|\d|\b(nunca|ninguém|ninguem|sem|mas|errado|impossível
                     r"proibid|mistério|misterio|sumiu|desapareceu|até hoje|ate hoje|por que|como)\b", re.I)
 CTA = re.compile(r"\b(comenta|comente|escreve|escreva|manda|salva|salve|segue|siga|compartilha)\b", re.I)
 PALAVRA_CHAVE = re.compile(r"\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ]{3,}\b")
+# vícios de texto de IA, em português e inglês: cada um soa genérico e denuncia a produção em massa
+CARA_DE_IA = [
+    (r"\bmergulh(e|ar|ando|emos)\b", "mergulhe/mergulhar"), (r"\bdesvend(e|ar|amos|ando)\b", "desvende/desvendar"),
+    (r"\bn[ãa]o [ée] (apenas|s[óo]) .{1,60}?[,;—-] ?[ée]\b", "\"não é apenas X, é Y\""),
+    (r"\bno (vasto |fascinante |incr[íi]vel )?(mundo|universo) d[aeo]s?\b", "\"no mundo de...\""),
+    (r"\b(fascinante|intrigante|enigm[áa]tic[ao]) jornada\b", "\"jornada fascinante\""),
+    (r"\bprepare-se para\b", "\"prepare-se para\""), (r"\bvamos explorar\b", "\"vamos explorar\""),
+    (r"\bem um mundo onde\b", "\"em um mundo onde\""), (r"\b[ée] crucial\b", "\"é crucial\""),
+    (r"\bnos dias de hoje\b", "\"nos dias de hoje\""),
+    (r"\bdelve|tapestry|in today's (fast-paced )?world|it's not just .{1,40}, it's\b", "clichê de IA em inglês"),
+    (r"\b(al[ée]m disso|ademais|outrossim)\b", "\"além disso/ademais\" (escrita, não fala)"),
+]
 PROVA = re.compile(r"\d|\b(mil|cem|cento|milhões|milhoes|metros|toneladas|anos|séculos|seculos|graus|segundo|pesquisa|estudo|arqueólog|cientista|registro|documento|teste|confirm|"
                    r"descobri|encontr|mediu|datação|datacao)\w*", re.I)
 
@@ -77,6 +92,18 @@ def auditar(roteiro: dict) -> list[dict]:
     elif re.search(r"\b(comenta|comente|escreve|escreva)\b", fim, re.I) and not PALAVRA_CHAVE.search(fim):
         problemas.append({"parte": "cta", "nivel": "aviso",
                           "texto": "o CTA de comentário não tem palavra-chave em MAIÚSCULAS (ex.: Comenta NAZCA)"})
+    # 3. texto humano: vícios de texto de IA e um ponto de vista do canal
+    todo = " ".join(falas + [str((roteiro.get("metadados") or {}).get(k) or "") for k in ("titulo", "descricao")])
+    achados = sorted({nome for padrao, nome in CARA_DE_IA if re.search(padrao, todo, re.I)})
+    if todo.count("—") + todo.count(" – ") > max(1, len(falas) // 3):
+        achados.append("travessão demais (fala não tem travessão; use ponto ou vírgula)")
+    if achados:
+        problemas.append({"parte": "texto", "nivel": "erro" if len(achados) >= 2 else "aviso",
+                          "texto": "cara de texto de IA: " + "; ".join(achados) + ". Reescreva como alguém falaria"})
+    if not str(roteiro.get("ponto_de_vista") or "").strip():
+        problemas.append({"parte": "texto", "nivel": "aviso",
+                          "texto": "falta o \"ponto_de_vista\": em uma frase, a posição do canal sobre o assunto "
+                                   "(o que ele defende, com base nos fatos), e use-a no fechamento"})
     return problemas
 
 

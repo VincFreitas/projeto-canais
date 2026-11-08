@@ -271,6 +271,31 @@ def cmd_mercados(_):
         print(f"{cod:<7} {m['nome']:<36} voz {m['vozes'][0]:<34} horário de {m['cidade']}")
 
 
+def cmd_revisar_visual(a):
+    from pathlib import Path
+    from . import config, revisao_visual
+    from .perfis import carregar
+    roteiro = Path(a.roteiro)
+    dados = json.loads(roteiro.read_text(encoding="utf-8"))
+    video = config.SAIDA / f"{dados.get('slug') or roteiro.stem}-{dados.get('formato', 'vertical')}.mp4"
+    if not video.exists():
+        raise SystemExit(f"gere a prévia antes: {video.name} não existe")
+    r = revisao_visual.revisar(carregar(a.perfil), roteiro, video)
+    print(f"nota {r['nota']}")
+    for x in r["achados"]:
+        print(f"  {x['nivel']}: {x['texto']}")
+
+
+def cmd_carrossel(a):
+    from pathlib import Path
+    from . import carrossel
+    from .perfis import carregar
+    r = carrossel.gerar(carregar(a.perfil), Path(a.roteiro), refazer=True)
+    print(f"{len(r['slides'])} slides em {carrossel.pasta(r['slug'])} (esperando aprovação no Estúdio)")
+    for n, s in enumerate(r["slides"], 1):
+        print(f"  {n}. {s['titulo']}")
+
+
 def cmd_tendencias(args):
     from .perfis import carregar
     from .tendencias import em_alta
@@ -739,6 +764,14 @@ def main():
     s = sub.add_parser("perfis-ativos", help="perfis com postagem ligada (saída JSON para o n8n)")
     s.add_argument("--na-hora", action="store_true", help="só os que chegaram agora a um horário (fuso do mercado)")
     s.set_defaults(fn=cmd_perfis_ativos)
+
+    s = sub.add_parser("revisar-visual", help="a IA olha 12 quadros do vídeo pronto e aponta problemas visuais")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_revisar_visual)
+
+    s = sub.add_parser("carrossel", help="carrossel do Instagram (7 a 10 slides) a partir do roteiro, para aprovar")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_carrossel)
 
     s = sub.add_parser("tendencias", help="assuntos em alta agora no país do público (pauta dos canais de notícias)")
     s.add_argument("--mercado", default="pt-BR")

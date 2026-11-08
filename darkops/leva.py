@@ -73,7 +73,7 @@ def _claude() -> str | None:
 
 # esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
 ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
-           "descricao": "low", "comentarios": "low", "nomes": "low"}
+           "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium"}
 _LIMITE = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|out of (extra )?usage|"
                      r"limite de uso|resets? (at|às|as)? ?\d", re.I)
 
@@ -102,13 +102,16 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
     claude = _claude()
     if not claude:
         raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code")
-    args = [claude, "-p"] + (["--allowedTools", *ferramentas] if ferramentas else [])
+    # só as configurações do projeto: hooks e plugins pessoais do dono (memória, economia de contexto) não entram nas
+    # chamadas automáticas, que ficam previsíveis e não gastam limite carregando contexto que não é do pedido
+    args = [claude, "-p", "--setting-sources", "project,local"] + (["--allowedTools", *ferramentas] if ferramentas else [])
     esforco = ESFORCO.get(tarefa)
     rodar = lambda extra: subprocess.run(args + extra, input=pedido, cwd=config.RAIZ, capture_output=True,  # noqa: E731
                                          text=True, encoding="utf-8", errors="replace", timeout=timeout)
     proc = rodar(["--effort", esforco] if esforco else [])
-    if esforco and proc.returncode != 0 and "effort" in (proc.stderr or "").lower() and "unknown" in (proc.stderr or "").lower():
-        proc = rodar([])  # Claude Code antigo, sem --effort
+    if proc.returncode != 0 and "unknown option" in (proc.stderr or "").lower():  # Claude Code antigo
+        args[:] = [x for x in args if x not in ("--setting-sources", "project,local")]
+        proc = rodar([])
     return proc
 
 
@@ -176,6 +179,10 @@ def _escrever_roteiro(perfil, tema: str = "") -> Path | None:
            "frases): " + " | ".join(f"«{t}»" for t in voz) + " " if voz else "")
         + "Estrutura obrigatória: gancho de até 14 palavras sem abertura genérica, problema, solução, prova (dado com "
         "fonte) e CTA com palavra-chave em MAIÚSCULAS. "
+        + "Texto humano, não de IA: escreva como alguém fala, sem \"mergulhe\", \"desvende\", \"não é apenas X, é Y\", "
+        "\"no mundo de\", \"prepare-se\", \"além disso\" e sem travessão. Tenha um ponto de vista: preencha "
+        "\"ponto_de_vista\" com a posição do canal sobre o assunto, apoiada nos fatos (sem inventar e sem ofender), "
+        "e deixe essa posição clara no fechamento. "
         + ("Edição dossiê (tema_cards dossie): use os painéis, citações e checklists do dossiê de docs/roteiro.md, "
            "escreva titulo_tela, marque imagem: true com ilustracao em até 4 cenas de impacto e ponha codigo (mapa, "
            "diagrama, escala ou ficha) em 3 a 6 cenas; não escreva palco 3D. "
@@ -218,6 +225,32 @@ def _produzir(perfil, roteiro: Path) -> bool:
     proc = subprocess.run([sys.executable, "-m", "darkops", "--perfil", perfil.id, "fila-produzir", str(roteiro)],
                           cwd=config.RAIZ, env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     return proc.returncode == 0
+
+
+def _revisao_visual(perfil, roteiro: Path) -> None:
+    """Depois da prévia, a IA olha os quadros (revisao_visual). Nunca trava a leva: se falhar, fica sem revisão."""
+    from . import revisao_visual
+    dados = json.loads(roteiro.read_text(encoding="utf-8"))
+    video = config.SAIDA / f"{dados.get('slug') or roteiro.stem}-{dados.get('formato', 'vertical')}.mp4"
+    if not video.exists():
+        return
+    try:
+        r = revisao_visual.revisar(perfil, roteiro, video)
+        print(f"  revisão visual: nota {r.get('nota')}, {len(r['achados'])} ponto(s) para olhar", flush=True)
+    except (SystemExit, OSError, subprocess.SubprocessError, ValueError) as erro:
+        print(f"  revisão visual não rodou: {str(erro)[:160]}", flush=True)
+
+
+def _carrossel(perfil, roteiro: Path) -> None:
+    """Canal com Instagram: o carrossel do roteiro já fica pronto para o dono aprovar. Nunca trava a leva."""
+    if not perfil.dados.get("instagram"):
+        return
+    from . import carrossel
+    try:
+        r = carrossel.gerar(perfil, roteiro)
+        print(f"  carrossel do Instagram: {len(r['slides'])} slides esperando aprovação", flush=True)
+    except (SystemExit, OSError, subprocess.SubprocessError, ValueError) as erro:
+        print(f"  carrossel não saiu: {str(erro)[:160]}", flush=True)
 
 
 def _vivo(pid: int) -> bool:
@@ -286,6 +319,8 @@ def criar(perfil, quantidade: int, tema: str = "") -> list[Path]:
                 print(f"  roteiro {roteiro.name}; gerando a prévia", flush=True)
             if _produzir(perfil, roteiro):
                 feitos.append(roteiro)
+                _revisao_visual(perfil, roteiro)
+                _carrossel(perfil, roteiro)
                 from . import whatsapp
                 whatsapp.pronto_para_aprovar(perfil, roteiro)  # o vídeo vai para o celular com Aprovar/Recusar
             pendentes.remove(roteiro)

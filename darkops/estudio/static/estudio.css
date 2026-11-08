@@ -533,6 +533,8 @@ img, video, canvas, iframe { max-width: 100%; }
 .voz-propria blockquote { margin: 6px 0 10px; padding: 10px 14px; border-left: 4px solid var(--amarelo); background: #fffdf6; border-radius: 8px; font-size: 15px; }
 .voz-gravar summary { cursor: pointer; font-weight: 600; margin: 6px 0; }
 .voz-consentimento { display: flex; flex: 1 1 100%; align-items: center; gap: 6px; font-weight: 400; font-size: 14px; white-space: nowrap; }
+.carrossel-slides { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0; }
+.carrossel-slides img { width: 132px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 8px; border: 1px solid var(--linha); flex: none; }
 .botao-menu { display: none; }
 table { max-width: 100%; }
 @media (min-width: 1600px) { .conteudo { max-width: 1400px; } }

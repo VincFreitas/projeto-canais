@@ -77,6 +77,10 @@ Quando o canal é de notícias (`"noticias": true` no perfil ou nicho de notíci
 ## 3e. Formato "O que acontece se...?" (30 a 45 s)
 Quando o nicho é "o que acontece se" ou o perfil tem `"formato_conteudo": "e-se"`, siga o formato de [docs/ganchos.md](../../../docs/ganchos.md#formato-o-que-acontece-se-pergunta-estranha-em-3d): pergunta estranha e concreta no título e no gancho (fórmula 22), de 3 a 5 etapas com uma cena de palco 3D cada (`cenas/<slug>.3d.js`, corte do corpo, do objeto ou do planeta, seguindo [docs/movimento.md](../../../docs/movimento.md)), uma virada e o fechamento. Cada etapa com fonte. Pergunta sobre algo arriscado: diga o risco e nunca ensine a fazer.
 
+## 3f. Texto humano e ponto de vista (todos os formatos)
+- Escreva como alguém fala: nada de "mergulhe", "desvende", "não é apenas X, é Y", "no mundo de", "prepare-se para", "além disso" nem travessão. O `roteiro-auditar` barra esses vícios.
+- Preencha `"ponto_de_vista"`: em uma frase, a posição do canal sobre o assunto, apoiada nos fatos e na "Opinião do canal" da personalidade, sem inventar nem ofender. Ela aparece com clareza no fechamento.
+
 ## 4. Verticais derivados (2 ou 3)
 - Arquivos `roteiros/<slug>-v1.json`, `-v2.json`... com `"formato": "vertical"`, 30 a 60 s (80 a 150 palavras), `velocidade` `+10%`.
 - Cada um é um recorte com gancho próprio na 1ª frase (o curiosity gap mais forte do tema), não um resumo do longo.

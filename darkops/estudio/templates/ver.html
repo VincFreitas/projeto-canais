@@ -40,7 +40,8 @@
         <button class="botao claro">{{ 'Desligar legenda' if com_legenda else 'Ligar legenda' }}</button></form>
       {% if s.video %}<a class="botao claro" href="{{ url_for('midia', nome=s.video) }}" download="{{ s.video }}">Baixar vídeo</a>{% endif %}
       <a class="botao claro" href="{{ url_for('lotes', pid=p.id, nome=s.arquivo) }}">Imagens num gerador externo</a>
-      {% if s.video %}<form method="post" action="{{ url_for('conferir_video', pid=p.id, nome=s.arquivo) }}"><button class="botao claro">Conferir vídeo</button></form>{% endif %}
+      {% if s.video %}<form method="post" action="{{ url_for('conferir_video', pid=p.id, nome=s.arquivo) }}"><button class="botao claro">Conferir vídeo</button></form>
+      <form method="post" action="{{ url_for('revisar_visual', pid=p.id, nome=s.arquivo) }}"><button class="botao claro">Revisão visual pela IA</button></form>{% endif %}
     </div>
     </details>
     {% if conferencia.achados %}
@@ -50,6 +51,37 @@
         {% for x in conferencia.achados %}<li class="{{ x.nivel }}">{{ {'erro': '✗', 'aviso': '!', 'ok': '✓'}[x.nivel] }} {{ x.texto }}</li>{% endfor %}
       </ul>
       <p class="dica">É uma segunda olhada; assista inteiro antes de aprovar.</p>
+    </div>
+    {% endif %}
+    {% if d.instagram %}
+    <div class="cartao" id="carrossel" style="margin-top:10px">
+      <b>Carrossel do Instagram</b>
+      {% if carrossel.imagens %}
+      <span class="suave">· {{ carrossel.imagens | length }} slides{{ ' · publicado em ' ~ carrossel.publicado.quando if carrossel.publicado }}</span>
+      <div class="carrossel-slides">{% for img in carrossel.imagens %}
+        <a href="{{ url_for('carrossel_imagem', pid=p.id, slug_=carrossel.slug, arquivo=img) }}" target="_blank" rel="noopener">
+          <img loading="lazy" src="{{ url_for('carrossel_imagem', pid=p.id, slug_=carrossel.slug, arquivo=img) }}" alt="Slide {{ loop.index }}"></a>{% endfor %}</div>
+      {% if carrossel.legenda %}<p class="dica" style="white-space:pre-wrap">{{ carrossel.legenda }}</p>{% endif %}
+      {% if not carrossel.publicado %}
+      <div class="acoes">
+        <form method="post" action="{{ url_for('carrossel_acao', pid=p.id, nome=s.arquivo, acao='publicar') }}"
+              onsubmit="return confirm('Publicar este carrossel agora no Instagram do canal?')"><button class="botao">Aprovar e publicar no Instagram</button></form>
+        <form method="post" action="{{ url_for('carrossel_acao', pid=p.id, nome=s.arquivo, acao='criar') }}"><button class="botao claro">Refazer</button></form>
+      </div>
+      {% endif %}
+      {% else %}
+      <p class="dica">De 7 a 10 slides com os fatos deste vídeo (carrossel rende salvamento e compartilhamento). Nada sai sem você aprovar.</p>
+      <form method="post" action="{{ url_for('carrossel_acao', pid=p.id, nome=s.arquivo, acao='criar') }}"><button class="botao claro">Criar carrossel</button></form>
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if conferencia.visual %}{% set v = conferencia.visual %}
+    <div class="cartao" id="revisao-visual" style="margin-top:10px">
+      <b>Revisão visual pela IA</b> <span class="suave">· {{ v.quando }}{{ ' · nota ' ~ v.nota ~ '/10' if v.nota is not none }}</span>
+      {% if v.achados %}<ul class="achados">
+        {% for x in v.achados %}<li class="{{ x.nivel }}">{{ '✗' if x.nivel == 'erro' else '!' }} {{ x.texto }}</li>{% endfor %}
+      </ul>{% else %}<p style="margin:6px 0 0">✓ Nenhum problema visual nos 12 quadros olhados.</p>{% endif %}
+      <p class="dica">A IA olhou 12 quadros, não o vídeo inteiro: assista antes de aprovar.</p>
     </div>
     {% endif %}
     {% if not s.video %}

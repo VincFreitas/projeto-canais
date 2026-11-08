@@ -1214,7 +1214,11 @@ def ver(pid, nome):
     p = _perfil(pid)
     from .. import conferir
     s = _situacao(_arquivo_fila(p, nome))
-    return render_template("ver.html", p=p, d=p.dados, s=s, conferencia=conferir.ler(p, s["video"]) if s.get("video") else {},
+    from .. import carrossel as carrossel_mod
+    slug_ = s["dados"].get("slug") or re.sub(r"^\d+-", "", Path(s["arquivo"]).stem)
+    carrossel = {**carrossel_mod.ler(p, slug_), "imagens": [f.name for f in carrossel_mod.imagens(slug_)], "slug": slug_}
+    return render_template("ver.html", p=p, d=p.dados, s=s, carrossel=carrossel,
+                           conferencia=conferir.ler(p, s["video"]) if s.get("video") else {},
                            revisao=_revisao(p, s["dados"]), textos=_textos(p, s["arquivo"]))
 
 
@@ -1344,6 +1348,67 @@ def conferir_video(pid, nome):
     resultado["achados"] = [a for a in resultado["achados"] if a["nivel"] != "ok" or not extras] + extras
     conferir.salvar(resultado, p)
     return redirect(url_for("ver", pid=pid, nome=nome) + "#conferencia")
+
+
+@app.post("/p/<pid>/fila/<nome>/revisar-visual")
+def revisar_visual(pid, nome):
+    """A IA olha os quadros do vídeo pronto (cerca de 1 min, num processo à parte)."""
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    s = _situacao(caminho)
+    if not s.get("video"):
+        flash("Gere a prévia antes da revisão visual.", "erro")
+        return redirect(url_for("ver", pid=pid, nome=nome))
+    subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", p.id, "revisar-visual", str(caminho)],
+                     cwd=config.RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    flash("A IA está olhando os quadros do vídeo. Recarregue a página em 1 ou 2 minutos.", "ok")
+    return redirect(url_for("ver", pid=pid, nome=nome) + "#revisao-visual")
+
+
+@app.post("/p/<pid>/fila/<nome>/carrossel/<acao>")
+def carrossel_acao(pid, nome, acao):
+    """Carrossel do Instagram: criar (cerca de 1 min, à parte), aprovar e publicar, ou desaprovar."""
+    import requests
+    from .. import carrossel as carrossel_mod
+    p = _perfil(pid)
+    caminho = _arquivo_fila(p, nome)
+    dados = _ler(caminho)
+    slug_ = dados.get("slug") or re.sub(r"^\d+-", "", caminho.stem)
+    volta = redirect(url_for("ver", pid=pid, nome=nome) + "#carrossel")
+    if acao == "criar":
+        subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", p.id, "carrossel", str(caminho)],
+                         cwd=config.RAIZ, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        flash("A IA está escrevendo os slides. Recarregue a página em 1 ou 2 minutos.", "ok")
+        return volta
+    registro = carrossel_mod.ler(p, slug_)
+    if not registro or acao not in ("publicar", "desaprovar"):
+        abort(404)
+    if acao == "desaprovar":
+        registro["aprovado"] = False
+        carrossel_mod._gravar(p, slug_, registro)
+        return volta
+    registro["aprovado"] = True  # o clique em "Aprovar e publicar" é a aprovação do dono
+    carrossel_mod._gravar(p, slug_, registro)
+    try:
+        carrossel_mod.publicar(p, slug_)
+        flash("Carrossel publicado no Instagram.", "ok")
+    except (SystemExit, requests.RequestException) as erro:
+        flash(seguranca.ocultar(f"Não publiquei: {erro}"), "erro")
+    return volta
+
+
+@app.get("/p/<pid>/carrossel/<slug_>/<arquivo>")
+def carrossel_imagem(pid, slug_, arquivo):
+    from .. import carrossel as carrossel_mod
+    _perfil(pid)
+    if not re.fullmatch(r"[\w-]+", slug_) or not re.fullmatch(r"\d{2}\.jpg", arquivo):
+        abort(404)
+    caminho = carrossel_mod.pasta(slug_) / arquivo
+    if not caminho.is_file():
+        abort(404)
+    return send_file(caminho, mimetype="image/jpeg", max_age=0)
 
 
 @app.post("/p/<pid>/fila/<nome>/legenda")

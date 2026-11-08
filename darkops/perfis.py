@@ -76,7 +76,9 @@ PERSONA = [("persona_narrador", "Quem narra", "Ex.: um narrador curioso que fala
            ("persona_publico", "Público", "Ex.: adolescentes e adultos curiosos, 13 a 35 anos"),
            ("persona_abertura", "Como os vídeos começam", "Ex.: com uma pergunta ou um fato que parece impossível"),
            ("persona_linguagem", "Linguagem", "Ex.: português do dia a dia, frases curtas, sem gíria pesada"),
-           ("persona_titulos", "Títulos e capa", "Ex.: título curto com número; capa com 2 a 4 palavras em amarelo")]
+           ("persona_titulos", "Títulos e capa", "Ex.: título curto com número; capa com 2 a 4 palavras em amarelo"),
+           ("persona_opiniao", "Opinião do canal", "Ex.: a ciência explica quase tudo, mas a gente adora o que ainda não "
+            "explica; defende a curiosidade e desconfia de teoria sem prova")]
 
 
 def resumo_persona(dados: dict) -> str:

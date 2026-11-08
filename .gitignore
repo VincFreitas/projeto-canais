@@ -73,6 +73,9 @@ n8n/whatsapp.json
 dados/amostras-voz/
 # gravação da voz do dono para a clonagem: dado pessoal, nunca vai para o Git
 dados/minha-voz/
+# carrosséis do Instagram: imagens geradas e estado de cada um
+saida/*-carrossel/
+perfis/*/controle/carrosseis/
 
 # estado de execução de cada canal (muda a todo minuto; fica só no PC)
 perfis/*/controle/estado.json
