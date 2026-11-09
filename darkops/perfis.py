@@ -197,7 +197,13 @@ def _par(valor, padrao: int) -> int:
 
 
 def atual() -> str:
-    return os.getenv("DARKOPS_PERFIL", PADRAO)
+    """Canal em uso: DARKOPS_PERFIL, senão o padrão antigo se existir, senão o primeiro canal criado."""
+    if os.getenv("DARKOPS_PERFIL"):
+        return os.environ["DARKOPS_PERFIL"]
+    if (PERFIS / PADRAO / "perfil.json").exists():
+        return PADRAO
+    criados = sorted(p.parent.name for p in PERFIS.glob("*/perfil.json"))
+    return criados[0] if criados else PADRAO
 
 
 @dataclass

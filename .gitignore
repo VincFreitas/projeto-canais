@@ -26,7 +26,6 @@ assets/musica/**/*.ogg
 # Estúdio: tarefas e testes de conexão são locais
 perfis/*/controle/jobs/
 perfis/*/controle/conexoes.json
-perfis/*/controle/pulga-avatar.png
 
 # workflow do n8n gerado para a pasta deste PC (o modelo é que vai para o Git)
 n8n/workflow.json
@@ -38,7 +37,6 @@ modelos/
 perfis/*/fila/midia/
 perfis/*/controle/referencias.json
 perfis/*/controle/descobrir.json
-perfis/*/controle/pulga-avatar-pixel.png
 perfis/*/controle/conferencias/
 roteiros/midia/
 
@@ -94,3 +92,10 @@ saida/*-metadados.md
 !saida/exemplo-*-metadados.md
 saida/amostras-voz/
 saida/vozes-teste/
+
+# canais criados no Estúdio e o conteúdo de cada um ficam só no PC (o repositório fala só da aplicação)
+perfis/*/
+cenas/*
+!cenas/comum3d.js
+roteiros/*
+!roteiros/exemplo-*.json

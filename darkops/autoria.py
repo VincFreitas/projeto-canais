@@ -14,8 +14,6 @@ PROJETO = "Projeto Canais"
 VERSAO = __version__
 REPOSITORIO = "https://github.com/VincFreitas/projeto-canais"
 LINKEDIN = "https://www.linkedin.com/in/vinicius-freitas-5941b9446"
-YOUTUBE = "https://www.youtube.com/@pulgadosaber"
-INSTAGRAM = "https://www.instagram.com/pulgadosaber"
 ROTULO = f"{PROJETO} v{VERSAO}"
 
 # sha256 de AUTOR: trocar o nome no código sem trocar o hash também conta como crédito removido

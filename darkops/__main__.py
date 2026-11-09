@@ -756,7 +756,7 @@ def main():
     from .autoria import ROTULO, VERSAO
     p = argparse.ArgumentParser(prog="dark", description=f"Pesquisa e produção de canais dark. {ROTULO}")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSAO}")
-    p.add_argument("--perfil", help="id do perfil (pasta em perfis/); padrão: pulga-do-saber")
+    p.add_argument("--perfil", help="id do perfil (pasta em perfis/); padrão: o primeiro canal criado")
     sub = p.add_subparsers(dest="comando", required=True)
 
     s = sub.add_parser("perfis", help="lista os perfis")

@@ -84,7 +84,7 @@ Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do *
 ## Movimento e animações
 
 - `"tipo_visual": "video"` no roteiro: cada cena busca um **clipe de vídeo real** (o Pixabay filtra mídia gerada por IA, desenho e 3D, e exige o assunto nas 3 primeiras tags). Sem clipe bom, usa foto com zoom lento.
-- Todas as cenas entram com uma transição curta do preto; no vertical, a legenda "pula" ao aparecer, e o vídeo final ganha a barra de progresso amarela embaixo e o selo `@pulgadosaber` no topo (troque com `"selo"` no roteiro).
+- Todas as cenas entram com uma transição curta do preto; no vertical, a legenda "pula" ao aparecer, e o vídeo final ganha a barra de progresso amarela embaixo e o selo com o @ do canal no topo (troque com `"selo"` no roteiro).
 - `cenas[].animacao`: a cena vira um infográfico animado (fundo próprio, legenda vai para baixo). Use **só números que estão na narração**.
 
 | Tipo | Campos | Exemplo |
@@ -100,7 +100,7 @@ Nos canais de notícias, o roteiro leva `"noticia": {"data": "AAAA-MM-DD", "assu
 
 ### Edição dossiê (`tema_cards: dossie`)
 
-Estilo de reconstituição com dados (usado no Enigma Oculto junto com `estilo: realista`): a imagem da cena fica
+Estilo de reconstituição com dados (combina com `estilo: realista`): a imagem da cena fica
 nítida em tela cheia, os dados entram em painéis retos com rótulo em fonte de terminal, a 1ª cena ganha o título
 fixo no topo e toda cena leva a etiqueta "reconstituição ilustrativa · IA" (ou "arquivo · caso real" sem IA).
 Código: `darkops/dossie.py`. Além de `contador` (vira um painel grande), `barra` (medidor com `limite` riscado) e
@@ -138,16 +138,16 @@ tipos: vídeo com o mesmo painel em toda cena parece feito em série.
 - `cenas[].animacao.em`: palavras faladas que disparam cada elemento, na ordem. Sem `em`, o código procura o número de cada barra, o ano de cada marco ou a última palavra do rótulo dos ícones.
 - `cenas[].destaque`: de 1 a 3 palavras que aparecem gigantes, com um pulo, no segundo em que são faladas (só em cenas sem animação). `destaque_em`: a palavra falada, se for diferente do texto mostrado.
 - Efeitos sonoros sintetizados: whoosh na troca de cena e na entrada do card, pop em cada elemento, ding quando o contador termina e thud na palavra-herói. `"efeitos": false` desliga.
-- `"mascote": false` tira a pulga em pixel art do canto; `"selo"` troca o `@pulgadosaber` do topo.
+- `"mascote": false` tira o mascote em pixel art do canto; `"selo"` troca o @ do topo.
 
 ## Layout "post" (estilo post de rede social)
 
-- `"layout": "post"`: o vídeo final continua 1080x1920, mas fica num **fundo branco** com o avatar do canal (a pulga num círculo amarelo), o nome, o @ e a `manchete` em texto, e as cenas passam numa **janela** de 1080x780 no meio (`config.JANELA_POST`), com a barra de progresso embaixo dela.
+- `"layout": "post"`: o vídeo final continua 1080x1920, mas fica num **fundo branco** com o avatar do canal num círculo, o nome, o @ e a `manchete` em texto, e as cenas passam numa **janela** de 1080x780 no meio (`config.JANELA_POST`), com a barra de progresso embaixo dela.
 - `"manchete"`: frase completa de 8 a 14 palavras, que resume o vídeo (as linhas se equilibram sozinhas). Sem ela, usa o `titulo`.
 - Nas cenas da janela, a legenda e a palavra-herói usam o estilo grande de Shorts e o card das animações ocupa a janela. O mascote do canto e o selo do topo não aparecem: o avatar faz esse papel.
 
 ## Formato explicativo (tela cheia, "você monta")
-Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-explicativo-você-monta)), com 75 a 110 s, 12 a 16 cenas de 5 a 8 s e `velocidade` `+15%` (cerca de 180 palavras/min). Exemplo: `roteiros/explicativo-geladeira.json`.
+Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-explicativo-você-monta)), com 75 a 110 s, 12 a 16 cenas de 5 a 8 s e `velocidade` `+15%` (cerca de 180 palavras/min).
 
 | Campo | Onde | O que faz |
 |---|---|---|
@@ -156,17 +156,17 @@ Roteiro em cadeia problema-solução (veja [ganchos.md](ganchos.md#formato-expli
 | `selo` | cena | Carimbo que bate na tela por 1,6 s: `{"texto": "Vaza água", "tipo": "ruim", "em": "vaza"}`. `ruim` = caixa vermelha (o problema dos "Mas..."), `bom` = caixa verde (a solução no "Pronto"). De 1 a 3 palavras; não use `bom` em cena com `nova_peca` (o aviso NOVA PEÇA! já ocupa o meio da tela) |
 | `termo` (`termo_em`) | cena | O nome técnico ("evaporador") aparece no topo, em caixa alta, no segundo em que é falado, e fica até o fim da cena |
 | `rotulos` | cena | Etiquetas brancas presas ao objeto: `[{"texto": "gás refrigerante", "x": 0.5, "y": 0.6, "em": "refrigerante"}]`. `x` e `y` vão de 0 a 1 na tela, e `em` é a palavra falada que faz a etiqueta aparecer (sem `em`, vale o texto) |
-| `expressao` | cena | Rosto da pulga narradora: `normal`, `feliz`, `surpresa`, `preocupada` ou `duvida` |
-| `reacoes` | cena | A pulga já reage sozinha: susto com `!` na palavra-herói (`destaque`), aflição no `selo` `ruim`, estrelinhas no `selo` `bom` e `?` no fim de cada pergunta. Cada reação dura 1,3 s, com um pulinho. Para acrescentar outras: `[{"em": "palavra", "tipo": "surpresa"}]` (tipos de `expressao`) |
+| `expressao` | cena | Rosto do mascote narrador: `normal`, `feliz`, `surpresa`, `preocupada` ou `duvida` |
+| `reacoes` | cena | O mascote já reage sozinho: susto com `!` na palavra-herói (`destaque`), aflição no `selo` `ruim`, estrelinhas no `selo` `bom` e `?` no fim de cada pergunta. Cada reação dura 1,3 s, com um pulinho. Para acrescentar outras: `[{"em": "palavra", "tipo": "surpresa"}]` (tipos de `expressao`) |
 | `personagem` | roteiro | No explicativo, descreve o **cenário fixo** (a mesma cozinha, a mesma caixa) para o objeto ir mudando na mesma cena |
 
-- Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e a pulga desce para o canto de baixo.
+- Com `narrador`, o mascote do canto sai sozinho (`"mascote": true` traz de volta) e o mascote desce para o canto de baixo.
 - Animação nova, `barra`: `{"tipo": "barra", "valor": 95, "titulo": "Energia da lâmpada", "rotulo": "vira calor"}`. A barra enche até `valor`% no segundo em que o número é falado.
 
 ### Palco: animação feita em código (recomendado para o explicativo)
-Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O módulo `cenas/<slug>.py` programa o mundo em pixel art, e `darkops/palco.py` cuida da montagem, da câmera e da interface. O exemplo é `cenas/explicativo-geladeira.py` com `roteiros/explicativo-geladeira.json`. Cada vídeo leva cerca de 5 min para renderizar, sem placa de vídeo.
+Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O módulo `cenas/<slug>.py` programa o mundo em pixel art, e `darkops/palco.py` cuida da montagem, da câmera e da interface. Cada vídeo leva cerca de 5 min para renderizar, sem placa de vídeo.
 - **Módulo**:
-  - `SERIE` (texto da etiqueta amarela fixa no topo, ex.: "PULGA DO SABER · ZÍPER") e `MUNDO` (tamanho na grade, 216x384).
+  - `SERIE` (texto da etiqueta amarela fixa no topo, ex.: "MEU CANAL · ZÍPER") e `MUNDO` (tamanho na grade, 216x384).
   - `PECAS`, com `titulo`, `caixa` (para a câmera), `ancora` (ponta da etiqueta) e `conta` (entra na barra "PEÇAS n/N").
   - `desenhar(ctx)`: usa `ctx.peca(nome)` (de 0 a 1 enquanto encaixa), `ctx.acao(nome)` (segundos desde a ação) e `ctx.T` (relógio do vídeo, para movimentos contínuos), com os ajudantes `ret`, `circulo`, `polilinha`, `sprite`, `fluxo`, `ondas_calor`, `vapor` e `brilhos`.
 - **Campos da cena**:
@@ -174,8 +174,8 @@ Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O
   - `acao` + `acao_em`: liga um comportamento do módulo.
   - `foco` (peça ou `tudo`) e `foco_em`: para onde a câmera viaja.
   - `rotulos` com `peca` ou `ponto`: a etiqueta fica presa à peça, com linha.
-- No palco, o selo `@pulgadosaber` sai, e o nome do canal vai na barra de peças.
-- **Palco 3D**: com `"palco": "cenas/<slug>.3d.js"`, a cena é um módulo JavaScript com Three.js e GSAP (`export SERIE, PECAS, criar(...)`). O Chromium sem janela (`darkops/palco_web.py`, via Playwright) desenha um quadro por vez em 1080x1920, com bordas suavizadas, sombras e luz de cinema, em cerca de 270 ms por quadro (de 12 a 15 min por vídeo). As cenas usam o kit comum `cenas/comum3d.js` (sala, materiais toon, canos que crescem, partículas, câmera e posição das etiquetas na tela) e só descrevem o próprio objeto. Para objetos que não devem fazer nem receber sombra, use `userData.semSombra = true`. O módulo cuida da câmera (enquadramentos por peça, viajando com as curvas do GSAP), das peças e das partículas, e devolve onde cada peça está na tela para as etiquetas. Os campos do roteiro são os mesmos do palco 2D. Exemplo: `cenas/explicativo-geladeira.3d.js` com `roteiros/explicativo-geladeira-3d.json`, 96 s em cerca de 4 min. Para preparar: `pip install playwright`, `python -m playwright install chromium` e `npm install` em `web/`.
+- No palco, o selo com o @ sai, e o nome do canal vai na barra de peças.
+- **Palco 3D**: com `"palco": "cenas/<slug>.3d.js"`, a cena é um módulo JavaScript com Three.js e GSAP (`export SERIE, PECAS, criar(...)`). O Chromium sem janela (`darkops/palco_web.py`, via Playwright) desenha um quadro por vez em 1080x1920, com bordas suavizadas, sombras e luz de cinema, em cerca de 270 ms por quadro (de 12 a 15 min por vídeo). As cenas usam o kit comum `cenas/comum3d.js` (sala, materiais toon, canos que crescem, partículas, câmera e posição das etiquetas na tela) e só descrevem o próprio objeto. Para objetos que não devem fazer nem receber sombra, use `userData.semSombra = true`. O módulo cuida da câmera (enquadramentos por peça, viajando com as curvas do GSAP), das peças e das partículas, e devolve onde cada peça está na tela para as etiquetas. Os campos do roteiro são os mesmos do palco 2D. Um vídeo de 96 s leva cerca de 4 min. Para preparar: `pip install playwright`, `python -m playwright install chromium` e `npm install` em `web/`.
 - **3D pixelado** (`"visual_3d": "pixel"` no perfil ou no roteiro; padrão `"liso"`): a mesma cena `.3d.js`, sem mudar uma linha, sai como no estilo "3D pixel art". `web/palco_pixel.html` desenha na grade de pixels (largura dividida pelo `pixel` do perfil, 216x384 com `5`), sem antialias e com sombra dura, e acaba cada quadro num shader: contorno escuro onde a profundidade salta, pontilhado Bayer 4x4, 6 tons por canal e exposição um pouco abaixo de 1 para os brancos não estourarem. A rampa toon passa de 3 para 7 tons. O Python amplia sem suavizar e põe as etiquetas e a barra nítidas por cima. Também roda no processador e fica cerca de 3 a 6 vezes mais rápido que o liso (6 s de vídeo em 10 a 12 s). Trocar o visual não refaz as cenas lisas que já estão no cache.
 
 ### Cena viva (câmera, partículas e antes/depois)
@@ -202,14 +202,14 @@ No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops
 ## Estilo cartoon
 
 - `"estilo": "cartoon"`: a legenda vai para baixo da imagem, para não cobrir o personagem.
-- `"narrador": true`: a pulga mascote (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca, balança as antenas e reage ao que é dito (veja `reacoes`).
+- `"narrador": true`: o mascote narrador (vetorial, `darkops/narrador.py`) aparece no canto de baixo e mexe a boca conforme o volume da narração, pisca, balança as antenas e reage ao que é dito (veja `reacoes`).
 - Ilustração de cada cena em `cenas[].arquivo` (ex.: `../midia/<slug>/cena1.png`, relativo à pasta da fila). Para manter o mesmo estilo e personagem, gere a 1ª imagem e use-a como **referência** nas outras, com o mesmo trecho de estilo no prompt: *"Flat 2D cartoon illustration in a clean vector explainer style (Kurzgesagt-inspired): bold simple shapes, soft gradients, vibrant saturated colors, rounded forms, NO text, NO letters, NO watermark"*. Proporção 4:3 para a janela do layout post.
 - Cartoon gerado por IA não é "realista", então não precisa da marcação de conteúdo sintético; mesmo assim, cite no roteiro (`"ilustracoes": "IA"`) para controle.
 
-## Estilo pixel art (padrão do Pulga do Saber)
+## Estilo pixel art
 - `"estilo": "pixel"` liga o visual de videogame 16 bits; `"pixel": 5` é o tamanho de cada pixel na tela. O perfil já traz esses valores, então o roteiro não precisa repetir.
 - `"personagem"` (no roteiro) e `"ilustracao"` (em cada cena), em inglês: o pipeline desenha a cena no PC com stable-diffusion.cpp + Z-Image-Turbo (de 2 a 5 min por cena, grátis), reduz à grade de pixels e guarda em `obra/`. A mesma semente (o slug) e o mesmo `personagem` mantêm o visual entre as cenas.
 - Sem `ilustracao`, ou sem os modelos em `modelos/`, a cena usa a busca normal e o clipe também é pixelado. Com `arquivo`, vale a imagem indicada.
-- O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom. A pulga narradora, o card dos infográficos (com poucas cores) e o avatar da moldura também saem pixelados. A legenda fica embaixo.
+- O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom. O mascote narrador, o card dos infográficos (com poucas cores) e o avatar da moldura também saem pixelados. A legenda fica embaixo.
 - `"musica": "chiptune"` usa a trilha sintetizada com onda quadrada (som de 8 bits); a música licenciada por tema também funciona.
 - Instalar o desenho local: baixe para `modelos/` o `sd-cli` Vulkan (github.com/leejet/stable-diffusion.cpp, releases), `z_image_turbo-Q4_K.gguf` (huggingface.co/leejet/Z-Image-Turbo-GGUF), `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) e `ae.safetensors` (huggingface.co/Comfy-Org/z_image_turbo). São cerca de 6,7 GB e rodam numa placa de 4 GB.

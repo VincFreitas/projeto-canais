@@ -50,9 +50,9 @@ Meta seguem a mesma linha ("conteúdo original" é requisito de todos os program
 
 - **Creator Rewards:** 10 mil seguidores, 100 mil visualizações em 30 dias, 18 anos, conta pessoal, país liberado
   (Brasil está na lista) e **vídeo original com mais de 1 minuto**. Só contam vídeos postados depois de entrar.
-- Por isso os canais que vão para o TikTok devem ter vídeos de 61 a 90 s (`duracao_s` no perfil). O Enigma Oculto
+- Por isso os canais que vão para o TikTok devem ter vídeos de 61 a 90 s (`duracao_s` no perfil). Um canal de mistérios
   passou para 80 s.
-- TikTok Shop afiliados: venda de produtos com comissão; serve mais ao Pulga do Saber (objetos do dia a dia).
+- TikTok Shop afiliados: venda de produtos com comissão; serve mais a canais sobre objetos do dia a dia.
 
 ## Kwai (futuro)
 
@@ -63,14 +63,14 @@ Meta seguem a mesma linha ("conteúdo original" é requisito de todos os program
 ## Fontes extras de receita (todas as plataformas)
 
 - **Afiliados:** Amazon Associados e Shopee Afiliados com link na bio e na descrição (livros e documentários sobre
-  o caso no Enigma; o objeto explicado no Pulga). Comissão sem precisar de mínimo de seguidores.
+  o caso num canal de mistério; o objeto num canal explicativo). Comissão sem precisar de mínimo de seguidores.
 - **Patrocínio:** depois de uns 10 mil seguidores somados, marcas do nicho pagam por menção.
 - **Produto próprio:** e-book "50 mistérios" ou coleção de curiosidades, vendido pelo link da bio.
 
 ## Plano em ordem (para monetizar o quanto antes)
 
 1. Manter as 2 postagens por dia em todos os canais (consistência pesa no alcance).
-2. Enigma Oculto com a edição dossiê (`tema_cards: dossie`, `estilo: realista`), 80 s, gancho com título fixo.
+2. Canal de mistério com a edição dossiê (`tema_cards: dossie`, `estilo: realista`), 80 s, gancho com título fixo.
 3. Ligar a Página do Facebook de cada canal e repostar os Reels (convite do Content Monetization).
 4. Assim que um canal passar de 500 seguidores no Instagram, ativar os Presentes; 500 inscritos no YouTube, o nível
    inicial.
