@@ -259,6 +259,7 @@ details.mais > summary::-webkit-details-marker { display: none; }
 /* ---------- movimento: transição entre telas, carregamento e abertura ---------- */
 @view-transition { navigation: auto; }
 .lateral .logo { view-transition-name: marca; }
+.logo svg { width: 100%; height: 100%; display: block; }  /* a estrela da logo (app.LOGO_ESTRELA), nunca o caractere ✦ */
 .conteudo { view-transition-name: conteudo; }
 ::view-transition-old(conteudo) { animation: 160ms ease-in both sai-tela; }
 ::view-transition-new(conteudo) { animation: 320ms cubic-bezier(.2, .8, .2, 1) both entra-tela; }

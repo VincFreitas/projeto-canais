@@ -16,7 +16,7 @@ self.addEventListener("activate", (ev) => {
 const FECHADO = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Estúdio fechado · Projeto Canais</title>
 <body style="font:17px/1.6 system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center">
-<div><div style="font-size:48px;color:#f5c518">✦</div><h1>O Estúdio está fechado</h1>
+<div><div><svg viewBox="0 0 100 100" width="64" height="64"><rect x="2" y="2" width="96" height="96" rx="26" fill="#ffc400"/><path d="M50 14 C52.5 36 64 47.5 86 50 C64 52.5 52.5 64 50 86 C47.5 64 36 52.5 14 50 C36 47.5 47.5 36 50 14 Z" fill="#1d1b18"/></svg></div><h1>O Estúdio está fechado</h1>
 <p>Abra pelo atalho <b>Projeto Canais</b> no PC e recarregue esta página.</p></div></body></html>`;
 
 self.addEventListener("fetch", (ev) => {

@@ -65,26 +65,69 @@ def _pastas() -> dict:
     return {"area_de_trabalho": area, "menu_iniciar": menu}
 
 
-def desenhar_icone(destino: Path = ICONE) -> Path:
-    """Ícone da APLICAÇÃO (nunca o de um canal): o logo do Estúdio, a estrela ✦ escura no quadrado amarelo
-    de cantos arredondados. Desenhado em 4x e reduzido, para as bordas saírem lisas."""
-    import math
+# Logo da aplicação (decisão do dono em 2026-11-09): a estrela de 4 pontas desenhada com curvas, escura, no
+# quadrado amarelo de cantos arredondados. Fonte única: assets/logo.svg, o Estúdio, o site, o README e os ícones
+# saem destes números (num quadro de 100 x 100). Nunca use o caractere ✦ da fonte como logo.
+LOGO_AMARELO = "#ffc400"
+LOGO_ESCURO = "#1d1b18"
+LOGO_RAIO = 26
+LOGO_ESTRELA = ((50, 14), ((52.5, 36), (64, 47.5), (86, 50)), ((64, 52.5), (52.5, 64), (50, 86)),
+                ((47.5, 64), (36, 52.5), (14, 50)), ((36, 47.5), (47.5, 36), (50, 14)))
+
+
+def logo_caminho() -> str:
+    """O "d" do SVG da estrela."""
+    inicio, *curvas = LOGO_ESTRELA
+    return f"M{inicio[0]} {inicio[1]} " + " ".join(
+        "C" + " ".join(f"{x} {y}" for x, y in c) for c in curvas) + " Z"
+
+
+def logo_svg() -> str:
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
+            f'<rect x="2" y="2" width="96" height="96" rx="{LOGO_RAIO}" fill="{LOGO_AMARELO}"/>'
+            f'<path d="{logo_caminho()}" fill="{LOGO_ESCURO}"/></svg>\n')
+
+
+def logo_imagem(lado: int):
+    """A logo em PNG (Pillow), desenhada em 4x e reduzida para as bordas saírem lisas."""
     from PIL import Image, ImageDraw
-    lado = 1024
-    img = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    grande = lado * 4
+    k = grande / 100
+    img = Image.new("RGBA", (grande, grande), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.rounded_rectangle([16, 16, lado - 16, lado - 16], radius=int(lado * 0.27), fill=(255, 196, 0, 255))  # --amarelo
-    cx = cy = lado / 2
-    externo, interno = lado * 0.34, lado * 0.115  # miolo mais grosso: a estrela continua legível em 16 px
-    pontos = []
-    for k in range(8):  # 4 pontas compridas intercaladas com 4 cantos curtos: a estrela de 4 pontas do logo
-        angulo = math.radians(-90 + k * 45)
-        raio = externo if k % 2 == 0 else interno
-        pontos.append((cx + raio * math.cos(angulo), cy + raio * math.sin(angulo)))
-    d.polygon(pontos, fill=(29, 27, 24, 255))  # --texto
+    d.rounded_rectangle([2 * k, 2 * k, 98 * k, 98 * k], radius=int(LOGO_RAIO * k), fill=LOGO_AMARELO)
+    pontos, atual = [], LOGO_ESTRELA[0]
+    for (c1, c2, fim) in LOGO_ESTRELA[1:]:
+        for i in range(1, 41):  # cada curva de Bézier vira 40 pontos
+            t = i / 40
+            u = 1 - t
+            pontos.append(tuple((u ** 3 * atual[j] + 3 * u * u * t * c1[j] + 3 * u * t * t * c2[j] + t ** 3 * fim[j]) * k
+                                for j in (0, 1)))
+        atual = fim
+    d.polygon(pontos, fill=LOGO_ESCURO)
+    return img.resize((lado, lado), Image.LANCZOS)
+
+
+def desenhar_icone(destino: Path = ICONE) -> Path:
+    """Ícone da APLICAÇÃO (nunca o de um canal), com a logo de logo_imagem."""
     destino.parent.mkdir(parents=True, exist_ok=True)
-    img.resize((256, 256), Image.LANCZOS).save(destino, sizes=[(256, 256), (64, 64), (48, 48), (32, 32), (16, 16)])
+    logo_imagem(256).save(destino, sizes=[(256, 256), (64, 64), (48, 48), (32, 32), (16, 16)])
     return destino
+
+
+def desenhar_logos() -> list[Path]:
+    """Regrava todos os arquivos da logo a partir dos números acima (rode depois de mudar a logo)."""
+    raiz = config.RAIZ
+    feitos = [desenhar_icone()]
+    for caminho in (raiz / "assets" / "logo.svg", raiz / "site" / "img" / "icone.svg",
+                    raiz / "darkops" / "estudio" / "static" / "logo.svg"):
+        caminho.write_text(logo_svg(), encoding="utf-8")
+        feitos.append(caminho)
+    for n in (192, 512):
+        caminho = raiz / "darkops" / "estudio" / "static" / f"icone-{n}.png"
+        logo_imagem(n).save(caminho)
+        feitos.append(caminho)
+    return feitos
 
 
 def _icone() -> Path | None:
