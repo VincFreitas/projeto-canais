@@ -1,4 +1,4 @@
-<img src="docs/img/capa.png" alt="Projeto Canais: a fábrica de vídeos que roda no seu PC. Ao lado, o Estúdio aberto no passo de formato e voz do Novo canal" width="100%">
+<img src="docs/img/capa.gif" alt="Animação da capa: a palavra vídeo, em fonte padrão cinza, é medida com linhas-guia azuis e pontos de interrogação, uma reta linear a 45 graus e setas que dizem fonte padrão, sem legenda e postagem com interrogação, com o veredito feito à mão. Um corte com glitch, e a mesma régua mede a marca Projeto Canais, com Canais em amarelo: proporções 1.0, 2.4 e 1.0, a curva de entrada back.out em 0,28 segundo e setas que dizem roteiro com fonte, voz neural, legenda na fala e 12h e 19h, com o veredito no ar, sobre a frase a fábrica de vídeos que roda no seu PC." width="100%">
 
 # Projeto Canais
 
@@ -146,6 +146,7 @@ Skills do Claude Code (em `.claude/skills/`; outro agente lê o `SKILL.md` e seg
 | `assets/` | Amostras de voz, músicas e efeitos com licença registrada |
 | `cenas/comum3d.js` | Kit comum das cenas 3D (sala, materiais, câmera e etiquetas) |
 | `roteiros/exemplo-*.json` | Roteiros de exemplo (vertical e longo) |
+| `docs/capa/` | A animação da capa (HTML + GSAP) e o `render.py` que gera o `docs/img/capa.gif` |
 | `site/` | Página do projeto, privacidade (LGPD), termos e cookies (GitHub Pages) |
 | `perfis/`, `cenas/`, `roteiros/`, `saida/`, `obra/`, `dados/` | Seus canais, cenas, roteiros, vídeos, intermediários e programas instalados. Ficam só no seu PC, fora do Git |
 
