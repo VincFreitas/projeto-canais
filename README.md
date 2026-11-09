@@ -1,4 +1,4 @@
-<img src="docs/img/capa.gif" alt="Animação da capa: a palavra vídeo, em fonte padrão cinza, é medida com linhas-guia azuis e pontos de interrogação, uma reta linear a 45 graus e setas que dizem fonte padrão, sem legenda e postagem com interrogação, com o veredito feito à mão. Um corte com glitch, e a mesma régua mede a marca Projeto Canais, com Canais em amarelo: proporções 1.0, 2.4 e 1.0, a curva de entrada back.out em 0,28 segundo e setas que dizem roteiro com fonte, voz neural, legenda na fala e 12h e 19h, com o veredito no ar, sobre a frase a fábrica de vídeos que roda no seu PC." width="100%">
+<img src="docs/img/capa.gif" alt="Animação da capa: a logo do Projeto Canais, uma estrela escura num quadrado amarelo, chega girando, um brilho passa e ela se abre como duas portas. Atrás dela, a marca Projeto Canais, com Canais em amarelo, chega grande e assenta, medida por linhas-guia: proporções 1.0, 2.4 e 1.0, a curva de entrada back.out em 0,28 segundo e setas que dizem roteiro com fonte, voz neural, legenda na fala e 12h e 19h, com o veredito no ar, sobre a frase a fábrica de vídeos que roda no seu PC." width="100%">
 
 # Projeto Canais
 

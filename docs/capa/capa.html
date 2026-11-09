@@ -7,7 +7,7 @@ html,body{width:1600px;height:500px;overflow:hidden;background:#0d0d10}
 body{font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;position:relative}
 #fundo{position:absolute;inset:0;background:radial-gradient(900px 420px at 30% 40%,#1b1b22 0,transparent 70%),#0d0d10}
 #luz{position:absolute;width:900px;height:900px;left:900px;top:-200px;border-radius:50%;
-  background:radial-gradient(circle,#f5c51826 0,transparent 60%);opacity:0}
+  background:radial-gradient(circle,#ffc40026 0,transparent 60%);opacity:0}
 #grao{position:absolute;inset:0;opacity:.05;background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
 .palco{position:absolute;inset:0}
 .lin{position:absolute;height:1.5px;background:#4f7cff;transform-origin:left center}
@@ -16,50 +16,33 @@ body{font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;-we
 .rot{position:absolute;font:600 19px "Segoe UI",sans-serif;white-space:nowrap}
 .seta{position:absolute;width:2px;transform-origin:bottom center}
 .seta:before{content:"";position:absolute;top:-7px;left:-5px;border:6px solid transparent;border-bottom:8px solid currentColor;border-top:0}
-#serif{position:absolute;left:370px;top:118px;font:400 190px/1 "Times New Roman",Georgia,serif;color:#85858c;letter-spacing:0}
 #marca{position:absolute;left:150px;top:150px;font:750 158px/1 "Segoe UI Variable Display","Segoe UI",sans-serif;letter-spacing:-.04em;white-space:nowrap}
 #marca span{display:inline-block}
 .b{background:linear-gradient(180deg,#ffffff 0,#b9b9c2 100%);-webkit-background-clip:text;color:transparent}
-.a{color:#f5c518}
+.a{color:#ffc400}
 #lema{position:absolute;left:150px;top:446px;font:400 26px "Segoe UI",sans-serif;color:#9a9aa3}
 #lema b{color:#f5f5f7;font-weight:600}
 svg{position:absolute;left:0;top:0}
-.glitch{position:absolute;inset:0;pointer-events:none}
-.faixa{position:absolute;left:0;width:1600px;overflow:hidden}
+#logo{position:absolute;left:690px;top:140px;width:220px;height:220px}
+.porta{position:absolute;top:0;width:110px;height:220px;background:#ffc400;overflow:hidden}
+#portaE{left:0;border-radius:60px 0 0 60px}#portaD{left:110px;border-radius:0 60px 60px 0}
+.brilho{position:absolute;top:-40px;width:60px;height:300px;background:linear-gradient(90deg,transparent,#ffffffaa,transparent);transform:skewX(-20deg)}
+#brilhoE{left:-90px}#brilhoD{left:-200px}
+#estrela{position:absolute;left:0;top:0;width:220px;height:220px}
+#aro{position:absolute;left:800px;top:250px;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid #ffc400;opacity:0}
 #flash{position:absolute;inset:0;background:#fff;opacity:0}
 </style></head>
 <body>
 <div id="fundo"></div><div id="luz"></div>
 
-<!-- ATO 1: o vídeo feito à mão, medido e reprovado -->
+<!-- ATO 1: a logo do aplicativo chega e abre como uma porta para a marca -->
 <div class="palco" id="ato1">
-  <div id="serif">vídeo</div>
-  <div class="lin" id="l1" style="left:300px;top:160px;width:640px"></div>
-  <div class="lin" id="l2" style="left:300px;top:215px;width:640px"></div>
-  <div class="lin" id="l3" style="left:300px;top:283px;width:640px"></div>
-  <div class="lin" id="l4" style="left:300px;top:325px;width:640px"></div>
-  <div class="chip q" style="left:255px;top:172px">?</div>
-  <div class="chip q" style="left:255px;top:233px">?</div>
-  <div class="chip q" style="left:255px;top:290px">?</div>
-  <div class="vl" id="v1" style="left:700px;top:120px;height:230px"></div>
-  <div class="vl" id="v2" style="left:716px;top:120px;height:230px"></div>
-  <div class="chip q" style="left:670px;top:362px">17 px</div>
-  <svg width="1600" height="500" id="svg1">
-    <line id="linear" x1="1010" y1="300" x2="1170" y2="140" stroke="#ffd23f" stroke-width="2.5"/>
-    <circle id="linpt" cx="1170" cy="140" r="5" fill="#ffd23f"/>
-    <path id="arco1" d="M1060 300 A50 50 0 0 0 1045 265" stroke="#fff" stroke-width="1.5" fill="none"/>
-    <line x1="1010" y1="300" x2="1210" y2="300" stroke="#c9c9d1" stroke-width="1.5" id="base1"/>
-    <line x1="1010" y1="300" x2="1010" y2="110" stroke="#c9c9d1" stroke-width="1.5" id="eixo1"/>
-  </svg>
-  <div class="rot" id="r45" style="left:1065px;top:262px;color:#fff">linear 45.0°</div>
-  <div class="seta" id="s1" style="left:380px;top:332px;height:40px;color:#ff4d4d;background:#ff4d4d"></div>
-  <div class="rot" id="t1" style="left:330px;top:382px;color:#ff5b5b">fonte padrão</div>
-  <div class="seta" id="s2" style="left:600px;top:332px;height:40px;color:#ff9f1a;background:#ff9f1a"></div>
-  <div class="rot" id="t2" style="left:545px;top:382px;color:#ffae3d">sem legenda</div>
-  <div class="seta" id="s3" style="left:880px;top:332px;height:40px;color:#3ddc84;background:#3ddc84"></div>
-  <div class="rot" id="t3" style="left:822px;top:382px;color:#3ddc84">postagem ?</div>
-  <div class="chip" id="mid" style="left:1250px;top:196px;color:#ff4fd8;border-color:#ff4fd8">feito à mão</div>
-  <svg width="1600" height="500"><line id="setamid" x1="1245" y1="212" x2="1215" y2="212" stroke="#ff4fd8" stroke-width="2"/></svg>
+  <div id="aro"></div>
+  <div id="logo">
+    <div class="porta" id="portaE"><div class="brilho" id="brilhoE"></div></div>
+    <div class="porta" id="portaD"><div class="brilho" id="brilhoD"></div></div>
+    <svg id="estrela" viewBox="0 0 100 100"><polygon points="50.00,16.00 58.13,41.87 84.00,50.00 58.13,58.13 50.00,84.00 41.87,58.13 16.00,50.00 41.87,41.87" fill="#1d1b18"/></svg>
+  </div>
 </div>
 
 <!-- ATO 2: a mesma régua, agora na marca -->
@@ -75,8 +58,8 @@ svg{position:absolute;left:0;top:0}
   <div class="vl d3" style="left:718px;top:110px;height:250px"></div>
   <div class="chip d3" style="left:690px;top:76px">0 px</div>
   <svg width="1600" height="500" id="svg2">
-    <path id="curva" d="M640 298 C 690 120, 760 90, 840 112 S 905 125, 910 122" stroke="#f5c518" stroke-width="3" fill="none"/>
-    <circle id="cpt" cx="910" cy="122" r="6" fill="#f5c518"/>
+    <path id="curva" d="M640 298 C 690 120, 760 90, 840 112 S 905 125, 910 122" stroke="#ffc400" stroke-width="3" fill="none"/>
+    <circle id="cpt" cx="910" cy="122" r="6" fill="#ffc400"/>
     <path class="ang" d="M245 298 A40 40 0 0 1 222 266" stroke="#fff" stroke-width="1.5" fill="none"/>
     <path class="ang" d="M1150 298 A40 40 0 0 0 1128 262" stroke="#fff" stroke-width="1.5" fill="none"/>
     <line class="ang" x1="205" y1="298" x2="265" y2="230" stroke="#fff" stroke-width="1.5"/>
@@ -98,84 +81,64 @@ svg{position:absolute;left:0;top:0}
   <div id="lema"><b>a fábrica de vídeos</b> que roda no seu PC</div>
 </div>
 
-<div class="glitch" id="glitch"></div>
 <div id="flash"></div>
 <div id="grao"></div>
 
 <script>
-// timeline determinística: pausada, sem Math.random (semente fixa), avançada quadro a quadro pelo render
-let semente = 7;
-function rnd(){ semente = (semente * 16807) % 2147483647; return (semente - 1) / 2147483646; }
+// timeline determinística: pausada, sem Math.random, avançada quadro a quadro pelo render
 const q = s => document.querySelectorAll(s);
 const tl = gsap.timeline({paused: true});
 const E = {entra: "back.out(1.8)", bate: "power4.in", assenta: "elastic.out(1,.5)", sai: "power2.in", respira: "sine.inOut"};
 
 // estado inicial
-gsap.set("#serif", {opacity: 0, y: 12});
 gsap.set(".lin", {scaleX: 0});
 gsap.set(".vl", {scaleY: 0});
 gsap.set(".chip, .rot", {opacity: 0, y: 8});
 gsap.set(".seta", {scaleY: 0});
-["#linear", "#arco1", "#base1", "#eixo1", "#setamid", "#curva", "#setamax"].forEach(id => {
+["#curva", "#setamax"].forEach(id => {
   const el = document.querySelector(id); const L = el.getTotalLength ? el.getTotalLength() : 300;
   el.style.strokeDasharray = L; el.style.strokeDashoffset = L; el.dataset.L = L; });
 q(".ang").forEach(el => { const L = el.getTotalLength(); el.style.strokeDasharray = L; el.style.strokeDashoffset = L; });
-gsap.set(["#linpt", "#cpt"], {scale: 0, transformOrigin: "center"});
+gsap.set(["#cpt"], {scale: 0, transformOrigin: "center"});
 gsap.set(["#m1", "#m2"], {opacity: 0, scale: 3.2, transformOrigin: "50% 60%"});
 gsap.set("#lema", {opacity: 0, y: 10});
 
-// ATO 1 (0 a 3,1 s): a palavra genérica é medida e reprovada
-tl.to("#serif", {opacity: 1, y: 0, duration: .5, ease: "power2.out"}, .1)
-  .to("#l1, #l2, #l3, #l4", {scaleX: 1, duration: .45, ease: "power3.out", stagger: .07}, .35)
-  .to("#ato1 .q", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .06}, .7)
-  .to("#v1, #v2", {scaleY: 1, duration: .35, ease: "power3.out", stagger: .05}, .8)
-  .to("#base1, #eixo1", {strokeDashoffset: 0, duration: .35, ease: "power2.out"}, 1.0)
-  .to("#linear", {strokeDashoffset: 0, duration: .5, ease: "none"}, 1.2)
-  .to("#linpt", {scale: 1, duration: .25, ease: E.entra}, 1.65)
-  .to("#arco1", {strokeDashoffset: 0, duration: .25}, 1.6)
-  .to("#r45", {opacity: 1, y: 0, duration: .25, ease: E.entra}, 1.7)
-  .to("#ato1 .seta", {scaleY: 1, duration: .25, ease: E.entra, stagger: .1}, 1.75)
-  .to("#t1, #t2, #t3", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .1}, 1.85)
-  .to("#setamid", {strokeDashoffset: 0, duration: .2}, 2.25)
-  .to("#mid", {opacity: 1, y: 0, duration: .3, ease: E.entra}, 2.3)
-  .to("#serif", {x: -6, duration: 2.5, ease: E.respira}, .6);
+// ATO 1 (0 a 1,7 s): a logo chega de pequena, a estrela gira e assenta, um brilho passa e a logo abre
+gsap.set("#logo", {scale: .35, opacity: 0, transformOrigin: "50% 50%"});
+gsap.set("#estrela", {rotation: -135, scale: .6, transformOrigin: "50% 50%"});
+tl.to("#logo", {scale: 1, opacity: 1, duration: .42, ease: E.entra}, .1)
+  .to("#estrela", {rotation: 0, scale: 1, duration: .7, ease: E.assenta}, .2)
+  .to("#brilhoE", {x: 330, duration: .45, ease: "power2.inOut"}, .72)
+  .to("#brilhoD", {x: 330, duration: .45, ease: "power2.inOut"}, .72)
+  .to("#logo", {scale: 1.06, duration: .2, ease: "power2.out"}, 1.0)
+  .to("#estrela", {scale: 1.3, duration: .16, ease: "power2.out"}, 1.0)
+  .to("#estrela", {scale: 0, rotation: 90, duration: .22, ease: E.sai}, 1.16)
+  .to("#portaE", {x: -900, duration: .42, ease: E.bate}, 1.22)
+  .to("#portaD", {x: 900, duration: .42, ease: E.bate}, 1.22)
+  .to("#aro", {opacity: .9, duration: .05, ease: "none"}, 1.22)
+  .to("#aro", {width: 1500, height: 1500, marginLeft: -750, marginTop: -750, opacity: 0, duration: .6, ease: "power3.out"}, 1.25)
+  .to("#flash", {opacity: .35, duration: .03, ease: "none"}, 1.6)
+  .to("#flash", {opacity: 0, duration: .22, ease: "power2.out"}, 1.63)
+  .set("#ato2", {opacity: 1}, 1.6);
 
-// corte com glitch (3,1 a 3,45 s): faixas deslocadas e cor separada, com semente fixa
-const G = document.getElementById("glitch");
-for (let i = 0; i < 9; i++) {
-  const f = document.createElement("div"); f.className = "faixa";
-  const y = Math.floor(rnd() * 460), h = 8 + Math.floor(rnd() * 46);
-  f.style.top = y + "px"; f.style.height = h + "px";
-  f.style.background = ["#4f7cff55", "#ff4fd855", "#f5c51844", "#ffffff22"][i % 4];
-  f.style.opacity = 0; G.appendChild(f);
-  tl.to(f, {opacity: 1, x: (rnd() - .5) * 260, duration: .04, ease: "none"}, 3.1 + rnd() * .2)
-    .to(f, {opacity: 0, duration: .04, ease: "none"}, 3.32 + rnd() * .1);
-}
-tl.to("#ato1", {x: 22, skewX: -8, filter: "hue-rotate(90deg) saturate(3)", duration: .06, ease: "none"}, 3.1)
-  .to("#ato1", {x: -30, duration: .06, ease: "none"}, 3.18)
-  .to("#ato1", {opacity: 0, duration: .05, ease: "none"}, 3.3)
-  .to("#flash", {opacity: .55, duration: .03, ease: "none"}, 3.33)
-  .to("#flash", {opacity: 0, duration: .2, ease: "power2.out"}, 3.37)
-  .set("#ato2", {opacity: 1}, 3.33);
-
-// ATO 2 (3,35 a 7 s): a marca chega de grande e assenta; a mesma régua mede tudo certo
-tl.to("#m1", {opacity: 1, scale: 1, duration: .38, ease: "power4.out"}, 3.35)
-  .to("#m2", {opacity: 1, scale: 1, duration: .38, ease: "power4.out"}, 3.47)
-  .to("#luz", {opacity: 1, duration: 1.2, ease: E.respira}, 3.4)
-  .to("#ato2 .d", {scaleX: 1, duration: .32, ease: "power3.out", stagger: .05}, 3.75)
-  .to("#ato2 .d2", {opacity: 1, y: 0, duration: .22, ease: E.entra, stagger: .05}, 3.95)
-  .to("#ato2 .d3", {scaleY: 1, opacity: 1, y: 0, duration: .25, ease: E.entra}, 4.05)
-  .to("#curva", {strokeDashoffset: 0, duration: .55, ease: "power2.out"}, 4.15)
-  .to("#cpt", {scale: 1, duration: .3, ease: E.assenta}, 4.6)
-  .to("#ato2 .ang", {strokeDashoffset: 0, duration: .3, stagger: .05}, 4.3)
-  .to("#ato2 .d4", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .06}, 4.45)
-  .to("#ato2 .seta", {scaleY: 1, duration: .22, ease: E.entra, stagger: .08}, 4.6)
-  .to("#ato2 .rot.d5", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .08}, 4.7)
-  .to("#setamax", {strokeDashoffset: 0, duration: .2}, 5.15)
-  .to("#maxx", {opacity: 1, y: 0, scale: 1, duration: .35, ease: E.entra}, 5.2)
-  .to("#lema", {opacity: 1, y: 0, duration: .4, ease: "power3.out"}, 5.45)
-  .to("#marca", {x: 4, duration: 3, ease: E.respira}, 3.6)
-  .to({}, {duration: 1.4}, 5.85);   // fim parado e resolvido
+// ATO 2 (1,65 a 5,6 s): a marca chega de grande e assenta; a mesma régua mede tudo certo
+tl.to("#m1", {opacity: 1, scale: 1, duration: .38, ease: "power4.out"}, 1.65)
+  .to("#m2", {opacity: 1, scale: 1, duration: .38, ease: "power4.out"}, 1.77)
+  .to("#luz", {opacity: 1, duration: 1.2, ease: E.respira}, 1.70)
+  .to("#ato2 .d", {scaleX: 1, duration: .32, ease: "power3.out", stagger: .05}, 2.05)
+  .to("#ato2 .d2", {opacity: 1, y: 0, duration: .22, ease: E.entra, stagger: .05}, 2.25)
+  .to("#ato2 .d3", {scaleY: 1, opacity: 1, y: 0, duration: .25, ease: E.entra}, 2.35)
+  .to("#curva", {strokeDashoffset: 0, duration: .55, ease: "power2.out"}, 2.45)
+  .to("#cpt", {scale: 1, duration: .3, ease: E.assenta}, 2.90)
+  .to("#ato2 .ang", {strokeDashoffset: 0, duration: .3, stagger: .05}, 2.60)
+  .to("#ato2 .d4", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .06}, 2.75)
+  .to("#ato2 .seta", {scaleY: 1, duration: .22, ease: E.entra, stagger: .08}, 2.90)
+  .to("#ato2 .rot.d5", {opacity: 1, y: 0, duration: .25, ease: E.entra, stagger: .08}, 3.00)
+  .to("#setamax", {strokeDashoffset: 0, duration: .2}, 3.45)
+  .to("#maxx", {opacity: 1, y: 0, scale: 1, duration: .35, ease: E.entra}, 3.50)
+  .to("#lema", {opacity: 1, y: 0, duration: .4, ease: "power3.out"}, 3.75)
+  .to("#marca", {x: 4, duration: 3, ease: E.respira}, 1.90)
+  .to({}, {duration: 1.4}, 4.15);   // fim parado e resolvido
 
 window.tl = tl; window.DUR = tl.duration();
 </script>
