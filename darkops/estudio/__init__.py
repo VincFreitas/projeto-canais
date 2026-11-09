@@ -236,8 +236,9 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
     pasta = p.controle / "jobs"
     pasta.mkdir(parents=True, exist_ok=True)
     log = pasta / f"{job_id}.log"
+    from .tarefas import descrever
     JOBS[job_id] = {"id": job_id, "perfil": p.id, "titulo": titulo, "estado": "rodando",
-                    "inicio": time.time(), "log": str(log)}
+                    "inicio": time.time(), "log": str(log), **descrever(p.dados, comandos)}
 
     def trabalhar():
         with log.open("w", encoding="utf-8") as saida:
@@ -247,9 +248,9 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
                 proc = subprocess.run(_cli(p.id, *args), cwd=config.RAIZ, stdout=saida,
                                       stderr=subprocess.STDOUT, env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
                 if proc.returncode != 0:
-                    JOBS[job_id]["estado"] = "falhou"
+                    JOBS[job_id].update(estado="falhou", fim=time.time())
                     return
-        JOBS[job_id]["estado"] = "concluido"
+        JOBS[job_id].update(estado="concluido", fim=time.time())
 
     threading.Thread(target=trabalhar, daemon=True).start()
     return job_id
@@ -1907,9 +1908,12 @@ def tarefa_json(job):
     info = JOBS.get(job)
     if not info:
         return jsonify({"estado": "desconhecido", "log": ""})
+    from .tarefas import codigo_login, resumo
     texto = Path(info["log"]).read_text(encoding="utf-8", errors="replace") if Path(info["log"]).exists() else ""
-    return jsonify({"estado": info["estado"], "log": texto[-6000:],
-                    "segundos": int(time.time() - info["inicio"])})
+    texto = seguranca.ocultar(texto[-6000:])
+    return jsonify({"estado": info["estado"], "log": texto, "codigo": codigo_login(texto),
+                    "resumo": resumo(texto, info["estado"] == "concluido") if info["estado"] != "rodando" else "",
+                    "segundos": int(info.get("fim", time.time()) - info["inicio"])})
 
 
 @app.route("/p/<pid>/identidade", methods=["GET", "POST"])

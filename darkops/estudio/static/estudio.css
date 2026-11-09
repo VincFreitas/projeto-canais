@@ -671,3 +671,42 @@ table { max-width: 100%; }
   .conteudo { padding-top: 16px; }
   .acoes { flex-wrap: wrap; }
 }
+/* tela de tarefa: animação de carregamento, tempo estimado e resultado em uma frase */
+.tarefa { display: grid; gap: 14px; }
+.tarefa h2 { margin: 0; overflow-wrap: anywhere; }
+.tarefa-carregando { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 26px 0 10px; text-align: center; }
+.carregador { position: relative; width: 76px; height: 76px; }
+.carregador-anel { position: absolute; inset: 0; border-radius: 50%; border: 4px solid var(--linha);
+  border-top-color: var(--amarelo); animation: tarefa-gira 1.1s cubic-bezier(.45, .05, .55, .95) infinite; }
+.carregador-estrela { position: absolute; inset: 18px; display: grid; place-items: center; border-radius: 12px;
+  background: var(--amarelo); color: #1d1b18; animation: tarefa-respira 2.2s ease-in-out infinite; }
+.carregador-estrela svg { width: 70%; height: 70%; }
+.tarefa-frase { margin: 0; color: var(--suave); font-size: 15px; min-height: 1.4em; }
+.tarefa-grande { margin: 0; font-size: 18px; font-weight: 600; }
+.tarefa-longa { display: grid; gap: 8px; padding: 6px 0; }
+.tarefa-longa p { margin: 0; }
+.tarefa-barra { height: 8px; border-radius: 99px; background: var(--linha); overflow: hidden; }
+.tarefa-barra span { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--amarelo);
+  transition: width .8s cubic-bezier(.22, 1, .36, 1); }
+.tarefa-codigo { background: #fff8db; border-radius: 12px; padding: 12px 14px; }
+.tarefa-codigo p { margin: 0 0 6px; }
+.tarefa-codigo strong { font-size: 24px; letter-spacing: .12em; font-family: ui-monospace, Consolas, monospace; }
+.tarefa-resultado { display: flex; gap: 14px; align-items: flex-start; padding: 6px 0;
+  animation: tarefa-entra .4s cubic-bezier(.22, 1, .36, 1); }
+.tarefa-resultado p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.tarefa-icone { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 20px; font-weight: 700; color: #fff; background: var(--suave); }
+[data-estado="concluido"] .tarefa-icone { background: var(--verde); }
+[data-estado="falhou"] .tarefa-icone { background: var(--vermelho); }
+.tarefa-fechar { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; background: #eef7f1; }
+.tarefa-fechar.nao { background: #fff1e6; }
+.tarefa-fechar span { font-weight: 700; margin-right: 4px; }
+.tarefa-detalhes summary { cursor: pointer; color: var(--suave); font-size: 14px; }
+.tarefa-detalhes pre.log { margin-top: 10px; }
+@keyframes tarefa-gira { to { transform: rotate(360deg); } }
+@keyframes tarefa-respira { 0%, 100% { transform: scale(.92); } 50% { transform: scale(1); } }
+@keyframes tarefa-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .carregador-anel, .carregador-estrela, .tarefa-resultado { animation-duration: 0s; animation-iteration-count: 1; }
+  .carregador-anel { animation: tarefa-gira 3s linear infinite; }
+}

@@ -1,23 +1,108 @@
 {% extends "base.html" %}
 {% block titulo %}Tarefa{% endblock %}
 {% block corpo %}
-<div class="cartao">
+<div class="cartao tarefa" id="tarefa" data-estado="rodando">
   <h2 id="titulo">{{ job.titulo if job else 'Tarefa' }}</h2>
-  <p id="estado" class="suave">Rodando…</p>
-  <pre class="log" id="log"></pre>
+
+  <div class="tarefa-carregando" id="tarefa-anim" aria-live="polite">
+    <div class="carregador" aria-hidden="true">
+      <span class="carregador-anel"></span>
+      <span class="carregador-estrela"><svg viewBox="0 0 100 100"><path d="M50 14 C52.5 36 64 47.5 86 50 C64 52.5 52.5 64 50 86 C47.5 64 36 52.5 14 50 C36 47.5 47.5 36 50 14 Z" fill="currentColor"/></svg></span>
+    </div>
+    <p class="tarefa-frase" id="frase">Trabalhando nisso…</p>
+  </div>
+
+  <div class="tarefa-longa" id="longa" hidden aria-live="polite">
+    <p class="tarefa-grande">Tempo estimado: <strong id="estimativa">{{ job.estimativa if job else '' }}</strong></p>
+    <p class="suave" id="previsao"></p>
+    <div class="tarefa-barra" aria-hidden="true"><span id="barra"></span></div>
+  </div>
+
+  <div class="tarefa-codigo" id="codigo" hidden>
+    <p>Código para colar na página de login:</p>
+    <p><strong id="codigo-texto"></strong> <button type="button" class="botao secundario pequeno" id="copiar">Copiar</button></p>
+  </div>
+
+  <div class="tarefa-resultado" id="resultado" hidden aria-live="polite">
+    <span class="tarefa-icone" id="icone" aria-hidden="true"></span>
+    <div>
+      <p class="tarefa-grande" id="resultado-titulo"></p>
+      <p id="resultado-texto"></p>
+      <p class="suave" id="resultado-resumo"></p>
+    </div>
+  </div>
+
+  {% if job %}<p class="tarefa-fechar {{ 'pode' if job.fechar else 'nao' }}" id="fechar">
+    <span aria-hidden="true">{{ '✓' if job.fechar else '!' }}</span> {{ job.aviso_fechar }}</p>{% endif %}
+
+  <details class="tarefa-detalhes" id="detalhes">
+    <summary>Ver detalhes técnicos</summary>
+    <pre class="log" id="log"></pre>
+  </details>
+
   <p><a class="botao secundario" id="voltar" href="{{ voltar }}">Voltar</a></p>
 </div>
 <script>
-const estado = document.getElementById("estado"), log = document.getElementById("log");
-const nomes = {rodando: "Rodando… pode deixar a página aberta.", concluido: "✓ Concluído.", falhou: "✗ Falhou: veja o log.", desconhecido: "Tarefa não encontrada (o Estúdio foi reiniciado?)."};
-async function atualizar() {
-  const r = await fetch("{{ url_for('tarefa_json', job=job_id) }}");
-  const j = await r.json();
-  estado.textContent = nomes[j.estado] + (j.segundos ? ` (${j.segundos}s)` : "");
-  log.textContent = j.log; log.scrollTop = log.scrollHeight;
-  if (j.estado === "rodando") setTimeout(atualizar, 1500);
-  else if (j.estado === "concluido") document.getElementById("voltar").classList.remove("secundario");
-}
-atualizar();
+(() => {
+  const job = {{ {"pronto": job.pronto, "longa": job.longa, "animacao_max_s": job.animacao_max_s,
+                  "min_s": job.estimativa_min_s, "max_s": job.estimativa_max_s} | tojson if job else 'null' }};
+  const $ = id => document.getElementById(id);
+  const caixa = $("tarefa"), carregando = $("tarefa-anim"), longa = $("longa");
+  const frases = ["Trabalhando nisso…", "Organizando tudo…", "Quase lá…", "Conferindo os detalhes…"];
+  let volta = 0;
+  const trocaFrase = setInterval(() => { volta = (volta + 1) % frases.length; $("frase").textContent = frases[volta]; }, 4000);
+  const hora = s => new Date(Date.now() + s * 1000).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+  const tempo = s => s < 60 ? `${s} s` : s < 3600 ? `${Math.round(s / 60)} min` : `${Math.floor(s / 3600)} h ${Math.round(s % 3600 / 60)} min`;
+
+  function terminar(ok, j) {
+    clearInterval(trocaFrase);
+    caixa.dataset.estado = ok ? "concluido" : "falhou";
+    carregando.hidden = true; longa.hidden = true; $("codigo").hidden = true;
+    $("resultado").hidden = false;
+    $("icone").textContent = ok ? "✓" : "✗";
+    $("resultado-titulo").textContent = ok ? "Pronto!" : "Não deu certo";
+    $("resultado-texto").textContent = ok ? (job ? job.pronto : "Tudo certo.")
+      : "Tente de novo. Se continuar falhando, abra os detalhes técnicos abaixo e mande para quem te ajuda.";
+    $("resultado-resumo").textContent = j.resumo ? (ok ? "" : "Motivo: ") + j.resumo : "";
+    $("resultado-resumo").hidden = ok && !j.resumo;
+    $("fechar") && ($("fechar").hidden = true);
+    $("resultado-resumo").insertAdjacentText("beforeend", j.segundos ? ` (levou ${tempo(j.segundos)})` : "");
+    if (ok) $("voltar").classList.remove("secundario");
+    $("voltar").textContent = "Continuar";
+  }
+
+  async function atualizar() {
+    let j;
+    try { j = await (await fetch("{{ url_for('tarefa_json', job=job_id) }}")).json(); }
+    catch { setTimeout(atualizar, 3000); return; }
+    $("log").textContent = j.log;
+    if (j.codigo) { $("codigo-texto").textContent = j.codigo; $("codigo").hidden = false; }
+    if (j.estado === "desconhecido") {
+      clearInterval(trocaFrase);
+      carregando.hidden = true; $("resultado").hidden = false; $("icone").textContent = "?";
+      $("resultado-titulo").textContent = "Tarefa não encontrada";
+      $("resultado-texto").textContent = "O Estúdio foi reiniciado e perdeu o acompanhamento. Confira em Início se o resultado já apareceu.";
+      return;
+    }
+    if (j.estado !== "rodando") { terminar(j.estado === "concluido", j); return; }
+    // tarefa longa: a animação roda no máximo animacao_max_s; depois fica o tempo estimado
+    if (job && job.longa && j.segundos >= job.animacao_max_s) {
+      carregando.hidden = true; longa.hidden = false;
+      const falta = Math.max(job.min_s - j.segundos, 0), faltaMax = Math.max(job.max_s - j.segundos, 0);
+      $("previsao").textContent = faltaMax > 0
+        ? `Começou há ${tempo(j.segundos)}. Deve terminar entre ${hora(falta)} e ${hora(faltaMax)}.`
+        : `Começou há ${tempo(j.segundos)}. Está levando mais que o normal, mas continua trabalhando.`;
+      $("barra").style.width = Math.min(95, j.segundos / job.max_s * 100) + "%";
+    } else if (job && !job.longa && j.segundos > job.max_s * 2) {
+      $("frase").textContent = "Está demorando mais que o normal, mas continua trabalhando…";
+      clearInterval(trocaFrase);
+    }
+    setTimeout(atualizar, longa.hidden ? 1500 : 5000);
+  }
+  $("copiar").addEventListener("click", () => {
+    navigator.clipboard.writeText($("codigo-texto").textContent).then(() => { $("copiar").textContent = "Copiado"; });
+  });
+  atualizar();
+})();
 </script>
 {% endblock %}
