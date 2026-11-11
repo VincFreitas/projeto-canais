@@ -32,7 +32,7 @@ from .render import FFMPEG, FPS
 
 VERSAO = 3
 ORIGEM = "http://palco.local"
-VISUAL = "liso"  # "liso" (palco.html) ou "pixel" (palco_pixel.html); a produção troca conforme o roteiro
+VISUAL = "liso"  # "liso" ou "sombrio" (palco.html) ou "pixel" (palco_pixel.html); a produção troca conforme o roteiro
 
 
 def _servir(rota):
@@ -44,6 +44,75 @@ def _servir(rota):
     if caminho.suffix in (".js", ".mjs"):
         tipo = "text/javascript"
     rota.fulfill(status=200, body=caminho.read_bytes(), headers={"Content-Type": tipo})
+
+
+# Quem desenha o 3D, do mais rápido ao mais lento. Medido numa cena sombria em 1080x1920, por quadro: placa de vídeo
+# dedicada 82 ms, placa integrada 96 ms, WARP (o desenho por processador do próprio Windows) 330 ms, SwiftShader (o do
+# Chromium) 1200 ms. Ou seja: PC sem placa dedicada desenha quase igual, e PC sem placa nenhuma usa o WARP.
+MOTORES = {
+    "gpu": ["--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist", "--force_high_performance_gpu"],
+    "warp": ["--use-angle=d3d11-warp", "--enable-gpu", "--ignore-gpu-blocklist"],
+    "swiftshader": ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
+}
+_PROCESSADOR = ("swiftshader", "basic render", "llvmpipe", "software")  # nomes de desenho sem placa de vídeo
+_PLACA_JS = """() => { const g = document.createElement('canvas').getContext('webgl2');
+  if (!g) return ''; const e = g.getExtension('WEBGL_debug_renderer_info');
+  return e ? String(g.getParameter(e.UNMASKED_RENDERER_WEBGL)) : 'webgl'; }"""
+_motor: str | None = None  # escolhido na primeira cena e reaproveitado até o programa fechar
+
+# Qualidade do desenho: resolução interna (ampliada para a tela com suavização) e o que fica ligado. Vale só quando a
+# máquina é lenta; em PC com placa de vídeo é sempre "alta". DARKOPS_3D_QUALIDADE no .env fixa um nível.
+QUALIDADES = {
+    "alta": (1.0, {}),
+    "media": (0.75, {}),
+    "leve": (2 / 3, {"sombra": 1024}),
+    "minima": (0.5, {"sombra": 1024, "bloom": False}),
+}
+ALVO_MS = 200  # tempo por quadro que a qualidade automática procura (vídeo de 90 s: uns 9 min de 3D)
+_qualidade: dict[str, str] = {}  # por visual, medida na primeira cena
+
+
+def _abrir(p):
+    """Chromium para desenhar o 3D, com o motor mais rápido que a máquina tiver: placa de vídeo (dedicada ou
+    integrada), depois WARP, depois SwiftShader. Confere o que o Chromium ligou de verdade, porque sem placa ele cai
+    sozinho no SwiftShader, que é 3,6 vezes mais lento que o WARP. DARKOPS_3D_GPU=0 no .env pula a placa de vídeo;
+    DARKOPS_3D_MOTOR=gpu|warp|swiftshader fixa um."""
+    global _motor
+    import os
+    if _motor:
+        return p.chromium.launch(args=MOTORES[_motor])
+    fixo = os.getenv("DARKOPS_3D_MOTOR", "").strip().lower()
+    ordem = [fixo] if fixo in MOTORES else [m for m in MOTORES if m != "gpu" or os.getenv("DARKOPS_3D_GPU", "1") != "0"]
+    for motor in ordem:
+        navegador = None
+        try:
+            navegador = p.chromium.launch(args=MOTORES[motor])
+            pagina = navegador.new_page()
+            placa = pagina.evaluate(_PLACA_JS).lower()
+            pagina.close()
+        except Exception:  # noqa: BLE001
+            placa = ""
+        if placa and (motor != "gpu" or not any(n in placa for n in _PROCESSADOR)) or motor == ordem[-1]:
+            if navegador is None:
+                navegador = p.chromium.launch(args=MOTORES[motor])
+            _motor = motor
+            print(f"  3D desenhado por: {motor}" + (f" ({placa[:70]})" if placa else ""), flush=True)
+            return navegador
+        if navegador is not None:
+            navegador.close()
+    raise RuntimeError("não consegui abrir o Chromium para o 3D")
+
+
+def _nivel(ms: float) -> str:
+    """Nível de qualidade para a máquina que levou `ms` por quadro na resolução cheia (o custo cai com a área)."""
+    import os
+    fixo = os.getenv("DARKOPS_3D_QUALIDADE", "").strip().lower()
+    if fixo in QUALIDADES:
+        return fixo
+    for nome, (escala, _) in QUALIDADES.items():
+        if ms * escala * escala <= ALVO_MS:
+            return nome
+    return "minima"
 
 
 def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, largura: int, altura: int,
@@ -64,13 +133,21 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
                   "dur": round(dur, 2), "T0": round(T0, 2), "tela": [largura, altura, pixel],
                   "impactos": [round(x, 2) for x in impactos],
                   "palavras": hashlib.md5(json.dumps(palavras, sort_keys=True).encode()).hexdigest()}
-    if pixelado:  # só entra na assinatura no pixel, para não refazer as cenas lisas já gravadas
-        assinatura["visual"] = "pixel"
+    sombrio = VISUAL == "sombrio" and not pixelado
+    if pixelado or sombrio:  # só entra na assinatura fora do liso, para não refazer as cenas lisas já gravadas
+        assinatura["visual"] = VISUAL
     marca = destino.with_suffix(".json")
     if destino.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
         return destino
 
-    gw, gh = largura, altura  # o 3D é desenhado na resolução cheia, com bordas suavizadas
+    # o 3D é desenhado na resolução cheia, com bordas suavizadas; só máquina lenta desenha menor (QUALIDADES)
+    import os
+    medir = not pixelado
+    nivel = _qualidade.get(VISUAL) or (os.getenv("DARKOPS_3D_QUALIDADE", "").strip().lower() if medir else "")
+    if pixelado or nivel not in QUALIDADES:
+        nivel = "alta"
+    else:
+        medir = False
     antes, entradas, acoes = _historia(cenas, i, palavras, dur)
     de = _foco(cenas[i - 2]) if i > 1 else "tudo"
     para = _foco(c)
@@ -80,18 +157,42 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
     t_foco = max(t_foco, 0.0)
 
     with sync_playwright() as p:
-        navegador = p.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader",
-                                            "--ignore-gpu-blocklist"])
-        pagina = navegador.new_page(viewport={"width": gw, "height": gh})
+        navegador = _abrir(p)
         erros = []
-        pagina.on("pageerror", lambda e: erros.append(str(e)))
-        pagina.route(f"{ORIGEM}/**", _servir)
-        pagina.goto(f"{ORIGEM}/web/{html}")
-        pagina.wait_for_function("window.__pronto === true", timeout=20000)
         url = "/" + modulo.resolve().relative_to(config.RAIZ).as_posix()
-        info = pagina.evaluate("([u, w, h, p]) => window.__palco.iniciar(u, w, h, p)", [url, gw, gh, pixel])
-        if erros:
-            raise RuntimeError(f"cena 3D com erro: {erros[0]}")
+
+        def montar(nivel: str):
+            escala, opcoes = QUALIDADES[nivel]
+            gw, gh = int(largura * escala) // 2 * 2, int(altura * escala) // 2 * 2
+            pagina = navegador.new_page(viewport={"width": gw, "height": gh})
+            pagina.on("pageerror", lambda e: erros.append(str(e)))
+            pagina.route(f"{ORIGEM}/**", _servir)
+            pagina.goto(f"{ORIGEM}/web/{html}")
+            pagina.wait_for_function("window.__pronto === true", timeout=20000)
+            info = pagina.evaluate("([u, w, h, p, v, q]) => window.__palco.iniciar(u, w, h, p, v, q)",
+                                   [url, gw, gh, pixel, "sombrio" if sombrio else VISUAL, opcoes])
+            if erros:
+                raise RuntimeError(f"cena 3D com erro: {erros[0]}")
+            return pagina, info, largura / gw
+
+        pagina, info, amplia = montar(nivel)
+        if medir and _motor != "gpu":  # com placa de vídeo é sempre a qualidade cheia; sem ela, mede e decide
+            import time
+            parado = {"t": 0.0, "T": T0, "cena": i, "pecas": {n: 1.0 for n in info["PECAS"]}, "acoes": {},
+                      "camera": {"de": "tudo", "para": "tudo", "f": 1.0}, "impacto": 0.0}
+            tempos = []
+            for _ in range(4):  # o primeiro quadro compila os shaders e não conta
+                ini = time.perf_counter()
+                pagina.evaluate("e => window.__palco.quadro(e)", parado)
+                tempos.append((time.perf_counter() - ini) * 1000)
+            ms = sum(tempos[1:]) / 3
+            nivel = _nivel(ms)
+            print(f"  3D sem placa de vídeo: {ms:.0f} ms por quadro, qualidade {nivel}", flush=True)
+            if nivel != "alta":
+                pagina.close()
+                pagina, info, amplia = montar(nivel)
+        if medir:
+            _qualidade[VISUAL] = nivel
         mod = SimpleNamespace(PECAS=info["PECAS"], SERIE=info.get("SERIE", "COMO FUNCIONA"))
         rotulos = []
         for k, r in enumerate(c.get("rotulos", [])):
@@ -130,14 +231,20 @@ def gerar(modulo: Path, cenas: list[dict], i: int, dur: float, palavras: list, l
                     if t < ti:
                         continue
                     ponta = resposta["ancoras"].get(r.get("peca")) if r.get("peca") else None
+                    if ponta is not None:  # a âncora vem na resolução em que o 3D foi desenhado
+                        ponta = [ponta[0] * amplia, ponta[1] * amplia]
                     if ponta is None and r.get("ponto"):  # "ponto" vem na grade 216x384 do palco 2D
                         ponta = [r["ponto"][0] / 216 * largura, r["ponto"][1] / 384 * altura]
                     if ponta is None:
                         continue
                     rotulo_na_tela(tela, d, spr, ponta[0], ponta[1], ti, t, largura, altura, pixel)
-                _hud(tela, mod, cenas, i, t, entradas, antes, largura, altura)
-                if t < 0.12 and i > 1:
-                    tela = Image.blend(tela, Image.new("RGB", tela.size, (255, 255, 255)), 0.5 * (1 - t / 0.12))
+                if sombrio:  # no sombrio o cabeçalho do dossiê já diz o assunto; a cena nasce do escuro
+                    if t < 0.35 and i > 1:
+                        tela = Image.blend(tela, Image.new("RGB", tela.size, (0, 0, 0)), 0.85 * (1 - t / 0.35) ** 2)
+                else:
+                    _hud(tela, mod, cenas, i, t, entradas, antes, largura, altura)
+                    if t < 0.12 and i > 1:
+                        tela = Image.blend(tela, Image.new("RGB", tela.size, (255, 255, 255)), 0.5 * (1 - t / 0.12))
                 proc.stdin.write(tela.tobytes())
         finally:
             proc.stdin.close()
@@ -155,8 +262,7 @@ def testar(modulo: Path, cenas: list[dict], largura: int = 1080, altura: int = 1
     from playwright.sync_api import sync_playwright
     problemas = []
     with sync_playwright() as p:
-        navegador = p.chromium.launch(args=["--use-angle=swiftshader", "--enable-unsafe-swiftshader",
-                                            "--ignore-gpu-blocklist"])
+        navegador = _abrir(p)
         try:
             pagina = navegador.new_page(viewport={"width": largura, "height": altura})
             erros = []
@@ -194,7 +300,7 @@ def testar(modulo: Path, cenas: list[dict], largura: int = 1080, altura: int = 1
                                          "não é uma âncora do módulo")
                     elif ponta and not (0 <= ponta[0] <= largura and 0 <= ponta[1] <= altura):
                         problemas.append(f"cena {i}: a etiqueta '{r['texto']}' aponta para '{r['peca']}', "
-                                         "que fica fora da tela")
+                                         f"que fica fora da tela ({ponta[0]:.0f}, {ponta[1]:.0f})")
         finally:
             navegador.close()
     return problemas

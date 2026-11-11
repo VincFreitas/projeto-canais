@@ -81,6 +81,26 @@ Para trocar o visual de uma cena já produzida, use o **editor de cenas** na pr�
 
 Os campos de voz, visual, velocidade e legenda que o roteiro não traz vêm do **padrão do canal** (`perfis/<id>/perfil.json`, aba Perfil do Estúdio).
 
+## Prancha de Campo (`motor_cena: prancha`)
+
+O vídeo inteiro vira uma prancha técnica animada: fundo grafite, traço verde-água que se desenha, peças que se movem
+na palavra em que são ditas. A animação fica em `cenas/<slug>.prancha.json` (fora do Git), escrita pela skill
+`/desenhar-prancha`, que tem o formato completo e o catálogo de componentes. Resumo:
+
+```json
+{"titulo": "...", "subtitulo": "LUGAR · PR-01", "semente": "<slug>",
+ "capitulos": [{"nome": "O problema", "de": 0, "ate": 4}],
+ "pecas": {"peca-nova": "<svg viewBox=...>...</svg>"},
+ "cenas": [{"intencao_visual": "o que se vê quando a frase termina", "halo": "agua|ambar|osso",
+            "estado": [{"em": "palavra", "texto": "termo técnico"}], "ressalva": "segundo a tradição",
+            "destaque": "palavra", "itens": [{"c": "Peca", "peca": "...", "x": 480, "base": 820, "altura": 640, "em": "palavra"}]}]}
+```
+
+- Uma entrada em `cenas` por cena do roteiro, na mesma ordem. `em` é a palavra da fala em que a coisa acontece.
+- O palco tem 960 x 980 px; legenda, cabeçalho, barra de capítulos e ressalva são automáticos.
+- Teste com `python -m darkops prancha-testar <roteiro.json>`: avisos, problemas de enquadramento e a folha de contato.
+- No roteiro, cada cena pode trazer `intencao_visual`; não escreva `palco` 3D nem `ilustracao` por IA nesse modo.
+
 ## Movimento e animações
 
 - `"tipo_visual": "video"` no roteiro: cada cena busca um **clipe de vídeo real** (o Pixabay filtra mídia gerada por IA, desenho e 3D, e exige o assunto nas 3 primeiras tags). Sem clipe bom, usa foto com zoom lento.
@@ -176,6 +196,7 @@ Com `"palco": "cenas/<slug>.py"` no roteiro, nenhuma cena é desenhada por IA. O
   - `rotulos` com `peca` ou `ponto`: a etiqueta fica presa à peça, com linha.
 - No palco, o selo com o @ sai, e o nome do canal vai na barra de peças.
 - **Palco 3D**: com `"palco": "cenas/<slug>.3d.js"`, a cena é um módulo JavaScript com Three.js e GSAP (`export SERIE, PECAS, criar(...)`). O Chromium sem janela (`darkops/palco_web.py`, via Playwright) desenha um quadro por vez em 1080x1920, com bordas suavizadas, sombras e luz de cinema, em cerca de 270 ms por quadro (de 12 a 15 min por vídeo). As cenas usam o kit comum `cenas/comum3d.js` (sala, materiais toon, canos que crescem, partículas, câmera e posição das etiquetas na tela) e só descrevem o próprio objeto. Para objetos que não devem fazer nem receber sombra, use `userData.semSombra = true`. O módulo cuida da câmera (enquadramentos por peça, viajando com as curvas do GSAP), das peças e das partículas, e devolve onde cada peça está na tela para as etiquetas. Os campos do roteiro são os mesmos do palco 2D. Um vídeo de 96 s leva cerca de 4 min. Para preparar: `pip install playwright`, `python -m playwright install chromium` e `npm install` em `web/`.
+- **3D sombrio** (`"visual_3d": "sombrio"`, padrão do canal de mistérios): a mesma cena `.3d.js`, sem mudar uma linha, sai como cinema noturno. O kit troca o céu por um degradê de noite, põe neblina, lua fria de lado, contraluz âmbar que recorta a silhueta e uma tocha que tremula. Os materiais viram pedra e terra, com aspereza, relevo e manchas de líquen. O `web/palco.html` arredonda e desgasta caixas, cilindros e esferas com ruído de semente fixa, ondula o chão e põe névoa rasteira andando com o tempo. Por cima vêm brilho nas luzes, cor de filme (sombra fria, luz quente), vinheta e granulação. A cena nasce do escuro (sem o clarão branco) e a barra de peças sai, porque o cabeçalho do dossiê já diz o assunto. Para formas orgânicas (rosto, corpo, rocha), molde uma caixa subdividida vértice a vértice e marque `userData.esculpir = true`: ela ganha a superfície de pedra sem perder a forma. Use tons de terra nas pessoas, nunca cores vivas. Cerca de 0,6 s por quadro.
 - **3D pixelado** (`"visual_3d": "pixel"` no perfil ou no roteiro; padrão `"liso"`): a mesma cena `.3d.js`, sem mudar uma linha, sai como no estilo "3D pixel art". `web/palco_pixel.html` desenha na grade de pixels (largura dividida pelo `pixel` do perfil, 216x384 com `5`), sem antialias e com sombra dura, e acaba cada quadro num shader: contorno escuro onde a profundidade salta, pontilhado Bayer 4x4, 6 tons por canal e exposição um pouco abaixo de 1 para os brancos não estourarem. A rampa toon passa de 3 para 7 tons. O Python amplia sem suavizar e põe as etiquetas e a barra nítidas por cima. Também roda no processador e fica cerca de 3 a 6 vezes mais rápido que o liso (6 s de vídeo em 10 a 12 s). Trocar o visual não refaz as cenas lisas que já estão no cache.
 
 ### Cena viva (câmera, partículas e antes/depois)

@@ -1,0 +1,116 @@
+/* Prancha de Campo: prancha técnica que se desenha sozinha (traço verde-água sobre grafite).
+   Tokens fixos: o roteiro nunca escreve cor. Zonas da tela 1080x1920 em docs/roteiro.md (seção prancha). */
+/* só fontes que já vêm no Windows (nada a baixar) */
+@font-face { font-family: 'Bahnschrift'; src: local('Bahnschrift'); }
+@font-face { font-family: 'Georgia'; src: local('Georgia Italic'); font-style: italic; }
+@font-face { font-family: 'Georgia'; src: local('Georgia'); }
+@font-face { font-family: 'Consolas'; src: local('Consolas'); }
+:root {
+  --fundo: #0B0F14;
+  --fundo-borda: #05070A;
+  --halo-agua: #12202A;
+  --halo-ambar: #2A1F10;
+  --halo-osso: #1E1D1A;
+  --linha: #5CF2E0;
+  --osso: rgba(232, 226, 212, .55);
+  --osso-cheio: #E8E2D4;
+  --massa: rgba(92, 242, 224, .07);
+  --alerta: #F2B33D;
+  --erro: #E5484D;
+  --texto: #F4F1EA;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--fundo); }
+#root { position: absolute; inset: 0; overflow: hidden; background: var(--fundo); font-family: 'Bahnschrift', sans-serif; }
+
+/* fundo: papel técnico, halo do capítulo, mesa em perspectiva, partículas e vinheta */
+.camada { position: absolute; inset: 0; pointer-events: none; }
+#grade {
+  background-image:
+    linear-gradient(rgba(92, 242, 224, .09) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(92, 242, 224, .09) 2px, transparent 2px),
+    linear-gradient(rgba(92, 242, 224, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(92, 242, 224, .045) 1px, transparent 1px);
+  background-size: 200px 200px, 200px 200px, 40px 40px, 40px 40px;
+  background-position: 40px 50px, 40px 50px, 40px 50px, 40px 50px;
+}
+.halo { opacity: 0; }
+#halo-agua { background: radial-gradient(circle 560px at 540px 740px, var(--halo-agua) 0%, rgba(18, 32, 42, .55) 45%, transparent 100%); }
+#halo-ambar { background: radial-gradient(circle 560px at 540px 740px, var(--halo-ambar) 0%, rgba(42, 31, 16, .55) 45%, transparent 100%); }
+#halo-osso { background: radial-gradient(circle 560px at 540px 740px, var(--halo-osso) 0%, rgba(30, 29, 26, .55) 45%, transparent 100%); }
+#mesa-caixa { position: absolute; left: -540px; right: -540px; top: 1500px; height: 900px; perspective: 900px; perspective-origin: 50% 0; }
+#mesa {
+  position: absolute; inset: 0; transform-origin: 50% 0; transform: rotateX(62deg);
+  background-image:
+    linear-gradient(rgba(92, 242, 224, .10) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(92, 242, 224, .10) 2px, transparent 2px);
+  background-size: 120px 120px;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.9), transparent 75%);
+}
+.particula { position: absolute; border-radius: 50%; background: var(--osso-cheio); }
+#vinheta { background: radial-gradient(ellipse 85% 70% at 50% 45%, transparent 55%, var(--fundo-borda) 100%); }
+
+/* barra de capítulos (y 56-72) */
+#capitulos { position: absolute; left: 60px; right: 60px; top: 56px; height: 16px; display: flex; gap: 14px; }
+.cap { flex: 1; position: relative; height: 6px; margin-top: 5px; background: rgba(232, 226, 212, .14); border-radius: 3px; overflow: hidden; }
+.cap i { position: absolute; inset: 0; background: var(--linha); transform-origin: 0 50%; transform: scaleX(0); border-radius: 3px; }
+
+/* cabeçalho-pílula (y 96-214) */
+#cabecalho {
+  position: absolute; left: 48px; right: 48px; top: 96px; height: 118px; border-radius: 59px;
+  background: rgba(11, 15, 20, .72); border: 2px solid rgba(92, 242, 224, .22);
+  display: flex; align-items: center; padding: 0 30px 0 34px; gap: 22px;
+}
+#cab-icone { width: 54px; height: 54px; flex: none; }
+#cab-textos { flex: 1; min-width: 0; }
+#cab-titulo { font: 600 34px 'Bahnschrift', sans-serif; color: var(--texto); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#cab-sub { font: 400 22px 'Consolas', monospace; color: var(--osso); margin-top: 4px; white-space: nowrap; }
+#cab-estado { position: relative; flex: none; width: 330px; height: 62px; border-left: 2px solid rgba(92, 242, 224, .25); }
+.estado { position: absolute; inset: 0 0 0 22px; display: flex; align-items: center; font: 700 26px 'Consolas', monospace;
+  color: var(--linha); white-space: nowrap; clip-path: inset(0 100% 0 0); }
+#cab-olho { width: 40px; height: 40px; flex: none; }
+
+/* palco do assunto (y 250-1230, x 60-1020) */
+.cena { position: absolute; left: 60px; top: 250px; width: 960px; height: 980px; opacity: 0; visibility: hidden; }
+.cena > svg, .plano > svg { position: absolute; left: 0; top: 0; width: 960px; height: 980px; overflow: visible; }
+.plano-caixa { position: absolute; left: 0; top: 0; width: 960px; height: 980px; perspective: 1400px; perspective-origin: 50% 20%; }
+.plano { position: absolute; inset: 0; transform-origin: 50% 60%; }
+
+/* dialeto do traço */
+.l { fill: none; stroke: var(--linha); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.s { fill: none; stroke: var(--osso); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.d { fill: none; stroke: var(--linha); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: .7; }
+.a { fill: none; stroke: var(--alerta); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.h { fill: url(#hachura); stroke: none; }
+.m { fill: var(--massa); stroke: none; }
+.sombra { fill: rgba(5, 7, 10, .55); stroke: none; }
+.brilho { filter: drop-shadow(0 0 6px rgba(92, 242, 224, .55)); }
+.brilho-ambar { filter: drop-shadow(0 0 6px rgba(242, 179, 61, .55)); }
+.tracejado { stroke-dasharray: 14 12; }
+.rot { font: 700 26px 'Consolas', monospace; fill: var(--osso-cheio); }
+.rot-linha { font: 700 26px 'Consolas', monospace; fill: var(--linha); }
+.num { font: 700 190px 'Bahnschrift', sans-serif; fill: var(--texto); }
+.unid { font: 700 36px 'Consolas', monospace; fill: var(--linha); }
+.carimbo-txt { font: 700 64px 'Bahnschrift', sans-serif; }
+.item { font: 600 44px 'Bahnschrift', sans-serif; fill: var(--texto); }
+
+/* legenda (y 1270-1410) */
+#legenda { position: absolute; left: 60px; right: 60px; top: 1270px; height: 140px; }
+.grupo { position: absolute; left: 0; right: 0; top: 0; height: 140px; display: flex; flex-wrap: wrap; align-content: center;
+  justify-content: center; column-gap: 18px; row-gap: 2px; opacity: 0; visibility: hidden;
+  font: 600 62px/1.08 'Bahnschrift', sans-serif; color: var(--texto); text-align: center;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, .9); }
+.p { display: inline-block; opacity: .3; }
+.enfase { position: relative; display: inline-flex; column-gap: 14px; padding: 0 14px 6px; margin: 0 2px;
+  font: italic 400 66px/1.08 'Georgia', serif; color: var(--linha);
+  background-image: repeating-linear-gradient(90deg, var(--linha) 0 6px, transparent 6px 12px);
+  background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 100%; }
+.enfase::before, .enfase::after { content: ""; position: absolute; width: 18px; height: 18px; border: 0 solid var(--linha); }
+.enfase::before { left: 0; top: 4px; border-left-width: 3px; border-top-width: 3px; }
+.enfase::after { right: 0; bottom: 10px; border-right-width: 3px; border-bottom-width: 3px; }
+
+/* faixa de ressalva (y 1430-1490) */
+#ressalva { position: absolute; left: 60px; right: 60px; top: 1430px; height: 60px; }
+.ressalva { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font: 400 22px 'Consolas', monospace; color: rgba(232, 226, 212, .55); text-transform: uppercase; opacity: 0; }
+.ressalva::before, .ressalva::after { content: ""; width: 60px; height: 2px; margin: 0 18px; background: rgba(232, 226, 212, .25); }

@@ -31,6 +31,17 @@ def duracao(arquivo: Path) -> float:
     return int(h) * 3600 + int(m) * 60 + float(s)
 
 
+def _loudness(entradas: list[str], filtro: str, rotulo: str = "[mix]") -> float:
+    """Loudness integrada (LUFS) da saída 'rotulo' do filtro, numa passada só de áudio (rápida)."""
+    proc = subprocess.run([FFMPEG, "-hide_banner", "-nostats", *entradas, "-filter_complex",
+                           f"{filtro};{rotulo}ebur128[medido]", "-map", "[medido]", "-f", "null", "-"],
+                          capture_output=True, text=True, encoding="utf-8", errors="replace")
+    achado = re.findall(r"I:\s+(-?[\d.]+) LUFS", proc.stderr)
+    if proc.returncode != 0 or not achado:
+        raise RuntimeError(f"não consegui medir o volume:\n{proc.stderr[-1500:]}")
+    return float(achado[-1])
+
+
 MOVIMENTOS = {"aproxima": 0, "afasta": 1, "panoramica_direita": 2, "panoramica_esquerda": 3}
 
 
@@ -331,6 +342,42 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
     return destino
 
 
+def _mixar(junta: Path, musica, volume_musica: float, efeitos: Path | None, total: float) -> tuple[list[str], str]:
+    """Entradas do ffmpeg e o filtro de áudio: voz + música + efeitos (abaixando sob a fala), a -14 LUFS."""
+    entradas = ["-i", str(junta)]
+    fontes, partes = ["[0:a]"], []
+    # a voz é a chave dos compressores: música e efeitos baixam sozinhos enquanto ela fala e voltam nas pausas
+    chaves = [n for n, ativo in (("chave_m", musica), ("chave_fx", efeitos)) if ativo]
+    if chaves:
+        partes.append(f"[0:a]asplit={len(chaves) + 1}[voz]" + "".join(f"[{n}]" for n in chaves))
+        fontes[0] = "[voz]"
+    if musica:
+        fim = max(total - 3, 0)
+        entradas += ["-stream_loop", "-1", "-i", str(musica)]
+        partes.append(f"[1:a]volume={volume_musica * 1.6:.3f},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[mb];"
+                      "[mb][chave_m]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[m]")
+        fontes.append("[m]")
+    if efeitos:
+        entradas += ["-i", str(efeitos)]
+        # efeito forte só no silêncio: sob a fala ele cai uns 12 dB (ataque rápido para não pisar na palavra)
+        # o grave abaixo de 45 Hz das pancadas não aparece no celular, só soma pico e faz o alto-falante estourar
+        partes.append(f"[{len(fontes)}:a]highpass=f=45,volume=0.8[fxb];"
+                      "[fxb][chave_fx]sidechaincompress=threshold=0.015:ratio=12:attack=3:release=180:makeup=1[fx]")
+        fontes.append("[fx]")
+    if len(fontes) > 1:
+        partes.append(f"{''.join(fontes)}amix=inputs={len(fontes)}:duration=first:dropout_transition=0:"
+                      f"normalize=0[mix]")
+    else:
+        partes.append("[0:a]anull[mix]")
+    # -14 LUFS com um ganho fixo, medido antes numa passada só de áudio. O loudnorm de uma passada mexia no volume
+    # o tempo todo (modo dinâmico) e, somado ao limitador, deixava a voz com som de estourada. O limitador agora só
+    # segura os picos dos efeitos em -1,5 dB.
+    ganho = -14.0 - _loudness(entradas, ";".join(partes))
+    partes.append(f"[mix]volume={max(min(ganho, 20.0), -20.0):.2f}dB,"
+                  "alimiter=limit=0.84:attack=5:release=80:level=0[a]")
+    return entradas, ";".join(partes)
+
+
 def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_musica: float = 0.12,
            selo: str | None = None, efeitos: Path | None = None, mascote: bool | Path = False,
            post: dict | None = None, cor_barra: str = "#FFD400", dissolver: float = 0.0) -> None:
@@ -366,33 +413,7 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
         musica = ambiente(total, pasta / "ambiente.wav")
     elif musica in ("animada", "chiptune"):
         musica = animada(total, pasta / f"{musica}.wav", saida.stem, chip=musica == "chiptune")
-    # o loudnorm de uma passada deixa escapar pico (o AAC ainda soma um pouco): o limitador segura em -1,5 dB
-    normalizar = "loudnorm=I=-14:TP=-1.5:LRA=11,alimiter=limit=0.84:attack=5:release=50:level=0"
-    entradas = ["-i", str(junta)]
-    fontes, partes = ["[0:a]"], []
-    # a voz é a chave dos compressores: música e efeitos baixam sozinhos enquanto ela fala e voltam nas pausas
-    chaves = [n for n, ativo in (("chave_m", musica), ("chave_fx", efeitos)) if ativo]
-    if chaves:
-        partes.append(f"[0:a]asplit={len(chaves) + 1}[voz]" + "".join(f"[{n}]" for n in chaves))
-        fontes[0] = "[voz]"
-    if musica:
-        fim = max(total - 3, 0)
-        entradas += ["-stream_loop", "-1", "-i", str(musica)]
-        partes.append(f"[1:a]volume={volume_musica * 1.6:.3f},afade=t=in:d=2,afade=t=out:st={fim:.2f}:d=3[mb];"
-                      "[mb][chave_m]sidechaincompress=threshold=0.02:ratio=6:attack=15:release=450:makeup=1[m]")
-        fontes.append("[m]")
-    if efeitos:
-        entradas += ["-i", str(efeitos)]
-        # efeito forte só no silêncio: sob a fala ele cai uns 12 dB (ataque rápido para não pisar na palavra)
-        partes.append(f"[{len(fontes)}:a]volume=1.0[fxb];"
-                      "[fxb][chave_fx]sidechaincompress=threshold=0.015:ratio=12:attack=3:release=180:makeup=1[fx]")
-        fontes.append("[fx]")
-    if len(fontes) > 1:
-        partes.append(f"{''.join(fontes)}amix=inputs={len(fontes)}:duration=first:dropout_transition=0:"
-                      f"normalize=0,{normalizar}[a]")
-    else:
-        partes.append(f"[0:a]{normalizar}[a]")
-    audio = ";".join(partes)
+    entradas, audio = _mixar(junta, musica, volume_musica, efeitos, total)
 
     proc = subprocess.run([FFMPEG, "-hide_banner", "-i", str(junta)], capture_output=True, text=True,
                           encoding="utf-8", errors="replace")

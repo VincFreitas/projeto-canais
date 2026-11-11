@@ -1,22 +1,85 @@
 // Kit comum das cenas 3D (Three.js + GSAP): sala, materiais, canos que crescem, partículas, câmera e etiquetas.
 // Cada cena (cenas/<slug>.3d.js) cria o kit com kit(args, opções) e só descreve o seu objeto e o que se mexe.
 
-export function kit({ THREE, gsap, largura: W, altura: H }, opcoes = {}) {
+export function kit({ THREE, gsap, largura: W, altura: H, visual }, opcoes = {}) {
+  // visual "sombrio" (canais de mistério): noite de lua, neblina, pedra com textura e relevo, contraluz quente,
+  // poeira na luz e uma tocha que tremula. As cenas não mudam: o kit troca luz, céu e materiais por baixo.
+  const sombrio = visual === "sombrio";
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(opcoes.ceu ?? 0x1d2a52);
   const cam = new THREE.PerspectiveCamera(opcoes.fov ?? 48, W / H, 0.05, 60);
-  scene.add(new THREE.HemisphereLight(0xfff2d6, 0x30304a, opcoes.ambiente ?? 1.4));
+  const ceu = new THREE.HemisphereLight(0xfff2d6, 0x30304a, opcoes.ambiente ?? 1.4);
+  scene.add(ceu);
   const sol = new THREE.DirectionalLight(0xffffff, opcoes.sol ?? 2.2);
   sol.position.set(1.2, 7, 2.2);  // luz bem de cima: a sombra cai no chão, não na parede
   scene.add(sol);
+  let tocha = null;
+  if (sombrio) {
+    const gradiente = document.createElement("canvas");
+    gradiente.width = 4; gradiente.height = 512;
+    const g = gradiente.getContext("2d");
+    const gr = g.createLinearGradient(0, 0, 0, 512);
+    gr.addColorStop(0, "#04060c"); gr.addColorStop(0.55, "#0d1424"); gr.addColorStop(0.8, "#2a2230"); gr.addColorStop(1, "#3a2a26");
+    g.fillStyle = gr; g.fillRect(0, 0, 4, 512);
+    const fundo = new THREE.CanvasTexture(gradiente);
+    fundo.colorSpace = THREE.SRGBColorSpace;
+    scene.background = fundo;
+    scene.fog = new THREE.FogExp2(0x161a26, 0.075);
+    ceu.color.set(0x8e96a8); ceu.groundColor.set(0x141210); ceu.intensity = 0.8;
+    sol.color.set(0xc4cfe8); sol.intensity = 2.8;            // lua fria, alta e de lado
+    sol.position.set(-3.5, 6.5, 3.0);
+    const contra = new THREE.DirectionalLight(0xff9a52, 2.4);  // contraluz quente: recorta a silhueta
+    contra.position.set(2.5, 2.2, -5.5);
+    contra.castShadow = false; contra.userData.semSombra = true;
+    scene.add(contra);
+    tocha = new THREE.PointLight(0xff8a3c, 6, 9, 1.6);        // fogo que tremula perto da câmera
+    tocha.position.set(1.6, 1.4, 2.6);
+    scene.add(tocha);
+  }
 
   const tons = new THREE.DataTexture(new Uint8Array([80, 80, 80, 255, 170, 170, 170, 255, 255, 255, 255, 255]), 3, 1);
   tons.minFilter = tons.magFilter = THREE.NearestFilter;
   tons.needsUpdate = true;
-  const toon = (cor, extra = {}) => new THREE.MeshToonMaterial({ color: cor, gradientMap: tons, ...extra });
+  // no sombrio: material de verdade (aspereza e relevo de pedra/terra), cor puxada para o cinza e mais escura
+  let grao = null;
+  if (sombrio) {
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = 256;
+    const g = cv.getContext("2d"), img = g.createImageData(256, 256);
+    let s = 1234567;
+    for (let k = 0; k < 256 * 256; k++) {  // ruído com semente fixa: a textura sai igual toda vez
+      s = (s * 16807) % 2147483647;
+      const v = 150 + (s % 90) + ((k * 7) % 13);
+      img.data[k * 4] = img.data[k * 4 + 1] = img.data[k * 4 + 2] = v; img.data[k * 4 + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    for (let k = 0; k < 26; k++) {  // manchas de líquen e umidade
+      const x = (k * 89) % 256, y = (k * 151) % 256, r = 8 + (k * 37) % 30;
+      const gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, k % 3 ? "rgba(40,38,34,0.35)" : "rgba(70,80,50,0.3)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+    }
+    g.globalAlpha = 0.18; g.strokeStyle = "#555";
+    for (let k = 0; k < 40; k++) { g.beginPath(); g.moveTo((k * 53) % 256, (k * 97) % 256); g.lineTo((k * 31) % 256, (k * 71 + 40) % 256); g.stroke(); }
+    grao = new THREE.CanvasTexture(cv);
+    grao.wrapS = grao.wrapT = THREE.RepeatWrapping;
+    grao.repeat.set(3, 3);
+  }
+  const cinza = new THREE.Color();
+  const toon = (cor, extra = {}) => {
+    if (!sombrio) return new THREE.MeshToonMaterial({ color: cor, gradientMap: tons, ...extra });
+    const c = new THREE.Color(cor);
+    const l = c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
+    c.lerp(cinza.setRGB(l, l, l), 0.45).multiplyScalar(0.85);
+    const { gradientMap, ...resto } = extra;
+    return new THREE.MeshStandardMaterial({ color: c, roughness: 0.92, metalness: 0.02,
+      map: resto.map ?? grao, bumpMap: grao, bumpScale: 0.06, ...resto });
+  };
   const brilho = (cor, extra = {}) => new THREE.MeshBasicMaterial({ color: cor, ...extra });
-  const vidro = (cor, opacidade = 0.35) => new THREE.MeshToonMaterial({ color: cor, gradientMap: tons, transparent: true,
-    opacity: opacidade, depthWrite: false });
+  const vidro = (cor, opacidade = 0.35) => sombrio
+    ? new THREE.MeshStandardMaterial({ color: cor, roughness: 0.15, metalness: 0.1, transparent: true, opacity: opacidade,
+        depthWrite: false })
+    : new THREE.MeshToonMaterial({ color: cor, gradientMap: tons, transparent: true, opacity: opacidade, depthWrite: false });
 
   const pop = gsap.parseEase("back.out(2.2)");
   const suave = gsap.parseEase("power2.inOut");
@@ -145,7 +208,11 @@ export function kit({ THREE, gsap, largura: W, altura: H }, opcoes = {}) {
   };
   const rgb = (hex) => { cC.set(hex); return [cC.r, cC.g, cC.b]; };
   const pisca = (T, s) => Math.max(0, Math.sin(T * (2 + 3 * s[2]) + s[0] * 6)) ** 4;
-  const poeira = pontos(70, 0.022);
+  const poeira = pontos(sombrio ? 160 : 70, sombrio ? 0.018 : 0.022);
+  if (sombrio) {  // poeira que brilha na luz, somando cor (fica viva no escuro)
+    poeira.material.blending = THREE.AdditiveBlending;
+    poeira.material.transparent = true; poeira.material.depthWrite = false; poeira.material.opacity = 0.75;
+  }
 
   // câmera: viaja entre enquadramentos com curva do GSAP, orbita de leve e treme no impacto
   const alvo = new THREE.Vector3();
@@ -161,7 +228,17 @@ export function kit({ THREE, gsap, largura: W, altura: H }, opcoes = {}) {
     cam.updateProjectionMatrix();
     cam.lookAt(alvo);
     cam.updateMatrixWorld();
-    nuvem(poeira, (k, s) => [-3 + s[0] * 6, (s[1] * 3.2 + e.T * 0.05 * (1 + s[2])) % 3.2, -2.8 + s[2] * 5, 1, 0.94, 0.8]);
+    if (sombrio) {
+      // câmera de mão: respira devagar, sem tremer
+      cam.position.x += Math.sin(e.T * 0.9) * 0.012; cam.position.y += Math.sin(e.T * 1.3 + 1) * 0.008;
+      cam.lookAt(alvo); cam.updateMatrixWorld();
+      // tocha: três ondas fora de fase fazem o fogo tremular (mesmo T, mesma luz)
+      tocha.intensity = 5 + 1.6 * Math.sin(e.T * 7.3) + 0.9 * Math.sin(e.T * 13.1 + 2) + 0.5 * Math.sin(e.T * 23.7);
+      nuvem(poeira, (k, s) => [-3.5 + s[0] * 7, (s[1] * 3.4 + e.T * 0.035 * (1 + s[2])) % 3.4,
+        -3 + s[2] * 5.5 + Math.sin(e.T * 0.3 + k) * 0.05, 0.9, 0.72, 0.5]);
+    } else {
+      nuvem(poeira, (k, s) => [-3 + s[0] * 6, (s[1] * 3.2 + e.T * 0.05 * (1 + s[2])) % 3.2, -2.8 + s[2] * 5, 1, 0.94, 0.8]);
+    }
   };
 
   // onde cada âncora 3D está na tela, para as etiquetas (âncora pode ser Vector3 ou um objeto 3D)
@@ -180,6 +257,6 @@ export function kit({ THREE, gsap, largura: W, altura: H }, opcoes = {}) {
   const A = (e) => (n) => (e.acoes[n] === undefined ? null : e.acoes[n]);
   const encaixar = (obj, p, base = 1) => { obj.visible = p > 0; obj.scale.setScalar(Math.max(pop(cl(p)), 0.001) * base); };
 
-  return { THREE, scene, cam, sol, toon, brilho, vidro, pop, suave, mola, lerp, clamp, cl, textura, azulejo, tabua, sala,
+  return { THREE, scene, cam, sol, tocha, sombrio, toon, brilho, vidro, pop, suave, mola, lerp, clamp, cl, textura, azulejo, tabua, sala,
     caixa, cilindro, esfera, grupo, tubo, crescer, pontos, correr, nuvem, rgb, pisca, camera, ancoras, V, P, A, encaixar };
 }

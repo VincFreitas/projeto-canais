@@ -9,6 +9,9 @@ from . import config, hyperframes, narracao, render, visuais
 from .perfis import TAMANHOS_LEGENDA
 
 PAUSA_PADRAO = 0.35
+# quantas camadas do HyperFrames rodam ao mesmo tempo: uma a cada 4 processadores lógicos, de 1 a 3, para o PC
+# fraco não travar (DARKOPS_HF_PARALELO no .env fixa)
+HF_PARALELO = hyperframes.paralelo()
 LIMITE_VERTICAL_S = 180  # Shorts aceita até 3 min; TikTok e Reels rendem melhor bem abaixo disso
 
 
@@ -115,6 +118,8 @@ def _plano_ia(roteiro: dict, pixel: int, post: bool) -> set[int]:
     ("codigo") ou reaproveitam a imagem anterior. Fora do dossiê, devolve vazio (cada cena desenha a sua)."""
     if roteiro.get("tema_cards") != "dossie" or roteiro.get("estilo") not in visuais.ESTILOS_IA or pixel or post:
         return set()
+    if str(roteiro.get("palco") or "").endswith(".3d.js"):  # o palco 3D anima todas as cenas: nada de foto parada
+        return set()
     cenas = roteiro["cenas"]
     candidatas = [i for i, c in enumerate(cenas, 1) if c.get("ilustracao") and not c.get("codigo") and not c.get("arquivo")]
     if not candidatas:
@@ -176,7 +181,8 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
               "legenda_fonte": perfil.dados.get("legenda_fonte"), "legenda_tamanho": perfil.dados.get("legenda_tamanho"),
               "legenda_cor": perfil.dados.get("legenda_cor"), "velocidade": perfil.dados.get("velocidade"),
               "tema_cards": perfil.dados.get("tema_cards"), "edicao": perfil.dados.get("edicao"),
-              "visual_3d": perfil.dados.get("visual_3d"), "animacao_motor": perfil.dados.get("animacao_motor")}
+              "visual_3d": perfil.dados.get("visual_3d"), "animacao_motor": perfil.dados.get("animacao_motor"),
+              "motor_cena": perfil.dados.get("motor_cena")}
     roteiro = {**{k: v for k, v in padrao.items() if v}, **carregar(caminho)}
     _aplicar_edicao(roteiro)
     visuais.ACERVO_NASA = bool(roteiro.get("acervo_nasa", perfil.dados.get("acervo_nasa")))
@@ -204,6 +210,31 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     for sub in ("audio", "visuais", "cenas"):
         (obra / sub).mkdir(parents=True, exist_ok=True)
 
+    # Prancha de Campo: o vídeo inteiro é uma prancha técnica animada (cenas/<slug>.prancha.json), numa composição
+    # só do HyperFrames; sem 3D, sem foto e sem vídeo de fundo. A mixagem continua em render.juntar
+    from . import prancha
+    if prancha.usa(roteiro, slug) and not post:
+        cena, duracoes, efeitos = prancha.produzir(
+            roteiro, slug, obra, lambda i, c: narracao.narrar(c["texto"].strip(), motor, voz, velocidade, idioma,
+                                                              obra / "audio" / f"{i:02d}"), PAUSA_PADRAO)
+        config.SAIDA.mkdir(parents=True, exist_ok=True)
+        video = config.SAIDA / f"{slug}-{formato}.mp4"
+        print("mixando áudio")
+        faixa = _musica(roteiro, caminho.parent)
+        from .sincronia import trilha_efeitos
+        sfx = trilha_efeitos(efeitos, sum(duracoes), obra / "cenas" / "efeitos.wav", semente=slug) \
+            if roteiro.get("efeitos", True) else None
+        render.juntar([cena], faixa, video, float(roteiro.get("volume_musica", 0.12)), selo=None, efeitos=sfx,
+                      mascote=False, cor_barra=roteiro.get("legenda_cor", "#5CF2E0"))
+        from .musica import _liberadas, salvar_credito
+        licenca = _liberadas().get(faixa.relative_to(config.MUSICA).as_posix(), {}) \
+            if isinstance(faixa, Path) and faixa.is_relative_to(config.MUSICA) else {}
+        salvar_credito(video, faixa or "sem música", licenca)
+        roteiro["creditos_imagens"] = []
+        _metadados(roteiro, duracoes, config.SAIDA / f"{slug}-{formato}-metadados.md")
+        print(f"pronto: {video} ({sum(duracoes):.0f}s)")
+        return video
+
     usados: set = set()
     # dossiê com imagem de IA: só as cenas de impacto são desenhadas, já em paralelo com a narração
     ia_cenas, ia_pedidos = _plano_ia(roteiro, pixel, post), {}
@@ -220,8 +251,18 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     arquivos_cena, duracoes, visuais_usados = [], [], []
     efeitos: list[tuple[float, str]] = []  # (segundo no vídeo, som)
     total = len(roteiro["cenas"])
+    # a camada do HyperFrames de cada cena roda ao fundo enquanto a cena seguinte é desenhada (a abertura do
+    # HyperFrames é fixa, uns 20 s por cena, e as cenas não dependem umas das outras). Enquanto isso a duração da
+    # cena entra como estimativa (áudio + pausa, que bate com o arquivo em centésimos) e os efeitos sonoros são
+    # realinhados no fim, com a duração real. Juntar todas as cenas numa abertura só foi medido e não ganhou tempo
+    # (2026-11-09): a camada só começaria depois do último 3D e a captura de tela é o que pesa
+    from concurrent.futures import Future, ThreadPoolExecutor
+    camadas = ThreadPoolExecutor(max_workers=HF_PARALELO)
+    pendentes: dict[int, Future] = {}
+    marcas_efeitos: list[int] = []  # quantos efeitos já havia quando cada cena começou
     for i, c in enumerate(roteiro["cenas"], 1):
         print(f"cena {i}/{total}")
+        marcas_efeitos.append(len(efeitos))
         if c.get("audio"):  # narração pronta: o trecho do áudio enviado, com o tempo das palavras já medido
             audio = (caminho.parent / c["audio"]).resolve()
             if not audio.exists():
@@ -233,7 +274,11 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         pausa = float(c.get("pausa", PAUSA_PADRAO))
         visual, depois_img = None, None
         # palco: a cena é programada em código (cenas/<slug>.py), sem desenho de IA nem busca de mídia
-        palco = (config.RAIZ / roteiro["palco"]) if roteiro.get("palco") and pixel and not post else None
+        # o palco 3D (.3d.js) vale em qualquer estilo (o Enigma é "realista" e tinha o 3D escrito, mas ignorado);
+        # o palco 2D (.py) desenha na grade de pixels e só existe no pixel art
+        palco = None
+        if roteiro.get("palco") and not post and (pixel or str(roteiro["palco"]).endswith(".3d.js")):
+            palco = config.RAIZ / roteiro["palco"]
         if ia_cenas:
             if not c.get("codigo") and not c.get("arquivo"):
                 # cena sem imagem própria reaproveita a última imagem desenhada (outro enquadramento no render)
@@ -385,33 +430,58 @@ def produzir(caminho: Path, legenda: bool | None = None) -> Path:
         if saida_cena.exists() and marca.exists() and json.loads(marca.read_text(encoding="utf-8")) == assinatura:
             duracoes.append(render.duracao(saida_cena))
         elif hf:
-            base = obra / "cenas" / f"base{i:02d}.mp4"
-            dur_base = render.cena(visual, audio, None, base, largura, altura, i, pausa, card, narrador, pixel,
-                                   c.get("movimento"), transicao=not viva and not dossie)
-            try:
-                duracoes.append(hyperframes.cena(
-                    base, palavras if usar_legenda else [], dur_base, largura, altura, i, saida_cena,
-                    cor=roteiro.get("legenda_cor", "#FFE500"), fonte=roteiro.get("legenda_fonte", "Arial Black"),
-                    semente=slug, etiqueta=hf_etiqueta, titulo=hf_titulo, destaque=destaque, termo=termo, selo=selo,
-                    rotulos=rotulos, maximo=1 if palavra and not grupo else 3,
-                    baixo=bool(c.get("animacao")) or estilo in ("cartoon", "pixel"), pixel=pixel, entrada=False))
-            except (RuntimeError, OSError, subprocess.SubprocessError) as erro:  # nunca trava o vídeo: volta ao antigo
-                print(f"  {str(erro)[:200]}\n  cena {i} sem HyperFrames")
-                if usar_legenda:
-                    ass = obra / "cenas" / f"cena{i:02d}.ass"
-                    narracao.legenda_ass(palavras, largura, altura, dur_cena, ass, destaque=destaque, grande=post,
-                                         fonte=roteiro.get("legenda_fonte", "Arial Black"),
-                                         cor=roteiro.get("legenda_cor", "#FFE500"), palavra=palavra, termo=termo,
-                                         rotulos=rotulos, grupo=grupo, selo=selo, cabecalho=cabecalho)
-                duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
-                                            narrador, pixel, c.get("movimento"), transicao=not viva and not dossie))
-                assinatura["hyperframes"] = "falhou"
-            marca.write_text(json.dumps(assinatura), encoding="utf-8")
+            def camada_hf(i=i, c=c, visual=visual, audio=audio, pausa=pausa, card=card, narrador=narrador, viva=viva,
+                          palavras=palavras, saida_cena=saida_cena, hf_etiqueta=hf_etiqueta, hf_titulo=hf_titulo,
+                          destaque=destaque, termo=termo, selo=selo, rotulos=rotulos, dur_cena=dur_cena,
+                          cabecalho=cabecalho, assinatura=assinatura, marca=marca) -> float:
+                base = obra / "cenas" / f"base{i:02d}.mp4"
+                dur_base = render.cena(visual, audio, None, base, largura, altura, i, pausa, card, narrador, pixel,
+                                       c.get("movimento"), transicao=not viva and not dossie)
+                try:
+                    dur = hyperframes.cena(
+                        base, palavras if usar_legenda else [], dur_base, largura, altura, i, saida_cena,
+                        cor=roteiro.get("legenda_cor", "#FFE500"), fonte=roteiro.get("legenda_fonte", "Arial Black"),
+                        semente=slug, etiqueta=hf_etiqueta, titulo=hf_titulo, destaque=destaque, termo=termo, selo=selo,
+                        rotulos=rotulos, maximo=1 if palavra and not grupo else 3,
+                        baixo=bool(c.get("animacao")) or estilo in ("cartoon", "pixel"), pixel=pixel, entrada=False)
+                except (RuntimeError, OSError, subprocess.SubprocessError) as erro:  # nunca trava o vídeo: volta ao antigo
+                    print(f"  {str(erro)[:200]}\n  cena {i} sem HyperFrames")
+                    ass = None
+                    if usar_legenda:
+                        ass = obra / "cenas" / f"cena{i:02d}.ass"
+                        narracao.legenda_ass(palavras, largura, altura, dur_cena, ass, destaque=destaque, grande=post,
+                                             fonte=roteiro.get("legenda_fonte", "Arial Black"),
+                                             cor=roteiro.get("legenda_cor", "#FFE500"), palavra=palavra, termo=termo,
+                                             rotulos=rotulos, grupo=grupo, selo=selo, cabecalho=cabecalho)
+                    dur = render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
+                                      narrador, pixel, c.get("movimento"), transicao=not viva and not dossie)
+                    assinatura["hyperframes"] = "falhou"
+                marca.write_text(json.dumps(assinatura), encoding="utf-8")
+                return dur
+
+            pendentes[i] = camadas.submit(camada_hf)
+            duracoes.append(dur_cena)  # estimativa; a duração real entra quando a camada terminar
         else:
             duracoes.append(render.cena(visual, audio, ass, saida_cena, largura, altura, i, pausa, card,
                                         narrador, pixel, c.get("movimento"), transicao=not viva and not dossie))
             marca.write_text(json.dumps(assinatura), encoding="utf-8")
         arquivos_cena.append(saida_cena)
+
+    if pendentes:
+        print(f"terminando a camada animada de {len(pendentes)} cena(s)")
+    estimadas = list(duracoes)
+    try:
+        for k, futuro in pendentes.items():
+            duracoes[k - 1] = futuro.result()
+    finally:
+        camadas.shutdown(wait=True, cancel_futures=True)
+    if any(abs(a - b) > 0.001 for a, b in zip(estimadas, duracoes)):
+        inicio_est, inicio_real, corrigidos = 0.0, 0.0, []
+        for k, (a, b) in enumerate(zip(estimadas, duracoes)):
+            fim = marcas_efeitos[k + 1] if k + 1 < len(marcas_efeitos) else len(efeitos)
+            corrigidos += [(tempo + (inicio_real - inicio_est), nome) for tempo, nome in efeitos[marcas_efeitos[k]:fim]]
+            inicio_est, inicio_real = inicio_est + a, inicio_real + b
+        efeitos = corrigidos
 
     config.SAIDA.mkdir(parents=True, exist_ok=True)
     video = config.SAIDA / f"{slug}-{formato}.mp4"

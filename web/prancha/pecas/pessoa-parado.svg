@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" data-pivos="pe:100 395;mao:136 214">
+  <circle class="l" data-ordem="1" cx="100" cy="42" r="28"/>
+  <path class="l" data-ordem="2" d="M100,72 L100,232"/>
+  <path class="l" data-ordem="3" d="M100,232 L74,395 M100,232 L126,395"/>
+  <path class="l" data-ordem="4" d="M100,98 L66,214 M100,98 L134,214"/>
+</svg>

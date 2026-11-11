@@ -24,7 +24,7 @@ from . import config
 
 PASTA = config.RAIZ / "dados" / "apps" / "hyperframes-teste"
 NODE = config.RAIZ / "dados" / "apps" / "node"
-VERSAO = 3  # sobe quando a camada muda, para refazer as cenas guardadas
+VERSAO = 5  # sobe quando a camada muda, para refazer as cenas guardadas
 
 # Princípios de movimento (docs/movimento.md): toda animação usa estes tempos e curvas, nunca valores soltos.
 # Rápido = reação a uma palavra; médio = entrada de elemento; lento = respiração do ambiente.
@@ -54,6 +54,26 @@ def _grupos(palavras: list[dict], maximo: int) -> list[list[dict]]:
     return grupos
 
 
+_LIGA = {"e", "de", "da", "do", "das", "dos", "a", "o", "as", "os", "um", "uma", "que", "pra", "para", "com", "sem",
+         "no", "na", "nos", "nas", "em", "se", "por", "ao", "num", "numa", "mais", "nao", "so", "eu", "voce", "ele", "ela"}
+
+
+def _grupos_pixel(palavras: list[dict]) -> list[list[dict]]:
+    """Pixel: uma palavra por vez; palavra curta de ligação ("a", "de", "pra") vai junto com a seguinte."""
+    grupos, atual = [], []
+    for k, p in enumerate(palavras):
+        atual.append(p)
+        prox = palavras[k + 1] if k + 1 < len(palavras) else None
+        curta = _norm(p["texto"]) in _LIGA and not p["texto"][-1:] in ".,;:!?"
+        tamanho = sum(len(x["texto"]) + 1 for x in atual)
+        if not (curta and prox and tamanho + len(prox["texto"]) <= 14):
+            grupos.append(atual)
+            atual = []
+    if atual:
+        grupos.append(atual)
+    return grupos
+
+
 def _limpo(texto: str) -> str:
     return html.escape(texto.strip(".,;:!?\"'«»“”").upper())
 
@@ -73,21 +93,35 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
     anim, corpo = [], []
     chaves_termo = {_norm(t) for t in (termo[0].split() if termo else [])}
 
-    # legenda: grupos de até N palavras; a falada acende na cor do canal, as do termo ficam acesas
-    grupos = _grupos(palavras, maximo)
+    # legenda: grupos de até N palavras; a falada acende na cor do canal, as do termo ficam acesas.
+    # Pixel art: uma palavra por vez, na fonte pixel própria (fonte_pixel), branca com brilho ciano, entrando em degraus
+    from . import fonte_pixel
+    chaves_dest = {_norm(x) for x in (str(destaque[0]).split() if destaque else [])}
+    grupos = _grupos_pixel(palavras) if pixel else _grupos(palavras, maximo)
     for i, g in enumerate(grupos):
         ini = g[0]["inicio"]
         fim = grupos[i + 1][0]["inicio"] if i + 1 < len(grupos) else dur
         spans = []
+        if pixel:
+            letras = sum(len(_limpo(p["texto"])) + 1 for p in g)
+            px = max(5.0, min(15.0 * escala, W * .9 / max(1, letras * 6)))
         for j, p in enumerate(g):
             fixa = _norm(p["texto"]) in chaves_termo
+            if pixel:
+                acesa = fixa or _norm(p["texto"]) in chaves_dest
+                spans.append(f'<span class="p{" acesa" if acesa else ""}" id="g{i}p{j}">'
+                             f'{fonte_pixel.svg(html.unescape(_limpo(p["texto"])), round(px, 1))}</span>')
+                continue
             spans.append(f'<span class="p" id="g{i}p{j}"{" style=\"color:var(--acento)\"" if fixa else ""}>'
                          f'{_limpo(p["texto"])}</span>')
             anim.append(f'tl.to("#g{i}p{j}",{{color:"{cor}",scale:1.12,duration:.07,ease:"power2.out"}},{p["inicio"]:.3f});')
             if not fixa:
                 anim.append(f'tl.to("#g{i}p{j}",{{color:"#ffffff",scale:1,duration:.14}},{p["fim"]:.3f});')
-        corpo.append(f'<div class="grupo clip" id="g{i}" data-start="{ini:.3f}" data-duration="{max(fim - ini, .05):.3f}">'
+        corpo.append(f'<div class="grupo clip{" pixel" if pixel else ""}" id="g{i}" data-start="{ini:.3f}" data-duration="{max(fim - ini, .05):.3f}">'
                      f'{" ".join(spans)}</div>')
+        if pixel:
+            anim.append(f'tl.fromTo("#g{i}",{{opacity:0,scale:1.35}},{{opacity:1,scale:1,duration:.15,ease:"steps(3)"}},{ini:.3f});')
+            continue
         lado = -1 if i % 2 else 1
         anim.append(f'tl.fromTo("#g{i}",{{opacity:0,y:{int(50 * escala)},rotation:{3 * lado},scale:.8,filter:"blur(8px)"}},'
                     f'{{opacity:1,y:0,rotation:0,scale:1,filter:"blur(0px)",duration:.2,ease:"{CURVA["entra"]}"}},{ini:.3f});')
@@ -114,6 +148,13 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
         corpo.append(f'<div id="etiqueta"><span>{html.escape(etiqueta.upper())}</span></div>')
         anim.append('tl.fromTo("#etiqueta",{opacity:0,y:-12},{opacity:.9,y:0,duration:.5,ease:"power3.out"},.05);')
     for n, linha in enumerate(titulo[:2]):
+        if pixel:  # título em pixel: a linha entra em degraus, sem girar letra por letra
+            ultima = n == len(titulo[:2]) - 1 and len(titulo[:2]) > 1
+            pxt = max(5.0, min(12.0 * escala, W * .9 / max(1, len(linha) * 6)))
+            corpo.append(f'<div class="titulo pixel{" acento" if ultima else ""}" id="t{n}" style="top:{int(H * (.08 + n * .06))}px">'
+                         f'{fonte_pixel.svg(linha, round(pxt, 1))}</div>')
+            anim.append(f'tl.fromTo("#t{n}",{{opacity:0,scale:1.3}},{{opacity:1,scale:1,duration:.18,ease:"steps(3)"}},{.1 + n * .35:.2f});')
+            continue
         letras = "".join(f'<span class="l">{html.escape(c) if c != " " else "&nbsp;"}</span>' for c in linha.upper())
         ultima = n == len(titulo[:2]) - 1 and len(titulo[:2]) > 1
         corpo.append(f'<div class="titulo{" acento" if ultima else ""}" id="t{n}" style="top:{int(H * (.085 + n * .05))}px">{letras}</div>')
@@ -124,9 +165,15 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
     if destaque:  # palavra-herói: número vira contador; texto entra batendo
         texto, t = destaque
         numero = re.search(r"\d+(?:[.,]\d+)?", texto)
-        corpo.append(f'<div id="heroi" class="clip" data-start="{max(t - .1, 0):.3f}" data-duration="{max(dur - t + .1, .1):.3f}">'
-                     + (f'{html.escape(texto[:numero.start()].upper())}<span id="num">0</span>{html.escape(texto[numero.end():].upper())}'
-                        if numero else html.escape(texto.upper())) + "</div>")
+        if pixel:
+            pxh = max(6.0, min(20.0 * escala, W * .9 / max(1, len(texto) * 6)))
+            numero = None
+            conteudo = fonte_pixel.svg(texto, round(pxh, 1))
+        else:
+            conteudo = (f'{html.escape(texto[:numero.start()].upper())}<span id="num">0</span>{html.escape(texto[numero.end():].upper())}'
+                        if numero else html.escape(texto.upper()))
+        corpo.append(f'<div id="heroi" class="clip{" pixel" if pixel else ""}" data-start="{max(t - .1, 0):.3f}" data-duration="{max(dur - t + .1, .1):.3f}">'
+                     + conteudo + "</div>")
         anim.append(f'tl.fromTo("#heroi",{{opacity:0,scale:2.4}},{{opacity:1,scale:1,duration:.25,ease:"{CURVA["bate"]}"}},{max(t - .1, 0):.3f});')
         anim.append(f'tl.fromTo("#heroi",{{scale:.92}},{{scale:1,duration:{TEMPO["lento"]},ease:"{CURVA["assenta"]}",immediateRender:false}},{max(t - .1, 0) + .25:.3f});')
         if numero:
@@ -154,8 +201,9 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
                         f'{impacto + n * .033:.3f});')
     if termo:  # nome técnico fixo no topo até o fim da cena
         texto, t = termo
-        corpo.append(f'<div id="termo" class="clip" data-start="{t:.3f}" data-duration="{max(dur - t, .1):.3f}">'
-                     f'{html.escape(texto.upper())}</div>')
+        pxm = max(5.0, min(10.0 * escala, W * .9 / max(1, len(texto) * 6)))
+        corpo.append(f'<div id="termo" class="clip{" pixel" if pixel else ""}" data-start="{t:.3f}" data-duration="{max(dur - t, .1):.3f}">'
+                     f'{fonte_pixel.svg(texto, round(pxm, 1)) if pixel else html.escape(texto.upper())}</div>')
         anim.append(f'tl.fromTo("#termo",{{opacity:0,scale:.4,y:-30}},{{opacity:1,scale:1,y:0,duration:{TEMPO["medio"]},ease:"{CURVA["entra"]}"}},{t:.3f});')
     for k, (texto, x, y, t) in enumerate(rotulos or []):  # etiquetas com pino, cada uma na sua palavra
         corpo.append(f'<div class="rotulo clip" id="r{k}" data-start="{t:.3f}" data-duration="{max(dur - t, .1):.3f}" '
@@ -205,6 +253,16 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
   #selo.ruim {{ background: #E63C3C; }} #selo.bom {{ background: #3CC850; }}
   #termo {{ position: absolute; left: 0; right: 0; top: {int(H * .12)}px; text-align: center; color: var(--acento); font-size: {int(68 * escala)}px;
            text-shadow: 0 0 3px #000, 0 {6 * escala:.0f}px {16 * escala:.0f}px #000; }}
+  .grupo.pixel {{ column-gap: {int(26 * escala)}px; color: #F2FFFF; text-shadow: none; }}
+  .grupo.pixel .p {{ margin: 0; }}
+  .grupo.pixel .acesa, #heroi.pixel, #termo.pixel, .titulo.pixel.acento {{ color: var(--acento); }}
+  .titulo.pixel {{ color: #F2FFFF; text-shadow: none; }}
+  .titulo.pixel svg.px, #termo.pixel svg.px {{ display: inline-block; filter: drop-shadow(0 0 {4 * escala:.0f}px #3DF5FF) drop-shadow(0 0 {14 * escala:.0f}px rgba(61,245,255,.5)); }}
+  #termo.pixel {{ text-shadow: none; }}
+  .grupo.pixel svg.px {{ display: block; filter: drop-shadow(0 0 {4 * escala:.0f}px #3DF5FF) drop-shadow(0 0 {16 * escala:.0f}px rgba(61,245,255,.55)); }}
+  .grupo.pixel .acesa svg.px, #heroi.pixel svg.px {{ display: inline-block; filter: drop-shadow(0 0 {5 * escala:.0f}px #FFB000) drop-shadow(0 0 {18 * escala:.0f}px rgba(255,176,0,.55)); }}
+  #varredura {{ position: absolute; inset: 0; pointer-events: none; opacity: .5;
+               background: repeating-linear-gradient(0deg, rgba(0,0,0,.28) 0 {max(2, int(3 * escala))}px, transparent {max(2, int(3 * escala))}px {max(5, int(6 * escala))}px); }}
   .rotulo {{ position: absolute; display: flex; align-items: center; gap: {int(12 * escala)}px; transform-origin: left center; }}
   .rotulo i {{ width: {int(22 * escala)}px; height: {int(22 * escala)}px; border-radius: 50%; background: var(--acento); box-shadow: 0 0 {20 * escala:.0f}px var(--acento); }}
   .rotulo b {{ background: rgba(5,7,10,.8); border-left: {int(5 * escala)}px solid var(--acento); color: #fff; font-size: {int(34 * escala)}px;
@@ -221,6 +279,7 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
   <div id="vazamento" class="clip" data-start="0" data-duration="{dur:.3f}"></div>
   {grao}
   <div id="flash" class="clip" data-start="0" data-duration="{dur:.3f}"></div>
+  {'<div id="varredura"></div>' if pixel else ""}
   <div id="cortina" class="clip" data-start="0" data-duration="{dur:.3f}"></div>
 </div>
 <script>
@@ -232,6 +291,39 @@ def _html(base: str, palavras: list[dict], dur: float, W: int, H: int, indice: i
 </body>
 </html>
 """
+
+
+_X264 = [os.getenv("DARKOPS_HF_X264", "") == "1"]  # vira True sozinho se o codificador da placa de vídeo falhar
+
+
+def nucleos() -> int:
+    return os.cpu_count() or 2
+
+
+def paralelo() -> int:
+    """Quantas camadas rodam ao mesmo tempo: uma a cada 4 processadores lógicos, de 1 a 3 (DARKOPS_HF_PARALELO fixa)."""
+    fixo = os.getenv("DARKOPS_HF_PARALELO", "").strip()
+    return max(1, int(fixo)) if fixo.isdigit() else max(1, min(3, nucleos() // 4))
+
+
+def _render(pasta: Path, mudo: Path, chromes: int | None = None) -> subprocess.CompletedProcess:
+    """Chama o HyperFrames. O número de Chromes é fixo (por cena: processadores / 2 / camadas ao mesmo tempo, de 1 a
+    3): com ele o HyperFrames não gasta uns 7 s medindo a máquina para escolher sozinho."""
+    binarios = PASTA / "bin"
+    if _X264[0]:
+        binarios = PASTA / "bin-x264"
+        if not (binarios / "ffmpeg.exe").exists():
+            binarios.mkdir(parents=True, exist_ok=True)
+            shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), binarios / "ffmpeg.exe")
+            shutil.copy(PASTA / "bin" / "ffprobe.exe", binarios / "ffprobe.exe")
+    env = {**os.environ, "PATH": f"{binarios};{NODE};{os.environ.get('PATH', '')}", "DO_NOT_TRACK": "1",
+           "HYPERFRAMES_SKIP_SKILLS": "1"}
+    chromes = chromes or max(1, min(3, nucleos() // (2 * paralelo())))
+    return subprocess.run([str(NODE / "node.exe"), str(PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
+                           "render", str(pasta), "-o", str(mudo), "--quality", "looks", "--workers", str(chromes)],
+                          capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=1800,
+                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+
 
 
 def cena(base: Path, palavras: list[dict], dur: float, largura: int, altura: int, indice: int, saida: Path, *,
@@ -251,12 +343,11 @@ def cena(base: Path, palavras: list[dict], dur: float, largura: int, altura: int
               etiqueta=etiqueta, titulo=titulo or [], destaque=destaque, termo=termo, selo=selo, rotulos=rotulos,
               maximo=maximo, baixo=baixo, pixel=pixel, entrada=entrada), encoding="utf-8")
     mudo = pasta / "mudo.mp4"
-    env = {**os.environ, "PATH": f"{PASTA / 'bin'};{NODE};{os.environ.get('PATH', '')}", "DO_NOT_TRACK": "1",
-           "HYPERFRAMES_SKIP_SKILLS": "1"}
-    proc = subprocess.run([str(NODE / "node.exe"), str(PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
-                           "render", str(pasta), "-o", str(mudo), "--quality", "looks"],
-                          capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=1800,
-                          creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    proc = _render(pasta, mudo)
+    if (proc.returncode != 0 or not mudo.exists()) and not _X264[0]:
+        # PC sem codificador de vídeo na placa: o ffmpeg do HyperFrames não tem libx264; tenta com o do projeto
+        _X264[0] = True
+        proc = _render(pasta, mudo)
     if proc.returncode != 0 or not mudo.exists():
         raise RuntimeError(f"HyperFrames falhou na cena {indice}: {(proc.stderr or proc.stdout)[-400:]}")
     # devolve o som da cena-base e reencoda em H.264 (o ffmpeg do projeto tem libx264)

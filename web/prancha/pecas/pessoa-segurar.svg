@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" data-pivos="pe:96 395;mao:180 178">
+  <!-- segurando (freio): corpo bem inclinado para trás, joelhos dobrados, braços na corda -->
+  <circle class="l" data-ordem="1" cx="48" cy="98" r="28"/>
+  <path class="l" data-ordem="2" d="M64,124 L118,252"/>
+  <path class="l" data-ordem="3" d="M118,252 L168,300 L170,395 M118,252 L80,330 L60,395"/>
+  <path class="l" data-ordem="4" d="M78,150 L176,170 M80,160 L180,184"/>
+</svg>

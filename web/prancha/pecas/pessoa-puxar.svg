@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" data-pivos="pe:96 395;mao:176 160">
+  <!-- puxando uma corda que vai para a direita: corpo inclinado para trás (esquerda), braços esticados para a frente -->
+  <circle class="l" data-ordem="1" cx="62" cy="70" r="28"/>
+  <path class="l" data-ordem="2" d="M74,98 L112,240"/>
+  <path class="l" data-ordem="3" d="M112,240 L158,395 M112,240 L64,320 L54,395"/>
+  <path class="l" data-ordem="4" d="M84,124 L172,154 M86,134 L176,166"/>
+</svg>

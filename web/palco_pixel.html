@@ -6,6 +6,7 @@
 <style>html, body { margin: 0; background: #000; } canvas { display: block; image-rendering: pixelated; }</style>
 <script type="importmap">
 { "imports": { "three": "/web/node_modules/three/build/three.module.js",
+               "three/addons/": "/web/node_modules/three/examples/jsm/",
                "gsap": "/web/node_modules/gsap/index.js" } }
 </script>
 </head>
@@ -13,6 +14,9 @@
 <script type="module">
 // Palco 3D pixelado ("visual_3d": "pixel"): a mesma cena de palco.html, desenhada numa grade pequena
 // (largura / pixel) e acabada num shader: contorno pela profundidade, pontilhado Bayer 4x4 e paleta curta.
+// Luz de cinema, tudo ainda na grade de pixels (o brilho também sai pixelado): uma paleta por cena (mapa de
+// gradiente: sombra, meio e luz), sol num canto com raios de luz e clarão de lente, brilho em volta do que é claro,
+// névoa de contraluz pela profundidade (o fundo clareia e o que está perto vira silhueta) e vinheta.
 // Devolve o quadro pequeno em PNG; o Python amplia sem suavizar. O tempo vem de fora, como em palco.html.
 import * as THREE from "three";
 import { gsap } from "gsap";
@@ -21,15 +25,28 @@ const NIVEIS = 6;        // tons por canal de cor
 const EXPOSICAO = 0.78;  // abaixo de 1 para os brancos não estourarem no pontilhado
 const SATURACAO = 1.12;
 const CONTORNO = 0.35;   // salto relativo de profundidade que vira borda escura
+// paletas de cinema (sombra, meio, luz), uma por cena, em rodízio; a cor dos objetos continua aparecendo por baixo
+const PALETAS = [
+  ["#1a1033", "#c0563c", "#ffd98a"],  // pôr do sol
+  ["#062a2a", "#2f9e6e", "#e9ffb0"],  // esmeralda
+  ["#0b1a3a", "#2a7fd4", "#b9f6ff"],  // ciano
+  ["#200a2e", "#b23a8c", "#ffd0f0"],  // magenta
+  ["#2a0f05", "#e2702a", "#fff0c0"],  // laranja quente
+];
+const GRADE = 0.42;      // quanto da paleta entra na cor (0 = sem paleta, 1 = duotone puro)
+const cor = (h) => new THREE.Color(h).toArray();
 
 let cena = null, renderer = null, alvo = null, acabamento = null;
 
 const SHADER = {
   uniforms: { tCor: { value: null }, tProf: { value: null }, tam: { value: new THREE.Vector2() },
-              near: { value: 0.05 }, far: { value: 60 } },
+              near: { value: 0.05 }, far: { value: 60 },
+              uSombra: { value: new THREE.Vector3() }, uMeio: { value: new THREE.Vector3() }, uLuz: { value: new THREE.Vector3() },
+              uSol: { value: new THREE.Vector2(.18, .9) }, uT: { value: 0 }, uForca: { value: 1 } },
   vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
   fragmentShader: `
     uniform sampler2D tCor; uniform sampler2D tProf; uniform vec2 tam; uniform float near; uniform float far;
+    uniform vec3 uSombra; uniform vec3 uMeio; uniform vec3 uLuz; uniform vec2 uSol; uniform float uT; uniform float uForca;
     varying vec2 vUv;
     float prof(vec2 uv) { return (near * far) / (far - texture2D(tProf, uv).x * (far - near)); }
     vec3 aces(vec3 c) {  // o mesmo ACES filmic do three.js: o alvo guarda luz linear, sem tone mapping
@@ -49,11 +66,62 @@ const SHADER = {
       for (int k = 0; k < 16; k++) if (k == i) return m[k] / 16.0 - 0.5;
       return 0.0;
     }
+    vec3 base(vec2 uv) { return srgb(aces(texture2D(tCor, uv).rgb)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    vec3 gradiente(float l) {  // mapa de gradiente: sombra -> meio -> luz
+      return l < 0.5 ? mix(uSombra, uMeio, l * 2.0) : mix(uMeio, uLuz, l * 2.0 - 1.0);
+    }
     void main() {
-      vec3 c = srgb(aces(texture2D(tCor, vUv).rgb));
-      float l = dot(c, vec3(0.299, 0.587, 0.114));
+      vec3 c = base(vUv);
+      float l = luma(c);
       c = clamp(mix(vec3(l), c, ${SATURACAO.toFixed(2)}), 0.0, 1.0);
+      // contraste em S e paleta da cena por cima da cor original
+      c = smoothstep(0.1, 0.97, c * 0.9);
+      c = mix(c, gradiente(luma(c)) * (0.75 + 0.5 * luma(c)), ${GRADE.toFixed(2)});
+      vec2 asp = vec2(tam.x / tam.y, 1.0);
+      // brilho: o que é claro vaza em volta (amostras em dois anéis, ainda na grade pequena)
+      vec3 brilho = vec3(0.0);
+      for (int k = 0; k < 12; k++) {
+        float a = float(k) * 0.5236;
+        for (int r = 1; r <= 2; r++) {
+          vec2 o = vec2(cos(a), sin(a)) * float(r) * 5.0 / tam;
+          vec3 s = base(vUv + o);
+          brilho += s * max(luma(s) - 0.8, 0.0);
+        }
+      }
+      c += brilho * 0.13 * uLuz * uForca;
+      // raios de luz: do pixel em direção ao sol, somando o que é claro no caminho (luz entrando pela cena)
+      vec2 dir = (uSol - vUv);
+      float raio = 0.0, peso = 1.0;
+      for (int k = 0; k < 28; k++) {
+        vec2 q = vUv + dir * (float(k) / 28.0);
+        float b = max(luma(base(q)) - 0.78, 0.0);
+        float disco = smoothstep(0.09, 0.0, length((q - uSol) * asp));
+        raio += (b + disco) * peso;
+        peso *= 0.94;
+      }
+      c += uLuz * raio * 0.04 * uForca;
+      // sol, estrela e clarão de lente (fantasmas na linha do sol até o centro), pulsando de leve
+      vec2 ds = (vUv - uSol) * asp;
+      float d = length(ds), ang = atan(ds.y, ds.x);
+      float pulso = 0.9 + 0.1 * sin(uT * 1.7);
+      c += uLuz * (smoothstep(0.075, 0.0, d) * 1.2 + 0.028 / (d + 0.03) * pulso * 0.35) * uForca;
+      c += uLuz * pow(abs(cos(ang * 4.0 + uT * 0.15)), 40.0) * smoothstep(0.55, 0.0, d) * 0.55 * uForca;
+      for (int k = 1; k <= 3; k++) {
+        vec2 g = uSol + (vec2(0.5) - uSol) * (float(k) * 0.55 + 0.35);
+        float dg = length((vUv - g) * asp);
+        float rg = 0.018 + 0.016 * float(k);
+        c += mix(uMeio, uLuz, 0.5) * smoothstep(rg, rg * 0.6, dg) * 0.22 * uForca;
+      }
+      // névoa de contraluz: o fundo clareia na cor da luz e o que está perto fica recortado contra ele
       vec2 px = 1.0 / tam; float z = prof(vUv);
+      float nevoa = smoothstep(2.5, 14.0, z) * (z < far * 0.9 ? 1.0 : 0.0);
+      float perto = 1.0 - smoothstep(0.6, 0.0, length((vUv - uSol) * asp));
+      c = mix(c, uLuz * 0.95, nevoa * 0.2 * uForca);
+      c = mix(c, c * 0.55, (1.0 - nevoa) * perto * 0.4 * uForca);
+      // vinheta
+      c *= mix(1.0, smoothstep(1.15, 0.35, length((vUv - 0.5) * vec2(1.0, 0.7) * 1.6)), 0.72);
+      c = clamp(c, 0.0, 1.0);
       float zmax = max(max(prof(vUv + vec2(px.x, 0.)), prof(vUv - vec2(px.x, 0.))),
                        max(prof(vUv + vec2(0., px.y)), prof(vUv - vec2(0., px.y))));
       if (z < far * 0.9 && (zmax - z) / z > ${CONTORNO.toFixed(2)}) c *= 0.35;
@@ -107,6 +175,13 @@ window.__palco = {
   },
   quadro(estado) {
     const ancoras = cena.quadro(estado);
+    // paleta e lado do sol mudam por cena (rodízio fixo: o mesmo vídeo sai sempre igual)
+    const u = acabamento.material.uniforms, i = (estado.cena || 1) - 1;
+    const [s, m, l] = PALETAS[i % PALETAS.length];
+    u.uSombra.value.fromArray(cor(s)); u.uMeio.value.fromArray(cor(m)); u.uLuz.value.fromArray(cor(l));
+    const lado = i % 2 ? 0.84 : 0.16;
+    u.uSol.value.set(lado + 0.03 * Math.sin((estado.T || 0) * 0.21), 0.9 - 0.015 * Math.sin((estado.T || 0) * 0.13));
+    u.uT.value = estado.T || 0;
     renderer.setRenderTarget(alvo);
     renderer.render(cena.scene, cena.camera);
     renderer.setRenderTarget(null);

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 1000" data-pivos="frente:410 950;tras:198 952;apoio:302 972;cm:300 640;cabeca:300 110;nuca:186 300" data-medidas="altura_m:9.8;largura_m:3.2;fonte:Hunt e Lipo 2013 (moai Paro)">
+  <!-- moai de perfil, olhando para a direita: testa saliente, nariz comprido, queixo para frente, base em D arredondada -->
+  <path class="m" d="M190,70 Q300,40 390,70 L405,190 Q450,205 452,236 Q440,250 418,256 L416,300 Q448,360 472,420 Q480,440 458,448 Q442,452 436,446 L440,462 Q456,468 452,482 Q448,496 450,506 Q462,530 446,548 Q410,566 372,566 L366,600 Q412,630 418,690 L428,860 Q430,905 412,940 Q300,1000 196,950 Q176,900 176,840 L178,620 Q182,580 192,540 L186,300 Q184,150 190,70 Z"/>
+  <path class="sombra" d="M418,256 Q398,282 416,300 Z"/>
+  <path class="l" data-ordem="1" data-parte="cabeca" d="M192,540 L186,300 Q184,150 190,70 Q300,40 390,70 L405,190 Q450,205 452,236 Q440,250 418,256 L416,300 Q448,360 472,420 Q480,440 458,448 Q442,452 436,446 L440,462 Q456,468 452,482 Q448,496 450,506 Q462,530 446,548 Q410,566 372,566 L366,600"/>
+  <path class="l" data-ordem="2" data-parte="corpo" d="M366,600 Q412,630 418,690 L428,860 Q430,905 412,940 M196,950 Q176,900 176,840 L178,620 Q182,580 192,540"/>
+  <path class="l" data-ordem="3" data-parte="base" d="M412,940 Q300,1000 196,950"/>
+  <path class="l" data-ordem="4" d="M300,230 Q336,236 336,300 L332,480 Q328,512 302,512 Q292,400 300,230 Z"/>
+  <path class="d" data-ordem="5" d="M312,262 Q324,330 318,470"/>
+  <path class="d" data-ordem="5" d="M405,190 Q380,214 404,236"/>
+  <path class="d" data-ordem="6" d="M430,488 L452,486"/>
+  <path class="l" data-ordem="7" d="M296,640 Q316,760 326,860 Q334,894 380,898 L424,898"/>
+  <path class="d" data-ordem="8" d="M384,882 L426,884"/>
+  <path class="d" data-ordem="8" d="M214,640 Q226,720 222,820"/>
+</svg>

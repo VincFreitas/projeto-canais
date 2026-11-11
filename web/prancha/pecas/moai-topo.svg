@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" data-pivos="centro:100 100;cabeca:100 100;frente:100 30;tras:100 172;esq:42 100;dir:158 100">
+  <!-- moai visto de cima (planta): base em D com a frente arredondada para cima, cabeça no centro, nariz apontando para a frente -->
+  <path class="m" d="M40,170 L40,100 Q40,28 100,28 Q160,28 160,100 L160,170 Z"/>
+  <path class="l" data-ordem="1" d="M40,170 L40,100 Q40,28 100,28 Q160,28 160,100 L160,170 Z"/>
+  <circle class="d" data-ordem="2" cx="100" cy="100" r="42"/>
+  <path class="l" data-ordem="3" d="M100,58 L100,40"/>
+</svg>

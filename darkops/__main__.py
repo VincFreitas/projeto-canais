@@ -492,6 +492,19 @@ def cmd_palco_testar(a):
     sys.exit(1 if erros else 0)
 
 
+def cmd_prancha_testar(a):
+    from .prancha import testar
+    sys.exit(testar(Path(a.roteiro)))
+
+
+def cmd_prancha_escrever(a):
+    from .perfis import carregar as carregar_perfil
+    from .prancha import escrever
+    perfil = carregar_perfil()
+    ok = [escrever(perfil, Path(r), refazer=a.refazer) for r in a.roteiros]
+    sys.exit(0 if all(ok) else 1)
+
+
 def cmd_estatisticas(_):
     from .estatisticas import coletar, totais
     from .perfis import carregar
@@ -926,6 +939,15 @@ def main():
     s = sub.add_parser("palco-testar", help="desenha alguns quadros de cada cena do palco de um roteiro (sem gravar)")
     s.add_argument("roteiro")
     s.set_defaults(fn=cmd_palco_testar)
+
+    s = sub.add_parser("prancha-testar", help="monta e confere a Prancha de Campo de um roteiro e grava a folha de contato")
+    s.add_argument("roteiro")
+    s.set_defaults(fn=cmd_prancha_testar)
+
+    s = sub.add_parser("prancha-escrever", help="pede ao Claude a Prancha de Campo de roteiros já escritos")
+    s.add_argument("roteiros", nargs="+")
+    s.add_argument("--refazer", action="store_true", help="reescreve mesmo se já existir")
+    s.set_defaults(fn=cmd_prancha_escrever)
 
     s = sub.add_parser("estatisticas", help="busca nas plataformas os números do canal e de cada vídeo")
     s.set_defaults(fn=cmd_estatisticas)

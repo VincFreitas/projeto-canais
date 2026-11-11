@@ -84,7 +84,8 @@ def _claude() -> str | None:
 
 # esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
 ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
-           "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium"}
+           "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium",
+           "prancha": "high"}
 # modelo por tarefa (roteador por nível): tarefa curta vai para um modelo menor e mais rápido, que gasta menos do
 # limite do plano; roteiro, análise, aprendizado e ajuste ficam no modelo padrão do Claude Code (o maior)
 MODELO = {"descricao": "haiku", "comentarios": "haiku", "nomes": "haiku", "visual": "sonnet", "carrossel": "sonnet"}
@@ -240,6 +241,9 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
            "escreva titulo_tela, marque imagem: true com ilustracao em até 4 cenas de impacto e ponha codigo (mapa, "
            "diagrama, escala ou ficha) em 3 a 6 cenas; não escreva palco 3D. "
            if d.get("tema_cards") == "dossie" else "")
+        + ("Canal na Prancha de Campo: não escreva palco 3D nem ilustracao por IA; em cada cena preencha "
+           "\"intencao_visual\" (o que o espectador vê quando a frase termina), porque a animação é escrita depois. "
+           if d.get("motor_cena") == "prancha" else "")
         + f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
         "com \"aprovado\": false, e \"notas_roteiro\" preenchido. No formato explicativo e no de notícia, escreva também o palco 3D "
         "cenas/<slug>.3d.js (padrão do canal; o 2D cenas/<slug>.py só se o 3D não der), com os movimentos de "
@@ -370,6 +374,16 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Pa
                     continue
                 pendentes.append(roteiro)
                 anotar()
+                if perfil.dados.get("motor_cena") == "prancha":  # a animação do vídeo, numa chamada própria
+                    from . import prancha
+                    print("  desenhando a prancha", flush=True)
+                    try:
+                        prancha.escrever(perfil, roteiro)
+                    except LimiteClaude as limite:
+                        volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite)
+                        print(f"o Claude bateu no limite do plano na prancha; a leva continua sozinha às "
+                              f"{time.strftime('%H:%M', time.localtime(volta))}", flush=True)
+                        break
                 from .descricao import gerar as gerar_textos
                 gerar_textos(perfil, roteiro)  # descrição e tags pela IA, para a revisão já mostrar
                 print(f"  roteiro {roteiro.name}; gerando a prévia", flush=True)

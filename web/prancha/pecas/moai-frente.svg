@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 1000" data-pivos="canto-esq:104 955;canto-dir:396 955;cm:250 620;cabeca:250 120" data-medidas="altura_m:9.8;largura_m:4.6;fonte:Hunt e Lipo 2013 (moai Paro)">
+  <!-- moai visto de frente: cabeça grande, testa pesada, nariz longo, lábios em bico, orelhas compridas, braços colados ao corpo -->
+  <path class="m" d="M140,70 Q250,40 360,70 L372,200 L368,500 Q362,540 330,556 L350,556 L360,600 Q380,612 392,640 L396,955 L104,955 L108,640 Q120,612 140,600 L150,556 L170,556 Q138,540 132,500 L128,200 Z"/>
+  <path class="sombra" d="M152,248 Q160,292 200,298 Q232,292 240,252 Z M348,248 Q340,292 300,298 Q268,292 260,252 Z"/>
+  <path class="l" data-ordem="1" data-parte="cabeca" d="M132,500 L128,200 L140,70 Q250,40 360,70 L372,200 L368,500 Q362,540 330,556 L170,556 Q138,540 132,500"/>
+  <path class="l" data-ordem="2" data-parte="corpo" d="M150,556 L140,600 Q120,612 108,640 L104,955 L396,955 L392,640 Q380,612 360,600 L350,556"/>
+  <path class="l" data-ordem="3" d="M372,215 Q398,222 400,300 L398,470 Q396,505 372,510"/>
+  <path class="l" data-ordem="3" d="M128,215 Q102,222 100,300 L102,470 Q104,505 128,510"/>
+  <path class="d" data-ordem="4" d="M380,252 Q388,330 382,470 M120,252 Q112,330 118,470"/>
+  <path class="l" data-ordem="5" d="M138,232 Q250,205 362,232"/>
+  <path class="d" data-ordem="5" d="M146,248 Q250,224 354,248"/>
+  <path class="l" data-ordem="6" d="M240,252 L230,396 M260,252 L270,396"/>
+  <path class="l" data-ordem="6" d="M224,392 Q204,420 222,442 Q250,454 278,442 Q296,420 276,392"/>
+  <path class="d" data-ordem="7" d="M230,428 Q240,418 246,434 M270,428 Q260,418 254,434"/>
+  <path class="l" data-ordem="7" d="M198,472 Q250,458 302,472 Q250,504 198,472"/>
+  <path class="d" data-ordem="7" d="M214,492 Q250,514 286,492"/>
+  <path class="d" data-ordem="8" d="M186,530 Q250,550 314,530"/>
+  <path class="l" data-ordem="9" d="M390,652 Q384,760 370,860 Q360,900 320,905 L262,905"/>
+  <path class="l" data-ordem="9" d="M110,652 Q116,760 130,860 Q140,900 180,905 L238,905"/>
+  <path class="d" data-ordem="10" d="M330,878 L266,880 M330,891 L266,893 M170,878 L234,880 M170,891 L234,893"/>
+  <path class="d" data-ordem="10" d="M242,842 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0"/>
+</svg>

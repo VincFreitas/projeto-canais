@@ -28,6 +28,13 @@ Movimento linear (`ease: "none"`) só em partícula, grão e tremor quadro a qua
 5. **Arcos e respiração:** câmera e luz se movem em curva suave (`respira`), nunca em velocidade constante.
 6. **Hierarquia:** um destaque por vez. Clarão e tremor só no impacto principal da cena; o resto da tela fica parado enquanto o destaque acontece.
 
+## Na Prancha de Campo (`web/prancha/prancha.js`)
+- Traço que se desenha: `desenha` (`power1.inOut`), cerca de 1,1 s por peça, na ordem do desenho (`data-ordem`).
+- Impacto: o traço engrossa e volta (`rapido`) e a peça dá um quique curto (`assenta`). Nada de clarão, tremor de tela
+  nem palavra gigante: a ênfase fica dentro da legenda.
+- A legenda entra por opacidade e sobe 8 px (`medio`), sem desfoque, sem giro e sem escala; a palavra futura fica a 30%.
+- Um respiro de câmera bem lento (zoom de 3,5% na cena inteira, `respira`) dá vida ao quadro parado.
+
 ## No palco 3D (`cenas/*.3d.js`)
 - Câmera: viagens com `power2.inOut` ou `sine.inOut`, de 0,8 a 1,6 s; nunca corte seco entre vistas da mesma peça.
 - Peça que entra: chega de fora com `back.out(1.4)`; peça que sai, com `power2.in`.

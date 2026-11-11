@@ -6,6 +6,7 @@
 <style>html, body { margin: 0; background: #000; } canvas { display: block; image-rendering: pixelated; }</style>
 <script type="importmap">
 { "imports": { "three": "/web/node_modules/three/build/three.module.js",
+               "three/addons/": "/web/node_modules/three/examples/jsm/",
                "gsap": "/web/node_modules/gsap/index.js" } }
 </script>
 </head>
@@ -13,43 +14,192 @@
 <script type="module">
 // Palco 3D: o Python (darkops/palco_web.py) carrega um módulo de cena e pede um quadro por vez.
 // O tempo vem de fora, então a animação é determinística: mesmo estado = mesmo quadro.
+// Visual "sombrio" (canais de mistério): pós-processamento de cinema por cima do 3D, com brilho nas luzes,
+// cor de filme (sombra fria, luz quente), vinheta e granulação que muda a cada quadro sem Math.random.
 import * as THREE from "three";
 import { gsap } from "gsap";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/addons/postprocessing/ShaderPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
 let cena = null;
 let renderer = null;
+let composer = null;
+let filme = null;
+
+const FILME = {
+  uniforms: { tDiffuse: { value: null }, uTempo: { value: 0 }, uVinheta: { value: 1.15 }, uGrao: { value: 0.07 } },
+  vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
+  fragmentShader: `
+    uniform sampler2D tDiffuse; uniform float uTempo; uniform float uVinheta; uniform float uGrao; varying vec2 vUv;
+    float ruido(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233)) + uTempo * 37.0) * 43758.5453); }
+    void main(){
+      vec4 c = texture2D(tDiffuse, vUv);
+      float luz = dot(c.rgb, vec3(0.299, 0.587, 0.114));
+      vec3 frio = vec3(0.90, 0.96, 1.04), quente = vec3(1.10, 0.99, 0.86);
+      c.rgb *= mix(frio, quente, smoothstep(0.25, 0.85, luz));          // sombra azulada, luz âmbar
+      c.rgb = mix(vec3(luz), c.rgb, 0.82);                              // um pouco menos de saturação
+      c.rgb = (c.rgb - 0.5) * 1.08 + 0.5;                               // contraste
+      vec2 d = vUv - 0.5; d.x *= 0.75;
+      c.rgb *= 1.0 - smoothstep(0.35, 0.95, length(d) * uVinheta);      // vinheta
+      c.rgb += (ruido(vUv * 900.0) - 0.5) * uGrao;                      // granulação de filme
+      gl_FragColor = vec4(clamp(c.rgb, 0.0, 1.0), 1.0);
+    }`,
+};
+
+// pedra: no sombrio, caixas, cilindros e esferas ganham cantos gastos e superfície irregular (ruído com semente fixa)
+function hash(x, y, z) { const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453; return s - Math.floor(s); }
+function ruido(x, y, z) {
+  const ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
+  const l = (a, b, k) => a + (b - a) * k;
+  const c = (dx, dy, dz) => hash(ix + dx, iy + dy, iz + dz);
+  return l(l(l(c(0,0,0), c(1,0,0), u), l(c(0,1,0), c(1,1,0), u), v), l(l(c(0,0,1), c(1,0,1), u), l(c(0,1,1), c(1,1,1), u), v), w);
+}
+function pedra(mesh) {
+  const g = mesh.geometry, p = g.parameters || {};
+  let nova = null, tam = mesh.userData.tamanho ?? 1;
+  if (mesh.userData.esculpir) {          // forma esculpida pela própria cena: só ganha a superfície de pedra
+    nova = g.clone();
+  } else if (g.type === "BoxGeometry") {
+    tam = Math.min(p.width, p.height, p.depth);
+    nova = new RoundedBoxGeometry(p.width, p.height, p.depth, 4, Math.min(tam * 0.18, 0.08));
+  } else if (g.type === "CylinderGeometry") {
+    tam = Math.min(p.radiusTop || p.radiusBottom, p.height);
+    nova = new THREE.CylinderGeometry(p.radiusTop, p.radiusBottom, p.height, Math.max(p.radialSegments, 28), 8, p.openEnded);
+  } else if (g.type === "SphereGeometry") {
+    tam = p.radius;
+    nova = new THREE.SphereGeometry(p.radius, 36, 28);
+  }
+  if (!nova || tam < 0.03) return;
+  // solda os vértices antes de deslocar: a pedra não racha nas quinas
+  const soldada = mergeVerts(nova.index ? nova.toNonIndexed() : nova);
+  soldada.computeVertexNormals();
+  const pos = soldada.attributes.position, nor = soldada.attributes.normal, amp = Math.min(tam * 0.06, 0.03);
+  const q = new THREE.Vector3();
+  mesh.updateWorldMatrix(true, false);
+  for (let k = 0; k < pos.count; k++) {
+    q.set(pos.getX(k), pos.getY(k), pos.getZ(k)).applyMatrix4(mesh.matrixWorld);  // ruído no espaço do mundo
+    const r = (ruido(q.x * 6, q.y * 6, q.z * 6) - 0.5) + 0.45 * (ruido(q.x * 17, q.y * 17, q.z * 17) - 0.5);
+    pos.setXYZ(k, pos.getX(k) + nor.getX(k) * r * amp, pos.getY(k) + nor.getY(k) * r * amp, pos.getZ(k) + nor.getZ(k) * r * amp);
+  }
+  soldada.computeVertexNormals();
+  mesh.geometry.dispose();
+  mesh.geometry = soldada;
+}
+function mergeVerts(g) {  // junta vértices iguais para a normal sair lisa (sem quinas falsas)
+  const pos = g.attributes.position, mapa = new Map(), idx = [], pts = [];
+  for (let k = 0; k < pos.count; k++) {
+    const ch = `${pos.getX(k).toFixed(4)},${pos.getY(k).toFixed(4)},${pos.getZ(k).toFixed(4)}`;
+    let i = mapa.get(ch);
+    if (i === undefined) { i = pts.length / 3; mapa.set(ch, i); pts.push(pos.getX(k), pos.getY(k), pos.getZ(k)); }
+    idx.push(i);
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+  out.setIndex(idx);
+  return out;
+}
+
+// chão: plano grande deitado vira terreno com ondulação leve (as peças continuam apoiadas em y = 0)
+function terreno(mesh) {
+  const p = mesh.geometry.parameters;
+  const nova = new THREE.PlaneGeometry(p.width, p.height, 160, 160), pos = nova.attributes.position;
+  for (let k = 0; k < pos.count; k++) {
+    const x = pos.getX(k), y = pos.getY(k), longe = Math.min(1, Math.hypot(x, y) / 3);  // perto do centro, quase plano
+    pos.setZ(k, ((ruido(x * 1.2, y * 1.2, 3) - 0.5) * 0.35 + (ruido(x * 7, y * 7, 9) - 0.5) * 0.05) * longe);
+  }
+  nova.computeVertexNormals();
+  mesh.geometry.dispose();
+  mesh.geometry = nova;
+}
+// névoa rasteira: três camadas de nuvem (textura com semente fixa) que andam devagar com o tempo da cena
+function nevoa(scene) {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 256;
+  const g = cv.getContext("2d");
+  for (let k = 0; k < 90; k++) {
+    const x = hash(k, 1, 2) * 256, y = hash(k, 3, 4) * 256, r = 20 + hash(k, 5, 6) * 60;
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, "rgba(120,132,155,0.14)"); gr.addColorStop(1, "rgba(120,132,155,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+  }
+  const camadas = [];
+  for (const [y, op, esc] of [[0.05, 0.22, 2], [0.3, 0.12, 3], [0.65, 0.06, 4]]) {
+    const tx = new THREE.CanvasTexture(cv);
+    tx.wrapS = tx.wrapT = THREE.RepeatWrapping;
+    tx.repeat.set(esc, esc);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(24, 24),
+      new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: op, depthWrite: false, fog: true }));
+    m.rotation.x = -Math.PI / 2; m.position.y = y; m.userData.semSombra = true; m.renderOrder = 2;
+    scene.add(m);
+    camadas.push(tx);
+  }
+  return camadas;
+}
+let camadasNevoa = [];
 
 window.__palco = {
-  async iniciar(url, largura, altura) {
+  async iniciar(url, largura, altura, pixel, visual, q = {}) {
+    // q = qualidade (palco_web.QUALIDADES): desliga o que pesa em PC sem placa de vídeo; vazio = tudo ligado
     // tela cheia em alta resolução, com bordas suavizadas e sombras
-    renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer = new THREE.WebGLRenderer({ antialias: q.aa !== false, preserveDrawingBuffer: true });
     renderer.setPixelRatio(1);
     renderer.setSize(largura, altura, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.shadowMap.enabled = true;
+    renderer.toneMappingExposure = visual === "sombrio" ? 1.25 : 1;
+    renderer.shadowMap.enabled = q.sombra !== 0;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
     const mod = await import(url);
-    cena = mod.criar({ THREE, gsap, renderer, largura, altura });
-    // sombras em tudo: o sol de cada cena projeta, e cada peça projeta e recebe
+    cena = mod.criar({ THREE, gsap, renderer, largura, altura, visual });
+    // sombras em tudo: as luzes direcionais projetam, e cada peça projeta e recebe
     cena.scene.traverse((o) => {
-      if (o.isDirectionalLight) {
+      if (o.isDirectionalLight && o.castShadow !== false && !o.userData.semSombra) {
         o.castShadow = true;
-        o.shadow.mapSize.set(2048, 2048);
-        Object.assign(o.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 0.1, far: 20 });
+        o.shadow.mapSize.set(q.sombra ?? 2048, q.sombra ?? 2048);
+        Object.assign(o.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 0.1, far: 25 });
         o.shadow.bias = -0.0008;
+        o.shadow.radius = visual === "sombrio" ? 4 : 1;
       }
       if (o.isMesh && !o.material?.isMeshBasicMaterial) {
         o.castShadow = !o.material?.transparent && !o.userData.semSombra;  // vidro não faz sombra escura
         o.receiveShadow = !o.userData.semSombra;
       }
     });
+    if (visual === "sombrio") {
+      const pedras = [];
+      cena.scene.traverse((o) => { if (o.isMesh && o.material?.isMeshStandardMaterial && !o.material.transparent) pedras.push(o); });
+      pedras.forEach(pedra);
+      cena.scene.traverse((o) => {
+        const p = o.geometry?.parameters;
+        if (o.isMesh && o.geometry.type === "PlaneGeometry" && p.width * p.height >= 40 && Math.abs(o.rotation.x + Math.PI / 2) < 0.01) terreno(o);
+      });
+      camadasNevoa = q.nevoa === false ? [] : nevoa(cena.scene);
+      composer = new EffectComposer(renderer);
+      composer.setPixelRatio(1);
+      composer.setSize(largura, altura);
+      composer.addPass(new RenderPass(cena.scene, cena.camera));
+      if (q.bloom !== false) composer.addPass(new UnrealBloomPass(new THREE.Vector2(largura, altura), 0.55, 0.6, 0.82));
+      composer.addPass(new OutputPass());
+      filme = new ShaderPass(FILME);
+      composer.addPass(filme);
+    }
     return { MUNDO: [largura, altura], PECAS: mod.PECAS, SERIE: mod.SERIE };
   },
   quadro(estado) {
     const ancoras = cena.quadro(estado);  // desenha e devolve onde estão as peças na tela
-    renderer.render(cena.scene, cena.camera);
+    if (composer) {
+      filme.uniforms.uTempo.value = Math.round(estado.T * 30) % 997;  // o grão muda a cada quadro, sempre igual
+      camadasNevoa.forEach((tx, k) => tx.offset.set(estado.T * 0.008 * (k + 1), estado.T * 0.003));
+      composer.render();
+    } else {
+      renderer.render(cena.scene, cena.camera);
+    }
     return { png: renderer.domElement.toDataURL("image/jpeg", 0.95), ancoras };
   },
 };
