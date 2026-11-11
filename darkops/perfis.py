@@ -60,6 +60,8 @@ MODELO = {
     "edicao": "pro",            # quantos elementos na tela: simples, leve ou pro (pro = tudo que o roteiro trouxer)
     "acervo_nasa": False,       # usar o acervo de imagens da NASA (domínio público, com crédito)
     "instagram_teste": "",      # trial reels: "" (normal), "automatico" ou "manual" (instagram.TESTE)
+    "chamada_app": True,        # fim do vídeo divulga o app e quem comenta a palavra recebe o link (palavra.py)
+    "palavra_app": "DARK",
     # personalidade do canal: o /escrever-roteiro e a leva seguem isso em todo roteiro
     "persona_narrador": "",
     "persona_tom": "",
@@ -184,7 +186,11 @@ def campos_canal(form) -> dict:
     # trial reels do Instagram (instagram.TESTE); sem o campo no formulário, fica o do perfil
     teste = ({"instagram_teste": form.get("instagram_teste") if form.get("instagram_teste") in ("manual", "automatico")
               else ""} if "instagram_teste" in form else {})
-    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado, **voz, **teste,
+    # chamada final do app (palavra.py); o campo escondido diz que a caixa estava no formulário
+    from .palavra import palavra as palavra_app
+    chamada = ({"chamada_app": bool(form.get("chamada_app")), "palavra_app": palavra_app({"palavra_app": form.get("palavra_app")})}
+               if "chamada_app_campo" in form else {})
+    return {**{k: bool(form.get(k)) for k, _ in PLATAFORMAS}, **mercado, **voz, **teste, **chamada,
             "outra_plataforma": form.get("outra_plataforma", "").strip(), "formato": formato,
             "duracao_s": duracao, "video_exemplo": exemplo if re.match(r"^https?://\S+$", exemplo) else "",
             "leva_quantidade": _par(form.get("leva_quantidade"), 14), "leva_reabastecer": bool(form.get("leva_reabastecer")),

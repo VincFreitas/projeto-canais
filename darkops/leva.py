@@ -200,7 +200,7 @@ def _pauta_noticias(dados: dict, tema: str) -> str:
 def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
     """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila.
     Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte."""
-    from . import mercados
+    from . import mercados, palavra
     from .perfis import resumo_persona
     from .perfis import campos_video
     # tipo deste vídeo: o escolhido no Novo vídeo (curto ou longo) ou o padrão do perfil
@@ -231,6 +231,7 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
            "frases): " + " | ".join(f"«{t}»" for t in voz) + " " if voz else "")
         + "Estrutura obrigatória: gancho de até 14 palavras sem abertura genérica, problema, solução, prova (dado com "
         "fonte) e CTA com palavra-chave em MAIÚSCULAS. "
+        + palavra.instrucao_roteiro(d)
         + "Texto humano, não de IA: escreva como alguém fala, sem \"mergulhe\", \"desvende\", \"não é apenas X, é Y\", "
         "\"no mundo de\", \"prepare-se\", \"além disso\" e sem travessão. Tenha um ponto de vista: preencha "
         "\"ponto_de_vista\" com a posição do canal sobre o assunto, apoiada nos fatos (sem inventar e sem ofender), "

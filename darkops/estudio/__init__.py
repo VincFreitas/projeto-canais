@@ -2008,7 +2008,24 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     os.environ["PORT"] = str(porta)  # o Estúdio reaberto depois de uma atualização usa a mesma porta
     threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
     threading.Thread(target=_vigiar_levas_adiadas, daemon=True).start()
+    threading.Thread(target=_vigiar_palavra, daemon=True).start()
     servidor.serve_forever()
+
+
+def _vigiar_palavra() -> None:
+    """Quem comenta a palavra da chamada final (DARK) recebe o link do projeto em até ~15 min, sem esperar o ciclo
+    de 3 horas dos comentários no n8n. Só coleta e manda o link fixo (palavra.py): nada de IA aqui."""
+    from .. import comentarios, palavra
+    time.sleep(90)  # deixa o Estúdio abrir antes
+    while True:
+        for p in listar():
+            if not palavra.ligado(p) or not (p.token_youtube.exists() or p.token_instagram.exists()):
+                continue
+            try:
+                palavra.responder(p, comentarios.coletar(p), avisar=lambda *_: None)
+            except Exception as erro:  # noqa: BLE001 — sem internet ou token vencido: tenta de novo depois
+                print(seguranca.ocultar(f"link da palavra-chave em {p.id}: {erro}"))
+        time.sleep(15 * 60)
 
 
 def _vigiar_levas_adiadas() -> None:

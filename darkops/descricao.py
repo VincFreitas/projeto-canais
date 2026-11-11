@@ -88,10 +88,10 @@ def _regras(roteiro: dict, perfil) -> dict:
     primeira = (roteiro.get("manchete") or titulo).strip()
     resumo = roteiro.get("cenas", [{}])[0].get("texto", "").strip()
     from .mercados import texto as frase
-    linhas = [primeira[:LIMITE_LINHA_1], "", resumo, "", frase(perfil.dados, "seguir", arroba=perfil.dados.get("arroba", ""))]
-    fontes = roteiro.get("fontes") or []
-    if fontes:
-        linhas += ["", frase(perfil.dados, "fontes")] + [f"- {f}" for f in fontes]
+    from .palavra import chamada_descricao
+    chamada = chamada_descricao(perfil.dados)  # a mesma chamada do fim do vídeo (Comenta DARK...)
+    linhas = [primeira[:LIMITE_LINHA_1], "", resumo, "", *([chamada, ""] if chamada else []),
+              frase(perfil.dados, "seguir", arroba=perfil.dados.get("arroba", ""))]
     from collections import Counter
     # as palavras que mais se repetem dizem o assunto melhor que as mais compridas
     contagem = Counter(p for p in _conteudo(texto) if p not in GENERICAS)
@@ -102,6 +102,7 @@ def _regras(roteiro: dict, perfil) -> dict:
 
 
 def _com_ia(roteiro: dict, perfil) -> dict | None:
+    from . import palavra
     from .leva import _claude, rodar_claude
     from .mercados import de as mercado_de
     from .perfis import resumo_persona
@@ -114,14 +115,16 @@ def _com_ia(roteiro: dict, perfil) -> dict | None:
         "Responda APENAS com um JSON: {\"descricao\": \"...\", \"tags\": [\"...\"], \"hashtags\": [\"#...\"]}.\n"
         f"Regras: a 1ª linha da descrição tem até {LIMITE_LINHA_1} caracteres, traz a palavra que as pessoas buscariam "
         "e um gancho que dá vontade de assistir, sem entregar a resposta; depois 2 ou 3 frases que resumem o que o vídeo "
-        "ensina, uma chamada para comentar ou mandar para alguém, e as fontes abaixo. Nada de lista de palavras-chave, "
+        "ensina e uma chamada para comentar ou mandar para alguém. Nunca ponha fontes, links nem endereços de site. "
+        + palavra.instrucao_descricao(perfil.dados)
+        + "Nada de lista de palavras-chave, "
         "nada de promessa que o vídeo não cumpre. Tags: de 8 a 15 termos do assunto, do mais específico ao mais geral, "
         f"incluindo grafias erradas comuns, até {MAX_TAGS_CHARS} caracteres no total. Hashtags: de 3 a 5, ligadas ao "
         f"assunto (nunca mais de {MAX_HASHTAGS}). Tudo em {mercado['lingua']}, para o {mercado['publico']}: as tags e "
         "hashtags são as que esse público digita na busca.\n"
         + (f"Personalidade do canal: {resumo_persona(perfil.dados)}\n" if resumo_persona(perfil.dados) else "")
         + f"Canal: {perfil.dados.get('nome')} ({perfil.dados.get('arroba')}), nicho {perfil.dados.get('nicho')}.\n"
-        f"Título: {roteiro.get('titulo')}\nNarração:\n{falas}\nFontes: {', '.join(roteiro.get('fontes') or []) or 'nenhuma'}"
+        f"Título: {roteiro.get('titulo')}\nNarração:\n{falas}"
     )
     try:
         proc = rodar_claude(pedido, timeout=5 * 60, tarefa="descricao")  # sem ferramentas: só escreve o texto
@@ -131,7 +134,7 @@ def _com_ia(roteiro: dict, perfil) -> dict | None:
         return None
     if not dados or not dados.get("descricao"):
         return None
-    return {"descricao": str(dados["descricao"]).strip(), "tags": _limpar_tags(dados.get("tags", [])),
+    return {"descricao": sem_fontes(str(dados["descricao"])), "tags": _limpar_tags(dados.get("tags", [])),
             "hashtags": _limpar_hashtags(dados.get("hashtags", []))}
 
 
@@ -160,4 +163,62 @@ def para_publicar(perfil, caminho: Path) -> dict:
     dados = gerar(perfil, caminho)
     if not dados["descricao"].strip():
         dados = {**dados, **_regras(json.loads(caminho.read_text(encoding="utf-8")), perfil)}
-    return dados
+    return {**dados, "descricao": sem_fontes(dados["descricao"])}
+
+
+# cabeçalho de lista de fontes em qualquer língua do mercados.py (e variações comuns)
+_CABECALHO_FONTES = re.compile(r"^\s*(fontes?|sources?|fuentes?|fonti|quellen|refer[eê]ncias?|references?)\s*:?\s*$",
+                               re.I)
+_LINK = re.compile(r"https?://\S+|www\.\S+", re.I)
+
+
+def sem_fontes(texto: str) -> str:
+    """Tira da descrição a lista de fontes e qualquer link (decisão do dono em 2026-11-10: as fontes ficam só no
+    roteiro, em "fontes", nunca no texto publicado). Crédito de música e da NASA continua, sem link."""
+    saida, na_lista = [], False
+    for linha in (texto or "").splitlines():
+        if _CABECALHO_FONTES.match(linha):
+            na_lista = True
+            continue
+        if na_lista and (not linha.strip() or linha.lstrip().startswith(("-", "•", "*")) or _LINK.search(linha)):
+            continue  # itens da lista de fontes; a lista acaba na primeira linha de texto comum
+        na_lista = False
+        if _LINK.search(linha):
+            linha = re.sub(r"\s{2,}", " ", _LINK.sub("", linha)).rstrip(" :-–")
+            if not linha.strip() or _CABECALHO_FONTES.match(linha):
+                continue  # a linha era só um link (ou "Fontes: link, link")
+        saida.append(linha)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(saida)).strip()
+
+
+def limpar_publicadas(perfil, aplicar: bool = False) -> list[dict]:
+    """Tira fontes e links das descrições dos vídeos que já estão no YouTube (videos.update, pede youtube.force-ssl).
+    Sem aplicar, só lista o que mudaria. O Instagram não deixa editar a legenda pela API: isso fica com o dono."""
+    from . import seguranca
+    from .publicar import _servico
+    arquivo = perfil.controle / "estado.json"
+    if not arquivo.exists():
+        return []  # canal sem nada publicado
+    estado = json.loads(arquivo.read_text(encoding="utf-8"))
+    ids = {v["youtube"]: slug for slug, v in estado.items() if isinstance(v, dict) and v.get("youtube")}
+    servico, mudados = _servico(), []
+    lista = list(ids)
+    for i in range(0, len(lista), 50):
+        resposta = servico.videos().list(part="snippet", id=",".join(lista[i:i + 50])).execute()
+        for item in resposta.get("items", []):
+            snippet = item["snippet"]
+            limpa = sem_fontes(snippet.get("description", ""))
+            if limpa == snippet.get("description", "").strip():
+                continue
+            mudados.append({"id": item["id"], "slug": ids[item["id"]], "titulo": snippet.get("title", "")})
+            if aplicar:
+                corpo = {"id": item["id"], "snippet": {"title": snippet["title"], "description": limpa,
+                                                       "categoryId": snippet["categoryId"],
+                                                       **{k: snippet[k] for k in ("tags", "defaultLanguage",
+                                                                                  "defaultAudioLanguage")
+                                                          if k in snippet}}}
+                try:
+                    servico.videos().update(part="snippet", body=corpo).execute()
+                except Exception as erro:  # noqa: BLE001 — um vídeo que falha não para os outros
+                    mudados[-1]["erro"] = seguranca.ocultar(erro)[:200]
+    return mudados

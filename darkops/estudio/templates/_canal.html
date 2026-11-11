@@ -7,7 +7,7 @@
     <label style="font-weight:400"><input type="radio" name="descricao_modo" value="ia" {{ 'checked' if (t.descricao_modo or 'ia') == 'ia' }} onchange="modoTexto(this)"> A IA cria automaticamente</label>
     <label style="font-weight:400"><input type="radio" name="descricao_modo" value="manual" {{ 'checked' if t.descricao_modo == 'manual' }} onchange="modoTexto(this)"> Eu escrevo</label>
   </div>
-  <textarea name="descricao" rows="5" data-modo="descricao_modo" placeholder="1ª linha: a palavra que as pessoas buscariam e o gancho (até ~125 caracteres). Depois 2 ou 3 frases sobre o vídeo, um convite para comentar ou mandar para alguém e as fontes."
+  <textarea name="descricao" rows="5" data-modo="descricao_modo" placeholder="1ª linha: a palavra que as pessoas buscariam e o gancho (até ~125 caracteres). Depois 2 ou 3 frases sobre o vídeo, um convite para comentar ou mandar para alguém. Sem fontes nem links."
     {{ 'hidden' if (t.descricao_modo or 'ia') == 'ia' and not t.descricao }}>{{ t.descricao or '' }}</textarea>
   <label>Tags e hashtags (ajudam a busca e a recomendação)</label>
   <div class="acoes">
@@ -97,6 +97,13 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 </select>
 <p class="dica">O Reel de teste aparece primeiro só para quem ainda não segue o canal: dá para testar mais ideias sem cansar
   os seguidores. Se a conta ainda não puder usar (o Instagram pode exigir mais seguidores), o Reel sai normal.</p>
+<input type="hidden" name="chamada_app_campo" value="1">
+<label style="font-weight:400"><input type="checkbox" name="chamada_app" {{ 'checked' if d.get('chamada_app', True) }}>
+  Fim do vídeo divulga o Projeto Canais: "Comenta <b>{{ d.get('palavra_app') or 'DARK' }}</b> que eu te mando o projeto"</label>
+<label for="palavra_app">Palavra que a pessoa comenta</label>
+<input type="text" id="palavra_app" name="palavra_app" maxlength="20" value="{{ d.get('palavra_app') or 'DARK' }}">
+<p class="dica">Quem comenta a palavra recebe o link do repositório: no Instagram por mensagem direta (até 7 dias depois do
+  comentário) e no YouTube numa resposta ao comentário, porque lá não existe mensagem direta. Uma vez por pessoa e por vídeo.</p>
 <label>Formato</label>
 {% for chave, nome in formatos.items() %}
 <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}

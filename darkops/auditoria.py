@@ -50,8 +50,9 @@ def _primeira_frase(texto: str) -> str:
     return re.split(r"(?<=[.!?…])\s", texto, maxsplit=1)[0]
 
 
-def auditar(roteiro: dict) -> list[dict]:
-    """Lista de problemas: {"parte", "nivel" ("erro" trava, "aviso" só informa), "texto"}."""
+def auditar(roteiro: dict, perfil_dados: dict | None = None) -> list[dict]:
+    """Lista de problemas: {"parte", "nivel" ("erro" trava, "aviso" só informa), "texto"}.
+    perfil_dados liga a chamada final do app (palavra.py): a última fala precisa pedir a palavra do canal."""
     cenas = roteiro.get("cenas") or []
     falas = [_fala(c) for c in cenas if _fala(c)]
     problemas: list[dict] = []
@@ -92,6 +93,11 @@ def auditar(roteiro: dict) -> list[dict]:
     elif re.search(r"\b(comenta|comente|escreve|escreva)\b", fim, re.I) and not PALAVRA_CHAVE.search(fim):
         problemas.append({"parte": "cta", "nivel": "aviso",
                           "texto": "o CTA de comentário não tem palavra-chave em MAIÚSCULAS (ex.: Comenta NAZCA)"})
+    from . import palavra
+    if perfil_dados is not None and palavra.ligado(perfil_dados) and palavra.palavra(perfil_dados) not in fim:
+        problemas.append({"parte": "cta", "nivel": "erro",
+                          "texto": f"a última fala precisa ser a chamada do app: diga que o vídeo foi feito por um "
+                                   f"app e peça para comentar {palavra.palavra(perfil_dados)} (em MAIÚSCULAS)"})
     # 3. texto humano: vícios de texto de IA e um ponto de vista do canal
     todo = " ".join(falas + [str((roteiro.get("metadados") or {}).get(k) or "") for k in ("titulo", "descricao")])
     achados = sorted({nome for padrao, nome in CARA_DE_IA if re.search(padrao, todo, re.I)})
@@ -128,10 +134,22 @@ def referencias_de_voz(perfil, quantidade: int = 3, limite: int = 700) -> list[s
     return saida
 
 
+def _dados_do_perfil(caminho: Path) -> dict | None:
+    """perfis/<id>/fila/<arquivo>.json: o perfil dono do roteiro (roteiro solto, fora de um perfil, não tem)."""
+    pasta = caminho.resolve().parent
+    arquivo = pasta.parent / "perfil.json"
+    if pasta.name not in ("fila", "publicados") or not arquivo.exists():
+        return None
+    try:
+        return json.loads(arquivo.read_text(encoding="utf-8"))
+    except ValueError:
+        return None
+
+
 def relatorio(caminho: Path) -> tuple[bool, str]:
     """(passou, texto para mostrar). Passa quando não há nenhum "erro"."""
     roteiro = json.loads(caminho.read_text(encoding="utf-8"))
-    problemas = auditar(roteiro)
+    problemas = auditar(roteiro, _dados_do_perfil(caminho))
     if not problemas:
         return True, f"{caminho.name}: gancho, estrutura e CTA ok"
     linhas = [f"{caminho.name}:"] + [f"  {p['nivel'].upper():5} {p['parte']}: {p['texto']}" for p in problemas]

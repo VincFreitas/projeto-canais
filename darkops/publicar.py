@@ -146,9 +146,8 @@ def metadados_youtube(roteiro: dict, video: Path | None = None, texto: dict | No
     descricao = texto.get("descricao") or meta.get("descricao") or roteiro.get("titulo", "")
     if hashtags:
         descricao = f"{descricao}\n\n{' '.join(hashtags)}"
-    fontes = roteiro.get("fontes") or []
-    if fontes and not all(f in descricao for f in fontes):  # a IA já costuma pôr as fontes no texto
-        descricao += "\n\nFontes:\n" + "\n".join(f"- {f}" for f in fontes)
+    from .descricao import sem_fontes
+    descricao = sem_fontes(descricao)  # as fontes ficam no roteiro, nunca na descrição publicada
     if video:
         from .musica import credito
         if credito(video):

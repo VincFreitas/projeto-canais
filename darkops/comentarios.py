@@ -358,6 +358,8 @@ def responder_automatico(perfil) -> int:
 def ciclo(perfil, ia: bool = True) -> dict:
     """O que o n8n roda: coleta, classifica e (só se o dono ligou) responde sozinho o que é simples."""
     dados = coletar(perfil)
+    from .palavra import responder as responder_palavra
+    responder_palavra(perfil, dados)  # quem comentou a palavra da chamada final (DARK) recebe o link do projeto
     classificados = classificar(perfil, dados) if ia else 0
     auto = responder_automatico(perfil) if ia else 0
     dados = ler(perfil)

@@ -86,7 +86,8 @@ def legenda_instagram(roteiro: dict, video: Path | None = None, publicacao: dict
     from .musica import credito
     publicacao = publicacao or {}
     meta = (roteiro.get("metadados") or {}).get("instagram") or {}
-    texto = publicacao.get("descricao") or meta.get("legenda") or roteiro.get("titulo", "")
+    from .descricao import sem_fontes
+    texto = sem_fontes(publicacao.get("descricao") or meta.get("legenda") or roteiro.get("titulo", ""))
     if video and credito(video):
         texto = f"{texto}\n\n{credito(video)}"
     hashtags = (publicacao.get("hashtags") or meta.get("hashtags") or [])[:5]  # o Instagram aceita até 5
