@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.58.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.59.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,11 +10,29 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.54.2 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.59.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
-**Neste README:** [Como funciona](#como-funciona) · [O Estúdio](#o-estúdio) · [Postagem com o n8n](#postagem-automática-com-o-n8n) · [Começar](#começar-em-3-passos) · [Comandos](#comandos) · [Conectores e custo](#conectores-e-custo) · [Mapa do repositório](#mapa-do-repositório) · [Regras](#regras-que-mantêm-um-canal-vivo) · [Segurança](#segurança) · [Licença](#licença-e-autoria)
+**Neste README:** [Feito com o app](#feito-com-o-projeto-canais) · [Como funciona](#como-funciona) · [O Estúdio](#o-estúdio) · [Postagem com o n8n](#postagem-automática-com-o-n8n) · [Começar](#começar-em-3-passos) · [Comandos](#comandos) · [Conectores e custo](#conectores-e-custo) · [Perguntas frequentes](#perguntas-frequentes) · [Mapa do repositório](#mapa-do-repositório) · [Regras](#regras-que-mantêm-um-canal-vivo) · [Segurança](#segurança) · [Licença](#licença-e-autoria)
+
+## Feito com o Projeto Canais
+
+<img src="docs/img/pulga-do-saber.png" alt="Avatar em pixel art do canal Pulga do Saber" width="96" align="left">
+
+**Pulga do Saber** ([YouTube](https://www.youtube.com/@pulgadosaber) · [Instagram](https://www.instagram.com/pulgadosaber/)) é o canal de teste do próprio autor, feito de ponta a ponta com este app. São vídeos curtos de "como funciona" (geladeira, zíper, freio do carro, isqueiro...), com roteiro pesquisado e com fontes, narração, cenas em pixel art e postagem automática às 12h e às 19h. O autor só assiste à prévia e aprova.
+
+<br clear="left">
+
+| Números reais (11 de novembro de 2026, pelas APIs oficiais) | YouTube | Instagram |
+|---|---|---|
+| Vídeos publicados | 20 | 19 |
+| Visualizações | 15.112 | 6.795 |
+| Curtidas | 453 | 132 |
+| Inscritos e seguidores | 43 | 6 |
+| Vídeo mais visto | 1.365 visualizações | 1.274 visualizações |
+
+O canal nasceu em 20 de outubro de 2026, então tinha três semanas nessa contagem. São números de um canal novo, sem anúncio pago e sem compra de seguidores, e mostram o app funcionando do jeito que ele foi feito para funcionar. Quanto custou cada vídeo está em [Perguntas frequentes](#perguntas-frequentes).
 
 ## Como funciona
 
@@ -133,6 +151,29 @@ Skills do Claude Code (em `.claude/skills/`; outro agente lê o `SKILL.md` e seg
 | Música e efeitos | Trilhas geradas pelo código, biblioteca com licença registrada, efeitos sonoros CC0 | Grátis |
 | Roteiros e pesquisa | Claude Code, yt-dlp, faster-whisper | Conforme o seu plano do Claude |
 | Automação | n8n local, GitHub Actions num repositório privado | Grátis |
+
+## Perguntas frequentes
+
+**Quanto custa um vídeo?** O app é grátis, e voz, imagens, música, n8n e postagem também podem sair de graça (tabela acima). O que tem custo é a IA que pesquisa e escreve, o Claude Code. Medido em 19 roteiros reais do projeto (novembro de 2026), no preço da API do Claude:
+
+| O que a IA faz em cada vídeo | Modelo | Custo médio |
+|---|---|---|
+| Pesquisa os fatos e escreve o roteiro | Opus 5.5 | US$ 1,96 |
+| Descrição, tags e hashtags | Haiku 4.5 | US$ 0,10 |
+| Revisão visual da prévia | Sonnet 5 | US$ 0,16 |
+| Carrossel do Instagram | Sonnet 5 | US$ 0,11 |
+| **Total por vídeo curto** | | **US$ 2,33** |
+| Animação escrita pela IA (Prancha de Campo, opcional) | Opus 5.5 | + US$ 3,25 |
+
+Com um plano do Claude (Pro ou Max), não há cobrança por vídeo: cada vídeo usa uma parte do limite do plano, e quando o limite acaba a leva continua sozinha depois. Montar o vídeo no PC leva de 5 a 25 minutos, conforme o estilo e a placa de vídeo. O Estúdio anota o custo de cada chamada da IA em `dados/custos.jsonl` e mostra a média do seu PC em **Sobre o projeto**.
+
+**Funciona de verdade?** Funciona: veja o canal [Pulga do Saber](#feito-com-o-projeto-canais), feito inteiro com o app, com os números reais.
+
+**Precisa de um PC bom?** Não. Com placa de vídeo a montagem é mais rápida; sem ela, o app mede o PC e ajusta a qualidade do 3D sozinho.
+
+**Posso monetizar os meus canais?** Pode. A licença só não permite vender ou revender o app, nem oferecê-lo como serviço pago (veja [Licença e autoria](#licença-e-autoria)).
+
+**Tenho uma dúvida ou uma ideia.** Abra uma [issue](https://github.com/VincFreitas/projeto-canais/issues) ou use **Enviar sugestão** no Estúdio. As dúvidas que chegam com frequência viram respostas aqui.
 
 ## Mapa do repositório
 

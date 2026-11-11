@@ -15,6 +15,21 @@
     APIs oficiais e só do que você aprovou.</p>
 </section>
 
+<section class="cartao" id="custo" style="margin-bottom:16px">
+  <h2>Quanto custa um vídeo</h2>
+  <p>O app é grátis. Voz (Kokoro, Edge, Piper ou o plano grátis do Azure), imagens, música, n8n e a postagem pelas APIs
+    oficiais também. O que tem custo é a IA que pesquisa e escreve: o Claude Code.</p>
+  <ul>
+    <li><b>US$ {{ ('%.2f'|format(custo.por_video)).replace('.', ',') }} por vídeo curto</b> no preço da API do Claude
+      (roteiro com pesquisa US$ {{ ('%.2f'|format(custo.por_tarefa.roteiro)).replace('.', ',') }}, descrição, revisão visual e carrossel).</li>
+    <li>US$ {{ ('%.2f'|format(custo.com_prancha)).replace('.', ',') }} quando o canal usa a Prancha de Campo, que escreve a animação com a IA.</li>
+    <li>Com um plano do Claude (Pro ou Max), você não paga por vídeo: cada vídeo usa uma parte do limite do plano.</li>
+    <li>No seu PC, a montagem leva de 5 a 25 minutos por vídeo, conforme o estilo e a placa de vídeo.</li>
+  </ul>
+  <p class="dica">Fonte: {{ custo.fonte }}{{ ', ' ~ custo.roteiros ~ ' roteiros' if custo.roteiros }}. O Estúdio anota o
+    custo de cada chamada da IA em dados/custos.jsonl, só neste PC.</p>
+</section>
+
 <section class="cartao" style="margin-bottom:16px">
   <h2>Apoie o projeto</h2>
   <p>O projeto é gratuito para testar e estudar. Se ele te ajudou, o apoio que mais faz diferença é:</p>

@@ -119,7 +119,9 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
         raise SystemExit("Claude Code não encontrado: instale em claude.com/claude-code")
     # só as configurações do projeto: hooks e plugins pessoais do dono (memória, economia de contexto) não entram nas
     # chamadas automáticas, que ficam previsíveis e não gastam limite carregando contexto que não é do pedido
-    args = [claude, "-p", "--setting-sources", "project,local"] + (["--allowedTools", *ferramentas] if ferramentas else [])
+    # --output-format json: a resposta vem com o custo e os tokens da chamada (custos.py anota e devolve só o texto)
+    args = [claude, "-p", "--output-format", "json", "--setting-sources", "project,local"] \
+        + (["--allowedTools", *ferramentas] if ferramentas else [])
     esforco = ESFORCO.get(tarefa)
     modelo = MODELO.get(tarefa) if os.environ.get("DARKOPS_MODELO_POR_TAREFA", "1") != "0" else None
     rodar = lambda extra: subprocess.run(args + extra, input=pedido, cwd=config.RAIZ, capture_output=True,  # noqa: E731
@@ -130,7 +132,8 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
     if proc.returncode != 0 and "unknown option" in (proc.stderr or "").lower():  # Claude Code antigo
         args[:] = [x for x in args if x not in ("--setting-sources", "project,local")]
         proc = rodar([])
-    return proc
+    from .custos import registrar
+    return registrar(proc, tarefa)  # anota o custo e devolve o processo com só o texto da resposta em stdout
 
 
 E_SE = ("Formato \"O que acontece se...?\" (seção 3e da skill /escrever-roteiro): o título e o gancho são uma "

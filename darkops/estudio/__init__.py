@@ -385,7 +385,8 @@ def sobre():
         titulo = f"[{tipo}] {texto.splitlines()[0][:70]}"
         from urllib.parse import urlencode
         return redirect(f"{autoria.REPOSITORIO}/issues/new?{urlencode({'title': titulo, 'body': corpo})}")
-    return render_template("sobre.html")
+    from .. import custos
+    return render_template("sobre.html", custo=custos.resumo())
 
 
 @app.post("/perfis/novo")
