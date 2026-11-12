@@ -1,14 +1,17 @@
 """Chamada final que divulga o Projeto Canais e manda o link do repositório para quem comenta a palavra-chave.
 
-Decisão do dono em 2026-11-11: o fim do vídeo deixa de pedir um comentário sobre o tema e passa a dizer que o vídeo
-foi feito pelo app, com "Comenta DARK que eu te mando o projeto". Quem comenta a palavra recebe o link:
+Decisão do dono em 2026-11-11: com o gancho final "app", o fim do vídeo diz que o vídeo foi feito pelo app, com
+"Comenta DARK que eu te mando o projeto". Quem comenta a palavra recebe o link:
 - Instagram: resposta privada (DM) ao comentário pela API oficial (POST /<IG_ID>/messages com recipient.comment_id,
   permissões instagram_business_basic e instagram_business_manage_comments, e instagram_business_manage_messages
   por garantia, até 7 dias depois do comentário, uma por comentário) e uma resposta curta no comentário avisando
-  que foi na DM. Recusa por permissão não marca o comentário: vira aviso na tela Comentários e tenta de novo.
+  que foi na DM e que ela pode estar em Solicitações de mensagem (DM de conta comercial para quem não segue cai
+  lá). Recusa por permissão não marca o comentário: vira aviso na tela Comentários e tenta de novo.
 - YouTube: não existe mensagem direta; a resposta vai no próprio comentário, com o link.
 Uma resposta por pessoa e por vídeo, frases fixas (nada de IA), sem @ e sem pedir nada em troca.
-Liga e desliga por canal em "chamada_app" no perfil; a palavra fica em "palavra_app" (padrão DARK)."""
+Correção do dono em 2026-11-12: divulgar o repositório é só nos canais dele. Cada canal escolhe o gancho final em
+"gancho_final" (GANCHOS, Ajustes do canal > Fim do vídeo); o padrão é o comentário com uma palavra do tema, e "app"
+(esta chamada) é uma das opções. A palavra fica em "palavra_app" (padrão DARK)."""
 from __future__ import annotations
 
 import hashlib
@@ -38,7 +41,9 @@ TEXTOS = {
     "pt": {
         "dm": ("Oi! Aqui está o Projeto Canais, o app aberto que fez esse vídeo: {repo}\n\n"
                "Ele roda no seu PC e o passo a passo está no README. Se curtir, deixa uma ⭐ lá no GitHub!"),
-        "publica_instagram": ["Te mandei na DM! 📩", "Enviado na sua DM 😉", "Olha a DM! 📬"],
+        "publica_instagram": ["Te mandei na DM! Se não aparecer, olha em Solicitações de mensagem 📩",
+                              "Enviado na sua DM 😉 Se não achar, confere em Solicitações",
+                              "Olha a DM! 📬 Pode ter caído em Solicitações de mensagem"],
         "publica_youtube": ["Aqui está o projeto que fez esse vídeo: {repo}",
                             "Tá aqui o app que fez esse vídeo: {repo} (o passo a passo está no README)",
                             "Projeto aberto que fez esse vídeo: {repo}"],
@@ -50,7 +55,9 @@ TEXTOS = {
     "en": {
         "dm": ("Hi! Here's Projeto Canais, the open app that made this video: {repo}\n\n"
                "It runs on your PC and the README has the step by step. If you like it, leave a ⭐ on GitHub!"),
-        "publica_instagram": ["Sent it to your DMs! 📩", "Check your DMs 😉", "It's in your DMs! 📬"],
+        "publica_instagram": ["Sent it to your DMs! If it's not there, check your message requests 📩",
+                              "Check your DMs 😉 It may be under message requests",
+                              "It's in your DMs! 📬 Not there? Look in message requests"],
         "publica_youtube": ["Here's the project that made this video: {repo}",
                             "Here's the app that made this video: {repo} (the README has the step by step)",
                             "Open project that made this video: {repo}"],
@@ -62,7 +69,9 @@ TEXTOS = {
     "es": {
         "dm": ("¡Hola! Aquí está Projeto Canais, la app abierta que hizo este video: {repo}\n\n"
                "Funciona en tu PC y el paso a paso está en el README. Si te gusta, ¡deja una ⭐ en GitHub!"),
-        "publica_instagram": ["¡Te lo mandé por DM! 📩", "Revisa tu DM 😉", "¡Está en tu DM! 📬"],
+        "publica_instagram": ["¡Te lo mandé por DM! Si no aparece, mira en Solicitudes de mensajes 📩",
+                              "Revisa tu DM 😉 Puede estar en Solicitudes de mensajes",
+                              "¡Está en tu DM! 📬 ¿No lo ves? Mira en Solicitudes"],
         "publica_youtube": ["Aquí está el proyecto que hizo este video: {repo}",
                             "Esta es la app que hizo este video: {repo} (el paso a paso está en el README)",
                             "Proyecto abierto que hizo este video: {repo}"],
@@ -74,9 +83,44 @@ TEXTOS = {
 }
 
 
-def ligado(perfil_ou_dados) -> bool:
+# o que a última frase do vídeo pede (escolha do canal em Ajustes > Fim do vídeo)
+GANCHOS = {
+    "comentario": "Comentário com uma palavra do assunto (Comenta GELO...)",
+    "pergunta": "Pergunta para o público responder",
+    "enviar": "Pedir para mandar o vídeo para alguém",
+    "app": "Divulgar o Projeto Canais (quem comenta a palavra recebe o link)",
+    "legenda": "Sem chamada falada (o convite fica na descrição)",
+}
+GANCHO_PADRAO = "comentario"
+
+_INSTRUCAO = {
+    "comentario": ("a ÚLTIMA frase pede um comentário com UMA palavra ligada ao assunto do vídeo, sempre em MAIÚSCULAS "
+                   "(ex.: «Comenta GELO se você não sabia disso»)"),
+    "pergunta": ("a ÚLTIMA frase é uma pergunta curta e concreta sobre o assunto, que dá vontade de responder nos "
+                 "comentários (ex.: «E você, teria coragem de entrar nessa caverna?»)"),
+    "enviar": ("a ÚLTIMA frase pede para mandar o vídeo para uma pessoa certa, ligada ao assunto (ex.: «Manda pra quem "
+               "ainda acha que raio não cai duas vezes no mesmo lugar»)"),
+    "legenda": ("sem chamada falada, a ÚLTIMA frase fecha o assunto com a revelação ou com a opinião do canal; o "
+                "convite para comentar fica só na descrição"),
+}
+_DESCRICAO = {
+    "comentario": "A chamada da descrição pede o comentário com a mesma palavra em MAIÚSCULAS do fim do vídeo. ",
+    "pergunta": "A chamada da descrição repete a pergunta do fim do vídeo. ",
+    "enviar": "A chamada da descrição pede para mandar o vídeo para alguém, como no fim do vídeo. ",
+    "legenda": "O vídeo não tem chamada falada: a descrição termina com uma pergunta ligada ao assunto. ",
+}
+
+
+def gancho(perfil_ou_dados) -> str:
+    """O gancho final do canal (GANCHOS); sem escolha, o comentário com uma palavra do assunto."""
     dados = getattr(perfil_ou_dados, "dados", perfil_ou_dados) or {}
-    return bool(dados.get("chamada_app", True))
+    valor = dados.get("gancho_final")
+    return valor if valor in GANCHOS else GANCHO_PADRAO
+
+
+def ligado(perfil_ou_dados) -> bool:
+    """A chamada do app (divulgar o repositório e mandar o link a quem comenta a palavra) está ligada no canal."""
+    return gancho(perfil_ou_dados) == "app"
 
 
 def palavra(perfil_ou_dados) -> str:
@@ -95,12 +139,13 @@ def _escolher(opcoes: list[str], chave: str) -> str:
 
 
 def instrucao_roteiro(dados: dict) -> str:
-    """O que o pedido de roteiro diz sobre a última frase (vazio com a chamada desligada)."""
+    """O que o pedido de roteiro diz sobre a última frase, conforme o gancho final do canal."""
     if not ligado(dados):
-        return ""
+        return (f"Fim do vídeo (escolha do canal): {_INSTRUCAO[gancho(dados)]}. Varie a frase de um vídeo para outro, "
+                "na língua do roteiro, até 20 palavras, sem \"link na bio\" e sem \"se inscreva\". ")
     t, p = _textos(dados), palavra(dados)
     exemplos = " | ".join(f"«{x.format(palavra=p)}»" for x in t["chamada"])
-    return (f"Chamada final (decisão do dono): a ÚLTIMA frase da narração não pede comentário sobre o tema; ela conta, "
+    return (f"Fim do vídeo (escolha do canal): a ÚLTIMA frase da narração não pede comentário sobre o tema; ela conta, "
             f"no tom do canal, que o vídeo foi feito por um app e pede para comentar {p} (sempre em MAIÚSCULAS, "
             f"exatamente essa palavra) para receber o projeto. Varie a frase de um vídeo para outro, na língua do "
             f"roteiro, até 20 palavras, sem \"link na bio\", sem \"se inscreva\" e sem prometer nada além do link do "
@@ -108,9 +153,9 @@ def instrucao_roteiro(dados: dict) -> str:
 
 
 def instrucao_descricao(dados: dict) -> str:
-    """O que o pedido da descrição diz sobre a chamada (a mesma palavra do vídeo)."""
+    """O que o pedido da descrição diz sobre a chamada (a mesma do fim do vídeo)."""
     if not ligado(dados):
-        return ""
+        return _DESCRICAO[gancho(dados)]
     return (f"A chamada da descrição é a mesma do fim do vídeo: comentar {palavra(dados)} (em MAIÚSCULAS) para "
             f"receber o projeto que fez o vídeo, por exemplo «{_textos(dados)['descricao'].format(palavra=palavra(dados))}». "
             "Não escreva o link nem \"link na bio\". ")

@@ -249,6 +249,7 @@ pre.prompt { white-space: pre-wrap; background: #f2f2f5; border: 1px solid var(-
 .pedido-video { display: flex; gap: 10px; flex-wrap: wrap; }
 .pedido-video input { flex: 1; min-width: 240px; font-size: 17px; padding: 14px 16px; }
 .pedido-video .botao { padding: 14px 20px; font-size: 16px; }
+.pedido-video select { width: auto; font-size: 16px; padding: 12px 14px; }
 details.mais { margin-top: 16px; border-top: 1px solid var(--linha); padding-top: 12px; }
 details.mais > summary { cursor: pointer; color: var(--suave); font-weight: 600; list-style: none; padding: 6px 0; }
 details.mais > summary::before { content: "＋ "; }

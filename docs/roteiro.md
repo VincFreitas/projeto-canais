@@ -70,6 +70,8 @@ Um arquivo por vídeo em `roteiros/`. O comando `.\dark.ps1 produzir roteiros\<a
 | `edicao` | não | `simples` (sem elementos na tela), `leve` (palavra-herói e até 2 cards) ou `pro` (tudo; padrão). Vem do perfil |
 | `acervo_nasa` | não | `true` usa também o acervo de imagens da NASA (fotos, buscas em inglês) e põe o crédito nos metadados |
 | `notas_roteiro` | não | Lista curta com o que o roteiro escolheu e por quê (gancho, ângulo, fontes); aparece na revisão antes de gerar |
+| `serie` | não | Parte de uma série (`darkops/serie.py`): `{"id", "parte", "total", "tema"}`, gravado pela leva. A parte espera na fila enquanto uma parte anterior da mesma série não saiu |
+| `serie_plano` | não | Só na parte 1 da série: uma frase curta por parte, na ordem; as partes seguintes recebem esse plano |
 | `tema_cards` | não | Tema de edição dos cards de animação: `padrao` (vidro escuro), `arquivo_frio`, `jornal_antigo`, `moderno_limpo` ou `dossie` (painéis de dados sobre a imagem nítida, ver abaixo). Vem do perfil; `animacao.tema` muda só uma cena |
 | `sintetico` | não | `true` quando há imagem realista feita por IA (os metadados avisam para marcar no YouTube e no Instagram) |
 | `cenas[].variante` | não | Pula as N primeiras opções da busca (o botão **Outra opção** do editor de cenas soma 1) |

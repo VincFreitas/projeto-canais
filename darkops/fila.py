@@ -54,11 +54,14 @@ def plataformas_ativas(perfil=None) -> tuple[str, ...]:
 
 
 def proximo(perfil=None) -> Path | None:
-    """Primeiro roteiro aprovado da fila; nada se o perfil estiver pausado."""
+    """Primeiro roteiro aprovado da fila; nada se o perfil estiver pausado. A parte de uma série espera enquanto
+    uma parte anterior dela ainda está na fila (a parte 2 nunca sai antes da 1)."""
+    from .serie import espera
     p = _perfil(perfil)
     if not p.dados.get("ativo"):
         return None
-    return next((r for r in roteiros(p) if aprovado(r)), None)
+    fila = roteiros(p)
+    return next((r for r in fila if aprovado(r) and not espera(r, fila)), None)
 
 
 def restantes(perfil=None) -> int:

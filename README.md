@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.59.1%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.60.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,7 +10,7 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.59.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.60.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
@@ -67,7 +67,7 @@ Painel local (Flask, só em `127.0.0.1:8765`) com um canal por perfil. Enxuto po
 | Tela | Para quê |
 |---|---|
 | **Início** | Vídeos prontos para aprovar e as próximas postagens |
-| **Novo vídeo** | Um assunto em uma linha, ou **Sem ideia de tema?** para seguir a linha dos vídeos que mais funcionaram; curto (Shorts/Reels) ou longo (YouTube 16:9) |
+| **Novo vídeo** | Um assunto em uma linha, ou **Sem ideia de tema?** para seguir a linha dos vídeos que mais funcionaram; curto (Shorts/Reels) ou longo (YouTube 16:9); ou uma **série de 2 ou 4 partes** ligadas, que saem sempre em ordem |
 | **Resultados** | Números de cada vídeo pelas APIs oficiais, **O que funcionou** (a cada 14 vídeos, com Desfazer) e **Comentários** com resposta para aprovar |
 | **Ajustes** | Público (língua e região), voz, padrão dos vídeos, personalidade, **Como você quer o canal?** em texto livre, contas, nuvem e Excluir canal |
 | **Configurações** | Atualização automática pelo GitHub, atalhos do Windows e dependências |

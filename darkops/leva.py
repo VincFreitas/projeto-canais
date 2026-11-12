@@ -201,10 +201,11 @@ def _pauta_noticias(dados: dict, tema: str) -> str:
 
 
 
-def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
+def _escrever_roteiro(perfil, tema: str = "", formato: str = "", parte: dict | None = None) -> Path | None:
     """Pede ao Claude Code um roteiro novo para o perfil e devolve o arquivo criado na fila.
-    Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte."""
-    from . import mercados, palavra
+    Com `tema`, o vídeo é sobre ele (pedido do Novo vídeo); sem, o Claude escolhe um tema forte.
+    Com `parte` ({"id", "parte", "total", "tema"}), o vídeo é uma parte de uma série (darkops/serie.py)."""
+    from . import mercados, palavra, serie
     from .perfis import resumo_persona
     from .perfis import campos_video
     # tipo deste vídeo: o escolhido no Novo vídeo (curto ou longo) ou o padrão do perfil
@@ -219,6 +220,8 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
     if tema == SEGUIR_ANTERIORES:
         tema, inspiracao = "", _inspiracao_anteriores(perfil)
     noticia = _pauta_noticias(d, tema) + _formato_e_se(d) + inspiracao
+    if parte:  # as partes já escritas entram no pedido para a nova não repetir os fatos delas
+        noticia += serie.instrucao(parte, [dados for _, _, dados in serie.partes(perfil, parte["id"])])
     pedido = (
         f"Use a skill /escrever-roteiro para escrever UM roteiro novo para o perfil {perfil.id} "
         f"(canal {d['nome']}, nicho: {d.get('nicho') or 'curiosidades'}, formato {d.get('formato', 'vertical')}, "
@@ -234,7 +237,7 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
         + ("Voz do canal: escreva no ritmo e no jeito destas narrações que funcionaram no próprio canal (não copie "
            "frases): " + " | ".join(f"«{t}»" for t in voz) + " " if voz else "")
         + "Estrutura obrigatória: gancho de até 14 palavras sem abertura genérica, problema, solução, prova (dado com "
-        "fonte) e CTA com palavra-chave em MAIÚSCULAS. "
+        "fonte) e o fechamento da chamada final abaixo. "
         + palavra.instrucao_roteiro(d)
         + "Texto humano, não de IA: escreva como alguém fala, sem \"mergulhe\", \"desvende\", \"não é apenas X, é Y\", "
         "\"no mundo de\", \"prepare-se\", \"além disso\" e sem travessão. Tenha um ponto de vista: preencha "
@@ -272,6 +275,8 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "") -> Path | None:
         print(f"  o Claude não criou roteiro: {(proc.stdout + proc.stderr).strip()[-400:]}")
         return None
     roteiro = novos[0]
+    if parte:
+        serie.marcar(roteiro, parte)
     dados = json.loads(roteiro.read_text(encoding="utf-8"))
     if formato:  # garante o tipo pedido mesmo se o roteiro vier com outro
         dados.update(tipo)
@@ -328,15 +333,28 @@ def _vivo(pid: int) -> bool:
         return False
 
 
-def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Path]:
+def criar(perfil, quantidade: int, tema: str = "", formato: str = "", serie_total: int = 0,
+          serie_id: str = "") -> list[Path]:
     """Escreve e produz uma leva. Uma trava impede duas levas ao mesmo tempo no mesmo perfil; se o PC desligou
-    no meio, a próxima leva primeiro termina as prévias dos roteiros que ficaram sem vídeo."""
+    no meio, a próxima leva primeiro termina as prévias dos roteiros que ficaram sem vídeo.
+    Com `serie_total` (2 ou 4), a leva é uma série em partes sobre o tema; `serie_id` continua uma série já começada."""
+    from . import serie
     trava = perfil.controle / "leva.trava"
     pendentes_arq = perfil.controle / "leva-pendentes.json"
     perfil.controle.mkdir(parents=True, exist_ok=True)
+    grupo = None  # a série desta leva: {"id", "total"}
+    if serie_total or serie_id:
+        grupo = {"id": serie_id or serie.novo_id(), "total": serie.total_valido(serie_total or 2)}
+        feitas = serie.partes(perfil, grupo["id"])
+        if feitas and not tema:
+            tema = serie.de(feitas[0][2]).get("tema", "")
+        quantidade = grupo["total"] - len(feitas)
+        if quantidade <= 0:
+            print(f"a série {grupo['id']} já tem as {grupo['total']} partes")
+            return []
     faltam = falta_configurar(perfil)
     if faltam:
-        _adiar(perfil, quantidade, tema)
+        _adiar(perfil, quantidade, tema, serie=grupo)
         print(f"produção pausada até terminar a configuração do canal (falta: {'; '.join(faltam)}); "
               f"a leva de {quantidade} vídeo(s) começa sozinha depois")
         return []
@@ -349,6 +367,8 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Pa
     trava.write_text(str(os.getpid()), encoding="utf-8")
     pendentes = [perfil.fila / n for n in json.loads(pendentes_arq.read_text(encoding="utf-8"))]         if pendentes_arq.exists() else []
     pendentes = [r for r in pendentes if r.exists()]
+    if grupo:  # prévias que ficaram para trás não ocupam o lugar de uma parte
+        quantidade += len(pendentes)
 
     def anotar():
         pendentes_arq.write_text(json.dumps([r.name for r in pendentes], ensure_ascii=False), encoding="utf-8")
@@ -358,23 +378,35 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Pa
         for n in range(1, quantidade + 1):
             faltam = falta_configurar(perfil)  # a configuração pode ter sido desfeita no meio (token revogado)
             if faltam:
-                _adiar(perfil, quantidade - n + 1, tema)
+                _adiar(perfil, quantidade - n + 1, tema, serie=grupo)
                 print(f"produção pausada no vídeo {n}/{quantidade}: falta {'; '.join(faltam)}", flush=True)
                 break
             if pendentes:
                 roteiro = pendentes[0]
                 print(f"vídeo {n}/{quantidade}: retomando a prévia de {roteiro.name}", flush=True)
             else:
-                print(f"vídeo {n}/{quantidade}: escrevendo o roteiro", flush=True)
+                parte = None
+                if grupo:
+                    parte = {**grupo, "parte": len(serie.partes(perfil, grupo["id"])) + 1, "tema": tema}
+                    print(f"vídeo {n}/{quantidade}: escrevendo a parte {parte['parte']} de {grupo['total']} da série",
+                          flush=True)
+                else:
+                    print(f"vídeo {n}/{quantidade}: escrevendo o roteiro", flush=True)
                 try:
-                    roteiro = _escrever_roteiro(perfil, tema, formato)
+                    roteiro = _escrever_roteiro(perfil, tema, formato, parte)
                 except LimiteClaude as limite:
-                    volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite)
+                    volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite, serie=grupo)
                     print(f"o Claude bateu no limite do plano no vídeo {n}/{quantidade}; a leva continua sozinha "
                           f"às {time.strftime('%H:%M', time.localtime(volta))}", flush=True)
                     break
+                if not roteiro and grupo:  # uma parte não pode faltar: a série para aqui
+                    print(f"a série parou na parte {parte['parte']}; para continuar: leva --serie {grupo['total']} "
+                          f"--serie-id {grupo['id']}", flush=True)
+                    break
                 if not roteiro:
                     continue
+                if grupo and not tema:  # sem tema pedido, a parte 1 escolheu; as outras seguem o mesmo
+                    tema = serie.de(json.loads(roteiro.read_text(encoding="utf-8"))).get("tema", "")
                 pendentes.append(roteiro)
                 anotar()
                 if perfil.dados.get("motor_cena") == "prancha":  # a animação do vídeo, numa chamada própria
@@ -383,7 +415,7 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "") -> list[Pa
                     try:
                         prancha.escrever(perfil, roteiro)
                     except LimiteClaude as limite:
-                        volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite)
+                        volta = _adiar(perfil, quantidade - n + 1, tema, limite=limite, serie=grupo)
                         print(f"o Claude bateu no limite do plano na prancha; a leva continua sozinha às "
                               f"{time.strftime('%H:%M', time.localtime(volta))}", flush=True)
                         break
@@ -424,7 +456,8 @@ def falta_configurar(perfil) -> list[str]:
     return [e.nome for e in pendencias(perfil)]
 
 
-def _adiar(perfil, quantidade: int, tema: str = "", limite: LimiteClaude | None = None) -> float:
+def _adiar(perfil, quantidade: int, tema: str = "", limite: LimiteClaude | None = None,
+           serie: dict | None = None) -> float:
     """Guarda a leva para depois. Com `limite`, ela recomeça quando o limite do Claude renovar: na hora que o
     Claude informou ou, sem ela, em 30 min, 1 h, 2 h e no máximo 4 h a cada nova tentativa."""
     arquivo = perfil.controle / "leva-adiada.json"
@@ -432,6 +465,8 @@ def _adiar(perfil, quantidade: int, tema: str = "", limite: LimiteClaude | None 
     antes = json.loads(arquivo.read_text(encoding="utf-8")) if arquivo.exists() else {}
     dados = {"quantidade": par(max(quantidade, int(antes.get("quantidade", 0)))),
              "tema": tema or antes.get("tema", "")}
+    if serie or antes.get("serie"):  # a série volta de onde parou (as partes já escritas ficam)
+        dados["serie"] = serie or antes["serie"]
     volta = 0.0
     if limite:  # quantas vezes seguidas bateu no limite fica à parte e só zera quando um vídeo sair
         contagem = perfil.controle / "leva-limite.json"
@@ -468,21 +503,23 @@ def retomar_adiada(perfil) -> bool:
     if float(guardada.get("retomar_em") or 0) > time.time():
         return False  # esperando o limite do Claude renovar
     arquivo.unlink()
-    em_segundo_plano(perfil, int(guardada.get("quantidade") or 1), guardada.get("tema", ""))
+    em_segundo_plano(perfil, int(guardada.get("quantidade") or 1), guardada.get("tema", ""), guardada.get("serie"))
     return True
 
 
 
-def em_segundo_plano(perfil, quantidade: int, tema: str = "") -> list[str]:
+def em_segundo_plano(perfil, quantidade: int, tema: str = "", serie: dict | None = None) -> list[str]:
     """Dispara a leva num processo separado e volta na hora (o n8n não fica esperando horas).
     Com a configuração do canal incompleta, só guarda a leva e devolve o que falta."""
     faltam = falta_configurar(perfil)
     if faltam:
-        _adiar(perfil, quantidade, tema)
+        _adiar(perfil, quantidade, tema, serie=serie)
         return faltam
     log =(perfil.controle / "leva-ultima.log").open("w", encoding="utf-8")
     sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
     tema_args = ["--tema", tema] if tema else []  # lista de argumentos: o tema nunca passa pelo cmd.exe
+    if serie:
+        tema_args += ["--serie", str(serie["total"]), "--serie-id", serie["id"]]
     subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", perfil.id, "leva", "--quantidade", str(quantidade),
                       *tema_args],
                      cwd=config.RAIZ, stdout=log, stderr=subprocess.STDOUT, creationflags=sinais,

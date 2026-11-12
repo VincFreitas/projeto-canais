@@ -97,13 +97,20 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 </select>
 <p class="dica">O Reel de teste aparece primeiro só para quem ainda não segue o canal: dá para testar mais ideias sem cansar
   os seguidores. Se a conta ainda não puder usar (o Instagram pode exigir mais seguidores), o Reel sai normal.</p>
-<input type="hidden" name="chamada_app_campo" value="1">
-<label style="font-weight:400"><input type="checkbox" name="chamada_app" {{ 'checked' if d.get('chamada_app', True) }}>
-  Fim do vídeo divulga o Projeto Canais: "Comenta <b>{{ d.get('palavra_app') or 'DARK' }}</b> que eu te mando o projeto"</label>
-<label for="palavra_app">Palavra que a pessoa comenta</label>
-<input type="text" id="palavra_app" name="palavra_app" maxlength="20" value="{{ d.get('palavra_app') or 'DARK' }}">
-<p class="dica">Quem comenta a palavra recebe o link do repositório: no Instagram por mensagem direta (até 7 dias depois do
-  comentário) e no YouTube numa resposta ao comentário, porque lá não existe mensagem direta. Uma vez por pessoa e por vídeo.</p>
+{% set gancho_atual = d.get('gancho_final') if d.get('gancho_final') in ganchos else 'comentario' %}
+<label for="gancho_final">Fim do vídeo: o que a última frase pede</label>
+<select id="gancho_final" name="gancho_final" onchange="document.getElementById('bloco-palavra').hidden = this.value !== 'app'">
+  {% for chave, nome in ganchos.items() %}<option value="{{ chave }}" {{ 'selected' if gancho_atual == chave }}>{{ nome }}</option>{% endfor %}
+</select>
+<p class="dica">A IA escreve a última frase assim em todo roteiro novo, e a conferência do roteiro segue a mesma escolha.</p>
+<div id="bloco-palavra" {{ 'hidden' if gancho_atual != 'app' }}>
+  <label for="palavra_app">Palavra que a pessoa comenta</label>
+  <input type="text" id="palavra_app" name="palavra_app" maxlength="20" value="{{ d.get('palavra_app') or 'DARK' }}">
+  <p class="dica">O fim do vídeo conta que ele foi feito por um app e pede "Comenta <b>{{ d.get('palavra_app') or 'DARK' }}</b>
+    que eu te mando o projeto". Quem comenta recebe o link do repositório: no Instagram por mensagem direta (até 7 dias
+    depois do comentário) e no YouTube numa resposta ao comentário, porque lá não existe mensagem direta. Uma vez por
+    pessoa e por vídeo.</p>
+</div>
 <label>Formato</label>
 {% for chave, nome in formatos.items() %}
 <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}

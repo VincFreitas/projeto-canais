@@ -2,8 +2,8 @@
 
   python -m darkops conferir saida/<slug>-vertical.mp4
 
-Procura o que costuma passar despercebido: tela preta, silêncio no meio, volume baixo ou estourado,
-duração fora do padrão do canal ou acima do limite do Shorts, e resolução errada para o formato.
+Procura o que costuma passar despercebido: tela preta, imagem parada (cena travada), silêncio no meio, volume
+baixo ou estourado, duração fora do padrão do canal ou acima do limite do Shorts, e resolução errada para o formato.
 Não substitui assistir: é uma segunda olhada que aponta o segundo exato de cada problema.
 """
 import json
@@ -16,6 +16,8 @@ import imageio_ffmpeg
 from . import config
 
 LIMITE_SHORTS_S = 180
+PARADA_S = 2.5  # quadros idênticos por mais tempo que isso, com a narração correndo, é cena travada
+PARADA_FINAL_S = 5
 
 
 def _ffmpeg(video: Path, *filtros: str) -> str:
@@ -39,11 +41,18 @@ def conferir(video: Path, duracao_alvo: float | None = None) -> dict:
     def anotar(nivel: str, texto: str, t: float | None = None):
         achados.append({"nivel": nivel, "texto": texto, "t": round(t, 1) if t is not None else None})
 
-    pretas = re.findall(r"black_start:([\d.]+) black_end:([\d.]+)", _ffmpeg(video, "-vf", "blackdetect=d=0.4:pic_th=0.97", "-an"))
-    for ini, fim in pretas:
+    # uma passada só pelos quadros: tela preta e imagem parada (cena que travou na renderização)
+    imagem = _ffmpeg(video, "-vf", f"blackdetect=d=0.4:pic_th=0.97,freezedetect=n=-60dB:d={PARADA_S}", "-an")
+    for ini, fim in re.findall(r"black_start:([\d.]+) black_end:([\d.]+)", imagem):
         ini, fim = float(ini), float(fim)
         if ini > 0.3 and fim < total - 0.3:  # o fade do começo e do fim não conta
             anotar("erro", f"tela preta de {fim - ini:.1f} s em {_minuto(ini)}", ini)
+    paradas = [float(x) for x in re.findall(r"freeze_start: ([\d.]+)", imagem)]
+    fins = [float(x) for x in re.findall(r"freeze_end: ([\d.]+)", imagem)]
+    for ini, fim in zip(paradas, fins + [total] * (len(paradas) - len(fins))):  # sem fim = parada até o último quadro
+        # o quadro final segurado não conta; parada que vai até o fim só conta se for longa
+        if fim < total - 0.5 or fim - ini >= PARADA_FINAL_S:
+            anotar("aviso", f"imagem parada de {fim - ini:.1f} s em {_minuto(ini)} (cena travou?)", ini)
 
     audio = _ffmpeg(video, "-af", "silencedetect=noise=-45dB:d=1.2,volumedetect", "-vn")
     for ini, fim in zip(re.findall(r"silence_start: ([\d.]+)", audio), re.findall(r"silence_end: ([\d.]+)", audio)):
@@ -88,7 +97,7 @@ SAUDACOES = ("olá", "ola", "oi pessoal", "fala galera", "bem-vindo", "bem vindo
 CHAMADAS = ("comenta", "comente", "manda", "mande", "compartilh", "envia", "marca alguém", "marque alguém", "salva")
 
 
-def alcance(roteiro: dict, textos: dict | None = None) -> list[dict]:
+def alcance(roteiro: dict, textos: dict | None = None, perfil_dados: dict | None = None) -> list[dict]:
     """Regras de alcance de docs/viralizacao.md aplicadas ao roteiro, ao título e ao texto da publicação."""
     import re as _re
     achados = []
@@ -114,7 +123,9 @@ def alcance(roteiro: dict, textos: dict | None = None) -> list[dict]:
     if len(titulo) > 100:
         achados.append({"nivel": "erro", "texto": "o título passa de 100 caracteres (limite do YouTube)"})
     final = (cenas[-1].get("texto", "") if cenas else "").lower()
-    if not any(c in final for c in CHAMADAS):
+    from .palavra import gancho
+    sem_fala = perfil_dados is not None and gancho(perfil_dados) == "legenda"  # escolha do canal: convite só na legenda
+    if not sem_fala and "?" not in final and not any(c in final for c in CHAMADAS):
         achados.append({"nivel": "aviso", "texto": "a última cena não convida a comentar ou mandar para alguém (envios contam muito no Reels)"})
     if textos:
         from .descricao import checar

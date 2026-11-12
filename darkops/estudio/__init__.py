@@ -259,11 +259,12 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 @app.context_processor
 def _contexto():
     from .. import __version__
+    from ..palavra import GANCHOS
     return {"perfis": listar(), "agora": datetime.now(), "formatos": FORMATOS, "versao_app": __version__,
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado(),
-            "whatsapp_ligado": _whatsapp_ligado(), "whatsapp_visivel": _whatsapp_visivel()}
+            "whatsapp_ligado": _whatsapp_ligado(), "whatsapp_visivel": _whatsapp_visivel(), "ganchos": GANCHOS}
 
 
 def _whatsapp_ligado() -> bool:
@@ -723,6 +724,12 @@ def criar_video(pid):
         flash("Para criar vídeos sozinho, instale o Claude Code neste PC (claude.com/claude-code).", "erro")
         return redirect(url_for("novo", pid=pid))
     tema = " ".join(request.form.get("tema", "").split())[:200]
+    partes = request.form.get("partes", "1")
+    if partes in ("2", "4"):  # série em partes (darkops/serie.py): o tema vira vídeos ligados que saem em ordem
+        job = _iniciar_job(p, f"Série de {partes} partes: {tema}" if tema else
+                           f"Série de {partes} partes com tema escolhido pela IA",
+                           [["leva", "--quantidade", partes, "--serie", partes, *([f"--tema={tema}"] if tema else [])]])
+        return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("painel", pid=pid)))
     job = _iniciar_job(p, f"Novo vídeo: {tema}" if tema else "Novo vídeo com tema escolhido pela IA",
                        [["leva", "--quantidade", "1", *([f"--tema={tema}"] if tema else [])]])
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("painel", pid=pid)))
@@ -1395,7 +1402,7 @@ def conferir_video(pid, nome):
         return redirect(url_for("ver", pid=pid, nome=nome))
     resultado = conferir.conferir(config.SAIDA / s["video"], s["dados"].get("duracao_alvo_s") or p.dados.get("duracao_s"))
     from ..descricao import ler as ler_textos
-    extras = conferir.alcance(s["dados"], ler_textos(p, s["arquivo"]))
+    extras = conferir.alcance(s["dados"], ler_textos(p, s["arquivo"]), p.dados)
     resultado["achados"] = [a for a in resultado["achados"] if a["nivel"] != "ok" or not extras] + extras
     conferir.salvar(resultado, p)
     return redirect(url_for("ver", pid=pid, nome=nome) + "#conferencia")
@@ -1581,7 +1588,7 @@ def _revisao(p, r: dict) -> dict:
 
 def _alcance(p, r: dict) -> list:
     from .. import conferir
-    return conferir.alcance(r)
+    return conferir.alcance(r, perfil_dados=p.dados)
 
 
 def _descoberta(p) -> dict:

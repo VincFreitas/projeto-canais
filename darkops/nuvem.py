@@ -386,9 +386,12 @@ def _sincronizar(perfil, enviar_videos: bool = True) -> dict:
     # 4. a fila da nuvem = os aprovados com vídeo pronto, na mesma ordem
     assets = _assets()
     prontos = {}
-    for caminho in fila_mod.roteiros(perfil):
+    from .serie import espera
+    fila_local = fila_mod.roteiros(perfil)
+    for caminho in fila_local:
         achado = _pronto(caminho)
-        if achado:
+        # a parte de uma série só sobe junto com as anteriores: na nuvem, a anterior não aprovada nem existe
+        if achado and not espera(caminho, fila_local, pronto=lambda c: _pronto(c) is not None):
             prontos[caminho.name] = (caminho, *achado)
     for nome, (caminho, dados, video) in prontos.items():
         _gravar(f"{base}/fila/{nome}", caminho.read_text(encoding="utf-8"), f"{perfil.id}: fila {nome}")

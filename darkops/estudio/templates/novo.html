@@ -6,10 +6,16 @@
   <h2 style="margin-top:0">Sobre o que é o vídeo?</h2>
   <form method="post" action="{{ url_for('criar_video', pid=p.id) }}" class="pedido-video">
     <input type="text" name="tema" maxlength="200" autofocus placeholder="Ex.: como funciona o motor de um avião (em branco, a IA escolhe)">
+    <label class="sr-only" for="partes-video">Um vídeo ou uma série</label>
+    <select id="partes-video" name="partes" title="Série: o tema vira vídeos ligados (parte 1, parte 2...), que saem em ordem e trazem quem assistiu de volta">
+      <option value="1" selected>1 vídeo</option>
+      <option value="2">Série de 2 partes</option>
+      <option value="4">Série de 4 partes</option>
+    </select>
     <button class="botao">Criar vídeo</button>
   </form>
   <p class="dica">A IA pesquisa os fatos com fontes, escreve no jeito do canal, narra, anima e deixa o vídeo no Início para você aprovar.
-    Nada vai ao ar sem a sua aprovação.</p>
+    Nada vai ao ar sem a sua aprovação. Na série, cada parte se entende sozinha, chama a próxima e sai sempre depois da anterior.</p>
 </section>
 
 <section class="cartao leva-anteriores" style="margin-bottom:16px">

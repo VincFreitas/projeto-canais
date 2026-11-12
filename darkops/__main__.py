@@ -382,17 +382,22 @@ def cmd_leva(a):
     from .perfis import carregar
     perfil = carregar()
     quantidade = leva.par(a.quantidade or perfil.dados.get("leva_quantidade", 4))
+    grupo = None
+    if a.serie or a.serie_id:  # série em partes: a quantidade é o número de partes (2 ou 4)
+        from . import serie
+        grupo = {"id": a.serie_id or serie.novo_id(), "total": serie.total_valido(a.serie or 2)}
+        quantidade = grupo["total"]
     if a.se_faltar and not leva.precisa_reabastecer(perfil):
         print(f"fila com {len(list(perfil.fila.glob('*.json')))} vídeo(s); reabastecimento não necessário")
         return
     est = leva.estimar(perfil.dados, quantidade)
     print(f"leva de {quantidade} vídeo(s): {est['texto']}. {est['aviso']}")
     if a.fundo:
-        faltam = leva.em_segundo_plano(perfil, quantidade)
+        faltam = leva.em_segundo_plano(perfil, quantidade, a.tema or "", grupo)
         print(f"produção pausada até terminar a configuração do canal (falta: {'; '.join(faltam)})" if faltam
               else "leva iniciada em segundo plano (log em controle/leva-ultima.log)")
         return
-    leva.criar(perfil, quantidade, a.tema or "", a.formato or "")
+    leva.criar(perfil, quantidade, a.tema or "", a.formato or "", *((grupo["total"], grupo["id"]) if grupo else ()))
 
 
 def cmd_descricao(a):
@@ -804,6 +809,8 @@ def main():
     s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
     s.add_argument("--tema", help="assunto do vídeo (sem ele, o Claude escolhe um tema forte)")
     s.add_argument("--formato", choices=["vertical", "longo"], help="curto (vertical) ou longo; sem ele, o do perfil")
+    s.add_argument("--serie", type=int, choices=[2, 4], help="série em partes sobre o tema (2 ou 4 vídeos ligados)")
+    s.add_argument("--serie-id", help="continua uma série já começada (o id fica em \"serie\" no roteiro)")
     s.set_defaults(fn=cmd_leva)
 
     s = sub.add_parser("descricao", help="cria pela IA a descrição e as tags do vídeo que estiverem no modo automático")

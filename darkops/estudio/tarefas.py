@@ -61,7 +61,8 @@ def descrever(dados: dict, comandos: list[list[str]]) -> dict:
             quantidade = 1
         faixa = estimar(dados, quantidade)["total"]
         minimo, maximo = faixa[0], faixa[1]
-        pronto = "Os vídeos aparecem em Início para você assistir e aprovar."
+        pronto = ("As partes da série aparecem em Início para você assistir e aprovar; elas saem sempre em ordem."
+                  if "--serie" in args else "Os vídeos aparecem em Início para você assistir e aprovar.")
     elif primeiro == "fila-produzir" and any(c and c[0].startswith("publicar") for c in comandos):
         minimo, maximo, pronto = 3, 10, "O vídeo foi publicado nas plataformas do canal."
     elif primeiro.startswith("nuvem"):

@@ -24,7 +24,8 @@ GENERICOS = ("oi", "olá", "ola", "fala galera", "e aí", "e ai", "hoje eu", "ho
              "vamos falar", "eu trago", "trago pra vocês", "trago para vocês", "sabia que")
 TENSAO = re.compile(r"\?|\d|\b(nunca|ninguém|ninguem|sem|mas|errado|impossível|impossivel|segredo|ninguém sabe|"
                     r"proibid|mistério|misterio|sumiu|desapareceu|até hoje|ate hoje|por que|como)\b", re.I)
-CTA = re.compile(r"\b(comenta|comente|escreve|escreva|manda|salva|salve|segue|siga|compartilha)\b", re.I)
+CTA = re.compile(r"\b(comenta|comente|escreve|escreva|manda|mande|envia|envie|marca|marque|salva|salve|segue|siga|"
+                 r"compartilha)\b", re.I)
 PALAVRA_CHAVE = re.compile(r"\b[A-ZÁÉÍÓÚÂÊÔÃÕÇ]{3,}\b")
 # vícios de texto de IA, em português e inglês: cada um soa genérico e denuncia a produção em massa
 CARA_DE_IA = [
@@ -52,7 +53,8 @@ def _primeira_frase(texto: str) -> str:
 
 def auditar(roteiro: dict, perfil_dados: dict | None = None) -> list[dict]:
     """Lista de problemas: {"parte", "nivel" ("erro" trava, "aviso" só informa), "texto"}.
-    perfil_dados liga a chamada final do app (palavra.py): a última fala precisa pedir a palavra do canal."""
+    perfil_dados traz o gancho final do canal (palavra.GANCHOS): com "app", a última fala precisa pedir a palavra do
+    canal; com "pergunta", termina em pergunta; com "legenda", não precisa de chamada falada."""
     cenas = roteiro.get("cenas") or []
     falas = [_fala(c) for c in cenas if _fala(c)]
     problemas: list[dict] = []
@@ -87,13 +89,20 @@ def auditar(roteiro: dict, perfil_dados: dict | None = None) -> list[dict]:
         problemas.append({"parte": "prova", "nivel": "erro" if not roteiro.get("fontes") else "aviso",
                           "texto": "falta a prova: um dado, nome, data ou teste, com o link em \"fontes\""})
     fim = falas[-1]
-    if not CTA.search(fim):
+    from . import palavra
+    gancho = palavra.gancho(perfil_dados) if perfil_dados is not None else palavra.GANCHO_PADRAO
+    if gancho == "legenda":
+        pass  # o canal escolheu fechar sem chamada falada
+    elif gancho == "pergunta":
+        if "?" not in fim:
+            problemas.append({"parte": "cta", "nivel": "erro",
+                              "texto": "o fim precisa ser uma pergunta para o público responder (gancho final do canal)"})
+    elif not CTA.search(fim):
         problemas.append({"parte": "cta", "nivel": "erro",
                           "texto": "o fim não pede ação: termine com \"Comenta PALAVRA...\" ou \"Salva pra...\""})
     elif re.search(r"\b(comenta|comente|escreve|escreva)\b", fim, re.I) and not PALAVRA_CHAVE.search(fim):
         problemas.append({"parte": "cta", "nivel": "aviso",
                           "texto": "o CTA de comentário não tem palavra-chave em MAIÚSCULAS (ex.: Comenta NAZCA)"})
-    from . import palavra
     if perfil_dados is not None and palavra.ligado(perfil_dados) and palavra.palavra(perfil_dados) not in fim:
         problemas.append({"parte": "cta", "nivel": "erro",
                           "texto": f"a última fala precisa ser a chamada do app: diga que o vídeo foi feito por um "
