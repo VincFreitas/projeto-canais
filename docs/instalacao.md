@@ -83,12 +83,13 @@ Abra o Estúdio e mostre **Ajustes > Contas**, que explica cada conector:
 - Para ouvir os motores lado a lado com um texto seu: `.\dark.ps1 comparar-vozes` (arquivos em `saida\vozes-teste`).
 
 ## 5. YouTube (se escolhido; uma vez por instalação, depois um clique por canal)
+No Claude Code com o Claude no Chrome, a skill `/conectar-contas <canal>` faz os passos 5 e 6 no Chrome da pessoa (com o ok dela no chat); com ela ficam criar a conta, senha, códigos, CAPTCHA e a chave secreta da Meta. Sem o Chrome, siga abaixo.
 App OAuth do Google, **um só para todos os canais** (nunca crie um por canal; com o app em modo de teste, cada Gmail de canal entra em Público > Usuários de teste):
 1. console.cloud.google.com, logado na conta do canal: criar o projeto, ativar a **YouTube Data API v3**.
 2. Google Auth Platform: Branding (nome do app, e-mail), Público **Externo**, usuário de teste = o Gmail do canal.
 3. Acesso a dados: adicionar os escopos em "Adicionar escopos manualmente" (o campo de cima é só filtro): `https://www.googleapis.com/auth/youtube.upload` e `https://www.googleapis.com/auth/youtube.readonly` (e, para ler e responder comentários pelo Estúdio, `https://www.googleapis.com/auth/youtube.force-ssl`), depois Atualizar e Salvar.
 4. Para o token não vencer em 7 dias, **publicar o app** (Público > Publicar app). Isso exige página inicial, política de privacidade e termos no Branding: a pasta `site/` tem modelos para publicar no GitHub Pages (workflow `.github/workflows/pages.yml`, Settings > Pages > Source: GitHub Actions **antes** do primeiro push).
-5. Clientes > Criar cliente > **App para computador** > Baixar JSON. Salvar como `credenciais/client_secret.json`.
+5. Clientes > Criar cliente > **App para computador** > Baixar JSON. O Estúdio pega o arquivo sozinho da pasta Downloads (ou rode `python -m darkops pegar-app-google`) e salva em `credenciais/client_secret.json`.
 6. No Estúdio, Ajustes > Contas > **Conectar YouTube** e escolher a conta do canal (depois de criar o canal no passo 7, ou no canal de exemplo).
 
 Avise: no login aparece **"O Google não verificou este app"**. É o app da própria pessoa, ainda sem a verificação do Google: Avançado > "Acessar (não seguro)". Para o aviso sumir, ela pede a verificação em Google Auth Platform > Central de verificação (console.cloud.google.com/auth/verification). O pedido exige a página inicial e a política de privacidade do site (`site/`), o domínio confirmado no Search Console, a justificativa dos escopos `youtube.upload` e `youtube.readonly` e um vídeo curto mostrando o login. Costuma levar alguns dias. Nada disso se resolve pelo código.

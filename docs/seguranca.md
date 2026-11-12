@@ -41,7 +41,7 @@ Estas são as proteções em vigor e o motivo de cada uma.
 - `.env` e `credenciais/` ficam fora do Git (`.gitignore`); o histórico foi conferido em 2026-10-24 e não tem chave nem token.
 - Mensagens de erro, avisos das estatísticas e `falhas.log` passam por `seguranca.ocultar()`, que troca `access_token=...`, tokens da Meta e do Google e chaves de API por `***`.
 - A tela de chaves só mostra o valor das variáveis que não são segredo.
-- Logins e autorizações OAuth são sempre feitos por você, no navegador.
+- Criar conta, senha, códigos por SMS ou e-mail, CAPTCHA e chaves secretas são sempre com você. Com a skill `/conectar-contas`, o agente pode fazer no seu Chrome as telas de configuração e clicar em Permitir nas autorizações do seu próprio app, só depois do seu ok no chat.
 
 ## Claude Code chamado pelo projeto (leva, descrição, análise, ajuste do canal)
 

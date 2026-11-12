@@ -332,6 +332,7 @@ def contas_criar(pid):
     """Aba Contas do canal: o passo a passo para criar cada conta, com nomes e links."""
     from ..contas_guia import MANUAIS, passos
     p = _perfil(pid)
+    _pegar_app_google()
     lista = passos(p.dados, p)
     return render_template("contas_criar.html", p=p, d=p.dados, passos=lista, manuais=MANUAIS,
                            feitos=sum(1 for s in lista if s["feito"]))
@@ -363,8 +364,18 @@ def contas_marcar(pid, passo):
     return redirect(url_for("contas_criar", pid=pid) + f"#conta-{passo}")
 
 
+def _pegar_app_google() -> None:
+    """Sem o app do Google salvo, procura o JSON que o Google Cloud acabou de baixar na pasta Downloads."""
+    from ..contas import CLIENT_SECRET, pegar_app_google
+    if not CLIENT_SECRET.exists():
+        r = pegar_app_google()
+        if r["achado"] or not r["ok"] and "Aplicativo da Web" in r["texto"]:
+            flash(r["texto"], "ok" if r["ok"] else "erro")
+
+
 @app.get("/progresso")
 def progresso():
+    _pegar_app_google()
     return render_template("progresso.html", base=plataformas.base(), redes=plataformas.calcular(),
                            pendentes=_guia_pendente())
 
@@ -895,6 +906,7 @@ def ativar(pid):
 def conexoes(pid):
     from .conectores import GRUPOS, estado
     p = _perfil(pid)
+    _pegar_app_google()
     con, online, env = _conexoes(p), _n8n_online(), _env()
     grupos = [{"g": g, "itens": [{"c": c, "estado": estado(c, p, con, online),
                                   "valores": {k: ("" if segredo else env.get(k, "")) for k, _, segredo in c.chaves},

@@ -49,8 +49,9 @@ class Plataforma:
 def _youtube(perfis_alvo) -> Plataforma:
     app = (config.RAIZ / "credenciais" / "client_secret.json").exists()
     etapas = [Etapa("App OAuth do Google", app,
-                    "Vale para todos os perfis. Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e salve "
-                    "o JSON em credenciais/client_secret.json (passo a passo: docs/instalacao.md)",
+                    "Vale para todos os perfis. Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e baixe "
+                    "o JSON: o Estúdio pega sozinho da pasta Downloads (passo a passo: docs/instalacao.md; com o "
+                    "Claude no Chrome, /conectar-contas faz as telas)",
                     "https://console.cloud.google.com/apis/library/youtube.googleapis.com")]
     etapas += [Etapa(f"Canal conectado: {p.dados['nome']}", p.token_youtube.exists(),
                      "Estúdio > Conexões > Conectar YouTube e escolher a conta do canal") for p in perfis_alvo]

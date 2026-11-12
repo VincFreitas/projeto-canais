@@ -167,8 +167,8 @@ def diagnostico() -> list[tuple[str, bool, str]]:
         ("Imagens (Pixabay ou Pexels)", bool(env.get("PIXABAY_API_KEY") or env.get("PEXELS_API_KEY")),
          "pegue a chave grátis em pixabay.com/api/docs e cole no Estúdio"),
         ("App OAuth do Google (YouTube)", (config.RAIZ / "credenciais" / "client_secret.json").exists(),
-         "Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e salve o JSON "
-         "em credenciais/client_secret.json"),
+         "Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e baixe o JSON "
+         "(o Estúdio pega sozinho da pasta Downloads, ou rode pegar-app-google)"),
         ("Desenho local em pixel art (sd.cpp)", (config.MODELOS / "sd" / "sd-cli.exe").exists()
          and (config.MODELOS / "z_image_turbo-Q4_K.gguf").exists(),
          "opcional: veja 'Estilo pixel art' em docs/roteiro.md; sem ele as cenas usam Pexels/Pixabay"),

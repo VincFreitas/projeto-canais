@@ -62,6 +62,80 @@ def _abrir(url: str) -> None:
     webbrowser.open(url)
 
 
+# ---------- App do Google (cliente OAuth baixado do console) ----------
+
+CLIENT_SECRET = config.RAIZ / "credenciais" / "client_secret.json"
+JSON_GOOGLE_MAX_H = 48  # só pega o JSON baixado há pouco tempo (um arquivo antigo pode ser de outro projeto)
+
+
+def pastas_downloads() -> list[Path]:
+    """A pasta Downloads do Windows (a de verdade, mesmo se o usuário a moveu) e a padrão do perfil."""
+    pastas = []
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders") as chave:
+            valor, _ = winreg.QueryValueEx(chave, "{374DE290-123F-4565-9164-39C4925E467B}")
+            pastas.append(Path(os.path.expandvars(valor)))
+    except (ImportError, OSError):
+        pass
+    pastas.append(Path.home() / "Downloads")
+    unicas = []
+    for pasta in pastas:
+        if pasta.is_dir() and pasta.resolve() not in [u.resolve() for u in unicas]:
+            unicas.append(pasta)
+    return unicas
+
+
+def _cliente_google(arquivo: Path) -> tuple[str, str]:
+    """('ok', id do cliente), ('web', '') para o tipo errado ou ('', '') se não for um JSON de cliente do Google."""
+    try:
+        if arquivo.stat().st_size > 20_000:
+            return "", ""
+        dados = json.loads(arquivo.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "", ""
+    if not isinstance(dados, dict):
+        return "", ""
+    info = dados.get("installed")
+    if isinstance(info, dict) and str(info.get("client_id", "")).endswith(".apps.googleusercontent.com") \
+            and info.get("client_secret"):
+        return "ok", info["client_id"]
+    return ("web", "") if isinstance(dados.get("web"), dict) else ("", "")
+
+
+def pegar_app_google(pastas: list[Path] | None = None, destino: Path | None = None,
+                     agora: float | None = None) -> dict:
+    """O JSON que o Google Cloud baixa em "Baixar JSON" (client_secret_<id>.json) vai sozinho da pasta Downloads
+    para credenciais/client_secret.json, sem a pessoa precisar achar a pasta do projeto. Só aceita o cliente
+    "App para computador" baixado nas últimas 48 h, e nunca troca um app que já está salvo."""
+    destino = destino or CLIENT_SECRET
+    if destino.exists():
+        return {"ok": True, "achado": False, "texto": "O app do Google já está salvo."}
+    limite = (agora or time.time()) - JSON_GOOGLE_MAX_H * 3600
+    candidatos = []
+    for pasta in (pastas if pastas is not None else pastas_downloads()):
+        try:
+            candidatos += [a for a in pasta.glob("client_secret*.json") if a.is_file() and a.stat().st_mtime >= limite]
+        except OSError:
+            continue
+    tipo_web = False
+    for arquivo in sorted(candidatos, key=lambda a: a.stat().st_mtime, reverse=True):
+        tipo, _ = _cliente_google(arquivo)
+        if tipo == "ok":
+            destino.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(arquivo), str(destino))  # tira a chave da pasta Downloads
+            return {"ok": True, "achado": True,
+                    "texto": "Achei o app do Google na pasta Downloads e salvei no projeto. Agora é só conectar o YouTube."}
+        tipo_web = tipo_web or tipo == "web"
+    if tipo_web:
+        return {"ok": False, "achado": False,
+                "texto": "O JSON baixado é de um cliente \"Aplicativo da Web\". Crie outro cliente do tipo "
+                         "\"App para computador\" e baixe o JSON dele."}
+    return {"ok": False, "achado": False,
+            "texto": "Ainda não achei o JSON do app do Google na pasta Downloads (client_secret_....json)."}
+
+
 # ---------- GitHub ----------
 
 def instalar_gh() -> str:

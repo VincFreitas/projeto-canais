@@ -150,13 +150,15 @@ def passos(dados: dict, perfil=None) -> list[dict]:
          "feito": feitos.get("gmail", False),
          "texto": "Um Gmail só deste canal deixa as contas separadas, mas não é obrigatório: o canal do YouTube pode "
                   "ser um canal de marca no Gmail que você já usa, e o Instagram aceita um apelido do seu e-mail "
-                  "(seuemail+canal@gmail.com chega na sua caixa normal).",
+                  "(seuemail+canal@gmail.com chega na sua caixa normal). Para entrar sem digitar senha, crie uma chave "
+                  "de acesso (passkey) na conta do Google: o login vira a digital ou o PIN do Windows.",
          "aviso": "Atenção: o Google limita quantas contas um mesmo celular confirma. Se aparecer \"Tente usar outro "
                   "dispositivo para fazer a verificação\", pare de tentar (cada tentativa pode alongar a espera) e "
                   "marque abaixo: o Estúdio calcula quando tentar de novo. Enquanto isso, siga pelo canal de marca.",
          "bloqueio": situacao_bloqueio(),
          "nomes": [("E-mail", n["gmail"]), ("Apelido do seu e-mail (Instagram)", n["apelido"])],
-         "links": [("Criar o Gmail", "https://accounts.google.com/signup")]},
+         "links": [("Criar o Gmail", "https://accounts.google.com/signup"),
+                   ("Entrar sem senha (chave de acesso)", "https://myaccount.google.com/signinoptions/passkeys")]},
     ]
     if yt:
         lista.append({
@@ -176,7 +178,9 @@ def passos(dados: dict, perfil=None) -> list[dict]:
         lista.append({
             "id": "instagram_conta", "titulo": "Conta do Instagram", "vale": "por canal",
             "feito": feitos.get("instagram_conta", False) or token_ig,
-            "texto": "Crie a conta com o Gmail do canal. Depois, no app do Instagram, mude para conta "
+            "texto": "Jeito mais rápido: no app do Instagram do celular, toque no seu nome no alto do perfil > "
+                     "Adicionar conta do Instagram > Criar nova conta. Ela aproveita os dados da conta que você já "
+                     "tem, então em geral não pede e-mail nem telefone novos. Ou crie com o Gmail do canal. Depois, no app do Instagram, mude para conta "
                      "Profissional (Criador ou Empresa) e deixe pública: sem isso a postagem automática não funciona. "
                      "Se o app da Meta já existe (de outro canal), não crie outro: adicione esta conta nele, em "
                      "Instagram > Configuração da API com login do Instagram > 1. Gerar tokens de acesso > Adicionar conta.",
@@ -191,8 +195,9 @@ def passos(dados: dict, perfil=None) -> list[dict]:
             "texto": "Um app só para todos os canais: crie uma vez; os próximos canais usam o mesmo (com o app em modo "
                      "de teste, acrescente o Gmail de cada canal em Público > Usuários de teste). Logado com um Gmail seu: crie o projeto, ative a YouTube Data API v3, preencha a marca do app "
                      "(público Externo; ponha o Gmail do canal como usuário de teste), adicione os escopos "
-                     "youtube.upload e youtube.readonly e crie o cliente \"App para computador\". Baixe o JSON e "
-                     "salve como credenciais/client_secret.json. O app serve a todos os canais: dê o nome do "
+                     "youtube.upload e youtube.readonly e crie o cliente \"App para computador\". Baixe o JSON: "
+                     "o Estúdio pega o arquivo sozinho da pasta Downloads. Com o Claude Code e o Claude no Chrome, "
+                     "a skill /conectar-contas faz estas telas por você. O app serve a todos os canais: dê o nome do "
                      "projeto (não o de um canal) e use um e-mail seu como e-mail de suporte, porque os dois aparecem "
                      "no login de todos os canais. Para trocar depois: Marca do app (passo 3). Ao conectar, o Google mostra \"O Google não "
                      "verificou este app\": é o seu próprio app; clique em Avançado > Acessar (não seguro). Para "
@@ -216,7 +221,9 @@ def passos(dados: dict, perfil=None) -> list[dict]:
                      "Crie o app (nome sem Instagram, Facebook nem Meta), escolha o caso de uso \"Gerenciar mensagens e "
                      "conteúdo no Instagram\" (ou \"Outro\" > tipo \"Empresa\"), adicione a conta do canal em \"1. Gerar "
                      "tokens de acesso\", cole o endereço de retorno na etapa 3 e copie o ID e a chave do app do "
-                     "Instagram. O passo a passo detalhado, tela por tela, está no card do Instagram em Ajustes > Contas.",
+                     "Instagram. O passo a passo detalhado, tela por tela, está no card do Instagram em Ajustes > Contas. "
+                     "Com o Claude Code e o Claude no Chrome, a skill /conectar-contas faz estas telas por você; "
+                     "a chave secreta você copia e aperta Colar no Estúdio.",
             "nomes": [("Nome do app", n["meta_app"])],
             "links": [("Criar o app", "https://developers.facebook.com/apps/creation/"),
                       ("Seus apps", "https://developers.facebook.com/apps/")]})

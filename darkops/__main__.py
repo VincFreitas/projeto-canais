@@ -686,6 +686,27 @@ def cmd_conectar_github(a):
     contas.conectar_github(a.fila or contas.REPO_FILA, a.passagem or contas.REPO_PASSAGEM)
 
 
+def cmd_contas_guia(a):
+    """As contas do canal na ordem, com os nomes sugeridos, os links e o que já está pronto (para a skill
+    /conectar-contas e outros agentes)."""
+    from .contas import instagram_retorno
+    from .contas_guia import passos
+    from .perfis import carregar
+    perfil = carregar(a.perfil)
+    print(json.dumps({"perfil": perfil.id, "nome": perfil.dados.get("nome"), "instagram_retorno": instagram_retorno(),
+                      "passos": [{"id": s["id"], "titulo": s["titulo"], "vale": s.get("vale", ""), "feito": s["feito"],
+                                  "nomes": dict(s.get("nomes") or []), "links": dict(s.get("links") or [])}
+                                 for s in passos(perfil.dados, perfil)]}, ensure_ascii=False, indent=2))
+
+
+def cmd_pegar_app_google(_):
+    from .contas import pegar_app_google
+    r = pegar_app_google()
+    print(r["texto"])
+    if not r["ok"]:
+        raise SystemExit(1)
+
+
 def cmd_conectar_azure(_):
     from . import contas
     contas.conectar_azure()
@@ -1013,6 +1034,11 @@ def main():
     s.add_argument("--passagem", default="", help="nome do repositório público de passagem (padrão projeto-canais-videos)")
     s.set_defaults(fn=cmd_conectar_github)
 
+    s = sub.add_parser("contas-guia", help="contas do canal em JSON: ordem, nomes sugeridos, links e o que já está pronto")
+    s.set_defaults(fn=cmd_contas_guia)
+    s = sub.add_parser("pegar-app-google", help="move o JSON do app do Google (client_secret_...json) de Downloads "
+                                                "para credenciais/client_secret.json")
+    s.set_defaults(fn=cmd_pegar_app_google)
     s = sub.add_parser("conectar-azure", help="login na Microsoft; cria o recurso de voz grátis (F0) e salva a chave")
     s.set_defaults(fn=cmd_conectar_azure)
 

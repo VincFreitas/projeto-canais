@@ -23,7 +23,7 @@
       <form method="post" action="{{ url_for('conectar_youtube', pid=p.id) }}"><button class="botao pequeno">{{ 'Reconectar' if situacao == 'ok' else 'Conectar YouTube' }}</button></form>
     {% else %}
       <p class="app-unico"><b>Um app do Google para todos os canais.</b> Crie uma vez só, no primeiro canal; os próximos usam o mesmo.</p>
-      <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. O passo a passo está em <code>docs/instalacao.md</code> (no Claude Code, <code>/configurar</code>).</p>
+      <p class="dica">Falta o app OAuth do Google (<code>credenciais/client_secret.json</code>). Crie uma vez no Google Cloud; vale para todos os perfis. Ao baixar o JSON do cliente, o Estúdio pega o arquivo sozinho da pasta Downloads (abra esta tela de novo). O passo a passo está em <code>docs/instalacao.md</code>; no Claude Code com o Claude no Chrome, a skill <code>/conectar-contas</code> faz as telas por você.</p>
     {% endif %}
   {% elif c.tipo == 'token' %}
     {% if instagram_app %}
@@ -75,15 +75,37 @@
           e clique em <b>Salvar</b> (Save).</li>
         <li><b>Copiar o ID e a chave.</b> No topo dessa mesma tela há um quadro com <b>Nome do app do Instagram</b>, <b>ID do app do Instagram</b>
           (Instagram app ID: só números) e <b>Chave secreta do app do Instagram</b> (Instagram app secret: clique em <b>Mostrar</b>; são 32 letras e números).
-          Em alguns painéis eles ficam em <b>Configurações do login da empresa</b> (Business login settings). Cole os dois abaixo.
+          Em alguns painéis eles ficam em <b>Configurações do login da empresa</b> (Business login settings). Cole o ID abaixo; depois copie a chave e aperte <b>Colar a chave</b>.
           <span class="suave">Esse nome aparece no login de todos os canais. Para trocar por "Projeto Canais": Configurações do app &gt; Básico &gt; Nome de exibição, depois <b>Sincronizar nome do app</b> nesta tela.</span>
           <span class="suave">Atenção: é o ID do app <b>do Instagram</b>, que fica nessa tela. O ID do app que aparece no topo do painel e em Configurações &gt; Básico é outro e não funciona.</span></li>
       </ol>
-      <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave">
-        <input type="text" name="INSTAGRAM_APP_ID" placeholder="ID do app do Instagram" autocomplete="off" required>
-        <input type="password" name="INSTAGRAM_APP_SECRET" placeholder="Chave secreta do app do Instagram" autocomplete="off" required>
+      <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave" id="form-app-instagram">
+        <input type="text" name="INSTAGRAM_APP_ID" placeholder="ID do app do Instagram" autocomplete="off" inputmode="numeric" required>
+        <input type="password" name="INSTAGRAM_APP_SECRET" placeholder="Chave secreta do app do Instagram" autocomplete="off" required
+               onpaste="setTimeout(() => this.form.INSTAGRAM_APP_ID.value.trim() && this.value.trim() && this.form.requestSubmit(), 50)">
+        <button type="button" class="botao pequeno secundario" id="colar-chave-instagram">Colar a chave</button>
         <button class="botao pequeno">Salvar e entrar com Instagram</button>
       </form>
+      <p class="dica" id="colar-chave-aviso">Copie a chave no painel da Meta (Mostrar, depois selecione e copie) e aperte <b>Colar a chave</b>: ela entra sem você digitar, e o login do Instagram já abre.</p>
+      <script>
+      (() => {
+        const form = document.getElementById('form-app-instagram'), aviso = document.getElementById('colar-chave-aviso');
+        document.getElementById('colar-chave-instagram').addEventListener('click', async () => {
+          let texto = '';
+          try { texto = (await navigator.clipboard.readText()).trim(); }
+          catch (e) { form.INSTAGRAM_APP_SECRET.focus(); aviso.textContent = 'O navegador não deixou ler a área de transferência. Clique no campo da chave e aperte Ctrl+V.'; return; }
+          if (/^[0-9a-f]{32}$/.test(texto)) {
+            form.INSTAGRAM_APP_SECRET.value = texto;
+            if (form.INSTAGRAM_APP_ID.value.trim()) { form.requestSubmit(); return; }
+            form.INSTAGRAM_APP_ID.focus(); aviso.textContent = 'Chave colada. Falta o ID do app do Instagram (só números).';
+          } else if (/^\d{6,}$/.test(texto)) {
+            form.INSTAGRAM_APP_ID.value = texto; aviso.textContent = 'Esse é o ID do app. Agora copie a chave secreta e aperte Colar a chave de novo.';
+          } else {
+            aviso.textContent = 'O que está copiado não parece a chave (32 letras e números). Copie de novo no painel da Meta.';
+          }
+        });
+      })();
+      </script>
     {% endif %}
     <details class="mais"><summary>Ou cole um token gerado no painel da Meta</summary>
     {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}

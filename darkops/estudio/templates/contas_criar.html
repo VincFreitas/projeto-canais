@@ -5,6 +5,8 @@
 <p class="suave">Um passo de cada vez, na ordem. Cada botão abre a página certa; os nomes sugeridos saem do nome do canal
   (clique para copiar). Se um nome já estiver em uso, o site avisa: tente o próximo. Criar as contas e fazer os logins
   é com você; o resto o Estúdio faz.</p>
+<p class="dica">Com o Claude Code e o Claude no Chrome, peça <code>/conectar-contas {{ p.id }}</code>: ele faz no seu Chrome as
+  telas do Google Cloud, do Instagram e da Meta e as conexões. Você só cria a conta, entra nela e copia a chave da Meta.</p>
 <p><b>{{ feitos }} de {{ passos|length }}</b> prontos.
   {% if feitos == passos|length %}Tudo pronto: <a href="{{ url_for('conexoes', pid=p.id) }}">conectar as contas</a>.{% endif %}</p>
 {% include "_contas_passos.html" %}
