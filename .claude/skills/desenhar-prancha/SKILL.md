@@ -94,6 +94,22 @@ Coordenadas em px do palco. Todo componente aceita `em`. Os que dizem "id" guard
 - `Grupo` {entra_em, some_em, itens:[...]}: troca de quadro no meio da cena.
 - `Texto` {texto, x, y, classe (rot, rot-linha, num, item), estilo, pulso, em}. Use pouco.
 - `Resumo` {x, y, itens:[{texto, em}], risco:{peca, x, base, altura, em}}: fechamento com checks e um item riscado.
+- `Manchete` {jornal, data, edicao, titulo, linha_fina, colunas (2 ou 3), foto:{peca}, destaque, destaque_em, giro, x, y,
+  largura, altura, em, some_em}: folha de jornal que entra girando (`giro: false` = cai sem girar), imprime a manchete
+  palavra a palavra e desenha as colunas. Use para "a notícia da época", "os jornais disseram". `destaque` = uma palavra
+  do `titulo` que ganha um círculo âmbar em `destaque_em`. `jornal` é sempre um nome inventado ("Gazeta da Ilha"),
+  nunca um jornal de verdade. `titulo` é texto seu, de até 60 caracteres, nunca copiado de uma manchete real.
+  Ocupa o palco quase todo: é o componente principal da cena.
+- `Painel` {texto | linhas:[...], de, rotulo, cor (alerta|linha), alinhar (esquerda), passos:[{em, texto | linhas, cor}],
+  x, y, tam, passo, max, em, some_em}: painel de aeroporto. Cada plaqueta gira pelo alfabeto até a letra certa. Serve
+  para revelar um nome, uma data ou um número curto: até 12 caracteres por linha e até 3 linhas. `de` = o texto antes
+  do giro (padrão: vazio). `passos` troca o texto depois, por exemplo de "82 TONELADAS" para "10 ELEFANTES", com
+  `cor: "alerta"` no veredito. Número sempre em algarismos, como no `Contador`.
+- `Celular` {camadas:[vidro, tela, placa, bateria, carcaca], rotulos:{camada: "texto"}, abre_em, destaque, destaque_em,
+  fecha_em, x, y, escala, gap, em, some_em}: celular em vista explodida. Fecha como um aparelho só, abre em camadas
+  com o nome de cada uma ao lado e pode acender uma camada em âmbar (`destaque`) enquanto as outras apagam. Use para
+  explicar como algo funciona por dentro. Desenho genérico, sem marca nem modelo. Os nomes padrão são VIDRO, TELA,
+  PLACA, BATERIA e CARCAÇA; `rotulos` troca algum, por exemplo `{"placa": "PLACA-MÃE"}`.
 
 ## Peças novas (dialeto SVG)
 Uma peça é um `<svg>` com `viewBox="0 0 L A"`, `data-pivos="nome:x y;nome:x y"` (inclua `cm` e os cantos da base) e

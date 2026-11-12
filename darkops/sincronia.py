@@ -102,8 +102,23 @@ def _impacto(rng) -> np.ndarray:
     return grave + estalo
 
 
-SONS = {"whoosh": _whoosh, "pop": _pop, "ding": _ding, "thud": _thud, "riser": _riser, "impacto": _impacto}
-VOLUMES = {"whoosh": 0.22, "pop": 0.32, "ding": 0.26, "thud": 0.42, "riser": 0.2, "impacto": 0.5}
+def _tique(rng) -> np.ndarray:
+    """Matraca do painel de aeroporto: estalos curtos e secos em sequência, cada vez mais espaçados até parar."""
+    n = int(0.8 * TAXA)
+    saida = np.zeros(n)
+    t, passo = 0.0, 0.028
+    while t < 0.75:
+        i = int(t * TAXA)
+        m = min(int(0.012 * TAXA), n - i)
+        estalo = np.diff(rng.standard_normal(m + 1)) * _env(m, 0.0003, 420)
+        saida[i:i + m] += estalo * (1 - t / 0.9) * (0.7 + 0.3 * rng.random())
+        t += passo * (0.8 + 0.4 * rng.random())
+        passo *= 1.05
+    return saida
+
+
+SONS = {"whoosh": _whoosh, "pop": _pop, "ding": _ding, "thud": _thud, "riser": _riser, "impacto": _impacto, "tique": _tique}
+VOLUMES = {"whoosh": 0.22, "pop": 0.32, "ding": 0.26, "thud": 0.42, "riser": 0.2, "impacto": 0.5, "tique": 0.28}
 ANTES = {"riser"}  # som que termina no tempo do evento, em vez de começar nele
 
 

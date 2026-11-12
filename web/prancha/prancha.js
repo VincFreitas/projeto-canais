@@ -990,6 +990,361 @@
     for (const it of o.itens) montar(sub, it);
   };
 
+  // ---------- texto medido por tabela (Georgia do Windows, medida em 2026-11-12): determinístico, não depende de a
+  // fonte já ter carregado quando o roteiro é montado. Acento conta como a letra sem acento.
+  const LETRAS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,:;!?-'";
+  const LARG = Object.fromEntries(Object.entries({
+    negrito: "60 65 53 66 57 39 58 68 35 35 63 34 102 69 64 66 65 52 51 40 68 57 86 59 56 53 76 76 72 83 72 67 81 91 45 60 82 69 102 84 82 70 82 80 65 68 83 76 113 81 73 69 70 49 63 62 65 60 65 55 68 65 25 33 33 37 37 38 55 38 27",
+    italico: "57 55 45 58 47 33 57 56 30 29 53 29 88 59 54 58 56 46 43 35 58 54 82 50 56 44 67 65 64 75 65 60 73 81 39 52 69 60 93 77 73 61 73 70 56 62 76 67 98 71 62 60 61 43 56 55 56 53 57 50 60 57 24 27 27 38 38 33 48 37 22",
+  }).map(([f, s]) => [f, Object.fromEntries(s.split(" ").map((v, i) => [LETRAS[i], v / 100]))]));
+  const largura = (s, tam, fam = "negrito") => [...String(s)].reduce((a, c) => a + (LARG[fam][c.normalize("NFD")[0]] ?? .6), 0) * tam;
+  // quebra em linhas que cabem em "max" px
+  function quebrar(texto, tam, max, fam = "negrito") {
+    const linhas = [];
+    let atual = "";
+    for (const p of String(texto).split(/\s+/).filter(Boolean)) {
+      const tenta = atual ? `${atual} ${p}` : p;
+      if (atual && largura(tenta, tam, fam) > max) { linhas.push(atual); atual = p; } else atual = tenta;
+    }
+    if (atual) linhas.push(atual);
+    return linhas;
+  }
+  // maior tamanho (de "tam" para baixo) em que o texto cabe em até "maxLinhas" linhas
+  function caber(texto, tam, max, maxLinhas, fam = "negrito", minimo = 30) {
+    for (let s = tam; s >= minimo; s -= 2) {
+      const l = quebrar(texto, s, max, fam);
+      if (l.length <= maxLinhas && l.every(x => largura(x, s, fam) <= max)) return { tam: s, linhas: l };
+    }
+    return { tam: minimo, linhas: quebrar(texto, minimo, max, fam) };
+  }
+  // contorno "feito à mão" em volta de uma caixa (para circular uma palavra), com semente
+  function circulo(cx, cy, rx, ry, semente) {
+    const r = sorteio(semente), pts = [];
+    for (let k = 0; k <= 14; k++) {
+      const a = -2.5 + k / 13 * Math.PI * 2.1, f = 1 + (r() - .5) * .08;
+      pts.push([cx + Math.cos(a) * rx * f, cy + Math.sin(a) * ry * f]);
+    }
+    return suave(pts);
+  }
+
+  // manchete de jornal: a folha entra girando, a manchete se imprime palavra a palavra e as colunas se desenham.
+  // O nome do jornal é sempre inventado (nunca o de um jornal de verdade) e a manchete é texto próprio.
+  COMP.Manchete = (ctx, o) => {
+    const Wd = o.largura || 760, Hd = o.altura || (o.foto ? 820 : 720), x0 = (o.x ?? 480) - Wd / 2, y0 = o.y ?? (980 - Hd) / 2, pad = 34, aw = Wd - 2 * pad;
+    const giro = el("g", {}, ctx.svg);
+    const g = el("g", { transform: `translate(${x0} ${y0})` }, giro);
+    el("rect", { class: "chapa", x: 0, y: 0, width: Wd, height: Hd, rx: 6 }, g);
+    const borda = el("rect", { class: "l", x: 0, y: 0, width: Wd, height: Hd, rx: 6, style: "stroke-width:4" }, g);
+    // cabeçalho do jornal: nome, data e fios
+    const nomeJ = String(o.jornal || "O Diário").toUpperCase();
+    const tj = Math.min(64, (aw - 2 * nomeJ.length) / Math.max(1, largura(nomeJ, 1)));  // + 2 px de espaço entre letras
+    el("text", { class: "jornal", x: Wd / 2, y: pad + tj * .82, "text-anchor": "middle", style: `font-size:${tj.toFixed(1)}px`, texto: nomeJ }, g);
+    let y = pad + tj + 14;
+    el("path", { class: "s", d: `M${pad},${y} L${Wd - pad},${y}`, style: "stroke-width:2" }, g);
+    el("text", { class: "rot", x: pad, y: y + 30, style: "font-size:20px;opacity:.8", texto: String(o.data || "").toUpperCase() }, g);
+    el("text", { class: "rot", x: Wd - pad, y: y + 30, "text-anchor": "end", style: "font-size:20px;opacity:.8", texto: String(o.edicao || "edição extra").toUpperCase() }, g);
+    y += 44;
+    el("path", { class: "s", d: `M${pad},${y} L${Wd - pad},${y} M${pad},${y + 6} L${Wd - pad},${y + 6}`, style: "stroke-width:2" }, g);
+    y += 30;
+    // manchete: o maior tamanho que cabe em até 3 linhas
+    const M = caber(o.titulo, o.tam || (o.foto ? 66 : 78), aw, o.max_linhas || 3, "negrito", 36);
+    const palavras = [];
+    const caixas = {};
+    M.linhas.forEach((linha, k) => {
+      const yy = y + M.tam * (.86 + k * 1.04);
+      const tx = el("text", { class: "manchete", x: Wd / 2, y: yy.toFixed(1), "text-anchor": "middle", style: `font-size:${M.tam}px` }, g);
+      let cx = Wd / 2 - largura(linha, M.tam) / 2;
+      linha.split(" ").forEach((p, j) => {
+        const sp = el("tspan", { texto: (j ? " " : "") + p }, tx);
+        palavras.push(sp);
+        if (j) cx += largura(" ", M.tam);
+        const w = largura(p, M.tam);
+        caixas[norm(p)] = caixas[norm(p)] || [cx + w / 2, yy - M.tam * .34, w / 2 + 16, M.tam * .62];
+        cx += w;
+      });
+    });
+    y += M.tam * (M.linhas.length * 1.04 + .3);
+    let fina = null;
+    if (o.linha_fina) {
+      const F = caber(o.linha_fina, 30, aw, 2, "italico", 22);
+      fina = el("g", {}, g);
+      F.linhas.forEach((l, k) => el("text", { class: "linha-fina", x: Wd / 2, y: (y + F.tam * (.9 + k * 1.15)).toFixed(1), "text-anchor": "middle", style: `font-size:${F.tam}px`, texto: l }, fina));
+      y += F.tam * (F.linhas.length * 1.15 + .4);
+    }
+    el("path", { class: "s", d: `M${pad},${y} L${Wd - pad},${y}`, style: "stroke-width:2" }, g);
+    y += 22;
+    // colunas de texto (traços), com foto opcional na primeira
+    const nc = o.colunas || 3, gap = 24, cw = (aw - gap * (nc - 1)) / nc, rr = sorteio(`${D.semente}-manchete-${o.titulo}`);
+    const corpo = [];
+    let fotoG = null, fotoPeca = null;
+    for (let c = 0; c < nc; c++) {
+      const cx = pad + c * (cw + gap);
+      let yy = y;
+      if (c === 0 && o.foto) {
+        const larg = nc >= 3 ? cw * 2 + gap : cw, alt = Math.min(280, (Hd - y - pad) * .78);
+        fotoG = el("g", {}, g);
+        el("rect", { class: o.foto.peca ? "m" : "h", x: cx, y: yy, width: larg, height: alt }, fotoG);
+        el("rect", { class: "s", x: cx, y: yy, width: larg, height: alt, style: "stroke-width:2" }, fotoG);
+        if (o.foto.peca) {
+          fotoPeca = peca(ctx, o.foto.peca, { x: cx + larg / 2, base: yy + alt - 12, altura: alt - 30, pai: fotoG });
+        }
+        if (nc >= 3) { // a foto ocupa duas colunas: a segunda começa embaixo dela também
+          corpo.push(...colunaTracos(g, cx + cw + gap, yy + alt + 24, cw, Hd - pad, rr));
+          c++;
+        }
+        yy += alt + 24;
+      }
+      corpo.push(...colunaTracos(g, cx, yy, cw, Hd - pad, rr));
+      if (c < nc - 1) el("path", { class: "s", d: `M${cx + cw + gap / 2},${y} L${cx + cw + gap / 2},${Hd - pad}`, style: "stroke-width:1.5;opacity:.5" }, g);
+    }
+    // tempo: entra (girando ou caindo), imprime a manchete, a linha fina e as colunas
+    const t = quando(ctx.cena, o.em, .1), cx0 = x0 + Wd / 2, cy0 = y0 + Hd / 2, fim = o.gira ?? -2;
+    som(t, "whoosh");
+    if (o.giro === false) {
+      tl.fromTo(giro, { opacity: 0, y: -40, rotation: fim, svgOrigin: `${cx0} ${cy0}` }, { opacity: 1, y: 0, rotation: fim, svgOrigin: `${cx0} ${cy0}`, duration: T.lento, ease: C.entra }, t);
+      tl.fromTo(borda, { drawSVG: "0%" }, { drawSVG: "100%", duration: T.lento, ease: C.desenha }, t);
+    } else {
+      tl.fromTo(giro, { opacity: 0, scale: .2, rotation: fim - 360, svgOrigin: `${cx0} ${cy0}` },
+        { opacity: 1, scale: 1, rotation: fim, svgOrigin: `${cx0} ${cy0}`, duration: .75, ease: "power3.out" }, t);
+    }
+    const pousa = t + (o.giro === false ? T.lento : .75);
+    som(pousa - .05, "thud");
+    tl.fromTo(palavras, { attr: { "fill-opacity": 0 } }, { attr: { "fill-opacity": 1 }, duration: .06, ease: C.linear, stagger: .11 }, pousa);
+    const depois = pousa + palavras.length * .11 + .1;
+    if (fina) aparecer(fina, depois, T.medio, 6);
+    tl.fromTo(corpo, { drawSVG: "0%" }, { drawSVG: "100%", duration: .25, ease: C.suave, stagger: Math.min(.02, 1.2 / Math.max(1, corpo.length)) }, depois);
+    if (fotoG) {
+      tl.fromTo(fotoG, { opacity: 0 }, { opacity: 1, duration: T.medio }, depois);
+      if (fotoPeca) desenhar(fotoPeca.gr, depois + .1, .9);
+    }
+    // destaque: a palavra da manchete ganha um círculo âmbar, como caneta no papel
+    if (o.destaque) {
+      const b = caixas[norm(String(o.destaque).split(/\s+/)[0])];
+      if (!b) avisos.push(`cena ${ctx.cena.i}: Manchete: a palavra "${o.destaque}" não está no título`);
+      else {
+        const ci = el("path", { class: "a", d: circulo(b[0], b[1], b[2], b[3], `${D.semente}-${o.destaque}`), style: "stroke-width:6" }, g);
+        const td = quando(ctx.cena, o.destaque_em, (depois - ctx.cena.ini) + .4);
+        tl.fromTo(ci, { drawSVG: "0%" }, { drawSVG: "100%", duration: .45, ease: C.suave }, td);
+        som(td, "pop");
+      }
+    }
+    if (o.id) ctx.reg[o.id] = { g: giro };
+    if (o.some_em) tl.to(giro, { opacity: 0, duration: T.medio, ease: C.sai }, quando(ctx.cena, o.some_em));
+  };
+  function colunaTracos(g, x, y, w, ymax, r) {
+    const out = [];
+    for (let yy = y + 8; yy <= ymax; yy += 22) {
+      const fimPar = r() < .16;
+      const len = fimPar ? w * (.3 + .45 * r()) : w;
+      out.push(el("path", { class: "s", d: `M${x.toFixed(1)},${yy.toFixed(1)} L${(x + len).toFixed(1)},${yy.toFixed(1)}`, style: "stroke-width:5;opacity:.38" }, g));
+      if (fimPar) yy += 12;
+    }
+    return out;
+  }
+
+  // painel de aeroporto (split-flap): cada plaqueta gira pelo alfabeto, na ordem fixa, até a letra certa.
+  // Bom para revelar um nome, uma data ou um número; "passos" troca o texto depois.
+  const ALFABETO = " ABCDEFGHIJKLMNOPQRSTUVWXYZÁÂÃÉÊÍÓÔÕÚÇ0123456789.,:-/%+";
+  COMP.Painel = (ctx, o) => {
+    const linhasDe = p => (p.linhas || [p.texto ?? ""]).map(s => String(s).toUpperCase());
+    const etapas = [{ em: o.em, linhas: linhasDe(o), cor: o.cor }, ...(o.passos || []).map(p => ({ em: p.em, linhas: linhasDe(p), cor: p.cor ?? o.cor }))];
+    const rows = Math.max(...etapas.map(e => e.linhas.length));
+    const cols = Math.max(o.celulas || 0, ...etapas.flatMap(e => e.linhas.map(l => [...l].length)));
+    const alinha = (l, n) => {
+      const c = [...l];
+      const sobra = n - c.length, esq = o.alinhar === "esquerda" ? 0 : Math.floor(sobra / 2);
+      return [...Array(esq).fill(" "), ...c, ...Array(sobra - esq).fill(" ")];
+    };
+    const grade = linhas => Array.from({ length: rows }, (_, r) => alinha(linhas[r] || "", cols));
+    let alfabeto = ALFABETO;
+    for (const e of etapas) for (const l of e.linhas) for (const ch of l) if (!alfabeto.includes(ch)) alfabeto += ch;
+    const A = [...alfabeto];
+    // tamanho: a altura da plaqueta encolhe até o painel caber em 840 px de largura
+    const h = Math.min(o.tam || 130, 840 / (cols * .7 + (cols - 1) * .08)), w = h * .7, gap = h * .08, rg = h * .16;
+    const W = cols * w + (cols - 1) * gap, H = rows * h + (rows - 1) * rg;
+    const bx = (o.x ?? 480) - W / 2, by = (o.y ?? 470) - H / 2;
+    const g = el("g", {}, ctx.svg);
+    const moldura = el("rect", { class: "l", x: bx - 24, y: by - 24, width: W + 48, height: H + 48, rx: 16 }, g);
+    if (o.rotulo) el("text", { class: "rot-linha", x: bx - 24, y: by - 44, texto: o.rotulo.toUpperCase() }, g);
+    const tam = h * .74, cor0 = "#F4F1EA", corDe = c => c === "alerta" ? "#F2B33D" : c === "linha" ? "#5CF2E0" : cor0;
+    const cel = [];
+    const plaquetas = el("g", {}, g);
+    for (let r = 0; r < rows; r++) {
+      for (let k = 0; k < cols; k++) {
+        const cx = bx + k * (w + gap), cy = by + r * (h + rg), ym = cy + h / 2;
+        const cg = el("g", {}, plaquetas);
+        const id = `pf${++uid}`;
+        el("clipPath", { id: `${id}c`, html: `<rect x="${cx}" y="${cy}" width="${w}" height="${h / 2}"/>` }, cg);
+        el("clipPath", { id: `${id}b`, html: `<rect x="${cx}" y="${ym}" width="${w}" height="${h / 2}"/>` }, cg);
+        el("rect", { x: cx, y: cy, width: w, height: h, rx: 6, fill: "#141B23", stroke: "rgba(232,226,212,.2)", "stroke-width": 2 }, cg);
+        const letra = (y, clip) => el("text", { class: "flap", x: cx + w / 2, y, "text-anchor": "middle", style: `font-size:${tam.toFixed(1)}px`, "clip-path": `url(#${clip})` }, cg);
+        const by0 = ym + tam * .36;
+        const cima = letra(by0, `${id}c`), baixo = letra(by0, `${id}b`);
+        // plaquetas que caem: a de cima (letra velha) fecha até o meio; a de baixo (letra nova) abre do meio
+        const fc = el("g", { "clip-path": `url(#${id}c)` }, cg), fci = el("g", {}, fc);
+        el("rect", { x: cx, y: cy, width: w, height: h, rx: 6, fill: "#1B242E" }, fci);
+        const fcT = el("text", { class: "flap", x: cx + w / 2, y: by0, "text-anchor": "middle", style: `font-size:${tam.toFixed(1)}px` }, fci);
+        const fb = el("g", { "clip-path": `url(#${id}b)` }, cg), fbi = el("g", {}, fb);
+        el("rect", { x: cx, y: cy, width: w, height: h, rx: 6, fill: "#1B242E" }, fbi);
+        const fbT = el("text", { class: "flap", x: cx + w / 2, y: by0, "text-anchor": "middle", style: `font-size:${tam.toFixed(1)}px` }, fbi);
+        el("path", { d: `M${cx},${ym} L${cx + w},${ym}`, stroke: "#05070A", "stroke-width": 3 }, cg);
+        cel.push({ ym, cima, baixo, fci, fcT, fbi, fbT, r, k });
+      }
+    }
+    const pinta = (c, atual, prox, fase, cor) => {
+      const s1 = fase < .5 ? 1 - fase * 2 : 0, s2 = fase < .5 ? 0 : fase * 2 - 1;
+      c.cima.textContent = prox; c.baixo.textContent = atual; c.fcT.textContent = atual; c.fbT.textContent = prox;
+      for (const e of [c.cima, c.baixo, c.fcT, c.fbT]) e.style.fill = cor;
+      c.fci.setAttribute("transform", `translate(0 ${c.ym}) scale(1 ${s1.toFixed(3)}) translate(0 ${-c.ym})`);
+      c.fbi.setAttribute("transform", `translate(0 ${c.ym}) scale(1 ${s2.toFixed(3)}) translate(0 ${-c.ym})`);
+      c.fci.style.opacity = (1 - .45 * fase).toFixed(3);
+    };
+    const passo = o.passo || .06, maximo = o.max || 12;
+    let atual = grade(o.de ? [String(o.de).toUpperCase()] : []), corPassada = cor0;
+    cel.forEach(c => pinta(c, atual[c.r][c.k], atual[c.r][c.k], 0, cor0));
+    const t0 = quando(ctx.cena, o.em, .1);
+    tl.fromTo(moldura, { drawSVG: "0%" }, { drawSVG: "100%", duration: T.lento, ease: C.desenha }, t0 - .45);
+    tl.fromTo(plaquetas, { opacity: 0 }, { opacity: 1, duration: T.medio, ease: C.suave }, t0 - .3);
+    if (o.rotulo) aparecer(g.querySelector("text.rot-linha"), t0 - .3, T.medio, 0);
+    etapas.forEach((e, n) => {
+      const alvo = grade(e.linhas), cor = corDe(e.cor);
+      // cada plaqueta: a sequência do alfabeto entre a letra atual e a nova (no máximo "max" giros)
+      const seqs = cel.map(c => {
+        const de = A.indexOf(atual[c.r][c.k]), para = A.indexOf(alvo[c.r][c.k]);
+        if (de === para) return [A[para]];
+        let dist = (para - de + A.length) % A.length;
+        let ini = de;
+        if (dist > maximo) { ini = (para - maximo + A.length) % A.length; dist = maximo; }
+        const s = de === ini ? [] : [A[de]];
+        for (let j = 0; j <= dist; j++) s.push(A[(ini + j) % A.length]);
+        return s;
+      });
+      const atraso = cel.map(c => (c.k * .025 + c.r * .06) / passo);
+      const K = Math.max(...cel.map((c, i) => atraso[i] + seqs[i].length - 1));
+      if (K <= 0) return;
+      const t = n ? quando(ctx.cena, e.em) : t0, st = { k: 0 }, corAnt = corPassada;
+      const desenha = () => cel.forEach((c, i) => {
+        const s = seqs[i], kc = Math.min(Math.max(st.k - atraso[i], 0), s.length - 1), j = Math.floor(kc);
+        const pronto = j >= s.length - 1;
+        pinta(c, s[j], s[Math.min(j + 1, s.length - 1)], pronto ? 0 : kc - j, pronto ? cor : kc === 0 ? corAnt : cor0);
+      });
+      tl.to(st, { k: K, duration: K * passo, ease: C.linear, onUpdate: desenha }, t);
+      som(t, "tique");
+      atual = alvo; corPassada = cor;
+    });
+    if (o.some_em) tl.to(g, { opacity: 0, duration: T.medio, ease: C.sai }, quando(ctx.cena, o.some_em));
+  };
+
+  // celular em camadas (vista explodida): fecha como um aparelho só e abre em vidro, tela, placa, bateria e carcaça,
+  // cada camada com o nome ao lado. Desenho próprio em perspectiva isométrica (nada de marca nem modelo de verdade).
+  const CAMADAS_CEL = { vidro: "VIDRO", tela: "TELA", placa: "PLACA", bateria: "BATERIA", carcaca: "CARCAÇA" };
+  COMP.Celular = (ctx, o) => {
+    const e = o.escala || 1, W = 225 * e, L = 465 * e, x = o.x ?? 330, y = o.y ?? 650, gap = (o.gap || 80) * e;
+    const c30 = .866;
+    const P = (u, v, z = 0) => [x + (u - v) * c30, y + (u + v) * .5 - z];
+    const caminho = (pts, z = 0, fechado = true) => "M" + pts.map(([u, v]) => P(u, v, z).map(n => n.toFixed(1)).join(",")).join(" L") + (fechado ? " Z" : "");
+    const rr = (u0, v0, w, h, r, n = 5) => {
+      const pts = [];
+      const canto = (cu, cv, a0) => { for (let k = 0; k <= n; k++) { const a = a0 + k / n * Math.PI / 2; pts.push([cu + Math.cos(a) * r, cv + Math.sin(a) * r]); } };
+      canto(u0 + w - r, v0 + r, -Math.PI / 2); canto(u0 + w - r, v0 + h - r, 0); canto(u0 + r, v0 + h - r, Math.PI / 2); canto(u0 + r, v0 + r, Math.PI);
+      return pts;
+    };
+    const roda = (cu, cv, r, n = 20) => Array.from({ length: n }, (_, k) => [cu + Math.cos(k / n * Math.PI * 2) * r, cv + Math.sin(k / n * Math.PI * 2) * r]);
+    const reta = (pts) => caminho(pts, 0, false);
+    const u0 = -W / 2, v0 = -L / 2;
+    // cada camada: contorno, chapa (esconde o que está embaixo), espessura e detalhes, no plano (u, v)
+    const DESENHO = {
+      carcaca: { esp: 18 * e, contorno: rr(u0, v0, W, L, 34 * e), det: [
+        ["l", rr(u0 + 14 * e, v0 + 14 * e, 92 * e, 92 * e, 22 * e)], ["d", roda(u0 + 40 * e, v0 + 40 * e, 15 * e)], ["d", roda(u0 + 80 * e, v0 + 40 * e, 15 * e)],
+        ["d", roda(u0 + 40 * e, v0 + 80 * e, 15 * e)], ...[0, 1, 2, 3, 4].map(k => ["s", roda(-36 * e + k * 18 * e, L / 2 - 16 * e, 4 * e, 8)])] },
+      bateria: { esp: 10 * e, contorno: rr(u0 + 24 * e, v0 + 160 * e, W - 48 * e, L * .52, 14 * e), det: [
+        ["d", [[-14 * e, v0 + 200 * e], [14 * e, v0 + 200 * e]], 1], ["d", [[0, v0 + 186 * e], [0, v0 + 214 * e]], 1],
+        ...[0, 1, 2].map(k => ["s", [[u0 + 50 * e, v0 + 250 * e + k * 40 * e], [W / 2 - 50 * e, v0 + 250 * e + k * 40 * e]], 1])] },
+      placa: { esp: 6 * e, contorno: [[u0 + 10 * e, v0 + 10 * e], [W / 2 - 10 * e, v0 + 10 * e], [W / 2 - 10 * e, L / 2 - 40 * e], [W / 2 - 62 * e, L / 2 - 40 * e],
+        [W / 2 - 62 * e, v0 + 150 * e], [u0 + 10 * e, v0 + 150 * e]], det: [
+        ["l", rr(-6 * e, v0 + 40 * e, 58 * e, 58 * e, 6 * e)], ["d", rr(6 * e, v0 + 52 * e, 34 * e, 34 * e, 4 * e)],
+        ["d", rr(W / 2 - 52 * e, v0 + 160 * e, 32 * e, 64 * e, 4 * e)], ["d", rr(W / 2 - 52 * e, v0 + 250 * e, 32 * e, 40 * e, 4 * e)],
+        ["d", roda(u0 + 42 * e, v0 + 46 * e, 15 * e)], ["d", roda(u0 + 42 * e, v0 + 92 * e, 15 * e)],
+        ["s", [[52 * e, v0 + 70 * e], [W / 2 - 26 * e, v0 + 70 * e], [W / 2 - 26 * e, v0 + 120 * e]], 1],
+        ["s", [[24 * e, v0 + 98 * e], [24 * e, v0 + 128 * e], [W / 2 - 36 * e, v0 + 128 * e], [W / 2 - 36 * e, v0 + 160 * e]], 1],
+        ["s", [[-6 * e, v0 + 70 * e], [u0 + 70 * e, v0 + 70 * e], [u0 + 70 * e, v0 + 130 * e]], 1]] },
+      tela: { esp: 5 * e, contorno: rr(u0 + 4 * e, v0 + 4 * e, W - 8 * e, L - 8 * e, 30 * e), det: [
+        ["d", rr(u0 + 16 * e, v0 + 16 * e, W - 32 * e, L - 32 * e, 22 * e)],
+        ...[1, 2, 3, 4, 5, 6].map(k => ["s", [[u0 + 16 * e, v0 + 16 * e + k * (L - 32 * e) / 7], [W / 2 - 16 * e, v0 + 16 * e + k * (L - 32 * e) / 7]], 1]),
+        ...[1, 2].map(k => ["s", [[u0 + 16 * e + k * (W - 32 * e) / 3, v0 + 16 * e], [u0 + 16 * e + k * (W - 32 * e) / 3, L / 2 - 16 * e]], 1])] },
+      vidro: { esp: 3 * e, contorno: rr(u0, v0, W, L, 34 * e), det: [
+        ["d", roda(0, v0 + 22 * e, 7 * e, 12)], ["s", rr(-28 * e, v0 + 10 * e, 56 * e, 6 * e, 3 * e, 2)],
+        ["d", [[u0 + 30 * e, v0 + 120 * e], [u0 + 120 * e, v0 + 30 * e]], 1], ["d", [[u0 + 30 * e, v0 + 170 * e], [u0 + 170 * e, v0 + 30 * e]], 1]] },
+    };
+    const nomes = (o.camadas || ["vidro", "tela", "placa", "bateria", "carcaca"]).filter(n => {
+      if (!DESENHO[n]) avisos.push(`cena ${ctx.cena.i}: Celular: camada "${n}" não existe`);
+      return DESENHO[n];
+    });
+    const g = el("g", {}, ctx.svg);
+    const fundo = [...nomes].reverse();  // desenha de baixo (carcaça) para cima (vidro)
+    const cam = {};
+    let zFechado = 0;
+    fundo.forEach((n, i) => {
+      const d = DESENHO[n], gl = el("g", {}, g), z = zFechado;
+      zFechado += d.esp + 2 * e;
+      // espessura: o contorno de baixo aparece só onde a chapa de cima não cobre
+      el("path", { class: "s", d: caminho(d.contorno, z - d.esp), style: "stroke-width:2.5" }, gl);
+      const chapa = el("path", { class: "chapa", d: caminho(d.contorno, z) }, gl);
+      const cont = el("path", { class: "l", d: caminho(d.contorno, z), "data-ordem": 1 }, gl);
+      for (const [cls, pts, aberto] of d.det) el("path", { class: cls, d: caminho(pts, z, !aberto), "data-ordem": 2 }, gl);
+      cam[n] = { gl, chapa, cont, i, zAberto: i * gap - z };
+    });
+    // nomes das camadas: fio do canto direito de cada camada (na posição aberta) até o texto
+    const nomesG = el("g", {}, g), fios = {};
+    const nomesTxt = { ...CAMADAS_CEL, ...(o.rotulos || {}) };
+    // canto mais à direita de cada camada, já na altura aberta; os nomes ficam numa coluna só
+    const canto = n => DESENHO[n].contorno.reduce((m, q) => (q[0] - q[1] > m[0] - m[1] ? q : m));
+    const lx = Math.max(o.rotulo_x || 0, ...nomes.map(n => P(...canto(n), cam[n].i * gap)[0] + 50));
+    for (const n of nomes) {
+      const [cx, yy] = P(...canto(n), cam[n].i * gap);
+      const fg = el("g", {}, nomesG);
+      el("circle", { cx: cx.toFixed(1), cy: yy.toFixed(1), r: 6, fill: "#5CF2E0" }, fg);
+      const fio = el("path", { class: "d", d: `M${(cx + 10).toFixed(1)},${yy.toFixed(1)} L${(lx - 12).toFixed(1)},${yy.toFixed(1)}` }, fg);
+      const tx = el("text", { class: "rot-linha", x: lx.toFixed(1), y: (yy + 9).toFixed(1), texto: String(nomesTxt[n]).toUpperCase() }, fg);
+      fios[n] = { fg, fio, tx };
+    }
+    const t = quando(ctx.cena, o.em, .1);
+    fundo.forEach((n, i) => {
+      desenhar(cam[n].gl, t + i * .14, .8);
+      tl.fromTo(cam[n].chapa, { opacity: 0 }, { opacity: 1, duration: T.medio, ease: C.suave }, t + i * .14 + .3);
+    });
+    const ta = quando(ctx.cena, o.abre_em, (t - ctx.cena.ini) + 1.6);
+    som(ta, "whoosh");
+    nomes.forEach((n, k) => tl.to(cam[n].gl, { y: -cam[n].zAberto, duration: .9, ease: "power2.inOut" }, ta + k * .06));
+    nomes.forEach((n, k) => {
+      const f = fios[n], tn = ta + .75 + k * .14;
+      tl.fromTo(f.fg, { opacity: 0 }, { opacity: 1, duration: T.rapido, immediateRender: false }, tn);
+      tl.fromTo(f.fio, { drawSVG: "0%" }, { drawSVG: "100%", duration: T.medio, ease: C.suave }, tn);
+      tl.fromTo(f.tx, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: T.medio, ease: C.suave }, tn + .12);
+      som(tn, "pop");
+    });
+    tl.set(nomesG, { opacity: 1 }, ta);
+    // destaque: uma camada fica âmbar e as outras apagam
+    if (o.destaque && cam[o.destaque]) {
+      const td = quando(ctx.cena, o.destaque_em, (ta - ctx.cena.ini) + 1.6);
+      for (const n of nomes) {
+        if (n === o.destaque) continue;
+        tl.to([cam[n].gl, fios[n].fg], { opacity: .3, duration: T.medio, ease: C.suave }, td);
+      }
+      tl.to(tracos(cam[o.destaque].gl), { stroke: "#F2B33D", duration: T.medio, ease: C.suave }, td);
+      tl.to(fios[o.destaque].tx, { fill: "#F2B33D", duration: T.medio }, td);
+      pulso({ gr: cam[o.destaque].gl }, td);
+      som(td, "pop");
+    } else if (o.destaque) avisos.push(`cena ${ctx.cena.i}: Celular: destaque "${o.destaque}" não é uma camada`);
+    if (o.fecha_em) {
+      const tf = quando(ctx.cena, o.fecha_em);
+      tl.to(nomesG, { opacity: 0, duration: T.rapido }, tf);
+      nomes.forEach(n => tl.to(cam[n].gl, { y: 0, opacity: 1, duration: .8, ease: "power2.inOut" }, tf + .1));
+    }
+    if (o.id) ctx.reg[o.id] = { g };
+    if (o.some_em) tl.to(g, { opacity: 0, duration: T.medio, ease: C.sai }, quando(ctx.cena, o.some_em));
+  };
+
   // sub-cena: agrupa itens e permite trocar de quadro no meio da cena (entra_em / some_em)
   COMP.Grupo = (ctx, o) => {
     const g = el("g", {}, ctx.svg);

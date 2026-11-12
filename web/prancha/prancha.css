@@ -4,6 +4,7 @@
 @font-face { font-family: 'Bahnschrift'; src: local('Bahnschrift'); }
 @font-face { font-family: 'Georgia'; src: local('Georgia Italic'); font-style: italic; }
 @font-face { font-family: 'Georgia'; src: local('Georgia'); }
+@font-face { font-family: 'Georgia'; src: local('Georgia Bold'), local('Georgia-Bold'); font-weight: 700; }
 @font-face { font-family: 'Consolas'; src: local('Consolas'); }
 :root {
   --fundo: #0B0F14;
@@ -93,6 +94,13 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--
 .unid { font: 700 36px 'Consolas', monospace; fill: var(--linha); }
 .carimbo-txt { font: 700 64px 'Bahnschrift', sans-serif; }
 .item { font: 600 44px 'Bahnschrift', sans-serif; fill: var(--texto); }
+/* chapa: fundo opaco de uma peça desenhada pelo runtime (camada do celular, folha de jornal) */
+.chapa { fill: rgba(11, 15, 20, .94); stroke: none; }
+/* manchete de jornal (Georgia, que já vem no Windows) e painel de aeroporto */
+.jornal { font: 700 64px 'Georgia', serif; fill: var(--texto); letter-spacing: 2px; }
+.manchete { font: 700 78px 'Georgia', serif; fill: var(--texto); }
+.linha-fina { font: italic 400 30px 'Georgia', serif; fill: var(--osso-cheio); }
+.flap { font: 600 96px 'Bahnschrift', sans-serif; fill: var(--texto); }
 
 /* legenda (y 1270-1410) */
 #legenda { position: absolute; left: 60px; right: 60px; top: 1270px; height: 140px; }
