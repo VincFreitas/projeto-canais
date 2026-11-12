@@ -24,6 +24,7 @@ Todos os comandos rodam na raiz do projeto, com `$env:PYTHONIOENCODING='utf-8'` 
 3. Peça a aprovação com AskUserQuestion: "Pode aplicar" ou "Quero ajustar". Para ajustar, edite no Estúdio (aba Identidade: textos, título e subtítulo da capa) ou mude `textos.json` e rode `identidade gerar` de novo. Mudar algo **desfaz a aprovação**.
 
 ## 2. Preparar o envio
+- **Atalho com o Claude no Chrome:** se as contas do canal já estão logadas no Chrome do dono (e ele autorizou usar o Chrome), use a ferramenta `file_upload` com os PNG de `marca/` direto nos `input[type=file]` e pule o pacote e a seção 3. Troque o YouTube do Chrome para a conta do canal pelo menu da conta ("Mudar de conta") e, no fim, volte para a conta que estava antes.
 - `identidade pacote` cria `marca/pacote.json` com o base64 das versões leves e o hash de cada pedaço. Ele só funciona com a identidade aprovada.
 - Para ver um pedaço: `identidade bloco --arquivo foto|marca|capa --numero N`. O stdout traz o base64 cru e o stderr traz `SHA8 xxxxxxxx`.
 - Por que assim: o navegador interno não envia arquivo do disco e a página logada bloqueia o `localhost` (CSP, conteúdo misto, rede privada). Por isso o arquivo é montado **dentro da página**, a partir do base64.
@@ -50,11 +51,22 @@ window.__arquivo = async (k, nome) => {
   }
   return new File([bytes], nome, {type: 'image/png'});
 };
+// pacote com "formato": "svg" (canal na Prancha): o pedaço é o SVG em base64; ele é desenhado no tamanho de
+// "tamanhos" do pacote (foto 800, marca 150, capa 2560x1440), com as fontes do próprio Windows
+window.__svg = async (k, larg, alt) => {
+  const txt = new TextDecoder().decode(Uint8Array.from(atob(window.__b[k]), c => c.charCodeAt(0)));
+  const img = new Image(); img.src = URL.createObjectURL(new Blob([txt], {type: 'image/svg+xml'})); await img.decode();
+  const cv = document.createElement('canvas'); cv.width = larg; cv.height = alt;
+  cv.getContext('2d').drawImage(img, 0, 0, larg, alt);
+  return new Uint8Array(await (await new Promise(r => cv.toBlob(r, 'image/png'))).arrayBuffer());
+};
 window.__enviar = async (input, k, nome) => {
   const dt = new DataTransfer(); dt.items.add(await window.__arquivo(k, nome));
   input.files = dt.files; input.dispatchEvent(new Event('change', {bubbles: true}));
 };
 ```
+
+No formato `svg`, troque a montagem do arquivo por `new File([await window.__svg(k, larg, alt)], nome, {type: 'image/png'})`, com `larg` e `alt` de `tamanhos` do pacote. São 1 ou 2 pedaços por arte, em vez de dezenas.
 
 ## 4. YouTube (se o perfil posta no YouTube)
 1. Peça ao usuário para abrir, no navegador interno e logado no canal, `https://studio.youtube.com` > **Personalização** > **Perfil**. Antes, chame `tabs_context` e confira que o painel do navegador está visível.
@@ -63,7 +75,7 @@ window.__enviar = async (input, k, nome) => {
    const b = [...document.querySelectorAll('ytcp-button')].find(b => b.innerText.trim() === 'Pronto' && b.getBoundingClientRect().width > 0); (b.querySelector('button') || b).click();
    ```
    Espere a janela fechar antes do próximo envio.
-3. Descrição: é um `contenteditable` (`#textbox` com `aria-label` começando por "Fale um pouco"). Não use `ctrl+a`, que seleciona a página toda. Use:
+3. Descrição: se o canal já liberou a edição pela API (Ajustes > "Liberar edição do canal no YouTube"), salvar a tela de Ajustes com "atualizar também as contas conectadas" já manda a descrição, as palavras-chave, o idioma e o país (`darkops/atualizar_contas.py`); aqui ela só é conferida. Sem a permissão, ela é um `contenteditable` (`#textbox` com `aria-label` começando por "Fale um pouco"). Não use `ctrl+a`, que seleciona a página toda. Use:
    ```js
    el.focus(); const r = document.createRange(); r.selectNodeContents(el); getSelection().removeAllRanges(); getSelection().addRange(r);
    document.execCommand('insertText', false, '<descricao_youtube>');

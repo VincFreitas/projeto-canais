@@ -38,24 +38,42 @@ def _salvar_estado(p: Perfil, **mudancas) -> dict:
     return novo
 
 
+def nicho_legivel(d: dict) -> str:
+    """O nicho escrito para gente ler: o preset de config/nichos.json por extenso, ou o que o dono digitou."""
+    nicho = (d.get("nicho") or "").strip()
+    try:
+        preset = json.loads((config.RAIZ / "config" / "nichos.json").read_text(encoding="utf-8")).get(nicho) or {}
+    except (OSError, ValueError):
+        preset = {}
+    texto = (preset.get("descricao") or nicho or "curiosidades").strip().rstrip(".")
+    if ", " in texto:
+        from . import mercados
+        inicio, fim = texto.rsplit(", ", 1)
+        texto = inicio + str(mercados.texto(d, "e")) + fim
+    return texto[:1].lower() + texto[1:] if texto[1:2].islower() else texto
+
+
 def textos_padrao(p: Perfil) -> dict:
     d = p.dados
     nome, arroba = d.get("nome", ""), d.get("arroba", "").lstrip("@")
+    # o @ de cada plataforma pode ser diferente do @ do vídeo (atualizar_contas.arrobas lê das APIs)
+    arroba_yt = (d.get("arroba_youtube") or arroba).lstrip("@")
+    arroba_ig = (d.get("arroba_instagram") or arroba).lstrip("@")
     from . import mercados
     pt = mercados.de(d)["idioma"] == "pt"  # a frase da pulga só existe em português
     frase = lambda chave, **c: str(mercados.texto(d, chave, **c))  # noqa: E731
     horarios = mercados.horarios_legiveis(d)
-    gancho = (d.get("descricao") or frase("gancho", nicho=d.get("nicho") or "curiosidades")).rstrip(".")
+    gancho = (d.get("descricao") or frase("gancho", nicho=nicho_legivel(d))).rstrip(".")
     bio = "\n".join(linha for linha in [
         "🧠 Uma pulga atrás da orelha por dia" if d.get("narrador") and pt else f"🧠 {gancho}",
         frase("bio_checadas") if d.get("narrador") else "",
         frase("bio_reels", horarios=horarios),
-        f"▶️ YouTube: @{arroba}" if d.get("youtube", True) else "",
+        f"▶️ YouTube: @{arroba_yt}" if d.get("youtube", True) else "",
     ] if linha)
     descricao = (f"{gancho}.\n"
-                 + frase("desc_canal", nome=nome, nicho=d.get("nicho", "curiosidades")) + "\n"
+                 + frase("desc_canal", nome=nome, nicho=nicho_legivel(d)) + "\n"
                  + frase("desc_shorts", horarios=horarios) + "\n" +
-                 (f"📸 Instagram: @{arroba}" if d.get("instagram", True) else ""))
+                 (f"📸 Instagram: @{arroba_ig}" if d.get("instagram", True) else ""))
     return {"bio_instagram": bio[:BIO_MAX], "descricao_youtube": descricao.strip(),
             "titulo_capa": nome.upper(), "subtitulo_capa": f"{gancho.split('.')[0]} · {horarios}"}
 
@@ -146,6 +164,13 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     tx["bio_instagram"] = tx["bio_instagram"][:BIO_MAX]
     (m / "textos.json").write_text(json.dumps(tx, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
+    if p.dados.get("motor_cena") == "prancha":  # a mesma cara dos vídeos: traço verde-água sobre grafite
+        from . import identidade_prancha
+        identidade_prancha.gerar(p, tx, m)
+        novo = _salvar_estado(p, gerada=date.today().isoformat(), aprovada=False, aprovada_por="", aplicada={},
+                              estilo="prancha")
+        return {"pasta": str(m), "textos": tx, "estado": novo}
+
     # foto de perfil 800x800 (as redes recortam em círculo) e marca d'água 150x150
     from .aparencia import PULGA, cores
     # cada canal nas próprias cores; o amarelo e o laranja são da Pulga
@@ -177,7 +202,7 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     for nome in ("foto-perfil", "marca-dagua"):
         Image.open(m / f"{nome}.png").quantize(64, method=Image.Quantize.MEDIANCUT) \
             .save(m / f"{nome}-pequena.png", optimize=True)
-    novo = _salvar_estado(p, gerada=date.today().isoformat(), aprovada=False, aprovada_por="", aplicada={})
+    novo = _salvar_estado(p, gerada=date.today().isoformat(), aprovada=False, aprovada_por="", aplicada={}, estilo="pixel")
     return {"pasta": str(m), "textos": tx, "estado": novo}
 
 
@@ -199,17 +224,25 @@ def pacote(p: Perfil, bloco: int = 6000) -> dict:
         raise SystemExit("A identidade ainda não foi aprovada. Revise em Estúdio > Identidade e aprove.")
     m = pasta(p)
     arquivos = {}
-    for chave, nome in (("foto", "foto-perfil-pequena.png"), ("marca", "marca-dagua-pequena.png"),
-                        ("capa", "capa-pequena.png")):
+    prancha = estado(p).get("estilo") == "prancha"
+    # na Prancha vão os SVG (poucos KB), desenhados em PNG dentro da página; no pixel, os PNG leves
+    nomes = ((("foto", "foto-perfil.svg"), ("marca", "marca-dagua.svg"), ("capa", "capa-youtube.svg")) if prancha else
+             (("foto", "foto-perfil-pequena.png"), ("marca", "marca-dagua-pequena.png"), ("capa", "capa-pequena.png")))
+    for chave, nome in nomes:
         b64 = base64.b64encode((m / nome).read_bytes()).decode()
         arquivos[chave] = {"arquivo": nome, "tamanho": len(b64), "sha12": _sha(b64)[:12],
                            "blocos": [{"i": i, "sha8": _sha(b64[i:i + bloco])[:8], "dados": b64[i:i + bloco]}
                                       for i in range(0, len(b64), bloco)]}
     destino = m / "pacote.json"
     destino.write_text(json.dumps({"textos": json.loads((m / "textos.json").read_text(encoding="utf-8")),
-                                   "arquivos": arquivos, "capa_ampliar": GRADE}, ensure_ascii=False),
+                                   "arquivos": arquivos, "formato": "svg" if prancha else "png",
+                                   # a capa pixel vai em 640x360 e é ampliada 4x sem suavizar; o SVG desenha no tamanho
+                                   "capa_ampliar": 1 if prancha else GRADE,
+                                   "tamanhos": {"foto": [800, 800], "marca": [150, 150], "capa": [2560, 1440]}},
+                                  ensure_ascii=False),
                        encoding="utf-8")
-    return {"pacote": str(destino), **{k: {"tamanho": v["tamanho"], "sha12": v["sha12"], "blocos": len(v["blocos"])}
+    return {"pacote": str(destino), "formato": "svg" if prancha else "png",
+            **{k: {"tamanho": v["tamanho"], "sha12": v["sha12"], "blocos": len(v["blocos"])}
                                        for k, v in arquivos.items()}}
 
 

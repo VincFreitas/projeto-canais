@@ -564,6 +564,10 @@ def configurar(pid):
             img.save(p.pasta / "avatar.png")
         if voz_antes != (p.dados.get("motor_voz"), p.dados.get("voz")):
             _refazer_previas_com_voz_nova(p)
+        if f.get("atualizar_contas"):  # YouTube pela API; Instagram com a bio pronta para colar (atualizar_contas.py)
+            from .. import atualizar_contas
+            for r in atualizar_contas.atualizar(p):
+                flash(r["texto"], "ok" if r["ok"] else "erro")
         if agenda_antes != (mercados.codigo(p.dados), p.dados.get("horarios")) and canal_nuvem.configurada():
             _iniciar_job(p, "Acertar os horários da nuvem", [["nuvem-agenda"]])  # o Actions roda no fuso novo
         m = mercados.de(p.dados)
@@ -576,7 +580,21 @@ def configurar(pid):
                            tem_elevenlabs=bool(_env().get("ELEVENLABS_API_KEY")), ref=_referencias(p),
                            catalogo_vozes=_catalogo_vozes(),
                            proposta=canal_ia.ler(p), rotulos=canal_ia.ROTULOS, resumo=_resumo_contas(p),
-                           exclusao=_plano_exclusao(p))
+                           exclusao=_plano_exclusao(p), contas=_contas_do_canal(p))
+
+
+def _contas_do_canal(p) -> dict:
+    from .. import atualizar_contas
+    return atualizar_contas.situacao(p)
+
+
+@app.post("/p/<pid>/contas-atualizadas")
+def contas_atualizadas(pid):
+    """O dono colou a bio nova no Instagram: some o aviso de Ajustes."""
+    from .. import atualizar_contas
+    atualizar_contas.instagram_feito(_perfil(pid))
+    flash("Anotado: a bio do Instagram está em dia.", "ok")
+    return redirect(url_for("configurar", pid=pid))
 
 
 def _plano_exclusao(p) -> dict:

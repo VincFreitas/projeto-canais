@@ -66,21 +66,21 @@ TEXTOS = {
            "seguir_curto": "Segue a {arroba} para mais.", "hashtags": ["#curiosidades", "#vocesabia"],
            "todo_dia": "todo dia", "e": " e ", "bio_reels": "⏰ Reels novos às {horarios}",
            "bio_checadas": "Curiosidades rápidas e checadas", "gancho": "Vídeos curtos sobre {nicho}",
-           "desc_canal": "O {nome} traz vídeos curtos, em menos de 1 minuto, sobre {nicho}. "
+           "desc_canal": "O {nome} traz vídeos curtos sobre {nicho}. "
                          "Tudo com fonte checada: se é lenda, a gente avisa.",
            "desc_shorts": "⏰ Shorts novos todo dia, às {horarios}."},
     "en": {"seguir": "Follow {arroba} for more.", "fontes": "Sources:", "voce_sabia": "Did you know?",
            "seguir_curto": "Follow {arroba} for more.", "hashtags": ["#didyouknow", "#facts"],
            "todo_dia": "every day", "e": " and ", "bio_reels": "⏰ New Reels at {horarios}",
            "bio_checadas": "Quick, fact-checked curiosities", "gancho": "Short videos about {nicho}",
-           "desc_canal": "{nome} makes short videos, under a minute, about {nicho}. "
+           "desc_canal": "{nome} makes short videos about {nicho}. "
                          "Every fact is checked: if it's a legend, we say so.",
            "desc_shorts": "⏰ New Shorts every day at {horarios}."},
     "es": {"seguir": "Sigue a {arroba} para más curiosidades.", "fontes": "Fuentes:", "voce_sabia": "¿Sabías que...?",
            "seguir_curto": "Sigue a {arroba} para más.", "hashtags": ["#curiosidades", "#sabiasque"],
            "todo_dia": "todos los días", "e": " y ", "bio_reels": "⏰ Reels nuevos a las {horarios}",
            "bio_checadas": "Curiosidades rápidas y verificadas", "gancho": "Videos cortos sobre {nicho}",
-           "desc_canal": "{nome} trae videos cortos, de menos de 1 minuto, sobre {nicho}. "
+           "desc_canal": "{nome} trae videos cortos sobre {nicho}. "
                          "Todo con fuentes verificadas: si es leyenda, lo decimos.",
            "desc_shorts": "⏰ Shorts nuevos todos los días a las {horarios}."},
     "fr": {"seguir": "Abonne-toi à {arroba} pour plus de curiosités.", "fontes": "Sources :",
@@ -88,21 +88,21 @@ TEXTOS = {
            "hashtags": ["#lesaviezvous", "#culturegenerale"], "todo_dia": "tous les jours", "e": " et ",
            "bio_reels": "⏰ Nouveaux Reels à {horarios}", "bio_checadas": "Curiosités rapides et vérifiées",
            "gancho": "Vidéos courtes sur {nicho}",
-           "desc_canal": "{nome} publie des vidéos courtes, de moins d'une minute, sur {nicho}. "
+           "desc_canal": "{nome} publie des vidéos courtes sur {nicho}. "
                          "Tout est vérifié : si c'est une légende, on le dit.",
            "desc_shorts": "⏰ Nouveaux Shorts tous les jours à {horarios}."},
     "de": {"seguir": "Folge {arroba} für mehr.", "fontes": "Quellen:", "voce_sabia": "Wusstest du?",
            "seguir_curto": "Folge {arroba} für mehr.", "hashtags": ["#wusstestdu", "#fakten"],
            "todo_dia": "jeden Tag", "e": " und ", "bio_reels": "⏰ Neue Reels um {horarios}",
            "bio_checadas": "Kurze, geprüfte Fakten", "gancho": "Kurze Videos über {nicho}",
-           "desc_canal": "{nome} zeigt kurze Videos, unter einer Minute, über {nicho}. "
+           "desc_canal": "{nome} zeigt kurze Videos über {nicho}. "
                          "Alles mit geprüften Quellen: Ist es eine Legende, sagen wir es.",
            "desc_shorts": "⏰ Neue Shorts jeden Tag um {horarios}."},
     "it": {"seguir": "Segui {arroba} per altre curiosità.", "fontes": "Fonti:", "voce_sabia": "Lo sapevi?",
            "seguir_curto": "Segui {arroba} per altro.", "hashtags": ["#losapevi", "#curiosità"],
            "todo_dia": "ogni giorno", "e": " e ", "bio_reels": "⏰ Nuovi Reels alle {horarios}",
            "bio_checadas": "Curiosità rapide e verificate", "gancho": "Video brevi su {nicho}",
-           "desc_canal": "{nome} pubblica video brevi, sotto il minuto, su {nicho}. "
+           "desc_canal": "{nome} pubblica video brevi su {nicho}. "
                          "Tutto con fonti verificate: se è una leggenda, lo diciamo.",
            "desc_shorts": "⏰ Nuovi Shorts ogni giorno alle {horarios}."},
 }

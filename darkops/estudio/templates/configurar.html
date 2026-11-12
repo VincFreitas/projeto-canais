@@ -48,6 +48,27 @@
   </div>
 </section>
 
+{% if contas.youtube_sem_permissao %}
+<section class="cartao aviso" style="margin-bottom:16px">
+  <p style="margin:0 0 8px">O YouTube deste canal ainda não deu permissão para o app editar a descrição do canal.</p>
+  <form method="post" action="{{ url_for('comentarios_acao', pid=p.id, acao='liberar') }}">
+    <button class="botao claro">Liberar edição do canal no YouTube</button></form>
+  <p class="dica" style="margin-bottom:0">A mesma autorização libera os comentários. Depois, salve de novo esta tela.</p>
+</section>
+{% endif %}
+{% if contas.instagram_bio %}
+<section class="cartao" style="margin-bottom:16px">
+  <h2 style="margin-top:0">Falta colar a bio no Instagram</h2>
+  <p class="dica">A Meta não deixa app mudar a bio. Copie o texto, abra a edição do perfil logado na conta do canal e cole no campo Bio.</p>
+  <textarea id="bio-instagram" rows="4" readonly>{{ contas.instagram_bio }}</textarea>
+  <div class="acoes" style="margin-top:8px">
+    <button type="button" class="botao claro" onclick="navigator.clipboard.writeText(document.getElementById('bio-instagram').value); this.textContent = 'Copiado'">Copiar</button>
+    <a class="botao claro" href="https://www.instagram.com/accounts/edit/" target="_blank" rel="noopener">Abrir o Instagram</a>
+    <form method="post" action="{{ url_for('contas_atualizadas', pid=p.id) }}" style="display:inline"><button class="botao secundario">Já colei</button></form>
+  </div>
+</section>
+{% endif %}
+
 <form method="post" enctype="multipart/form-data" class="cartao">
   <div class="grade">
     <div><label>Nome do canal</label><input type="text" name="nome" value="{{ d.nome }}"></div>
@@ -61,6 +82,14 @@
     região. Os vídeos que já estão na fila continuam na língua em que foram escritos.</p>
   <label>Descrição</label>
   <textarea name="descricao">{{ d.descricao }}</textarea>
+  {% if contas.youtube or contas.instagram %}
+  <label style="font-weight:400;margin-top:10px"><input type="checkbox" name="atualizar_contas" checked>
+    Ao salvar, atualizar também as contas conectadas</label>
+  <p class="dica">{% if contas.youtube %}YouTube: descrição do canal, palavras-chave, idioma e país, pela API oficial. O nome e o @
+    só mudam no YouTube Studio, porque o YouTube não deixa app trocar.{% endif %}
+    {% if contas.instagram %}Instagram: a Meta não deixa app mudar bio, nome nem foto; a bio nova aparece aqui pronta para copiar.{% endif %}
+    Foto e capa ficam em <a href="{{ url_for('identidade_pagina', pid=p.id) }}">Foto, capa e bio das contas</a>.</p>
+  {% endif %}
   <details class="mais" {{ 'open' if avancado }}>
   <summary>Mostrar mais opções (voz, visual, formato, plataformas, legenda, personalidade)</summary>
   <h2 style="margin-top:14px">Voz do narrador</h2>
