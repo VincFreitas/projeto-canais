@@ -58,7 +58,7 @@ Hoje cada pessoa cria o **próprio** app OAuth ("App para computador"), e por is
 
 ### Meta (Instagram e WhatsApp)
 Hoje cada pessoa cria o próprio app, e o token vale só para as contas dela (função de administrador ou testador no app).
-- [ ] Para um app do autor servir contas de outras pessoas: **Verificação da Empresa** e **App Review** com **Acesso Avançado** de `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_insights` e `instagram_business_manage_comments`. https://developers.facebook.com/docs/instagram-platform/app-review
+- [ ] Para um app do autor servir contas de outras pessoas: **Verificação da Empresa** e **App Review** com **Acesso Avançado** de `instagram_business_basic`, `instagram_business_content_publish`, `instagram_business_manage_insights`, `instagram_business_manage_comments` e `instagram_business_manage_messages`. https://developers.facebook.com/docs/instagram-platform/app-review
 - [ ] WhatsApp em produção (fora do número de teste): número próprio verificado, aprovação do nome de exibição, **modelos de mensagem aprovados** para avisos fora da janela de 24 h e token permanente de usuário do sistema. https://developers.facebook.com/docs/whatsapp/cloud-api/get-started
 - [ ] O URL de exclusão de dados e o de política de privacidade do app apontam para o site.
 

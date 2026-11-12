@@ -253,8 +253,10 @@ def conectar_azure() -> dict:
 
 # ---------- Instagram (OAuth do Instagram Login) ----------
 
+# manage_messages: a resposta privada da palavra-chave (palavra.py) sai pelo /messages; a página atual da Meta pede só
+# basic + manage_comments, a antiga pedia manage_messages, e o exemplo de login da própria Meta inclui as duas
 INSTAGRAM_ESCOPOS = ("instagram_business_basic,instagram_business_content_publish,instagram_business_manage_insights,"
-                     "instagram_business_manage_comments")
+                     "instagram_business_manage_comments,instagram_business_manage_messages")
 # página do site que só repassa o "code" para o Estúdio deste PC (a Meta exige endereço https)
 INSTAGRAM_RETORNO_PADRAO = "https://vincfreitas.github.io/projeto-canais/instagram.html"
 _ESTADOS: dict[str, tuple[str, float]] = {}  # estado -> (perfil, quando); o cookie SameSite=Strict não volta da Meta

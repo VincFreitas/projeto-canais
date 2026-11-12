@@ -3,8 +3,9 @@
 Decisão do dono em 2026-11-11: o fim do vídeo deixa de pedir um comentário sobre o tema e passa a dizer que o vídeo
 foi feito pelo app, com "Comenta DARK que eu te mando o projeto". Quem comenta a palavra recebe o link:
 - Instagram: resposta privada (DM) ao comentário pela API oficial (POST /<IG_ID>/messages com recipient.comment_id,
-  permissões instagram_business_basic e instagram_business_manage_comments, até 7 dias depois do comentário,
-  uma por comentário) e uma resposta curta no comentário avisando que foi na DM.
+  permissões instagram_business_basic e instagram_business_manage_comments, e instagram_business_manage_messages
+  por garantia, até 7 dias depois do comentário, uma por comentário) e uma resposta curta no comentário avisando
+  que foi na DM. Recusa por permissão não marca o comentário: vira aviso na tela Comentários e tenta de novo.
 - YouTube: não existe mensagem direta; a resposta vai no próprio comentário, com o link.
 Uma resposta por pessoa e por vídeo, frases fixas (nada de IA), sem @ e sem pedir nada em troca.
 Liga e desliga por canal em "chamada_app" no perfil; a palavra fica em "palavra_app" (padrão DARK)."""
@@ -21,6 +22,16 @@ REPO = "https://github.com/VincFreitas/projeto-canais"
 PALAVRA_PADRAO = "DARK"
 LIMITE_DIA = 200  # respostas por canal por dia, somando as duas plataformas
 DIAS_INSTAGRAM = 7  # a Meta só aceita a resposta privada até 7 dias depois do comentário
+FORA_DO_PRAZO = 2534022  # error_subcode da Meta para resposta privada fora da janela permitida
+AVISO_SEM_PERMISSAO = ("Instagram: a mensagem com o link do projeto (palavra-chave) foi recusada por permissão. Conecte "
+                       "o Instagram de novo em Ajustes > Contas, aceitando todas as permissões. No app da Meta, em "
+                       "Instagram > Configuração da API com login do Instagram, confira se instagram_business_manage_"
+                       "messages e instagram_business_manage_comments estão na lista. Os comentários com a palavra "
+                       "esperam e recebem o link quando a permissão voltar (até 7 dias depois do comentário).")
+
+
+class SemPermissao(RuntimeError):
+    """O Instagram recusou a resposta privada por falta de permissão: vale para todos os comentários do canal."""
 
 # frases por língua do mercado (mercados.de(...)["codigo"][:2]); a escolha é pelo id do comentário (sem acaso)
 TEXTOS = {
@@ -127,12 +138,31 @@ def _dm_instagram(perfil, comentario_id: str, texto: str) -> None:
     from .instagram import GRAPH
     tk = _token_instagram(perfil)
     eu = requests.get(f"{GRAPH}/me", params={"fields": "user_id", "access_token": tk}, timeout=30).json()
+    if "error" in eu and _e_permissao(eu["error"]):
+        raise SemPermissao(eu["error"].get("message", "token do Instagram recusado"))
     if "error" in eu or not eu.get("user_id"):
         raise RuntimeError((eu.get("error") or {}).get("message", "não achei a conta do Instagram"))
     r = requests.post(f"{GRAPH}/{eu['user_id']}/messages", timeout=30, headers={"Authorization": f"Bearer {tk}"},
                       json={"recipient": {"comment_id": comentario_id}, "message": {"text": texto}}).json()
     if "error" in r:
-        raise RuntimeError(r["error"].get("message", "o Instagram recusou a mensagem"))
+        erro = r["error"]
+        mensagem = erro.get("message", "o Instagram recusou a mensagem")
+        if _e_permissao(erro):
+            raise SemPermissao(mensagem)
+        raise RuntimeError(mensagem)
+
+
+def _e_permissao(erro: dict) -> bool:
+    """Erro da Graph API por permissão do app ou do token (códigos 3, 10, 190 e 200 a 299), não do comentário."""
+    codigo, sub = erro.get("code"), erro.get("error_subcode")
+    if sub == FORA_DO_PRAZO:
+        return False
+    return codigo in (3, 10, 190) or (isinstance(codigo, int) and 200 <= codigo <= 299) or _parece_permissao(
+        erro.get("message", ""))
+
+
+def _parece_permissao(texto: str) -> bool:
+    return bool(re.search(r"permiss|capability", texto or "", re.I))
 
 
 def responder(perfil, dados: dict | None = None, avisar=print) -> int:
@@ -149,10 +179,17 @@ def responder(perfil, dados: dict | None = None, avisar=print) -> int:
     ja = {(c["plataforma"], c.get("video_id"), c.get("autor")) for c in dados["comentarios"].values()
           if c.get("por") == "palavra"}
     enviados = 0
+    sem_dm = False  # a primeira recusa por permissão vale para todos: não insiste com os outros nesta rodada
     for c in sorted(dados["comentarios"].values(), key=lambda x: x.get("data") or ""):
         if feitos + enviados >= LIMITE_DIA:
             break
-        if c.get("estado") == "respondido" or c.get("palavra_erro") or not bate(c.get("texto", ""), chave):
+        if c.get("estado") == "respondido" or not bate(c.get("texto", ""), chave):
+            continue
+        if c.get("palavra_erro"):
+            if c["plataforma"] != "instagram" or not _parece_permissao(c["palavra_erro"]):
+                continue
+            c.pop("palavra_erro")  # recusa antiga por permissão: tenta de novo (o dono pode ter reconectado)
+        if c["plataforma"] == "instagram" and sem_dm:
             continue
         quem = (c["plataforma"], c.get("video_id"), c.get("autor"))
         if quem in ja:
@@ -176,6 +213,16 @@ def responder(perfil, dados: dict | None = None, avisar=print) -> int:
                 yt, _ = comentarios._youtube(perfil)
                 yt.comments().insert(part="snippet", body={"snippet": {"parentId": c["id"],
                                                                        "textOriginal": resposta}}).execute()
+        except SemPermissao as erro:
+            sem_dm = True  # o comentário fica sem marca de erro e recebe o link quando a permissão voltar
+            avisos = dados.setdefault("avisos", [])
+            if AVISO_SEM_PERMISSAO not in avisos:
+                avisos.append(AVISO_SEM_PERMISSAO)
+            avisar(f"  Instagram recusou a mensagem por permissão: {ocultar(erro)[:160]}")
+            continue
+        except requests.RequestException as erro:  # sem internet: nada marcado, tenta na próxima rodada
+            avisar(f"  sem conexão para mandar o link agora: {ocultar(erro)[:160]}")
+            break
         except Exception as erro:  # noqa: BLE001 — um comentário que falha não para os outros
             c["palavra_erro"] = ocultar(erro)[:200]
             avisar(f"  não mandou o link para {c.get('autor')}: {c['palavra_erro']}")
