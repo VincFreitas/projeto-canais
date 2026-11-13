@@ -1,5 +1,7 @@
-# Atualizações de terceiros no repositório público: o Dependabot abre um pull request por semana e o dono decide se
-# junta (mesma regra da rotina de atualizações do app: avisa, o dono aplica).
+# Atualizações de terceiros no repositório público. O Dependabot abre um pull request por grupo, toda semana; quando os
+# testes passam nos três sistemas, o job "juntar-dependabot" do testes.yml junta sozinho, e o que sobrar (o GitHub não
+# deixa o robô do Actions mexer em workflow) o PC do autor junta na rotina diária do GitHub (repositorio.py). Decisão do
+# dono em 2026-11-13: atualizar é autônomo, sem pedir.
 version: 2
 updates:
   - package-ecosystem: pip
@@ -7,12 +9,21 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      pacotes-python:
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
+    groups:
+      acoes-do-github:
+        patterns: ["*"]
   - package-ecosystem: npm
     directory: "/web"
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
+    groups:
+      palco-web:
+        patterns: ["*"]

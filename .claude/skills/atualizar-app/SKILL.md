@@ -6,7 +6,7 @@ description: Atualiza o Projeto Canais para a versão nova do GitHub e confere a
 
 1. Confira o horário: perto das 12h e das 19h do fuso do canal, espere (postagem em andamento).
 2. `atualizar --verificar` mostra se há versão nova. Com versão nova, rode `atualizar`; o Estúdio aberto reinicia sozinho quando nenhuma tarefa estiver rodando. Se a atualização parar porque um arquivo local mudou, mostre qual e pergunte à pessoa; nunca descarte mudança dela.
-3. `atualizar-dependencias` lista o que é de terceiros com versão nova (Python, n8n, Node, HyperFrames, Claude Code...). Atualizar é com o ok da pessoa: `atualizar-dependencias --aplicar --itens <ids>`, com o n8n fechado.
+3. `atualizar-dependencias` lista o que é de terceiros com versão nova (Python, n8n, Node, HyperFrames, Claude Code, sd.cpp...). A rotina diária já aplica sozinha (decisão do dono em 2026-11-13): não pergunte, rode `rotinas --rodar atualizacoes` (ou `atualizar-dependencias --aplicar --itens <ids>` para itens escolhidos). Cada grupo é conferido no app de verdade e o que quebrar volta sozinho para a versão anterior; o n8n é fechado e reaberto pela própria rotina. Leia o resultado de cada item e explique o que voltou e por quê (`dados/rotinas/recusadas.json`).
 4. No fim, rode `integridade` e `diagnostico` para conferir que nada quebrou.
 
 <!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->

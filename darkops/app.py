@@ -27,7 +27,8 @@ SINAL_REINICIO = config.RAIZ / "dados" / "reiniciar"
 ICONE = config.RAIZ / "assets" / "icone.ico"
 NOME = "Projeto Canais"
 PADRAO = {"atalho_area_de_trabalho": False, "atalho_menu_iniciar": False, "atalho_barra_de_tarefas": False,
-          "atualizar_sozinho": True, "verificar_a_cada_h": 6, "ultima_verificacao": 0}
+          "atualizar_sozinho": True, "verificar_a_cada_h": 6, "ultima_verificacao": 0,
+          "atualizar_dependencias_sozinho": True}
 
 
 # ---------- configurações ----------
@@ -270,11 +271,20 @@ def ligar_n8n() -> str:
 def reiniciar_n8n() -> str:
     """Fecha e liga o n8n de novo (ele só passa a escutar um workflow importado pela linha de comando depois de
     reiniciar). Não reinicia perto de um horário de postagem, para não cortar uma publicação no meio."""
+    if not parar_n8n():
+        return "perto-do-horario"
+    return ligar_n8n()
+
+
+def parar_n8n(forcar: bool = False) -> bool:
+    """Fecha o n8n (troca de versão, do Node ou reinício). Recusa perto de um horário de postagem, salvo `forcar`
+    (desfazer uma atualização que deixou o n8n fora do ar). True quando ele ficou fechado."""
     from .mercados import perto_de_postar
     from .perfis import listar
     # cada canal posta no fuso do seu mercado, não no do Windows
-    if perto_de_postar([p.dados for p in listar() if p.dados.get("ativo")] or [{"horarios": ["12:00", "19:00"]}]):
-        return "perto-do-horario"
+    if not forcar and perto_de_postar([p.dados for p in listar() if p.dados.get("ativo")]
+                                      or [{"horarios": ["12:00", "19:00"]}]):
+        return False
     if os.name == "nt" and n8n_ligado():
         pids = subprocess.run(["powershell", "-NoProfile", "-Command",
                                "(Get-NetTCPConnection -LocalPort 5678 -State Listen -ErrorAction SilentlyContinue)"
@@ -294,7 +304,7 @@ def reiniciar_n8n() -> str:
             break
         time.sleep(0.5)
     LIGANDO_N8N.unlink(missing_ok=True)
-    return ligar_n8n()
+    return not n8n_ligado()
 
 
 def estudio_aberto(porta: int = 8765) -> bool:
@@ -352,6 +362,10 @@ def atualizar() -> dict:
         return {**info, "atualizado": False,
                 "motivo": "a atualização mexeria em arquivos que você mudou nesta pasta; nada foi alterado. "
                           f"Detalhe: {junta.stderr.strip()[-300:]}"}
+    mudou = _git("diff", "--name-only", antes, "HEAD").stdout.split()
+    if mudou and all(m == "README.md" or m.startswith(("site/", "docs/")) for m in mudou):
+        # só textos (os números diários do canal de teste, por exemplo): nada a instalar nem reiniciar
+        return {**info, "atualizado": True, "so_textos": True}
     if (config.RAIZ / "requirements.txt").read_text(encoding="utf-8") != req_antes:
         subprocess.run([sys.executable, "-m", "pip", "install", "-q", "-r", "requirements.txt"], cwd=config.RAIZ)
     versao = re.search(r'__version__ = "([\d.]+)"', (config.RAIZ / "darkops" / "__init__.py").read_text(encoding="utf-8"))

@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.64.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.65.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,7 +10,7 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.64.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.65.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
@@ -152,7 +152,7 @@ Na raiz do projeto: `.\dark.ps1 <comando>` no Windows, `./dark.sh <comando>` no 
 | `estatisticas` / `analisar` / `aprender` | Números pelas APIs oficiais, análise da IA e o ciclo "o que funcionou" |
 | `comentarios --todos` | Lê, classifica e rascunha respostas |
 | `n8n-workflow --importar` / `nuvem-status` | Postagem pelo PC e pela nuvem |
-| `atualizar` / `atualizar-dependencias` | Versão nova do GitHub; versões novas de tudo que é de terceiros (Python, n8n, Node, HyperFrames, Claude Code...) |
+| `atualizar` / `atualizar-dependencias` | Versão nova do GitHub; versões novas de tudo que é de terceiros (Python, n8n, Node, HyperFrames, Claude Code...), que a rotina diária já instala sozinha |
 | `integridade` / `rotinas` / `ferramentas-buscar` | Integridade e segurança, rotinas automáticas e ferramentas novas que podem melhorar o app |
 | `cofre-proteger` | Cifra no disco os tokens dos canais, o app do Google e as chaves do `.env` |
 | `mcp` / `mcp-configurar` | Servidor MCP para qualquer IA comandar o app |
@@ -220,7 +220,7 @@ Com um plano do Claude (Pro ou Max), não há cobrança por vídeo: cada vídeo 
 
 ## Segurança
 
-O Estúdio só responde no próprio PC e se protege de DNS rebinding, CSRF e clickjacking. Tokens e chaves ficam cifrados no disco com uma chave do seu usuário (DPAPI no Windows, chaveiro no macOS e no Linux) e nunca vão para log ou Git. O Claude Code chamado pelo projeto não lê o `.env` nem os tokens, só tem as ferramentas de cada tarefa e só grava nas pastas da fila e das cenas. A tela **Saúde do app** confere sozinha, todo dia, a integridade dos arquivos e dos programas instalados, os segredos e as falhas conhecidas nos pacotes; toda semana, as versões novas de terceiros e ferramentas abertas que podem melhorar o app (só avisa: nada é instalado sem o seu clique). Detalhes e o que fica com você: [docs/seguranca.md](docs/seguranca.md).
+O Estúdio só responde no próprio PC e se protege de DNS rebinding, CSRF e clickjacking. Tokens e chaves ficam cifrados no disco com uma chave do seu usuário (DPAPI no Windows, chaveiro no macOS e no Linux) e nunca vão para log ou Git. O Claude Code chamado pelo projeto não lê o `.env` nem os tokens, só tem as ferramentas de cada tarefa e só grava nas pastas da fila e das cenas. A tela **Saúde do app** confere sozinha, todo dia, a integridade dos arquivos e dos programas instalados, os segredos e as falhas conhecidas nos pacotes; também todo dia, instala as versões novas de terceiros, confere o app em seguida e desfaz sozinha o que quebrar; toda semana, sugere ferramentas abertas que podem melhorar o app (essas só com o seu clique). Detalhes e o que fica com você: [docs/seguranca.md](docs/seguranca.md).
 
 ## Status e limites
 

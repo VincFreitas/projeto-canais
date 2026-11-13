@@ -486,7 +486,7 @@ def cmd_integridade(a):
 
 
 def cmd_rotinas(a):
-    """Rotinas automáticas: integridade (todo dia), atualizações e ferramentas novas (toda semana)."""
+    """Rotinas automáticas: integridade e atualizações (todo dia), ferramentas novas (toda semana) e vitrine."""
     from . import rotinas
     if a.rodar:
         feitas = [(a.rodar, rotinas.rodar(a.rodar))]
@@ -499,11 +499,21 @@ def cmd_rotinas(a):
     if not feitas:
         resumo = rotinas.resumo()["estados"]
         for nome, info in rotinas.ROTINAS.items():
+            if not rotinas.aplicavel(nome):
+                continue
             e = resumo[nome]
             print(f"{info['titulo']:28} a cada {info['a_cada_h']} h · última: {e.get('quando', 'nunca')} · "
                   f"{e.get('situacao', '-')} · {e.get('texto', '')}")
         if a.vencidas:
             print("nada vencido (ou rotinas desligadas, ou perto de um horário de postagem)")
+
+
+def _imprimir_rotina(nome: str) -> None:
+    from . import rotinas
+    r = rotinas.rodar(nome)
+    print(f"{rotinas.ROTINAS[nome]['titulo']}: {r.get('situacao', '?')} · {r.get('texto', '')}")
+    if r.get("situacao") == "problema":
+        sys.exit(1)
 
 
 def cmd_estrela(_):
@@ -1084,9 +1094,12 @@ def main():
     s.set_defaults(fn=cmd_integridade)
 
     s = sub.add_parser("rotinas", help="rotinas automáticas (integridade, atualizações, ferramentas novas)")
-    s.add_argument("--rodar", choices=["integridade", "atualizacoes", "ferramentas"])
+    s.add_argument("--rodar", choices=["integridade", "atualizacoes", "ferramentas", "vitrine"])
     s.add_argument("--vencidas", action="store_true", help="roda só as que passaram do prazo (o n8n usa)")
     s.set_defaults(fn=cmd_rotinas)
+
+    s = sub.add_parser("vitrine", help="números reais do canal de teste do autor no README e no site, no GitHub")
+    s.set_defaults(fn=lambda _: _imprimir_rotina("vitrine"))
 
     s = sub.add_parser("cofre-proteger", help="cifra os segredos que ainda estão em claro no disco")
     s.set_defaults(fn=cmd_cofre_proteger)

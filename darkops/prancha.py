@@ -233,11 +233,8 @@ def renderizar(pasta: Path, mudo: Path) -> None:
     chromes = max(1, min(3, hf.nucleos() // 4))
     if not hf.disponivel():
         raise RuntimeError("HyperFrames não instalado (dados/apps/hyperframes-teste): rode instalar-apps")
-    env = {**os.environ, "PATH": hf.caminho_binarios(hf.PASTA / "bin"), "DO_NOT_TRACK": "1",
-           "HYPERFRAMES_SKIP_SKILLS": "1"}
-
     def rodar(binarios: Path):
-        env["PATH"] = hf.caminho_binarios(binarios)
+        env = hf.env_render(binarios)
         return subprocess.run([hf.node(), str(hf.PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
                                "render", str(pasta), "-o", str(mudo), "--quality", "looks", "--workers", str(chromes)],
                               capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=3600,

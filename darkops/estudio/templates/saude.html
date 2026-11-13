@@ -15,12 +15,14 @@
 {% endmacro %}
 {% block corpo %}
 <h1 style="margin-top:0">Saúde do app</h1>
-<p class="suave">Três rotinas cuidam do Projeto Canais sozinhas, longe dos horários de postagem: integridade e segurança
-  (todo dia), atualizações de tudo que é de terceiros e ferramentas novas que podem melhorar o app (toda semana). Elas só
-  conferem e avisam: nada é instalado nem trocado sem o seu clique.</p>
+<p class="suave">As rotinas cuidam do Projeto Canais sozinhas, longe dos horários de postagem e nunca com um vídeo
+  sendo feito: integridade e segurança e atualizações de tudo que é de terceiros (todo dia) e ferramentas novas que podem
+  melhorar o app (toda semana). Cada atualização é conferida no app de verdade depois de instalada; o que quebrar volta
+  sozinho para a versão anterior. Ferramenta nova só é sugerida: nada é instalado sem o seu clique.</p>
 
 <form method="post" class="cartao" style="margin-bottom:16px">
-  <label style="font-weight:400"><input type="checkbox" name="ligadas" {{ 'checked' if ligadas }}> Rodar as rotinas sozinho</label>
+  <label style="font-weight:400"><input type="checkbox" name="ligadas" {{ 'checked' if ligadas }}> Rodar as rotinas sozinho</label><br>
+  <label style="font-weight:400"><input type="checkbox" name="dependencias" {{ 'checked' if dependencias_sozinho }}> Instalar as atualizações sozinho (com conferência e volta automática)</label>
   <button class="botao pequeno" name="acao" value="ligar">Salvar</button>
 </form>
 
@@ -50,22 +52,33 @@
   <form method="post">
     <div class="tabela-estat" style="overflow-x:auto">
     <table>
-      <tr><th></th><th>O quê</th><th>Agora</th><th>Nova</th><th>Obs.</th></tr>
+      <tr><th></th><th>O quê</th><th>Antes</th><th>Nova</th><th>O que aconteceu</th></tr>
       {% for i in novas %}
       <tr>
-        <td>{% if i.aplicavel %}<input type="checkbox" name="itens" value="{{ i.id }}" checked>{% endif %}</td>
-        <td>{{ i.nome }} <small class="suave">{{ i.tipo }}</small>{% if i.seguranca %} <span class="selo falta">segurança</span>{% endif %}</td>
-        <td>{{ i.atual }}</td><td>{{ i.nova }}</td><td><small>{{ i.obs }}</small></td>
+        <td>{% if i.atualizado %}<span class="ok-x sim">✓</span>{% elif i.aplicavel %}<input type="checkbox" name="itens" value="{{ i.id }}" checked>{% endif %}</td>
+        <td>{{ i.nome }} <small class="suave">{{ i.tipo }}</small>{% if i.seguranca and not i.atualizado %} <span class="selo falta">segurança</span>{% endif %}</td>
+        <td>{{ i.atual }}</td><td>{{ i.nova }}</td><td><small>{{ i.resultado or i.obs }}</small></td>
       </tr>
       {% endfor %}
     </table>
     </div>
+    {% if novas | rejectattr('atualizado') | selectattr('aplicavel') | list %}
     <p class="acoes"><button class="botao" name="acao" value="aplicar"
-      onclick="return confirm('Atualizar os itens marcados agora? Pode levar alguns minutos. Feche o n8n antes se ele estiver aberto.')">Atualizar os marcados</button>
-      <span class="dica">Os sem caixa se atualizam à mão (a observação diz como).</span></p>
+      onclick="return confirm('Atualizar os itens marcados agora? Pode levar alguns minutos; o app é conferido depois e o que quebrar volta sozinho.')">Atualizar os marcados agora</button>
+      <span class="dica">Os sem caixa chegam com a próxima versão do app ou pelo sistema (a observação diz como).</span></p>
+    {% endif %}
   </form>
   {% elif e.itens %}<p>Tudo de terceiros está na versão mais nova ({{ e.itens | length }} itens conferidos).</p>{% endif %}
 </section>
+
+{% if vitrine %}
+{% set e = estados.vitrine %}
+<section class="cartao" style="margin-bottom:16px" id="vitrine">
+  {{ cabeca('vitrine', rotinas.vitrine, e) }}
+  <p class="dica">Só neste PC (o do autor): ao ligar o computador e uma vez por dia, os números reais do canal de teste
+    vão para o README e o site no GitHub, e as atualizações do Dependabot com os testes verdes entram na main.</p>
+</section>
+{% endif %}
 
 {% set e = estados.ferramentas %}
 <section class="cartao" id="ferramentas">

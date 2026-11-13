@@ -49,6 +49,14 @@ def caminho_binarios(binarios: Path) -> str:
     return os.pathsep.join([str(binarios), str(Path(node()).parent), os.environ.get("PATH", "")])
 
 
+def env_render(binarios: Path) -> dict:
+    """Ambiente do `hyperframes render`: o Node e o ffmpeg do projeto. Desde a 0.9.40 o HyperFrames só acha o ffmpeg
+    pelo PATH em pastas do sistema, então o caminho vai também pelas variáveis próprias dele (a 0.9.9 as ignora)."""
+    return {**os.environ, "PATH": caminho_binarios(binarios), "DO_NOT_TRACK": "1", "HYPERFRAMES_SKIP_SKILLS": "1",
+            "HYPERFRAMES_FFMPEG_PATH": str(binarios / sistema.exe("ffmpeg")),
+            "HYPERFRAMES_FFPROBE_PATH": str(binarios / sistema.exe("ffprobe"))}
+
+
 def _x264() -> Path:
     """bin-x264: o ffmpeg do projeto (libx264) no lugar do da placa, com o ffprobe do HyperFrames."""
     pasta = PASTA / "bin-x264"
@@ -334,7 +342,7 @@ def _render(pasta: Path, mudo: Path, chromes: int | None = None) -> subprocess.C
     """Chama o HyperFrames. O número de Chromes é fixo (por cena: processadores / 2 / camadas ao mesmo tempo, de 1 a
     3): com ele o HyperFrames não gasta uns 7 s medindo a máquina para escolher sozinho."""
     binarios = _x264() if _X264[0] else PASTA / "bin"
-    env = {**os.environ, "PATH": caminho_binarios(binarios), "DO_NOT_TRACK": "1", "HYPERFRAMES_SKIP_SKILLS": "1"}
+    env = env_render(binarios)
     chromes = chromes or max(1, min(3, nucleos() // (2 * paralelo())))
     return subprocess.run([node(), str(PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
                            "render", str(pasta), "-o", str(mudo), "--quality", "looks", "--workers", str(chromes)],

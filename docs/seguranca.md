@@ -53,6 +53,8 @@ Estas são as proteções em vigor e o motivo de cada uma.
   - falhas conhecidas (OSV.dev e `npm audit`);
   - teste real das travas do Estúdio (Host de fora e POST sem Origin precisam dar 403).
   - No GitHub, `pip-audit` e o Dependabot fazem o mesmo para o repositório público.
+- **Atualizações autônomas** (todo dia): tudo de terceiros com versão nova é instalado sozinho, grupo por grupo, e o app é conferido de verdade em seguida (importa todo o código, desenha imagem, abre o Chromium do palco, roda os testes, faz uma cena do HyperFrames e confere o n8n de pé). O que quebrar volta para a versão anterior e a versão fica recusada até sair outra. Downloads conferidos: Node pelo SHA-256 do nodejs.org e a assinatura da OpenJS Foundation, sd.cpp pelo SHA-256 publicado no GitHub, Python pela assinatura da Python Software Foundation. Nada roda com vídeo sendo feito nem perto de um horário de postagem. Desliga em Saúde do app.
+- **Repositório público:** a `main` tem regra que bloqueia force push e exclusão. Pull request do Dependabot só entra com os testes verdes nos três sistemas e nos três navegadores.
 - Criar conta, senha, códigos por SMS ou e-mail, CAPTCHA e chaves secretas são sempre com você. Com a skill `/conectar-contas`, o agente pode fazer no seu Chrome as telas de configuração e clicar em Permitir nas autorizações do seu próprio app, só depois do seu ok no chat.
 
 ## Claude Code chamado pelo projeto (leva, descrição, análise, ajuste do canal)

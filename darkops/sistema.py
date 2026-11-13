@@ -117,6 +117,22 @@ def arquitetura() -> str:
     return "arm64" if m in ("arm64", "aarch64") else "x64"
 
 
+def ligado_desde() -> float:
+    """Quando o computador ligou (segundos desde 1970), ou 0 se não der para saber."""
+    import time
+    try:
+        if WINDOWS:
+            import ctypes
+            ctypes.windll.kernel32.GetTickCount64.restype = ctypes.c_uint64
+            return time.time() - ctypes.windll.kernel32.GetTickCount64() / 1000
+        if MACOS:
+            saida = subprocess.run(["sysctl", "-n", "kern.boottime"], capture_output=True, text=True).stdout
+            return float(saida.split("sec =")[1].split(",")[0])
+        return time.time() - float(Path("/proc/uptime").read_text().split()[0])
+    except (OSError, ValueError, IndexError, AttributeError):
+        return 0.0
+
+
 def env_sem_segredos() -> dict:
     """O ambiente deste processo sem as chaves e tokens do .env, para programas que não precisam deles (o Claude
     Code das tarefas automáticas lê páginas e comentários de fora; se for enganado, não tem segredo para vazar)."""

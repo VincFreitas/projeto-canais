@@ -1,10 +1,15 @@
 # Testes do Projeto Canais em Windows, macOS e Linux, e as telas do Estúdio em Chromium, Firefox e WebKit (Safari).
-# Roda a cada push e pull request, e toda segunda (pega quebra causada por versão nova de pacote de terceiros).
+# Roda a cada push e pull request, e toda segunda (pega quebra causada por versão nova de pacote de terceiros). Os
+# commits diários dos números do canal de teste (só README e site) não rodam os testes. Pull request do Dependabot com
+# tudo verde é juntado sozinho (job juntar-dependabot).
 name: testes
 
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - "site/**"
   pull_request:
   schedule:
     - cron: "0 9 * * 1"
@@ -23,8 +28,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
           cache: pip
@@ -43,8 +48,8 @@ jobs:
     name: Estúdio em Chromium, Firefox e WebKit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -59,11 +64,27 @@ jobs:
     name: Falhas conhecidas nos pacotes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: pip-audit (banco OSV e PyPI)
         run: |
           python -m pip install pip-audit
           pip-audit -r requirements.txt --progress-spinner off
+
+  juntar-dependabot:
+    name: Juntar a atualização do Dependabot
+    needs: [sistemas, navegadores, seguranca]
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Juntar na main (testes verdes nos três sistemas e nos três navegadores)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.html_url }}
+        # o GitHub não deixa o robô do Actions mexer em arquivo de workflow: esses o PC do autor junta (repositorio.py)
+        run: gh pr merge "$PR" --squash --delete-branch || echo "não deu para juntar daqui; o PC do autor junta"

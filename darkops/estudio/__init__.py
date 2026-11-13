@@ -875,7 +875,8 @@ def configuracoes():
 
 @app.route("/saude", methods=["GET", "POST"])
 def saude():
-    """Saúde do app: integridade e segurança, atualizações de terceiros e ferramentas novas (rotinas.py)."""
+    """Saúde do app: integridade e segurança, atualizações de terceiros (aplicadas sozinhas), ferramentas novas e,
+    no PC do autor, o GitHub do projeto (rotinas.py)."""
     from .. import app as app_local
     from .. import ferramentas, rotinas, sistema
     if request.method == "POST":
@@ -900,11 +901,16 @@ def saude():
             ferramentas.marcar(f.get("id", ""), "interessa" if acao == "interessa" else "descartada")
             return redirect(url_for("saude") + "#ferramentas")
         elif acao == "ligar":
-            app_local.salvar({"rotinas_ligadas": bool(f.get("ligadas"))})
-            flash("Rotinas " + ("ligadas." if f.get("ligadas") else "desligadas: só rodam quando você pedir."), "ok")
+            app_local.salvar({"rotinas_ligadas": bool(f.get("ligadas")),
+                              "atualizar_dependencias_sozinho": bool(f.get("dependencias"))})
+            flash("Rotinas " + ("ligadas" if f.get("ligadas") else "desligadas: só rodam quando você pedir")
+                  + (", com as atualizações instaladas sozinhas." if f.get("dependencias")
+                     else ", e as atualizações esperam o seu clique."), "ok")
         return redirect(url_for("saude"))
     return render_template("saude.html", rotinas=rotinas.ROTINAS, estados=rotinas.resumo()["estados"],
-                           ligadas=rotinas.ligadas(), sugestoes=ferramentas.ler(), sistema=sistema.NOME)
+                           ligadas=rotinas.ligadas(), sugestoes=ferramentas.ler(), sistema=sistema.NOME,
+                           dependencias_sozinho=app_local.ler().get("atualizar_dependencias_sozinho", True),
+                           vitrine=rotinas.aplicavel("vitrine"))
 
 
 @app.get("/tema-card/<nome>.png")
@@ -2102,7 +2108,7 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
 def _vigiar_rotinas() -> None:
     """Cifra os segredos que ainda estão em claro e, a cada 10 min, roda as rotinas vencidas (integridade todo dia,
     atualizações e ferramentas novas toda semana), nunca perto de um horário de postagem."""
-    from .. import cofre, rotinas
+    from .. import cofre, rotinas, vitrine
     time.sleep(60)
     try:
         feitos = cofre.proteger()
@@ -2110,6 +2116,12 @@ def _vigiar_rotinas() -> None:
             print(f"cofre: {len(feitos)} segredo(s) cifrado(s)")
     except Exception as erro:  # noqa: BLE001 — sem o cofre, os segredos continuam em claro e a rotina avisa
         print(seguranca.ocultar(f"cofre: não deu para cifrar agora ({erro})"))
+    if vitrine.ao_ligar():  # PC acabou de ligar (não é reinício do Estúdio): números do canal no GitHub agora
+        try:
+            r = rotinas.rodar("vitrine")
+            print(f"rotina vitrine: {r.get('situacao')} · {seguranca.ocultar(r.get('texto', ''))}")
+        except Exception as erro:  # noqa: BLE001
+            print(seguranca.ocultar(f"vitrine: {erro}"))
     while True:
         try:
             for nome, r in rotinas.rodar_vencidas():
@@ -2152,8 +2164,8 @@ def _vigiar_atualizacao() -> None:
     """Procura versão nova de tempos em tempos (se ligado em Configurações) e, quando há atualização, reinicia
     o Estúdio com o código novo, mas só quando nenhuma tarefa (prévia, leva...) estiver rodando."""
     from .. import app as app_local
-    from .. import whatsapp
-    inicio, versao_conferida = time.time(), 0.0
+    from .. import terceiros, whatsapp
+    inicio, versao_conferida, python_conferido = time.time(), 0.0, 0.0
     while True:
         time.sleep(5)
         if time.time() - versao_conferida > 60:  # versão nova (commit ou atualização) vira aviso no WhatsApp
@@ -2173,3 +2185,10 @@ def _vigiar_atualizacao() -> None:
         if sinal.exists() and sinal.stat().st_mtime > inicio - 1 and not ocupado:
             print("versão nova instalada: reiniciando o Estúdio")
             app_local.reiniciar_processo()
+        if not ocupado and terceiros.PYTHON_PRONTO.exists() and time.time() - python_conferido > 300:
+            python_conferido = time.time()
+            # o Python novo já foi baixado e conferido: troca com o Estúdio fechado, se nada estiver rodando
+            from .. import rotinas
+            if not rotinas._perto_de_postar() and not terceiros.ocupado() and terceiros.trocar_python_agora():
+                print("trocando o Python: o Estúdio volta em cerca de 1 minuto")
+                os._exit(0)

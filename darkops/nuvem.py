@@ -482,11 +482,20 @@ def atualizar_agenda(perfis) -> bool:
     return _gravar(".github/workflows/postar.yml", workflow_actions(perfis), "nuvem: horários por mercado")
 
 
+def atualizar_workflows(perfis) -> bool:
+    """Leva ao repositório de fila o workflow do Actions e o do n8n desta versão do app (só o que mudou). A rotina
+    diária de atualizações chama: ações do GitHub novas chegam à nuvem sem o dono rodar nuvem-configurar."""
+    a = _gravar(".github/workflows/postar.yml", workflow_actions(perfis), "nuvem: workflow da versão nova do app")
+    b = _gravar("n8n-nuvem.json", workflow_n8n_nuvem(), "nuvem: workflow do n8n da versão nova do app")
+    return a or b
+
+
 def workflow_n8n_nuvem() -> str:
     """O mesmo workflow do PC, adaptado ao Linux do GitHub Actions: sem produzir vídeo (já vem pronto) e sem
     reabastecer a fila (criar vídeos fica no PC)."""
     w = json.loads((config.RAIZ / "n8n" / "workflow.modelo.json").read_text(encoding="utf-8"))
-    fora = {"Produzir vídeo", "Reabastecer fila"}
+    # as rotinas da madrugada (integridade, atualizações) são do PC: a nuvem só posta
+    fora = {"Produzir vídeo", "Reabastecer fila", "Toda madrugada 3h", "Rotinas: integridade, atualizações e ferramentas"}
     w["nodes"] = [n for n in w["nodes"] if n["name"] not in fora]
     con = w["connections"]
     for nome in fora:
