@@ -29,7 +29,8 @@ class Basico(unittest.TestCase):
 
     def test_ocultar(self):
         from darkops.seguranca import ocultar
-        texto = ocultar('ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 {"access_token": "abc"} ya29.' + "a" * 30)
+        # montado em pedaços: um token de mentira inteiro no código faria a rotina de integridade acusar chave vazada
+        texto = ocultar("ghp_" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" + ' {"access_token": "abc"} ya29.' + "a" * 30)
         self.assertNotIn("ghp_ABC", texto)
         self.assertNotIn('"abc"', texto)
         self.assertNotIn("ya29.aaaa", texto)

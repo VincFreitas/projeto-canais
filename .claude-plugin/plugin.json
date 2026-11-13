@@ -1,6 +1,6 @@
 {
   "name": "projeto-canais",
-  "version": "0.65.0",
+  "version": "0.65.1",
   "description": "Projeto Canais: pesquisa, roteiro, produção e publicação de canais de vídeo sem rosto (YouTube Shorts e Instagram Reels), com aprovação do dono antes de publicar.",
   "author": {"name": "Vinicius Freitas", "url": "https://github.com/VincFreitas"},
   "homepage": "https://github.com/VincFreitas/projeto-canais",

@@ -755,12 +755,20 @@ def trocar_python_agora() -> bool:
     PYTHON_PRONTO.unlink(missing_ok=True)
     ajudante = config.RAIZ / "darkops" / "trocar_python.ps1"
     pythonw = Path(sys.executable).with_name("pythonw.exe")
-    subprocess.Popen(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File",
-                      str(ajudante), "-Esperar", str(os.getpid()), "-Instalador", pronto["instalador"],
-                      "-Base", sys.base_prefix, "-Raiz", str(config.RAIZ),
-                      "-Pythonw", str(pythonw if pythonw.exists() else sys.executable)],
-                     cwd=config.RAIZ, close_fds=True,
-                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS | 0x01000000)
+    args = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ajudante),
+            "-Esperar", str(os.getpid()), "-Instalador", pronto["instalador"], "-Base", sys.base_prefix,
+            "-Raiz", str(config.RAIZ), "-Pythonw", str(pythonw if pythonw.exists() else sys.executable)]
+    # CREATE_NO_WINDOW, nunca DETACHED_PROCESS: o PowerShell sem console morre calado (foi o que deixou o Estúdio
+    # fechado na primeira tentativa, em 2026-11-13). E sai do "job" do Estúdio para sobreviver quando ele fechar.
+    sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
+    try:
+        ajudante_proc = subprocess.Popen(args, cwd=config.RAIZ, close_fds=True, creationflags=sinais | 0x01000000)
+    except OSError:
+        ajudante_proc = subprocess.Popen(args, cwd=config.RAIZ, close_fds=True, creationflags=sinais)
+    import time
+    time.sleep(3)
+    if ajudante_proc.poll() is not None:  # o ajudante não ficou de pé: o Estúdio continua aberto e tenta amanhã
+        return False
     return True
 
 
