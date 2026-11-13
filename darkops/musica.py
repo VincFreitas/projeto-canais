@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Escolha da trilha de cada vídeo e crédito de licença.
 
 Só entram faixas listadas em assets/musica/licencas.csv (arquivo;licenca;credito), com

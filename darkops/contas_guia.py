@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Guia de criação das contas do canal: o que criar, em que ordem, com nomes sugeridos e o link de cada passo.
 
 Criar contas continua com o usuário (termos do Google e da Meta, SMS, CAPTCHA). O Estúdio só sugere os nomes a
@@ -95,8 +97,8 @@ def marcar(perfil, passo: str, feito: bool) -> None:
 
 
 def _env() -> dict:
-    from dotenv import dotenv_values
-    return {**dotenv_values(config.RAIZ / ".env"), **{k: v for k, v in os.environ.items() if k.startswith(
+    from .cofre import ler_env
+    return {**ler_env(), **{k: v for k, v in os.environ.items() if k.startswith(
         ("NUVEM_", "INSTAGRAM_", "AZURE_"))}}
 
 

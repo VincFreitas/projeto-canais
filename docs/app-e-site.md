@@ -84,3 +84,6 @@ O modo `servidor` em `darkops/ambiente.py` só pode ser destravado depois que **
 - [ ] Limite de pedidos, registro de auditoria sem segredos (`seguranca.ocultar`) e backup.
 - [ ] O Claude Code e o ffmpeg rodando em sandbox, nunca com acesso ao servidor inteiro.
 - [ ] Teste de invasão básico (OWASP Top 10) antes de abrir para outras pessoas.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

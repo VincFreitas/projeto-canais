@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Perfis: cada canal (contas do YouTube e do Instagram, estilo, fila e histórico) numa pasta própria.
 
 perfis/<id>/perfil.json        nome, @, nicho, plataformas, formato e duração, estilo, se a postagem está ativa
@@ -20,7 +22,7 @@ from . import config, mercados
 
 PERFIS = config.RAIZ / "perfis"
 PADRAO = "pulga-do-saber"
-ID_VALIDO = re.compile(r"^[a-z0-9][a-z0-9-]{1,40}$")
+ID_VALIDO = re.compile(r"^[a-z0-9][a-z0-9-]{1,40}\Z")
 
 MODELO = {
     "nome": "Novo canal",

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """O canal descrito em texto livre: a IA transforma o pedido em mudanças do perfil, e nada muda sem aprovação.
 
   python -m darkops ajustar-canal "quero vídeos mais curtos, tom engraçado, para crianças"

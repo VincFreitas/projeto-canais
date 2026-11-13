@@ -107,3 +107,6 @@ Pare quando aparecer:
 - erro que se repete 2 vezes.
 
 Diga o que viu e o que falta. Não tente outro caminho por conta própria.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

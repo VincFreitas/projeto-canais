@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """CLI: python -m darkops <comando>  (ou .\\dark.ps1 <comando>)."""
 import argparse
 import json
@@ -249,6 +251,9 @@ def cmd_fila_proximo(_):
     if not caminho:
         _resultado({"perfil": atual(), "vazia": True, "restantes": 0})
         return
+    # o caminho vai dentro de um comando do n8n e da nuvem (sh no Linux): nada de $, crase, aspas ou espaço
+    if not caminho.name.endswith(".json") or any(c in str(caminho) for c in "$`\"'%!&|;<>^\r\n"):
+        sys.exit(f"nome de arquivo recusado na fila (use só letras, números, ponto e hífen): {caminho.name!r}")
     _resultado({"perfil": atual(), "vazia": False, "roteiro": str(caminho), "restantes": restantes()})
 
 
@@ -448,13 +453,124 @@ def cmd_atualizar(a):
 
 
 def cmd_atualizar_dependencias(a):
-    from .app import dependencias
-    for i in dependencias(aplicar=a.aplicar):
+    """Tudo o que é de terceiros, com a versão nova e o aviso de segurança. --aplicar atualiza (todos ou --itens)."""
+    from . import integridade, terceiros
+    _, falhas = integridade.falhas_python()
+    itens = terceiros.verificar(falhas)
+    if a.aplicar:
+        feitos = {i["id"]: i for i in terceiros.aplicar(itens, a.itens or None)}
+        itens = [feitos.get(i["id"], i) for i in itens]
+    if a.json:
+        print(json.dumps(itens, ensure_ascii=False, indent=2))
+        return
+    for i in itens:
         extra = i.get("resultado") or i.get("obs") or ""
         nova = f" -> {i['nova']}" if i.get("nova") else ""
-        print(f"{i['tipo']:14} {i['nome']:24} {i['atual']}{nova}  {extra}")
-    if not a.aplicar:
-        print("\npara atualizar: python -m darkops atualizar-dependencias --aplicar")
+        alerta = " [SEGURANÇA]" if i["seguranca"] else ""
+        print(f"{i['tipo']:14} {i['nome']:24} {i['atual']}{nova}{alerta}  {extra}")
+    if not a.aplicar and any(i["aplicavel"] for i in itens):
+        print("\npara atualizar: python -m darkops atualizar-dependencias --aplicar [--itens py:yt-dlp node ...]")
+
+
+def cmd_integridade(a):
+    """Confere arquivos, segredos, programas, pacotes e falhas conhecidas. Sai com erro se houver problema."""
+    from . import rotinas
+    r = rotinas.rodar("integridade")
+    if a.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+    else:
+        for i in r.get("itens", []):
+            print(f"{i['situacao'].upper():9} {i['titulo']}: {i['texto']}")
+        print(f"\n{r['texto']}")
+    sys.exit(1 if r.get("situacao") == "problema" else 0)
+
+
+def cmd_rotinas(a):
+    """Rotinas automáticas: integridade (todo dia), atualizações e ferramentas novas (toda semana)."""
+    from . import rotinas
+    if a.rodar:
+        feitas = [(a.rodar, rotinas.rodar(a.rodar))]
+    elif a.vencidas:
+        feitas = rotinas.rodar_vencidas()
+    else:
+        feitas = []
+    for nome, r in feitas:
+        print(f"{rotinas.ROTINAS[nome]['titulo']}: {r.get('situacao', '?')} · {r.get('texto', '')}")
+    if not feitas:
+        resumo = rotinas.resumo()["estados"]
+        for nome, info in rotinas.ROTINAS.items():
+            e = resumo[nome]
+            print(f"{info['titulo']:28} a cada {info['a_cada_h']} h · última: {e.get('quando', 'nunca')} · "
+                  f"{e.get('situacao', '-')} · {e.get('texto', '')}")
+        if a.vencidas:
+            print("nada vencido (ou rotinas desligadas, ou perto de um horário de postagem)")
+
+
+def cmd_estrela(_):
+    """Easter egg: a estrela da logo em texto, os créditos e uma dica do dia (comando escondido da ajuda)."""
+    import datetime
+    from . import autoria
+    dicas = ["/serie transforma um assunto grande em 2 ou 4 vídeos ligados.",
+             "Saúde do app confere a segurança todo dia, sozinha.",
+             "Qualquer IA com MCP comanda o app: python -m darkops mcp-configurar.",
+             "Os tokens dos seus canais ficam cifrados no disco.",
+             "No Estúdio, tente as setas ↑↑↓↓←→←→ e depois B A.",
+             "Fato sem fonte não entra no roteiro: mistério não autoriza inventar."]
+    print("\n".join([
+        "            *",
+        "           / \\",
+        "      *---*   *---*",
+        "           \\ /",
+        "            *",
+        "",
+        f"  {autoria.ROTULO} · feito por {autoria.AUTOR}",
+        f"  {autoria.REPOSITORIO}",
+        f"  Dica do dia: {dicas[datetime.date.today().toordinal() % len(dicas)]}",
+    ]))
+
+
+def cmd_marcar_arquivos(_):
+    """Marca d'água invisível: cabeçalho de autoria (SPDX) nos arquivos de código e documentação que ainda não têm."""
+    from .autoria import marcar_arquivos
+    feitos = marcar_arquivos()
+    print("\n".join(f"marcado: {x}" for x in feitos) if feitos else "todos os arquivos já têm o cabeçalho")
+
+
+def cmd_mcp(_):
+    """Servidor MCP pela entrada e saída padrão (os agentes de IA chamam isto; não é para rodar à mão)."""
+    from .mcp_servidor import servir
+    servir()
+
+
+def cmd_mcp_configurar(a):
+    """Grava a configuração do servidor MCP para Claude Code, Cursor, VS Code/Copilot e Gemini CLI (e, com
+    --usuario, Codex e Windsurf). --mostrar só imprime o bloco para colar em outro cliente."""
+    from .mcp_servidor import configurar, trecho
+    if a.mostrar:
+        print(trecho())
+        return
+    for arquivo in configurar(usuario=a.usuario):
+        print(f"configurado: {arquivo}")
+    print("abra o agente nesta pasta e aprove o servidor 'projeto-canais' quando ele perguntar")
+
+
+def cmd_cofre_proteger(_):
+    """Cifra os segredos que ainda estão em claro (tokens, JSON do Google, chaves do .env)."""
+    from . import cofre
+    feitos = cofre.proteger()
+    for x in feitos:
+        print(f"cifrado: {x}")
+    if not feitos:
+        print("nada em claro: tudo já está cifrado")
+
+
+def cmd_ferramentas_buscar(_):
+    from . import rotinas
+    r = rotinas.rodar("ferramentas")
+    print(r["texto"])
+    from .ferramentas import ler
+    for s in [s for s in ler() if s["estado"] == "nova"][:10]:
+        print(f"- {s['nome']} ({s['licenca']}, {s['custo']}): {s['o_que_melhora']}  {s['link']}")
 
 
 def cmd_roteiro_auditar(a):
@@ -956,9 +1072,41 @@ def main():
     s.add_argument("--verificar", action="store_true", help="só mostra se há versão nova")
     s.set_defaults(fn=cmd_atualizar)
 
-    s = sub.add_parser("atualizar-dependencias", help="verifica (e atualiza) pacotes Python, yt-dlp, n8n e Claude Code")
+    s = sub.add_parser("atualizar-dependencias",
+                       help="verifica (e atualiza) tudo de terceiros: Python, n8n, Node, HyperFrames, Claude Code...")
     s.add_argument("--aplicar", action="store_true")
+    s.add_argument("--itens", nargs="*", help="só estes ids (py:yt-dlp, n8n, node, npm:gsap, claude...)")
+    s.add_argument("--json", action="store_true")
     s.set_defaults(fn=cmd_atualizar_dependencias)
+
+    s = sub.add_parser("integridade", help="confere arquivos, segredos, programas, pacotes e falhas conhecidas")
+    s.add_argument("--json", action="store_true")
+    s.set_defaults(fn=cmd_integridade)
+
+    s = sub.add_parser("rotinas", help="rotinas automáticas (integridade, atualizações, ferramentas novas)")
+    s.add_argument("--rodar", choices=["integridade", "atualizacoes", "ferramentas"])
+    s.add_argument("--vencidas", action="store_true", help="roda só as que passaram do prazo (o n8n usa)")
+    s.set_defaults(fn=cmd_rotinas)
+
+    s = sub.add_parser("cofre-proteger", help="cifra os segredos que ainda estão em claro no disco")
+    s.set_defaults(fn=cmd_cofre_proteger)
+
+    s = sub.add_parser("estrela")  # easter egg: fica fora da ajuda de propósito
+    s.set_defaults(fn=cmd_estrela)
+
+    s = sub.add_parser("marcar-arquivos", help="põe o cabeçalho de autoria nos arquivos de código e docs que não têm")
+    s.set_defaults(fn=cmd_marcar_arquivos)
+
+    s = sub.add_parser("mcp", help="servidor MCP pela entrada padrão (para Claude, Codex, Gemini, Cursor, Copilot...)")
+    s.set_defaults(fn=cmd_mcp)
+
+    s = sub.add_parser("mcp-configurar", help="grava a configuração do servidor MCP para cada agente de IA")
+    s.add_argument("--usuario", action="store_true", help="também no Codex e no Windsurf (pasta do usuário)")
+    s.add_argument("--mostrar", action="store_true", help="só mostra o bloco para colar em outro cliente")
+    s.set_defaults(fn=cmd_mcp_configurar)
+
+    s = sub.add_parser("ferramentas-buscar", help="pesquisa ferramentas abertas novas que melhorariam o app (só sugere)")
+    s.set_defaults(fn=cmd_ferramentas_buscar)
 
     s = sub.add_parser("roteiro-auditar", help="confere gancho, estrutura e CTA de roteiros (sai com erro se faltar algo)")
     s.add_argument("roteiros", nargs="+")

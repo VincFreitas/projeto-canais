@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Lobby do Estúdio: a primeira tela ao abrir. Visão geral de todos os canais antes de entrar em um.
 
 Junta o que já existe em cada perfil (fila, estado, estatisticas.json, horários) sem chamar API nenhuma:

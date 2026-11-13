@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Chamada final que divulga o Projeto Canais e manda o link do repositório para quem comenta a palavra-chave.
 
 Decisão do dono em 2026-11-11: com o gancho final "app", o fim do vídeo diz que o vídeo foi feito pelo app, com

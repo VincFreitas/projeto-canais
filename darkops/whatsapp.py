@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """WhatsApp do dono do canal: avisos da produção e da postagem, e comandos para mandar no canal pelo celular.
 
 Usa só a API oficial da Meta (WhatsApp Cloud API) e só conversa com UM número: o do dono (WHATSAPP_PARA).

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Assuntos em alta agora, para os canais de notícias: o feed público de tendências do Google (RSS oficial, sem chave).
 
 Cada assunto vem com o volume aproximado de buscas e as matérias que o Google liga a ele (título, veículo e link).

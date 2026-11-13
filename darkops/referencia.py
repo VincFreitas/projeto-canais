@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Aprender com referência: mede o estilo de um vídeo de outro canal sem copiar nada dele.
 
   python -m darkops referencia <url> [<url> ...]      mede e mostra a proposta de padrão para o perfil

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Aprendizado automático: a cada 14 vídeos no ar, o canal descobre o que funcionou e se ajusta sozinho.
 
 Ciclo:

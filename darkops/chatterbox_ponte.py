@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Ponte para o Chatterbox Multilingual, que roda no ambiente separado dados/apps/vozes (torch não entra no .venv).
 
 Lê da entrada padrão {"frases": [...], "idioma": "pt", "voz": "<wav de referência ou vazio>", "pasta": "..."}

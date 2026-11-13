@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Estatísticas dos canais e de cada vídeo, direto das plataformas (APIs oficiais, só leitura).
 
   python -m darkops estatisticas      atualiza e mostra os números do perfil
@@ -15,6 +17,8 @@ import time
 from datetime import date
 
 import requests
+
+from . import cofre
 
 ESCOPO_ANALYTICS = "https://www.googleapis.com/auth/yt-analytics.readonly"
 METRICAS_IG = ["views", "reach", "likes", "comments", "shares", "saved", "total_interactions",
@@ -44,7 +48,7 @@ def _youtube(perfil) -> dict:
                 "visualizacoes": int(s.get("viewCount", 0)), "curtidas": int(s.get("likeCount", 0)),
                 "comentarios": int(s.get("commentCount", 0))})
     # retenção e minutos: só com a permissão extra
-    info = json.loads(perfil.token_youtube.read_text(encoding="utf-8")) if perfil.token_youtube.exists() else {}
+    info = json.loads(cofre.ler(perfil.token_youtube)) if perfil.token_youtube.exists() else {}
     if ESCOPO_ANALYTICS not in (info.get("scopes") or []):
         saida["avisos"].append("Minutos assistidos, retenção e monetização do YouTube precisam da permissão extra: "
                                "Estúdio > Estatísticas > Liberar retenção e receita do YouTube.")

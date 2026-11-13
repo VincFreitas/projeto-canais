@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Edição "dossiê" (tema_cards = "dossie"): painéis de dados por cima da imagem inteira, sem card de vidro.
 
 Estilo de reconstituição com dados: a imagem da cena fica nítida em tela cheia e os números aparecem em painéis

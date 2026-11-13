@@ -1,0 +1,12 @@
+{
+  "name": "projeto-canais",
+  "owner": {"name": "Vinicius Freitas", "url": "https://github.com/VincFreitas"},
+  "metadata": {"description": "Plugin oficial do Projeto Canais"},
+  "plugins": [
+    {
+      "name": "projeto-canais",
+      "source": "./",
+      "description": "Skills do Projeto Canais: configurar, pesquisar nicho, escrever roteiro, produzir vídeo, conectar contas, verificar o app e mais."
+    }
+  ]
+}

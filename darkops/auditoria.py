@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Auditoria do roteiro antes de ir para a fila: gancho, estrutura e voz do canal.
 
 Quatro checagens, as mesmas que um roteirista faria:

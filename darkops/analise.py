@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """A IA analisa as estatísticas do canal e sugere mudanças; nada muda sem a sua aprovação, uma por uma.
 
   python -m darkops analisar      gera as sugestões (ficam pendentes em controle/sugestoes.json)

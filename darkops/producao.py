@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Roteiro JSON -> vídeo pronto + thumbnail + metadados por plataforma."""
 import hashlib
 import json
@@ -15,6 +17,26 @@ HF_PARALELO = hyperframes.paralelo()
 LIMITE_VERTICAL_S = 180  # Shorts aceita até 3 min; TikTok e Reels rendem melhor bem abaixo disso
 
 
+def caminhos_inseguros(roteiro: dict, caminho: Path) -> list[str]:
+    """O roteiro pode ter sido escrito pela IA (que lê páginas da internet) ou editado à mão: slug, palco e arquivos
+    de mídia nunca apontam para fora do projeto. O palco precisa estar em cenas/ (ele é carregado como código)."""
+    import re
+    raiz = config.RAIZ.resolve()
+    erros = []
+    slug = roteiro.get("slug") or caminho.stem
+    if not re.fullmatch(r"[\w-]{1,100}", str(slug)):
+        erros.append(f"slug inválido: {slug!r} (só letras, números, _ e -)")
+    if roteiro.get("palco") and not (raiz / str(roteiro["palco"])).resolve().is_relative_to(raiz / "cenas"):
+        erros.append("o palco precisa estar em cenas/")
+    arquivos = [c.get("arquivo") for c in roteiro.get("cenas") or [] if isinstance(c, dict)]
+    arquivos.append((roteiro.get("thumb") or {}).get("arquivo") if isinstance(roteiro.get("thumb"), dict) else None)
+    for nome in filter(None, arquivos):
+        alvo = Path(str(nome))
+        if not (alvo if alvo.is_absolute() else caminho.parent / alvo).resolve().is_relative_to(raiz):
+            erros.append(f"arquivo fora do projeto: {nome}")
+    return erros
+
+
 def carregar(caminho: Path) -> dict:
     roteiro = json.loads(caminho.read_text(encoding="utf-8"))
     erros = []
@@ -26,6 +48,7 @@ def carregar(caminho: Path) -> dict:
     for i, c in enumerate(cenas, 1):
         if not (c.get("texto") or "").strip():
             erros.append(f"cena {i} sem texto")
+    erros += caminhos_inseguros(roteiro, caminho)
     if erros:
         raise SystemExit(f"Roteiro inválido ({caminho.name}):\n- " + "\n- ".join(erros))
     return roteiro

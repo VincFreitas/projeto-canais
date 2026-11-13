@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Visuais das cenas (arquivo próprio, Pexels, Pixabay ou fundo gerado) e thumbnail."""
 import contextlib
 import json
@@ -220,15 +222,23 @@ def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: P
 @contextlib.contextmanager
 def _vez_na_placa():
     """Trava entre processos (vídeos, prévias e a identidade visual podem rodar juntos): espera o outro desenho terminar."""
-    import msvcrt
+    import os
     import time
     config.MODELOS.mkdir(parents=True, exist_ok=True)
+    if os.name == "nt":
+        import msvcrt
+        travar = lambda f: msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)  # noqa: E731
+        soltar = lambda f: msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1)  # noqa: E731
+    else:  # macOS e Linux
+        import fcntl
+        travar = lambda f: fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)  # noqa: E731
+        soltar = lambda f: fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # noqa: E731
     with open(config.MODELOS / ".desenhando.lock", "a+b") as trava:
         avisou = False
         while True:
             try:
                 trava.seek(0)
-                msvcrt.locking(trava.fileno(), msvcrt.LK_NBLCK, 1)
+                travar(trava)
                 break
             except OSError:
                 if not avisou:
@@ -239,7 +249,7 @@ def _vez_na_placa():
             yield
         finally:
             trava.seek(0)
-            msvcrt.locking(trava.fileno(), msvcrt.LK_UNLCK, 1)
+            soltar(trava)
 
 
 def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
@@ -251,7 +261,7 @@ def ilustracao_local(prompt: str, personagem: str, indice: int, pasta_visuais: P
     import subprocess
     import zlib
 
-    sd = config.MODELOS / "sd" / "sd-cli.exe"
+    sd = config.MODELOS / "sd" / ("sd-cli.exe" if os.name == "nt" else "sd-cli")
     pesos = [config.MODELOS / n for n in ("z_image_turbo-Q4_K.gguf", "ae.safetensors",
                                           "Qwen3-4B-Instruct-2507-Q4_K_M.gguf")]
     if not sd.exists() or not all(p.exists() for p in pesos):

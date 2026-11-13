@@ -59,6 +59,22 @@ powershell -ExecutionPolicy Bypass -File instalar.ps1
 
 Se uma etapa falhar (internet, por exemplo), o instalador sai com código diferente de 0 e o diagnóstico mostra o quê. Basta rodar de novo, porque o que já está pronto é pulado. Opções: `-Atalhos nenhum` e `-SemApps`.
 
+**macOS e Linux:** rode `./instalar.sh` (opção `--sem-apps`). Ele precisa de Python 3.11 ou mais novo, curl e git, e faz o mesmo:
+- cria o `.venv` e instala os pacotes;
+- baixa a voz offline e cria o `.env`;
+- instala o Node.js portátil (tar oficial, conferido pelo SHA-256), o n8n, o Claude Code (`install.sh` oficial) e o Chromium do palco;
+- grava a configuração do MCP e os atalhos (`.desktop` no Linux, `.command` no macOS).
+
+O n8n liga sozinho quando a pessoa entra no computador:
+- Linux: `~/.config/autostart`;
+- macOS: LaunchAgent em `~/Library/LaunchAgents`.
+
+Depois, os comandos são `./dark.sh <comando>`.
+
+No Linux, o Chromium do palco pode pedir as bibliotecas do sistema: `sudo .venv/bin/python -m playwright install-deps chromium`. O comando usa `sudo`, então quem roda é a pessoa.
+
+**Qualquer IA:** `python -m darkops mcp-configurar` liga o servidor MCP do app no Claude Code, Codex, Gemini CLI, Cursor e VS Code/Copilot.
+
 ## 3. Login do Claude Code (com a pessoa)
 O instalador já pôs o Claude Code. É ele que escreve os roteiros (Novo vídeo, levas, os 14 vídeos do canal novo) e faz a análise do que funcionou. Mesmo que você seja outro agente (Codex, Gemini CLI, Cursor, Copilot, Windsurf...), o Estúdio chama o CLI `claude`. Falta só a pessoa entrar na conta dela: rodar `claude` uma vez num terminal e fazer o login. Confira com o diagnóstico ("Claude Code (escreve os roteiros)").
 
@@ -138,3 +154,6 @@ Avisos (vídeo no ar, falha, fila acabando, vídeo novo com Aprovar e Recusar, r
 ## 10. Conferir
 Depois de cada plataforma, rode `.\.venv\Scripts\python.exe -m darkops progresso` e mostre a barra dela. No fim, rode o diagnóstico de novo e mostre o que ficou pronto e o que é opcional.
 No canal (Ajustes), as plataformas aparecem como **pronta**, **falta configurar** ou **manual**. Lembre que em **Sobre o projeto > Enviar sugestão** dá para mandar o que travou. Termine dizendo, em uma linha, o que o usuário faz no dia a dia: abrir o Estúdio pelo atalho, assistir as prévias e aprovar, e responder os comentários em Resultados > Comentários.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

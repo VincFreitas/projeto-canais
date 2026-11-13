@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Excluir um canal: apaga tudo dele no app e corta o acesso do app às contas que ele conectou.
 
 Decisão do dono em 2026-11-08: o YouTube e o Instagram não deixam um app apagar o canal ou a conta pela API (só o
@@ -14,7 +16,7 @@ from pathlib import Path
 
 import requests
 
-from . import config
+from . import cofre, config
 from .seguranca import ocultar
 
 LINKS = {
@@ -64,7 +66,7 @@ def plano(perfil) -> dict:
 def _revogar_youtube(perfil) -> str:
     if not perfil.token_youtube.exists():
         return "YouTube: não estava conectado"
-    dados = json.loads(perfil.token_youtube.read_text(encoding="utf-8"))
+    dados = json.loads(cofre.ler(perfil.token_youtube))
     token = dados.get("refresh_token") or dados.get("token")
     if not token:
         return "YouTube: token sem chave para revogar (apagado daqui)"

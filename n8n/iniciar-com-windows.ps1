@@ -1,4 +1,6 @@
-﻿# Cria (ou remove, com -Remover) o atalho na pasta Inicializar do Windows que liga o n8n
+﻿# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
+# Cria (ou remove, com -Remover) o atalho na pasta Inicializar do Windows que liga o n8n
 # escondido no logon, para o workflow dos seus canais postar nos horários marcados.
 # Rode você mesmo:  powershell -ExecutionPolicy Bypass -File .\n8n\iniciar-com-windows.ps1
 param([switch]$Remover)

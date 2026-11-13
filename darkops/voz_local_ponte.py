@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Ponte para o ambiente separado dados/apps/voz-local (Kokoro e faster-whisper, sem tocar no .venv).
 
 Roda com o Python daquele ambiente. Lê um pedido JSON da entrada padrão e escreve uma linha JSON na saída:

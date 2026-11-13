@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Leva o que está em Ajustes do canal (nome, nicho, descrição e público) para as contas conectadas.
 
 - YouTube, pela API oficial (channels.update, parte brandingSettings): descrição do canal, palavras-chave, idioma e

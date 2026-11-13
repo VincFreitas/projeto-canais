@@ -30,3 +30,6 @@ Números de guias de terceiros (ex.: "70% de retenção") não são oficiais: se
 - **Descrição e tags pela IA** (`darkops/descricao.py`): 1ª linha de até 125 caracteres com a palavra-chave e o gancho, 2 ou 3 frases, convite para **comentar e mandar para alguém** (envios), sem fontes nem links (as fontes ficam só no roteiro, decisão do dono em 2026-11-10; `descricao.sem_fontes` limpa até o que foi escrito à mão); de 3 a 5 hashtags; tags do mais específico ao mais geral, com grafias erradas comuns, até 500 caracteres; nunca lista de palavras-chave.
 - **Checagens** (`conferir` e revisão antes de gerar): 1ª frase curta e sem saudação, palavra principal nos 40 primeiros caracteres do título, chamada para comentar ou compartilhar na última cena, até 5 hashtags, 1ª linha da descrição até 125 caracteres, vídeo sem silêncio, sem tela preta e na resolução certa.
 - **Originalidade:** só o @ do próprio canal aparece no vídeo; nunca reposte material de outro canal nem use marca d'água de outro app.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

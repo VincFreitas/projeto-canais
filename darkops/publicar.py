@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Upload automático para os canais oficiais do projeto (YouTube Data API v3)."""
 import json
 import os
 from pathlib import Path
 
-from . import config
+from . import cofre, config
 
 ESCOPOS = [
     "https://www.googleapis.com/auth/youtube.upload",
@@ -32,14 +34,14 @@ def autorizar_youtube(analytics: bool = False, comentarios: bool = False) -> Pat
         raise SystemExit(f"falta {CLIENT_SECRET} (baixe o JSON do cliente OAuth no Google Cloud)")
     escopos = list(ESCOPOS)
     try:
-        anteriores = json.loads(_token_youtube().read_text(encoding="utf-8")).get("scopes") or []
-    except (OSError, ValueError):
+        anteriores = json.loads(cofre.ler(_token_youtube())).get("scopes") or []
+    except (OSError, ValueError, cofre.CofreFechado):
         anteriores = []
     for extra in ([ESCOPO_ANALYTICS, ESCOPO_RECEITA] if analytics else []) + ([ESCOPO_COMENTARIOS] if comentarios else []) \
             + [e for e in anteriores if e in (ESCOPO_ANALYTICS, ESCOPO_RECEITA, ESCOPO_COMENTARIOS)]:
         if extra not in escopos:
             escopos.append(extra)
-    fluxo = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRET), escopos)
+    fluxo = InstalledAppFlow.from_client_config(json.loads(cofre.ler(CLIENT_SECRET)), escopos)
     # prompt=consent garante o refresh_token mesmo se o app já foi autorizado antes
     # select_account: deixa escolher a conta do Google do canal deste perfil
     cred = fluxo.run_local_server(port=0, prompt="consent select_account", access_type="offline")
@@ -49,7 +51,7 @@ def autorizar_youtube(analytics: bool = False, comentarios: bool = False) -> Pat
     _conferir_dono(escolhido)
     destino = _token_youtube()
     destino.parent.mkdir(parents=True, exist_ok=True)
-    destino.write_text(cred.to_json(), encoding="utf-8")
+    cofre.gravar(destino, cred.to_json())
     _guardar_canal(escolhido)
     return destino
 
@@ -106,7 +108,7 @@ def _credenciais():
     if bruto:
         info = json.loads(bruto)
     elif _token_youtube().exists():
-        info = json.loads(_token_youtube().read_text(encoding="utf-8"))
+        info = json.loads(cofre.ler(_token_youtube()))
     else:
         raise SystemExit("sem token do YouTube: rode '.\\dark.ps1 autorizar-youtube' ou defina YOUTUBE_TOKEN")
     # usa as permissões que o token tem (com a do Analytics, se foi liberada); pedir menos tiraria a do Analytics

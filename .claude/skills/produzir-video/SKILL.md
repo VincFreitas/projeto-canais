@@ -21,3 +21,6 @@ Argumento: um ou mais caminhos de roteiro (ou um slug; procure em `roteiros/`). 
    - Olhe a thumbnail em `saida/<slug>-thumb.jpg`.
 4. Para trocar o visual de uma cena, apague `obra/<slug>/<formato>/visuais/NN.*` (ou defina `arquivo` na cena) e rode de novo. Só as cenas alteradas são refeitas.
 5. Responda com os caminhos dos arquivos, a duração e o que o usuário precisa revisar antes de aprovar (checklist no fim do `-metadados.md`). A postagem é automática (n8n ou nuvem), só depois que o vídeo for aprovado.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

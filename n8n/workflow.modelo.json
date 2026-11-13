@@ -163,7 +163,7 @@
     },
     {
       "parameters": {
-        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^\\r\\n]/g, ' ').slice(-300) }}\""
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^$`'\\r\\n]/g, ' ').slice(-300) }}\""
       },
       "id": "a1f0c001-0000-4000-8000-00000000000a",
       "name": "Registrar falha",
@@ -306,6 +306,39 @@
       "position": [
         220,
         960
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 3 * * *"
+            }
+          ]
+        }
+      },
+      "id": "8c651c26-5b38-47db-9b18-52cf323b535e",
+      "name": "Toda madrugada 3h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /d __PASTA__ && __PYTHON__ -m darkops rotinas --vencidas"
+      },
+      "id": "2249a658-9f89-4a56-9704-2992813f745f",
+      "name": "Rotinas: integridade, atualizações e ferramentas",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        1000
       ]
     }
   ],
@@ -525,6 +558,17 @@
         [
           {
             "node": "Comentários: ler e rascunhar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Toda madrugada 3h": {
+      "main": [
+        [
+          {
+            "node": "Rotinas: integridade, atualizações e ferramentas",
             "type": "main",
             "index": 0
           }

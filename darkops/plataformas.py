@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Progresso da configuração de cada plataforma: o que já está pronto e o próximo passo.
 
   python -m darkops progresso     mostra a base comum e cada plataforma, com as etapas feitas e as que faltam
@@ -78,9 +80,8 @@ def _instagram(perfis_alvo, todos) -> Plataforma:
 
 
 def _env() -> dict:
-    from dotenv import dotenv_values
-    arquivo = config.RAIZ / ".env"
-    return {k: (v or "").strip() for k, v in dotenv_values(arquivo).items()} if arquivo.exists() else {}
+    from .cofre import ler_env
+    return {k: (v or "").strip() for k, v in ler_env().items()}
 
 
 def _manual(pid: str, nome: str, link: str) -> Plataforma:

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Publicação de Reels pela Instagram API com login do Instagram (graph.instagram.com).
 
 Envio por upload resumível (rupload.facebook.com): o vídeo sai do disco local,
@@ -10,7 +12,7 @@ from pathlib import Path
 
 import requests
 
-from . import config  # noqa: F401 (carrega o .env)
+from . import cofre, config  # noqa: F401 (config carrega o .env)
 
 VERSAO = "v23.0"
 GRAPH = f"https://graph.instagram.com/{VERSAO}"
@@ -22,7 +24,7 @@ def token() -> str:
     arquivo = carregar().token_instagram
     valor = os.getenv("INSTAGRAM_TOKEN", "").strip()
     if not valor and arquivo.exists():
-        valor = arquivo.read_text(encoding="utf-8-sig").strip()
+        valor = cofre.ler(arquivo).strip()
     if not valor:
         raise SystemExit("sem token do Instagram neste perfil: Estúdio > Ajustes > Contas > Entrar com Instagram")
     if not os.getenv("INSTAGRAM_TOKEN") and arquivo.exists():
@@ -47,7 +49,7 @@ def _renovar_se_preciso(arquivo: Path, valor: str) -> str:
         from .seguranca import ocultar
         print(f"aviso: não renovei o token do Instagram agora ({ocultar(str(erro))})")
         return valor
-    arquivo.write_text(dados["access_token"], encoding="utf-8")
+    cofre.gravar(arquivo, dados["access_token"])
     print("token do Instagram renovado por mais 60 dias")
     if nuvem.configurada():
         try:

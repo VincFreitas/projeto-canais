@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Cenas desenhadas por código para a edição dossiê: mapa, diagrama, escala e ficha do caso.
 
 Servem de fundo da cena no lugar da imagem de IA: renderizam em segundos e variam o visual do vídeo. A imagem de IA

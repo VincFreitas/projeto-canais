@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+// Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 /* Prancha de Campo: monta o vídeo inteiro numa timeline GSAP pausada a partir de window.__PRANCHA (JSON).
    O roteiro só escreve componentes e a palavra da fala em que cada coisa acontece ("em"); este arquivo cuida de
    moldura, legenda, tempos, traço e movimento. Tudo é função do tempo da timeline e de sementes: nada de

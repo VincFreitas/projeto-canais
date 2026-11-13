@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Caminhos, variáveis de ambiente e presets de nicho."""
 import json
 import os
@@ -7,6 +9,16 @@ from dotenv import load_dotenv
 
 RAIZ = Path(__file__).resolve().parent.parent
 load_dotenv(RAIZ / ".env")
+try:  # os segredos do .env ficam cifrados (cofre.py): abre no ambiente deste processo, antes de qualquer leitura
+    from . import cofre as _cofre
+    COFRE_FALHAS = _cofre.carregar_env()
+except Exception:  # noqa: BLE001 — sem o cofre, a chave só fica faltando; o app abre do mesmo jeito
+    COFRE_FALHAS = []
+try:  # macOS e Linux: as fontes do Windows usadas no desenho viram as equivalentes do sistema (fontes.py)
+    from . import fontes as _fontes
+    _fontes.instalar()
+except Exception:  # noqa: BLE001
+    pass
 
 PESQUISA = RAIZ / "pesquisa"
 ROTEIROS = RAIZ / "roteiros"

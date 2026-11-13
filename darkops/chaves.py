@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Confere uma chave de serviço na hora em que ela é colada, antes de salvar no .env.
 
 Cada teste é uma chamada pequena e gratuita à API do serviço. Respostas:

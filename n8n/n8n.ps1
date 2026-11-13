@@ -1,4 +1,6 @@
-﻿# Lancador do n8n (instalado via npm global).
+﻿# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
+# Lancador do n8n (instalado via npm global).
 # Uso:  powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1          -> inicia e abre o navegador
 #       powershell -ExecutionPolicy Bypass -File n8n\n8n.ps1 -NoOpen  -> inicia sem abrir o navegador
 param([switch]$NoOpen)

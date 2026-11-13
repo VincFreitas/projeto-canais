@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Ambiente de execução do Estúdio: hoje só "local"; "servidor" fica preparado para o futuro aplicativo/site.
 
   DARKOPS_AMBIENTE=local      (padrão) Estúdio no próprio PC, só em 127.0.0.1, como sempre
@@ -58,6 +60,8 @@ def config_flask() -> dict:
 def origem_permitida(origem: str) -> bool:
     """Origin/Referer aceitos num POST. Local: só o próprio PC. Servidor: a lista DARKOPS_ORIGENS (https)."""
     if atual() == LOCAL:
-        return bool(ORIGEM_LOCAL.match(origem))
+        achado = ORIGEM_LOCAL.match(origem)
+        porta = os.getenv("PORT", "")  # o Estúdio grava a porta dele ao abrir; outro servidor local não posta aqui
+        return bool(achado) and (not porta or (achado.group(2) or ":80")[1:] == porta)
     permitidas = [o.strip().rstrip("/") for o in os.getenv("DARKOPS_ORIGENS", "").split(",") if o.strip()]
     return any(origem == o or origem.startswith(o + "/") for o in permitidas if o.startswith("https://"))

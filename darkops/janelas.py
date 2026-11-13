@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Sem janelas de prompt piscando no Windows.
 
 O Projeto Canais abre pelo pythonw (sem console). Nesse caso, cada programa de console que ele chama

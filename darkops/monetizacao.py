@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Situação da monetização de cada canal: se já ganha, quanto, e o que falta para entrar no Programa de Parcerias.
 
 YouTube: os números vêm da YouTube Analytics API, junto com as estatísticas (Atualizar dados).

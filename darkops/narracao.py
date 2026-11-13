@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Narração com motores plugáveis e legendas ASS sincronizadas por palavra.
 
 Motores:
@@ -221,10 +223,12 @@ def _gemini(texto: str, voz: str, velocidade: str, base: Path) -> tuple[Path, li
 def _ambiente_chatterbox(idioma: str) -> tuple[Path, str]:
     """(python, pasta do código): em português, o ajuste fino oficial em pt-BR (sem sotaque de Portugal); nas outras
     línguas, o Chatterbox Multilingual de dados/apps/vozes."""
-    ptbr = config.CHATTERBOX_PTBR / "venv" / "Scripts" / "python.exe"
+    from .sistema import WINDOWS
+    pasta_bin = ("Scripts", "python.exe") if WINDOWS else ("bin", "python")
+    ptbr = config.CHATTERBOX_PTBR.joinpath("venv", *pasta_bin)
     if idioma == "pt" and ptbr.exists():
         return ptbr, str(config.CHATTERBOX_PTBR / "chatterbox" / "src")
-    python = config.VOZES_LOCAIS / "Scripts" / "python.exe"
+    python = config.VOZES_LOCAIS.joinpath(*pasta_bin)
     if not python.exists():
         raise SystemExit("motor chatterbox exige o ambiente dados/apps/vozes (instale o Chatterbox)")
     return python, ""

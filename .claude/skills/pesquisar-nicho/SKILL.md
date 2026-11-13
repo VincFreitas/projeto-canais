@@ -36,3 +36,6 @@ Os outliers levam alguns minutos. Rode em segundo plano se houver outra coisa pa
 
 ## 4. Responder
 Resuma em até 10 linhas: veredito, 3 mecanismos mais fortes, 5 melhores ideias. Aponte o caminho do `analise.md` e ofereça rodar `/escrever-roteiro` na ideia número 1.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

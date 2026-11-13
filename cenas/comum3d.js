@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+// Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 // Kit comum das cenas 3D (Three.js + GSAP): sala, materiais, canos que crescem, partículas, câmera e etiquetas.
 // Cada cena (cenas/<slug>.3d.js) cria o kit com kit(args, opções) e só descreve o seu objeto e o que se mexe.
 

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Quanto a IA custa por vídeo: cada chamada do Claude Code (leva.rodar_claude) anota custo, tokens e tempo.
 
 O Claude Code devolve, com --output-format json, o custo da chamada no preço da API (total_cost_usd). Quem usa um

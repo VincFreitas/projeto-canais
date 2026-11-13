@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Outros jeitos de começar um vídeo: roteiro pronto (texto) ou narração pronta (áudio).
 
 - roteiro pronto: o texto é dividido em cenas pelo ritmo do canal (ritmo_corte_s), sempre em fim de frase,

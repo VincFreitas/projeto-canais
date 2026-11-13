@@ -236,3 +236,6 @@ No pixel art em tela cheia, toda cena desenhada vira uma **cena viva** (`darkops
 - O render amplia sem suavizar e faz a panorâmica em degraus de pixel, sem zoom. O mascote narrador, o card dos infográficos (com poucas cores) e o avatar da moldura também saem pixelados. A legenda fica embaixo.
 - `"musica": "chiptune"` usa a trilha sintetizada com onda quadrada (som de 8 bits); a música licenciada por tema também funciona.
 - Instalar o desenho local: baixe para `modelos/` o `sd-cli` Vulkan (github.com/leejet/stable-diffusion.cpp, releases), `z_image_turbo-Q4_K.gguf` (huggingface.co/leejet/Z-Image-Turbo-GGUF), `Qwen3-4B-Instruct-2507-Q4_K_M.gguf` (huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF) e `ae.safetensors` (huggingface.co/Comfy-Org/z_image_turbo). São cerca de 6,7 GB e rodam numa placa de 4 GB.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

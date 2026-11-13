@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.63.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.64.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,7 +10,7 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.63.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.64.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
@@ -70,7 +70,8 @@ Painel local (Flask, só em `127.0.0.1:8765`) com um canal por perfil. Enxuto po
 | **Novo vídeo** | Um assunto em uma linha, ou **Sem ideia de tema?** para seguir a linha dos vídeos que mais funcionaram; curto (Shorts/Reels) ou longo (YouTube 16:9); ou uma **série de 2 ou 4 partes** ligadas, que saem sempre em ordem |
 | **Resultados** | Números de cada vídeo pelas APIs oficiais, **O que funcionou** (a cada 14 vídeos, com Desfazer) e **Comentários** com resposta para aprovar |
 | **Ajustes** | Público (língua e região), voz, padrão dos vídeos, personalidade, **Como você quer o canal?** em texto livre, contas, nuvem e Excluir canal |
-| **Configurações** | Atualização automática pelo GitHub, atalhos do Windows e dependências |
+| **Configurações** | Atualização automática pelo GitHub, atalhos e dependências |
+| **Saúde do app** | Rotinas de integridade e segurança, atualizações de terceiros e ferramentas novas (modo avançado) |
 
 <img src="docs/img/celular.png" alt="O Estúdio numa tela de celular, com a lateral recolhida no botão Menu" width="260" align="right">
 
@@ -109,19 +110,33 @@ O workflow sai de [`n8n/workflow.modelo.json`](n8n/workflow.modelo.json) (`pytho
 
 O agente pergunta primeiro **quais plataformas você quer testar** (YouTube e Instagram com postagem automática; Facebook, TikTok e Kwai com postagem manual; ou só gerar vídeos) e mostra só o tutorial delas. Logins, senhas e aceites de termos ficam sempre com você. O passo a passo completo está em [docs/instalacao.md](docs/instalacao.md), e as regras para os agentes no [AGENTS.md](AGENTS.md), a fonte única (o `CLAUDE.md` e o `GEMINI.md` só importam esse arquivo).
 
-**Sem agente:**
+**Sem agente.** No Windows:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File instalar.ps1     # Python se faltar, pacotes, voz, atalhos, Node.js, n8n e Claude Code
-.\.venv\Scripts\python.exe -m darkops estudio            # abre o painel em http://127.0.0.1:8765
-.\.venv\Scripts\python.exe -m darkops diagnostico        # o que falta configurar
+.\dark.ps1 estudio                                       # abre o painel em http://127.0.0.1:8765
+.\dark.ps1 diagnostico                                   # o que falta configurar
 ```
+
+No macOS e no Linux (precisa de Python 3.11 ou mais novo, curl e git):
+
+```bash
+./instalar.sh          # pacotes, voz, Node.js, n8n, Claude Code e Chromium, tudo dentro da pasta
+./dark.sh estudio      # abre o painel em http://127.0.0.1:8765
+./dark.sh diagnostico  # o que falta configurar
+```
+
+O Estúdio abre em qualquer navegador (Chrome, Edge, Firefox, Safari), e os testes automáticos conferem as telas em Chromium, Firefox e WebKit.
+
+**Com qualquer IA, pelo MCP.** `python -m darkops mcp-configurar` liga o servidor MCP do Projeto Canais no Claude Code, Codex, Gemini CLI, Cursor e VS Code/Copilot. Para o Claude Desktop, o Windsurf e outros clientes, `mcp-configurar --mostrar` dá o bloco para colar. A IA consulta diagnóstico, canais, fila e saúde do app, escreve levas e gera prévias. Publicar, aprovar e responder comentários continuam com você, no Estúdio.
+
+**Como plugin do Claude Code:** `/plugin marketplace add VincFreitas/projeto-canais` e depois `/plugin install projeto-canais@projeto-canais` trazem as skills.
 
 ## Comandos
 
 <img src="docs/img/terminal.png" alt="Terminal com a ajuda da CLI do Projeto Canais e um trecho de darkops/hyperframes.py com as curvas de movimento" width="100%">
 
-Tudo pelo PowerShell, na raiz do projeto (`.\dark.ps1 <comando>` ou `python -m darkops <comando>`). Qualquer comando aceita `--perfil <id>`.
+Na raiz do projeto: `.\dark.ps1 <comando>` no Windows, `./dark.sh <comando>` no macOS e no Linux, ou `python -m darkops <comando>` com o Python do `.venv`. Qualquer comando aceita `--perfil <id>`.
 
 | Comando | O que faz |
 |---|---|
@@ -137,9 +152,12 @@ Tudo pelo PowerShell, na raiz do projeto (`.\dark.ps1 <comando>` ou `python -m d
 | `estatisticas` / `analisar` / `aprender` | Números pelas APIs oficiais, análise da IA e o ciclo "o que funcionou" |
 | `comentarios --todos` | Lê, classifica e rascunha respostas |
 | `n8n-workflow --importar` / `nuvem-status` | Postagem pelo PC e pela nuvem |
-| `atualizar` / `atualizar-dependencias` | Versão nova do GitHub; pacotes Python, n8n e Claude Code |
+| `atualizar` / `atualizar-dependencias` | Versão nova do GitHub; versões novas de tudo que é de terceiros (Python, n8n, Node, HyperFrames, Claude Code...) |
+| `integridade` / `rotinas` / `ferramentas-buscar` | Integridade e segurança, rotinas automáticas e ferramentas novas que podem melhorar o app |
+| `cofre-proteger` | Cifra no disco os tokens dos canais, o app do Google e as chaves do `.env` |
+| `mcp` / `mcp-configurar` | Servidor MCP para qualquer IA comandar o app |
 
-Skills do Claude Code (em `.claude/skills/`; outro agente lê o `SKILL.md` e segue): `/configurar`, `/conectar-contas`, `/pesquisar-nicho`, `/escrever-roteiro`, `/produzir-video`, `/titulo-thumb`, `/planejar-semana`, `/responder-comentarios`, `/revisar-desempenho` e `/identidade-visual`.
+Skills do Claude Code (em `.claude/skills/`; outro agente lê o `SKILL.md` e segue): `/configurar`, `/conectar-contas`, `/pesquisar-nicho`, `/escrever-roteiro`, `/desenhar-prancha`, `/produzir-video`, `/titulo-thumb`, `/serie`, `/ajustar-canal`, `/estudar-referencia`, `/planejar-semana`, `/responder-comentarios`, `/revisar-desempenho`, `/identidade-visual`, `/verificar-app`, `/atualizar-app` e `/buscar-ferramentas`.
 
 ## Conectores e custo
 
@@ -202,12 +220,17 @@ Com um plano do Claude (Pro ou Max), não há cobrança por vídeo: cada vídeo 
 
 ## Segurança
 
-O Estúdio só responde no próprio PC e se protege de DNS rebinding, CSRF e clickjacking; tokens nunca vão para log ou Git; o Claude Code chamado pelo projeto só grava nas pastas da fila e das cenas. Detalhes e o que fica com você: [docs/seguranca.md](docs/seguranca.md).
+O Estúdio só responde no próprio PC e se protege de DNS rebinding, CSRF e clickjacking. Tokens e chaves ficam cifrados no disco com uma chave do seu usuário (DPAPI no Windows, chaveiro no macOS e no Linux) e nunca vão para log ou Git. O Claude Code chamado pelo projeto não lê o `.env` nem os tokens, só tem as ferramentas de cada tarefa e só grava nas pastas da fila e das cenas. A tela **Saúde do app** confere sozinha, todo dia, a integridade dos arquivos e dos programas instalados, os segredos e as falhas conhecidas nos pacotes; toda semana, as versões novas de terceiros e ferramentas abertas que podem melhorar o app (só avisa: nada é instalado sem o seu clique). Detalhes e o que fica com você: [docs/seguranca.md](docs/seguranca.md).
 
 ## Status e limites
 
-Versão de teste (beta), feita e testada no Windows 11. A postagem automática funciona no YouTube e no Instagram; Facebook, TikTok e Kwai ainda são manuais. O acesso pelo celular e o modo servidor estão bloqueados até a revisão de segurança. No Estúdio, **Sobre o projeto** tem o campo **Enviar sugestão**, que abre uma issue já preenchida aqui no GitHub. Se o projeto te ajudou, deixe uma ⭐.
+Versão de teste (beta), feita no Windows 11 e testada também no macOS e no Linux pelos testes automáticos do GitHub (`.github/workflows/testes.yml`). A postagem automática funciona no YouTube e no Instagram; Facebook, TikTok e Kwai ainda são manuais. O acesso pelo celular e o modo servidor estão bloqueados até a revisão de segurança. No Estúdio, **Sobre o projeto** tem o campo **Enviar sugestão**, que abre uma issue já preenchida aqui no GitHub. Se o projeto te ajudou, deixe uma ⭐.
 
 ## Licença e autoria
 
 Criado por **Vinicius Freitas**. Distribuído sob a [PolyForm Shield 1.0.0](LICENSE): pode baixar, usar, estudar e modificar para qualquer finalidade, inclusive produzir vídeos e monetizar os seus próprios canais, mantendo o crédito. Só não pode usar o projeto para oferecer um produto concorrente (vender ou revender o app, ou oferecê-lo como serviço pago); para isso, fale com o autor. A versão atual está em `darkops/__init__.py` (`python -m darkops --version`).
+
+<!-- Você leu o README até o fim? Obrigado! Na linha de comando, experimente: python -m darkops estrela -->
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

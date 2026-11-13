@@ -38,8 +38,12 @@
     {% if avancado %}
     <a href="{{ url_for('chaves') }}">Chaves de serviços</a>
     <a href="{{ url_for('configuracoes') }}">Configurações</a>
+    <a href="{{ url_for('saude') }}">Saúde do app{% if saude_problemas %} <span class="selo falta">{{ saude_problemas | length }}</span>{% endif %}</a>
     {% endif %}
   </nav>
+  {% endif %}
+  {% if saude_problemas and not avancado %}
+  <nav class="menu"><a href="{{ url_for('saude') }}" title="{{ saude_problemas | join(', ') }}">Saúde do app <span class="selo falta">{{ saude_problemas | length }}</span></a></nav>
   {% endif %}
   <div class="rodape-lateral">
     <form method="post" action="{{ url_for('alternar_avancado') }}">
@@ -137,6 +141,42 @@ document.addEventListener('click', async e => {
     } catch (e) { /* reiniciando: tenta de novo no próximo ciclo */ }
   }, 10000);
 })();
+// easter egg: um recado para quem abre o console do navegador
+console.log("%cProjeto Canais", "font:700 18px system-ui;color:#1d1b18;background:#ffc400;padding:4px 10px;border-radius:8px",
+  "\nOi, curioso! O app é aberto: github.com/VincFreitas/projeto-canais\nAchou um bug ou tem uma ideia? Sobre o projeto > Enviar sugestão.\nDica: tente as setas ↑↑↓↓←→←→ e depois B A.");
+// easter egg: código Konami faz a estrela da logo girar e mostra um recado do autor
+(function () {
+  const codigo = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
+  let pos = 0;
+  document.addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input, textarea, select, [contenteditable]")) return;
+    pos = (e.key === codigo[pos] || e.key.toLowerCase() === codigo[pos]) ? pos + 1 : (e.key === codigo[0] ? 1 : 0);
+    if (pos < codigo.length) return;
+    pos = 0;
+    document.body.classList.remove("estrela-festa");
+    void document.body.offsetWidth;  // reinicia a animação se a pessoa repetir
+    document.body.classList.add("estrela-festa");
+    let aviso = document.getElementById("recado-estrela");
+    if (!aviso) {
+      aviso = document.createElement("div");
+      aviso.id = "recado-estrela";
+      aviso.setAttribute("role", "status");
+      aviso.textContent = "Você achou a estrela escondida! Feito com carinho por Vinicius Freitas. Obrigado por usar o Projeto Canais.";
+      document.body.appendChild(aviso);
+    }
+    setTimeout(() => document.body.classList.remove("estrela-festa"), 4200);
+  });
+})();
 </script>
+<!--
+        ·
+       / \       Você leu o código-fonte do Estúdio até aqui? Gostamos de gente curiosa.
+  ·---·   ·---·  Projeto Canais é aberto: github.com/VincFreitas/projeto-canais
+       \ /       Na linha de comando, experimente: python -m darkops estrela
+        ·
+-->
 </body>
 </html>
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

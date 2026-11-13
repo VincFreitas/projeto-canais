@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Proteções comuns: esconder tokens e chaves antes de gravar ou mostrar uma mensagem.
 
 As mensagens de erro de bibliotecas HTTP às vezes trazem o endereço completo da chamada, com o token na query
@@ -13,6 +15,12 @@ _PADROES = [
     (re.compile(r"\b1//0[A-Za-z0-9._\-]{20,}"), "***refresh-google***"),
     (re.compile(r"\bAIza[0-9A-Za-z_\-]{30,}"), "***chave-google***"),
     (re.compile(r"\bsk-[A-Za-z0-9_\-]{20,}"), "***chave***"),
+    (re.compile(r"\b(gh[pousr]_|github_pat_)[A-Za-z0-9_]{20,}"), "***token-github***"),
+    (re.compile(r"GOCSPX-[A-Za-z0-9_\-]{10,}"), "***segredo-google***"),
+    (re.compile(r'("(?:access_token|refresh_token|client_secret|token|api_key|secret)"\s*:\s*")[^"]+"', re.I),
+     r'\1***"'),
+    (re.compile(r"\b[0-9a-f]{32}\b"), "***chave-hex***"),  # chave secreta do app da Meta, chave do Azure
+    (re.compile(r"\bcofre:[A-Za-z0-9_\-=]{20,}"), "***cofre***"),
 ]
 
 

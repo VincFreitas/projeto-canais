@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Infográficos animados (motion graphics) num card de vidro sobre o clipe da cena.
 
 Uma cena do roteiro ganha uma animação com o campo "animacao":

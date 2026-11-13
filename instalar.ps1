@@ -1,4 +1,6 @@
-﻿# Setup do canais-dark. Rode de novo para atualizar o yt-dlp (o YouTube muda com frequencia).
+﻿# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
+# Setup do canais-dark. Rode de novo para atualizar o yt-dlp (o YouTube muda com frequencia).
 param([string]$Atalhos = "", [switch]$SemApps)
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

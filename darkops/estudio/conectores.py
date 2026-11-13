@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Catálogo de conectores do Estúdio, agrupados por função.
 
 Cada conector diz para que serve, onde se consegue o acesso, se vale para um perfil ou para todos,

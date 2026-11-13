@@ -107,3 +107,6 @@ Quando o nicho é "o que acontece se" ou o perfil tem `"formato_conteudo": "e-se
 - [ ] O JSON é válido (`python -m json.tool roteiros\<arquivo>.json`)
 
 Salve em `roteiros/`, mostre o título, a duração estimada e o gancho, e ofereça rodar `/produzir-video`.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

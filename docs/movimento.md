@@ -40,3 +40,6 @@ Movimento linear (`ease: "none"`) só em partícula, grão e tremor quadro a qua
 - Peça que entra: chega de fora com `back.out(1.4)`; peça que sai, com `power2.in`.
 - Veículo em movimento (notícia): acelera e freia (`power1.inOut`), com o corpo inclinando levemente na curva e na freada.
 - Sempre determinístico: GSAP em timeline pausada, nada de `Math.random` (use semente) e nada de animar `letterSpacing`.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

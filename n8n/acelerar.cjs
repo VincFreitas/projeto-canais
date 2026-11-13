@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+// Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 // Abre o n8n mais rápido no Windows (o n8n.ps1 carrega com NODE_OPTIONS --require).
 // Ao abrir, o Node procura cada módulo em várias pastas e extensões (dezenas de consultas ao disco por
 // require, num node_modules de ~290 mil arquivos), e o antivírus confere cada consulta. Este arquivo guarda

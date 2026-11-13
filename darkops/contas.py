@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Contas por login: o usuário só entra na conta dele, e o projeto coleta e configura o resto sozinho.
 
   python -m darkops conectar-github     login com código no navegador; cria os repositórios de fila (privado) e de
@@ -48,12 +50,9 @@ REGIAO_AZURE = "brazilsouth"
 
 def salvar_env(novos: dict) -> None:
     """Troca (ou acrescenta) as variáveis no .env e no processo atual."""
-    arquivo = config.RAIZ / ".env"
-    linhas = arquivo.read_text(encoding="utf-8").splitlines() if arquivo.exists() else []
-    for chave, valor in novos.items():
-        linhas = [l for l in linhas if not re.match(rf"^\s*{chave}\s*=", l)]
-        linhas.append(f"{chave}={valor}")
-    arquivo.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    from . import cofre
+    novos = {k: str(v) for k, v in novos.items()}
+    cofre.reescrever_env(novos)  # segredos cifrados; recusa quebra de linha no valor
     os.environ.update(novos)
 
 
@@ -125,6 +124,8 @@ def pegar_app_google(pastas: list[Path] | None = None, destino: Path | None = No
         if tipo == "ok":
             destino.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(arquivo), str(destino))  # tira a chave da pasta Downloads
+            from . import cofre
+            cofre.gravar(destino, destino.read_text(encoding="utf-8-sig"))  # e guarda cifrada
             return {"ok": True, "achado": True,
                     "texto": "Achei o app do Google na pasta Downloads e salvei no projeto. Agora é só conectar o YouTube."}
         tipo_web = tipo_web or tipo == "web"
@@ -142,6 +143,12 @@ def instalar_gh() -> str:
     """GitHub CLI portátil da release oficial, conferido pelo SHA-256 que a própria API do GitHub publica."""
     if GH_EXE.exists():
         return str(GH_EXE)
+    if os.name != "nt":  # macOS e Linux: o gh do sistema (brew install gh / apt install gh)
+        achado = shutil.which("gh")
+        if achado:
+            return achado
+        raise SystemExit("GitHub CLI não encontrado: instale com 'brew install gh' (macOS) ou o pacote gh do seu "
+                         "Linux (cli.github.com) e rode de novo")
     with urllib.request.urlopen("https://api.github.com/repos/cli/cli/releases/latest", timeout=60) as r:
         release = json.load(r)
     asset = next(a for a in release["assets"] if a["name"].endswith("_windows_amd64.zip"))
@@ -160,7 +167,8 @@ def instalar_gh() -> str:
 
 def _gh(*args: str, entrada: str | None = None, timeout: int = 120) -> subprocess.CompletedProcess:
     env = {**os.environ, "GH_CONFIG_DIR": str(GH_CONFIG), "GH_PROMPT_DISABLED": "1", "NO_COLOR": "1"}
-    return subprocess.run([str(GH_EXE), *args], input=entrada, capture_output=True, text=True, encoding="utf-8",
+    gh = str(GH_EXE) if GH_EXE.exists() or os.name == "nt" else (shutil.which("gh") or "gh")
+    return subprocess.run([gh, *args], input=entrada, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", env=env, timeout=timeout)
 
 
@@ -211,7 +219,7 @@ def conectar_github(nome_fila: str = REPO_FILA, nome_passagem: str = REPO_PASSAG
                                  "--web", "--scopes", "repo,workflow"], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
                                 env={**os.environ, "GH_CONFIG_DIR": str(GH_CONFIG), "NO_COLOR": "1",
-                                     "GH_BROWSER": "cmd /c rem"})  # o navegador já foi aberto acima
+                                     "GH_BROWSER": "cmd /c rem" if os.name == "nt" else "true"})  # o navegador já foi aberto acima
         proc.stdin.write("\n")
         proc.stdin.flush()
         for linha in proc.stdout:

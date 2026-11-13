@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Identidade das contas no estilo da Prancha de Campo (canal com "motor_cena": "prancha").
 
 A foto, a marca d'água e a capa do YouTube ficam com a mesma cara dos vídeos: traço verde-água sobre grafite, papel
@@ -12,6 +14,7 @@ import re
 from pathlib import Path
 
 from . import config
+from .autoria import comentario_svg, metadados_png
 
 PECAS = config.RAIZ / "web" / "prancha" / "pecas"
 FUNDO, BORDA, HALO, LINHA = "#0B0F14", "#05070A", "#12202A", "#5CF2E0"
@@ -64,7 +67,7 @@ def svg_foto(peca: str, fundo: bool = True) -> str:
         f'<line x1="{400 + 352 * math.cos(math.radians(g)):.1f}" y1="{400 + 352 * math.sin(math.radians(g)):.1f}" '
         f'x2="{400 + (334 if g % 30 else 312) * math.cos(math.radians(g)):.1f}" '
         f'y2="{400 + (334 if g % 30 else 312) * math.sin(math.radians(g)):.1f}"/>' for g in range(0, 360, 10))
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">' + comentario_svg()
             + (_papel(800, 800, 80) if fundo else
                f'<defs><radialGradient id="halo"><stop offset="0" stop-color="{HALO}"/>'
                f'<stop offset="1" stop-color="{FUNDO}"/></radialGradient></defs>')
@@ -97,7 +100,7 @@ def svg_capa(peca: str, titulo: str, subtitulo: str, rotulo: str, medida: str) -
     tx = int(cota + 180)  # a medida ("9,8 m") fica entre a cota e o título
     largura = sx + sw - tx - 20
     centro = (px + w * escala / 2, (topo + base) / 2)
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" width="2560" height="1440" viewBox="0 0 2560 1440">' + comentario_svg()
             + _papel(2560, 1440, 120)
             + f'<defs><style>{_estilo(6 / escala, 3.5 / escala)}</style></defs>'
             # fora da área segura (só na TV e no computador largo): círculo de construção e chão, bem apagados
@@ -165,7 +168,7 @@ def gerar(p, tx: dict, pasta: Path, peca: str = "") -> None:
          pasta / "capa-youtube.png", False),
     ])
     marca = Image.open(pasta / "marca-dagua.png").convert("RGBA").resize((150, 150), Image.Resampling.LANCZOS)
-    marca.save(pasta / "marca-dagua.png")
+    marca.save(pasta / "marca-dagua.png", pnginfo=metadados_png())
     (pasta / "marca-dagua.svg").write_text(  # o SVG da marca desenha em 150x150
         (pasta / "marca-dagua.svg").read_text(encoding="utf-8").replace('width="800" height="800"',
                                                                          'width="150" height="150"', 1),
@@ -174,4 +177,4 @@ def gerar(p, tx: dict, pasta: Path, peca: str = "") -> None:
         transparente = nome == "marca-dagua"
         Image.open(pasta / f"{nome}.png").convert("RGBA" if transparente else "RGB") \
             .quantize(64, method=Image.Quantize.FASTOCTREE if transparente else Image.Quantize.MEDIANCUT) \
-            .save(pasta / f"{nome}-pequena.png", optimize=True)
+            .save(pasta / f"{nome}-pequena.png", optimize=True, pnginfo=metadados_png())

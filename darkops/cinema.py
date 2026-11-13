@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Cena viva: câmera que corta e se aproxima, partículas, antes/depois e etiquetas presas ao objeto.
 
 Recebe a ilustração da cena já reduzida à grade de pixel art (visuais.ilustracao_local) e devolve um clipe mp4

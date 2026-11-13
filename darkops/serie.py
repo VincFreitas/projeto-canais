@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Série em partes: um tema vira 2 ou 4 vídeos ligados ("parte 1 de 2"), que trazem quem assistiu de volta ao perfil.
 
   python -m darkops leva --quantidade 2 --tema "El Niño" --serie 2

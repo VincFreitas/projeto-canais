@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+// Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 // Service worker do Estúdio: deixa instalar como aplicativo (PC ou celular) e mostra um aviso quando o
 // Estúdio está fechado. Só guarda arquivos estáticos (CSS, ícones); páginas e ações sempre vão ao Estúdio,
 // para nunca mostrar fila, aprovação ou estado velhos. Servido em /sw.js (escopo: o Estúdio inteiro).

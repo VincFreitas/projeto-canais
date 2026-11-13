@@ -55,3 +55,6 @@ Para temas "como funciona" (objetos e sistemas do dia a dia), com 75 a 110 s. Co
 4. **Fechamento**: "Pronto: você acabou de montar um/uma [objeto]." + o CTA de comentário com uma palavra.
 
 Cada "Mas" abre uma dúvida, e cada "Esse é o..." fecha a dúvida com a recompensa (o nome técnico). Todo passo precisa de fonte: simplificar pode, inventar não. Escolha temas próprios, sem repetir os das referências (portão eletrônico, lâmpada).
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

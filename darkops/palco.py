@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Palco: animação explicativa feita em código, em pixel art. O mecanismo funciona de verdade na tela.
 
 Cada vídeo tem um módulo de cena (ex.: cenas/explicativo-geladeira.py) que desenha o mundo na grade de pixels a

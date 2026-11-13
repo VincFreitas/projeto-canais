@@ -100,3 +100,15 @@ cenas/*
 !cenas/comum3d.js
 roteiros/*
 !roteiros/exemplo-*.json
+
+# rotinas, cofre e MCP (decisão de 2026-11-12): resultados e chave ficam só neste PC
+dados/rotinas/
+dados/ferramentas/
+dados/mcp/
+dados/cofre.chave
+# configuração do servidor MCP de cada agente, gerada por `mcp-configurar` com o caminho deste PC
+.mcp.json
+.cursor/mcp.json
+.vscode/mcp.json
+.gemini/settings.json
+.codex/config.toml

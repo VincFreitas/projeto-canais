@@ -21,3 +21,6 @@ Argumentos recebidos: $ARGUMENTS
    - **ajustar**: diga o que muda (título, gancho, ângulo, duração)
    - **abandonar**: explique o motivo
 5. Registre a decisão na coluna `decisao` e responda com uma tabela curta + os próximos 3 roteiros sugeridos.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Aparência própria de cada canal, criada a partir do tema que o dono escolheu.
 
 Regra do projeto: nunca copiar a foto, a mascote, as cores ou qualquer marca visual de outro canal (nem de outro

@@ -17,3 +17,6 @@ Argumentos recebidos: $ARGUMENTS
 4. Se a ordem ideal for diferente da atual, proponha renomear os arquivos (`003-...` → `005-...`) e **espere o ok** antes de renomear.
 5. Diga quantos roteiros faltam para fechar a semana e sugira os temas que faltam (com o ângulo e a fórmula de gancho), para rodar `/escrever-roteiro`.
 6. Salve o plano em `controle/agenda.md` (substitua a semana anterior, mantenha o histórico embaixo).
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

@@ -20,3 +20,6 @@ Argumentos recebidos: $ARGUMENTS
 5. Escreva rascunhos curtos (até 2 frases), no tom do canal (curioso, leve, sem gíria pesada), em `controle/respostas-AAAA-MM-DD.md`, com o link do comentário.
 6. Junte as **ideias de vídeo** num bloco no fim, prontas para o `/escrever-roteiro`.
 7. Nunca responda spam ou ofensa: só liste para o usuário ocultar ou denunciar.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

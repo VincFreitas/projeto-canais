@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Descrição e tags de cada vídeo: escritas por você ou criadas pela IA, com as regras de alcance de cada plataforma.
 
   python -m darkops descricao <roteiro.json> [--refazer]   cria (pela IA) a descrição e as tags que estiverem no modo automático

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """A aplicação no PC do usuário: atalhos, abrir com um clique, atualizar sozinha e atualizar as dependências.
 
   python -m darkops abrir                       abre o Estúdio (ou só o navegador, se já estiver aberto)
@@ -60,9 +62,31 @@ def _pasta_windows(nome: str) -> Path | None:
 
 
 def _pastas() -> dict:
+    if os.name != "nt":  # Linux: menu de aplicativos do padrão XDG; macOS: pasta Aplicativos do usuário
+        menu = Path.home() / "Applications" if sys.platform == "darwin" else \
+            Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local" / "share") / "applications"
+        return {"area_de_trabalho": Path.home() / "Desktop", "menu_iniciar": menu}
     area = _pasta_windows("Desktop") or Path(os.environ.get("USERPROFILE", Path.home())) / "Desktop"
     menu = _pasta_windows("Programs") or Path(os.environ.get("APPDATA", "")) / "Microsoft" / "Windows" / "Start Menu" / "Programs"
     return {"area_de_trabalho": area, "menu_iniciar": menu}
+
+
+def _nome_atalho() -> str:
+    """Windows: .lnk; macOS: .command (abre com dois cliques no Finder); Linux: .desktop."""
+    return NOME + (".lnk" if os.name == "nt" else ".command" if sys.platform == "darwin" else ".desktop")
+
+
+def _criar_atalho_posix(destino: Path) -> None:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    if sys.platform == "darwin":
+        texto = f'#!/bin/sh\ncd "{config.RAIZ}" && exec "{sys.executable}" -m darkops abrir\n'
+    else:
+        icone = config.RAIZ / "darkops" / "estudio" / "static" / "icone-192.png"
+        texto = (f"[Desktop Entry]\nType=Application\nName={NOME}\nComment=Abre o Projeto Canais\n"
+                 f"Exec=sh -c 'cd \"{config.RAIZ}\" && \"{sys.executable}\" -m darkops abrir'\n"
+                 f"Icon={icone}\nTerminal=false\nCategories=AudioVideo;Video;\n")
+    destino.write_text(texto, encoding="utf-8")
+    destino.chmod(0o755)
 
 
 # Logo da aplicação (decisão do dono em 2026-11-09): a estrela de 4 pontas desenhada com curvas, escura, no
@@ -159,22 +183,22 @@ def _criar_lnk(destino: Path) -> None:
 
 def atalhos(area_de_trabalho: bool, menu_iniciar: bool, barra_de_tarefas: bool = False) -> list[str]:
     """Cria ou remove os atalhos conforme a escolha. A barra de tarefas usa o atalho do Menu Iniciar."""
-    if os.name != "nt":
-        return ["atalhos só no Windows"]
     pastas = _pastas()
     feito = []
     querer = {"area_de_trabalho": area_de_trabalho, "menu_iniciar": menu_iniciar or barra_de_tarefas}
     for onde, ligar in querer.items():
-        lnk = pastas[onde] / f"{NOME}.lnk"
+        lnk = pastas[onde] / _nome_atalho()
         if ligar:
-            _criar_lnk(lnk)
+            (_criar_lnk if os.name == "nt" else _criar_atalho_posix)(lnk)
             feito.append(f"atalho criado: {lnk}")
         elif lnk.exists():
             lnk.unlink()
             feito.append(f"atalho removido: {lnk}")
-    if barra_de_tarefas:
+    if barra_de_tarefas and os.name == "nt":
         feito.append("barra de tarefas: abra o Menu Iniciar, clique com o botão direito em Projeto Canais e "
                      "escolha Fixar na barra de tarefas (o Windows não deixa programas fazerem isso sozinhos)")
+    elif barra_de_tarefas:
+        feito.append("Dock ou barra: abra o Projeto Canais pelo menu de aplicativos e fixe por lá")
     salvar({"atalho_area_de_trabalho": area_de_trabalho, "atalho_menu_iniciar": menu_iniciar,
             "atalho_barra_de_tarefas": barra_de_tarefas})
     return feito
@@ -182,7 +206,7 @@ def atalhos(area_de_trabalho: bool, menu_iniciar: bool, barra_de_tarefas: bool =
 
 def estado_atalhos() -> dict:
     pastas = _pastas()
-    return {onde: (p / f"{NOME}.lnk").exists() for onde, p in pastas.items()}
+    return {onde: (p / _nome_atalho()).exists() for onde, p in pastas.items()}
 
 
 # ---------- abrir ----------
@@ -217,12 +241,17 @@ def ligar_n8n() -> str:
     if n8n_ligado():
         return "ligado"
     lancador = config.RAIZ / "n8n" / "n8n.ps1"
-    if os.name != "nt" or not lancador.exists() or not _n8n_cmd():
+    n8n = _n8n_cmd()
+    if not n8n or (os.name == "nt" and not lancador.exists()):
         return "sem-n8n"
     if n8n_ligando():
         return "ligando"  # já foi mandado ligar: não abre um segundo n8n
     LIGANDO_N8N.parent.mkdir(parents=True, exist_ok=True)
     LIGANDO_N8N.write_text(str(time.time()), encoding="utf-8")
+    if os.name != "nt":  # macOS e Linux: o mesmo ambiente do n8n.ps1, numa sessão própria
+        from .n8n_lancador import ligar
+        ligar(n8n)
+        return "ligando"
     atalho = atalho_logon_n8n()
     if atalho.exists():
         # o explorer.exe abre o atalho do logon como o próprio Windows faria: o n8n não fica preso à árvore de
@@ -252,10 +281,18 @@ def reiniciar_n8n() -> str:
                                ".OwningProcess"], capture_output=True, text=True).stdout.split()
         for pid in {p for p in pids if p.isdigit()}:
             subprocess.run(["taskkill", "/PID", pid, "/T", "/F"], capture_output=True)
-        for _ in range(20):
-            if not n8n_ligado():
-                break
-            time.sleep(0.5)
+    elif n8n_ligado():  # macOS e Linux: quem escuta na porta 5678
+        import signal
+        from .n8n_lancador import pids_na_porta
+        for pid in pids_na_porta():
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError:
+                pass
+    for _ in range(20):
+        if not n8n_ligado():
+            break
+        time.sleep(0.5)
     LIGANDO_N8N.unlink(missing_ok=True)
     return ligar_n8n()
 
@@ -342,10 +379,15 @@ def marcar_novidade_vista() -> None:
 
 def reiniciar_processo() -> None:
     """Abre um Estúdio novo (com o código novo) e encerra este. O novo espera a porta ficar livre."""
-    sinais = (subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS) if os.name == "nt" else 0
-    pythonw = Path(sys.executable).with_name("pythonw.exe")
-    exe = pythonw if os.name == "nt" and pythonw.exists() else Path(sys.executable)
     args = dict(cwd=config.RAIZ, env={**os.environ, "DARKOPS_REINICIO": "1"}, close_fds=True)
+    if os.name != "nt":  # macOS e Linux: sessão própria, sobrevive ao fim deste processo
+        subprocess.Popen([sys.executable, "-m", "darkops", "abrir"], start_new_session=True,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **args)
+        SINAL_REINICIO.unlink(missing_ok=True)
+        os._exit(0)
+    sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    exe = pythonw if pythonw.exists() else Path(sys.executable)
     try:
         # sai do "job" do processo pai (terminal, agendador...), senão o Windows mata o novo junto com o antigo
         subprocess.Popen([str(exe), "-m", "darkops", "abrir"], creationflags=sinais | 0x01000000, **args)
@@ -363,55 +405,11 @@ def _rodar(args: list[str], timeout: int = 600, env: dict | None = None) -> subp
 
 
 def dependencias(aplicar: bool = False) -> list[dict]:
-    """Lista (e, com aplicar, atualiza) o que o projeto usa. O yt-dlp é o que mais precisa: o YouTube e o
-    Instagram mudam e versões antigas param de baixar."""
-    itens = []
-    pip = [sys.executable, "-m", "pip"]
-    r = _rodar(pip + ["list", "--outdated", "--format=json"], timeout=300)
-    try:
-        velhos = {p["name"].lower(): p for p in json.loads(r.stdout or "[]")}
-    except json.JSONDecodeError:
-        velhos = {}
-    nossos = [re.split(r"[<>=!~\[ ]", l.strip())[0].lower() for l in
-              (config.RAIZ / "requirements.txt").read_text(encoding="utf-8").splitlines() if l.strip() and not l.startswith("#")]
-    for nome in nossos:
-        p = velhos.get(nome) or velhos.get(nome.replace("-", "_"))
-        itens.append({"nome": nome, "tipo": "Python", "atual": p["version"] if p else "em dia",
-                      "nova": p["latest_version"] if p else None})
-    if aplicar and any(i["nova"] for i in itens):
-        _rodar(pip + ["install", "-q", "--upgrade", "-r", "requirements.txt"])
-        for i in itens:
-            if i["nova"]:
-                i["resultado"] = "atualizado"
-    from . import apps
-    from .instalacao import _n8n_cmd
-    npm = str(apps.NODE / "npm.cmd") if (apps.NODE / "npm.cmd").exists() else shutil.which("npm.cmd") or shutil.which("npm")
-    n8n = _n8n_cmd() or ""
-    if npm and n8n and Path(n8n).exists():
-        env = apps.env_node()
-        atual = _rodar([str(n8n), "--version"], timeout=60, env=env).stdout.strip().splitlines()[-1:] or ["?"]
-        # só dentro da mesma versão principal: uma 3.x pode mudar os nós do workflow
-        faixa = f"n8n@^{atual[0].split('.')[0]}" if atual[0][:1].isdigit() else "n8n@latest"
-        nova = (_rodar([npm, "view", faixa, "version"], timeout=60, env=env).stdout.strip().splitlines() or [""])[-1]
-        nova = nova.split()[-1].strip("'") if nova else ""
-        item = {"nome": "n8n", "tipo": "automação", "atual": atual[0], "nova": nova if nova and nova != atual[0] else None}
-        if aplicar and item["nova"]:
-            # o do projeto atualiza na pasta do projeto; um global antigo, no global
-            destino = ["--prefix", str(apps.N8N)] if Path(n8n) == apps.N8N_CMD else ["-g"]
-            r = _rodar([npm, "install", *destino, faixa, "--no-audit", "--no-fund"], timeout=1800, env=env)
-            item["resultado"] = "atualizado (feche e abra o n8n)" if r.returncode == 0 else f"falhou: {r.stderr[-200:]}"
-        itens.append(item)
-    from .leva import _claude
-    claude = _claude()
-    if claude:
-        atual = _rodar([claude, "--version"], timeout=60).stdout.strip()
-        item = {"nome": "Claude Code", "tipo": "IA", "atual": atual or "?", "nova": "o Claude Code se atualiza sozinho"}
-        if aplicar:
-            r = _rodar([claude, "update"], timeout=600)
-            item["resultado"] = (r.stdout or r.stderr).strip().splitlines()[-1:] or ["ok"]
-            item["resultado"] = item["resultado"][0]
-        itens.append(item)
-    sd = config.MODELOS / "sd" / "sd-cli.exe"
-    itens.append({"nome": "stable-diffusion.cpp", "tipo": "desenho no PC", "atual": "instalado" if sd.exists() else "não instalado",
-                  "nova": None, "obs": "atualização manual: github.com/leejet/stable-diffusion.cpp/releases"})
+    """Lista (e, com aplicar, atualiza) tudo de terceiros que o projeto usa (terceiros.py)."""
+    from . import integridade, terceiros
+    _, falhas = integridade.falhas_python()
+    itens = terceiros.verificar(falhas)
+    if aplicar:
+        feitos = {i["id"]: i for i in terceiros.aplicar(itens)}
+        itens = [feitos.get(i["id"], i) for i in itens]
     return itens

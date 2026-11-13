@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Identidade visual das contas de um perfil: foto de perfil, capa do YouTube, marca d'água e textos.
 
 Tudo fica em perfis/<id>/marca/. O fluxo é: gerar, a pessoa que testa revisa e aprova no Estúdio
@@ -7,6 +9,7 @@ oficial troca foto de perfil ou bio, por isso a aplicação é feita na própria
 import base64
 import hashlib
 import json
+import os
 import subprocess
 import zlib
 from datetime import date
@@ -15,6 +18,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from . import config
+from .autoria import metadados_png
 from .perfis import Perfil
 
 AMARELO, LARANJA, ESCURO = (255, 205, 40), (235, 140, 20), (40, 24, 14)
@@ -114,7 +118,7 @@ def _caber(texto: str, altura: int, largura_max: int, cor, contorno) -> Image.Im
 
 def _fundo_capa(p: Perfil, destino: Path) -> Image.Image:
     """Fundo da capa desenhado no PC (sd.cpp + Z-Image-Turbo) a partir do nicho; sem o gerador, um céu pixel."""
-    sd = config.MODELOS / "sd" / "sd-cli.exe"
+    sd = config.MODELOS / "sd" / ("sd-cli.exe" if os.name == "nt" else "sd-cli")
     pesos = [config.MODELOS / n for n in ("z_image_turbo-Q4_K.gguf", "ae.safetensors",
                                           "Qwen3-4B-Instruct-2507-Q4_K_M.gguf")]
     if sd.exists() and all(x.exists() for x in pesos):
@@ -180,8 +184,8 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     foto = foto.resize((800, 800), Image.NEAREST)
     foto.alpha_composite(_mascote(p, 620, 10), (90, 110))
     foto = foto.convert("RGB")
-    foto.save(m / "foto-perfil.png")
-    foto.resize((150, 150), Image.NEAREST).save(m / "marca-dagua.png")
+    foto.save(m / "foto-perfil.png", pnginfo=metadados_png())
+    foto.resize((150, 150), Image.NEAREST).save(m / "marca-dagua.png", pnginfo=metadados_png())
 
     # capa: montada em 640x360 (grade de 4 px) e ampliada para 2560x1440
     capa = _fundo_capa(p, m / "fundo-capa.png").quantize(32, method=Image.Quantize.MEDIANCUT) \
@@ -195,13 +199,13 @@ def gerar(p: Perfil, textos: dict | None = None) -> dict:
     sub = _caber(tx["subtitulo_capa"], 10, sx + sw - tx_x - 8, (255, 255, 255, 255), ESCURO + (255,))
     capa.alpha_composite(titulo, (tx_x, 180 - titulo.height + 2))
     capa.alpha_composite(sub, (tx_x, 190))
-    capa.resize(CAPA, Image.NEAREST).convert("RGB").save(m / "capa-youtube.png")
+    capa.resize(CAPA, Image.NEAREST).convert("RGB").save(m / "capa-youtube.png", pnginfo=metadados_png())
 
     # versões leves (PNG com paleta) que a skill leva para a página das contas
-    capa.convert("RGB").quantize(64, method=Image.Quantize.MEDIANCUT).save(m / "capa-pequena.png", optimize=True)
+    capa.convert("RGB").quantize(64, method=Image.Quantize.MEDIANCUT).save(m / "capa-pequena.png", optimize=True, pnginfo=metadados_png())
     for nome in ("foto-perfil", "marca-dagua"):
         Image.open(m / f"{nome}.png").quantize(64, method=Image.Quantize.MEDIANCUT) \
-            .save(m / f"{nome}-pequena.png", optimize=True)
+            .save(m / f"{nome}-pequena.png", optimize=True, pnginfo=metadados_png())
     novo = _salvar_estado(p, gerada=date.today().isoformat(), aprovada=False, aprovada_por="", aplicada={}, estilo="pixel")
     return {"pasta": str(m), "textos": tx, "estado": novo}
 

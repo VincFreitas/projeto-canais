@@ -131,3 +131,6 @@ ser grande e nítido.
   próprio, nunca decalque de foto; nada de rosto de pessoa real.
 - Proibido: clarão, tremor de tela, poeira na frente do assunto, tela escura vazia, objeto abaixo de 45% da altura
   do palco, coordenada de câmera.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

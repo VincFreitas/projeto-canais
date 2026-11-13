@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Fonte pixel própria (5x7, com acentos do português), desenhada em SVG: nada de fonte de terceiros para baixar.
 
 svg(texto, px) devolve um <svg> com cada "pixel" como retângulo (as sequências da mesma linha viram um retângulo só),

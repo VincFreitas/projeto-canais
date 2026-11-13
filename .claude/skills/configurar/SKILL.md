@@ -15,3 +15,6 @@ No Claude Code:
 - Identidade visual (passo 7b): rode a skill `/identidade-visual <canal>` e aplique pelo navegador interno, só depois da aprovação.
 - Pesquisa e roteiros (passo 7): `/pesquisar-nicho <nicho>` e `/escrever-roteiro <ideia>`.
 - Confira cada etapa com `.\.venv\Scripts\python.exe -m darkops progresso` (ou `--json`).
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

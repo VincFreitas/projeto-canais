@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Banco de efeitos sonoros reais de licença CC0, para o som não ser igual em todo vídeo.
 
   python -m darkops efeitos-baixar [--por-tipo 6]   busca no Openverse (sem chave) e grava em assets/efeitos/<tipo>/

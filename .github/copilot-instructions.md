@@ -2,3 +2,6 @@
 
 Siga as instruções do projeto em [AGENTS.md](../AGENTS.md) (fonte única para todos os agentes de IA).
 Para instalar ou configurar do zero, siga [docs/instalacao.md](../docs/instalacao.md).
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

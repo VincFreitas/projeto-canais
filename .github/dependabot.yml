@@ -1,0 +1,18 @@
+# Atualizações de terceiros no repositório público: o Dependabot abre um pull request por semana e o dono decide se
+# junta (mesma regra da rotina de atualizações do app: avisa, o dono aplica).
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: "/web"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

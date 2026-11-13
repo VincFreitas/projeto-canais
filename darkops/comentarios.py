@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Comentários dos vídeos: coleta, triagem pela IA, rascunho de resposta e resposta pelas APIs oficiais.
 
   python -m darkops comentarios [--todos]        busca os comentários novos, classifica e rascunha respostas
@@ -25,6 +27,8 @@ from datetime import date
 from pathlib import Path
 
 import requests
+
+from . import cofre
 
 ESCOPO_COMENTARIOS = "https://www.googleapis.com/auth/youtube.force-ssl"
 CATEGORIAS = ("pergunta", "correcao", "ideia", "elogio", "critica", "conversa", "spam")
@@ -68,7 +72,7 @@ def _youtube(perfil):
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
-    info = json.loads(perfil.token_youtube.read_text(encoding="utf-8"))
+    info = json.loads(cofre.ler(perfil.token_youtube))
     cred = Credentials.from_authorized_user_info(info, info.get("scopes"))
     if not cred.valid:
         cred.refresh(Request())
@@ -79,14 +83,14 @@ def pode_responder_youtube(perfil) -> bool:
     if not perfil.token_youtube.exists():
         return False
     try:
-        return ESCOPO_COMENTARIOS in (json.loads(perfil.token_youtube.read_text(encoding="utf-8")).get("scopes") or [])
-    except ValueError:
+        return ESCOPO_COMENTARIOS in (json.loads(cofre.ler(perfil.token_youtube)).get("scopes") or [])
+    except (ValueError, cofre.CofreFechado):
         return False
 
 
 def _token_instagram(perfil) -> str:
     from .instagram import _renovar_se_preciso
-    valor = perfil.token_instagram.read_text(encoding="utf-8-sig").strip()
+    valor = cofre.ler(perfil.token_instagram).strip()
     return _renovar_se_preciso(perfil.token_instagram, valor)
 
 

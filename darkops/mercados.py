@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Mercado do canal: a língua e a região do público para quem os vídeos são feitos.
 
 O mercado decide a língua do roteiro, da narração, da descrição e das tags, a voz padrão, a língua declarada no

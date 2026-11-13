@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Ajuda de instalação: gera o workflow do n8n para esta pasta e confere o que falta configurar.
 
   python -m darkops diagnostico           lista o que está pronto e o que falta, com o próximo passo
@@ -52,12 +54,21 @@ def n8n_so_no_claude() -> bool:
     return bool(_n8n_virtual()) and not instalado_de_verdade
 
 
-def gerar_workflow(importar: bool = False) -> Path:
-    texto = MODELO.read_text(encoding="utf-8")
+def _preencher(texto: str, windows: bool | None = None) -> str:
+    """Troca __PASTA__ e __PYTHON__ do modelo do workflow pelos caminhos deste PC, no formato do shell do n8n."""
     python = Path(sys.executable)
-    # os comandos do workflow rodam no cmd.exe; no JSON a barra invertida vai escapada
-    texto = texto.replace("__PASTA__", str(config.RAIZ).replace("\\", "\\\\"))
-    texto = texto.replace("__PYTHON__", str(python).replace("\\", "\\\\"))
+    if os.name == "nt" if windows is None else windows:
+        # os comandos do workflow rodam no cmd.exe; no JSON a barra invertida vai escapada
+        texto = texto.replace("__PASTA__", str(config.RAIZ).replace("\\", "\\\\"))
+        return texto.replace("__PYTHON__", str(python).replace("\\", "\\\\"))
+    # macOS e Linux: /bin/sh, sem o /d do cmd.exe; caminho entre aspas simples (aceita espaço)
+    aspas = lambda p: json.dumps("'" + str(p).replace("'", "'\\''") + "'")[1:-1]  # noqa: E731
+    texto = texto.replace("cd /d __PASTA__", "cd " + aspas(config.RAIZ)).replace("__PASTA__", aspas(config.RAIZ))
+    return texto.replace("__PYTHON__", aspas(python))
+
+
+def gerar_workflow(importar: bool = False) -> Path:
+    texto = _preencher(MODELO.read_text(encoding="utf-8"))
     json.loads(texto)  # confere se continua JSON válido
     GERADO.write_text(texto, encoding="utf-8")
     print(f"workflow gerado: {GERADO}")
@@ -125,9 +136,7 @@ def webhook_whatsapp_ativo() -> bool:
 
 def gerar_workflow_whatsapp(importar: bool = False) -> Path:
     """Workflow que recebe os comandos do WhatsApp e manda o resumo das 21h. Importa e publica no n8n."""
-    texto = MODELO_WHATSAPP.read_text(encoding="utf-8")
-    texto = texto.replace("__PASTA__", str(config.RAIZ).replace("\\", "\\\\"))
-    texto = texto.replace("__PYTHON__", str(Path(sys.executable)).replace("\\", "\\\\"))
+    texto = _preencher(MODELO_WHATSAPP.read_text(encoding="utf-8"))
     json.loads(texto)
     GERADO_WHATSAPP.write_text(texto, encoding="utf-8")
     print(f"workflow gerado: {GERADO_WHATSAPP}")
@@ -169,7 +178,7 @@ def diagnostico() -> list[tuple[str, bool, str]]:
         ("App OAuth do Google (YouTube)", (config.RAIZ / "credenciais" / "client_secret.json").exists(),
          "Google Cloud: ative a YouTube Data API v3, crie um cliente OAuth 'App para computador' e baixe o JSON "
          "(o Estúdio pega sozinho da pasta Downloads, ou rode pegar-app-google)"),
-        ("Desenho local em pixel art (sd.cpp)", (config.MODELOS / "sd" / "sd-cli.exe").exists()
+        ("Desenho local em pixel art (sd.cpp)", (config.MODELOS / "sd" / ("sd-cli.exe" if os.name == "nt" else "sd-cli")).exists()
          and (config.MODELOS / "z_image_turbo-Q4_K.gguf").exists(),
          "opcional: veja 'Estilo pixel art' em docs/roteiro.md; sem ele as cenas usam Pexels/Pixabay"),
         ("Pelo menos um perfil", bool(perfis), "crie no Estúdio: python -m darkops estudio"),

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Palco 3D: a cena é um módulo JavaScript (Three.js + GSAP) desenhado num Chromium sem janela, quadro a quadro.
 
 O módulo (ex.: cenas/explicativo-geladeira.3d.js) exporta SERIE, PECAS e criar({THREE, gsap, renderer, largura,
@@ -25,6 +27,7 @@ from . import config
 
 # o Chromium fica na pasta do projeto (apps.instalar_playwright), visível para o n8n e para o terminal do agente
 import os as _os  # noqa: E402
+import sys as _sys  # noqa: E402
 from .apps import env_playwright  # noqa: E402
 _os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", env_playwright()["PLAYWRIGHT_BROWSERS_PATH"])
 from .palco import _foco, _historia, _hud, _sprite_rotulo, rotulo_na_tela, vaivem
@@ -54,6 +57,16 @@ MOTORES = {
     "warp": ["--use-angle=d3d11-warp", "--enable-gpu", "--ignore-gpu-blocklist"],
     "swiftshader": ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"],
 }
+if _sys.platform == "darwin":  # macOS: Metal pela ANGLE; sem WARP (é do Windows), cai direto no SwiftShader
+    MOTORES.update(gpu=["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"],
+                   warp=MOTORES["swiftshader"])
+elif _os.name != "nt":  # Linux: OpenGL/EGL da placa; sem placa, o Mesa (llvmpipe) ou o SwiftShader
+    MOTORES.update(gpu=["--use-angle=gl", "--use-gl=angle", "--enable-gpu", "--ignore-gpu-blocklist"],
+                   warp=MOTORES["swiftshader"])
+
+
+def motores() -> dict:
+    return MOTORES
 _PROCESSADOR = ("swiftshader", "basic render", "llvmpipe", "software")  # nomes de desenho sem placa de vídeo
 _PLACA_JS = """() => { const g = document.createElement('canvas').getContext('webgl2');
   if (!g) return ''; const e = g.getExtension('WEBGL_debug_renderer_info');

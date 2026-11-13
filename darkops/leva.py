@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Levas de vídeos: criar vários de uma vez e reabastecer a fila quando ela ficar curta.
 
   python -m darkops leva [--quantidade N]      escreve N roteiros com o Claude Code e gera a prévia de cada um
@@ -19,7 +21,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-from . import config
+from . import config, sistema
 
 MINUTOS_ROTEIRO = (2, 5)    # Claude pesquisando os fatos e escrevendo, por roteiro
 MINUTOS_DESENHO = (2, 5)    # gerador local, por cena desenhada
@@ -77,7 +79,7 @@ def _tempo(minutos: float) -> str:
 
 def _claude() -> str | None:
     # o .exe vem antes do .cmd: um .cmd passa pelo cmd.exe, que interpreta & | ^ nos argumentos (BatBadBut)
-    return next((str(c) for c in (Path.home() / ".local" / "bin" / "claude.exe",) if c.exists()), None) \
+    return next((str(c) for c in (Path.home() / ".local" / "bin" / sistema.exe("claude"),) if c.exists()), None) \
         or shutil.which("claude") \
         or next((str(c) for c in (Path(os.environ.get("APPDATA", "")) / "npm" / "claude.cmd",) if c.exists()), None)
 
@@ -85,10 +87,11 @@ def _claude() -> str | None:
 # esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
 ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
            "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium",
-           "prancha": "high"}
+           "prancha": "high", "ferramentas": "medium"}
 # modelo por tarefa (roteador por nível): tarefa curta vai para um modelo menor e mais rápido, que gasta menos do
 # limite do plano; roteiro, análise, aprendizado e ajuste ficam no modelo padrão do Claude Code (o maior)
-MODELO = {"descricao": "haiku", "comentarios": "haiku", "nomes": "haiku", "visual": "sonnet", "carrossel": "sonnet"}
+MODELO = {"descricao": "haiku", "comentarios": "haiku", "nomes": "haiku", "visual": "sonnet", "carrossel": "sonnet",
+          "ferramentas": "sonnet"}
 _LIMITE = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|out of (extra )?usage|"
                      r"limite de uso|resets? (at|às|as)? ?\d", re.I)
 
@@ -109,6 +112,20 @@ def bateu_limite(proc: subprocess.CompletedProcess) -> LimiteClaude | None:
     return LimiteClaude(float(epoca.group(1)) if epoca else None)
 
 
+PY_REL = sistema.venv_python(Path(".")).as_posix()  # .venv/Scripts/python.exe no Windows, .venv/bin/python no resto
+
+
+def comando_permitido(comando: str) -> tuple[str, ...]:
+    """Permissão do Bash para a IA rodar só `python -m darkops <comando>` do projeto (com barra normal e, no
+    Windows, também com barra invertida)."""
+    jeitos = {PY_REL, PY_REL.replace("/", "\\")}
+    return tuple(f"Bash({py} -m darkops {comando}:*)" for py in sorted(jeitos))
+
+
+NEGADOS = ("Read(./.env)", "Read(./.env.*)", "Read(./credenciais/**)", "Read(./perfis/*/credenciais/**)",
+           "Read(./dados/**)", "Edit(./.env)", "Write(./.env)")
+
+
 def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 300,
                  tarefa: str = "") -> subprocess.CompletedProcess:
     """Roda o Claude Code sem interação. O pedido vai pela entrada padrão (nunca como argumento: textos vindos da
@@ -120,12 +137,19 @@ def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 
     # só as configurações do projeto: hooks e plugins pessoais do dono (memória, economia de contexto) não entram nas
     # chamadas automáticas, que ficam previsíveis e não gastam limite carregando contexto que não é do pedido
     # --output-format json: a resposta vem com o custo e os tokens da chamada (custos.py anota e devolve só o texto)
-    args = [claude, "-p", "--output-format", "json", "--setting-sources", "project,local"] \
+    # --tools: só existem as ferramentas listadas ("" = nenhuma). Sem isso, Read, Glob e Grep ficam livres no modo -p
+    # mesmo sem estar na lista, e um comentário ou página com instrução escondida poderia pedir para ler o .env.
+    # NEGADOS: segredos e dados do app nunca são lidos, nem pelas tarefas com ferramentas (roteiro, prancha).
+    nomes = sorted({re.match(r"\w+", f).group(0) for f in ferramentas if re.match(r"\w+", f)})
+    args = [claude, "-p", "--output-format", "json", "--setting-sources", "project,local",
+            "--tools", ",".join(nomes), "--disallowedTools", *NEGADOS] \
         + (["--allowedTools", *ferramentas] if ferramentas else [])
     esforco = ESFORCO.get(tarefa)
     modelo = MODELO.get(tarefa) if os.environ.get("DARKOPS_MODELO_POR_TAREFA", "1") != "0" else None
+    from .sistema import env_sem_segredos
     rodar = lambda extra: subprocess.run(args + extra, input=pedido, cwd=config.RAIZ, capture_output=True,  # noqa: E731
-                                         text=True, encoding="utf-8", errors="replace", timeout=timeout)
+                                         text=True, encoding="utf-8", errors="replace", timeout=timeout,
+                                         env=env_sem_segredos())
     proc = rodar((["--effort", esforco] if esforco else []) + (["--model", modelo] if modelo else []))
     if modelo and proc.returncode != 0 and not bateu_limite(proc) and "model" in (proc.stderr + proc.stdout).lower():
         proc = rodar(["--effort", esforco] if esforco else [])  # modelo indisponível no plano: usa o padrão
@@ -252,21 +276,19 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "", parte: dict | N
            if d.get("motor_cena") == "prancha" else "")
         + f"Salve o roteiro em perfis/{perfil.id}/fila/NNN-slug.json (NNN = próximo número da fila), "
         "com \"aprovado\": false, e \"notas_roteiro\" preenchido. No formato explicativo e no de notícia, escreva também o palco 3D "
-        "cenas/<slug>.3d.js (padrão do canal; o 2D cenas/<slug>.py só se o 3D não der), com os movimentos de "
+        "cenas/<slug>.3d.js (o único formato de palco que esta tarefa pode gravar), com os movimentos de "
         "docs/movimento.md (antecipação, assentamento, curvas suaves, nada linear), e teste "
-        f"com: .venv\\Scripts\\python.exe -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "
-        "até sair sem erro antes de terminar. Rode também .venv\\Scripts\\python.exe -m darkops roteiro-auditar "
+        f"com: {PY_REL} -m darkops palco-testar perfis/{perfil.id}/fila/<arquivo>.json "
+        f"até sair sem erro antes de terminar. Rode também {PY_REL} -m darkops roteiro-auditar "
         f"perfis/{perfil.id}/fila/<arquivo>.json e corrija o roteiro até sair sem erro. Não produza o vídeo, não publique nada e não faça commit."
     )
     # o Claude lê páginas da internet: só pode gravar na fila do perfil e em cenas/, e só roda o teste do palco
     fila = f"perfis/{perfil.id}/fila"
     proc = rodar_claude(pedido, tarefa="roteiro", ferramentas=(
         "Read", "Glob", "Grep", "WebSearch", "WebFetch", "Skill",
-        f"Write({fila}/**)", f"Edit({fila}/**)", "Write(cenas/**)", "Edit(cenas/**)",
-        "Bash(.venv/Scripts/python.exe -m darkops palco-testar:*)",
-        "Bash(.venv/Scripts/python.exe -m darkops roteiro-auditar:*)",
-        r"Bash(.venv\Scripts\python.exe -m darkops roteiro-auditar:*)",
-        r"Bash(.venv\Scripts\python.exe -m darkops palco-testar:*)"), timeout=30 * 60)
+        # só o palco 3D (roda no Chromium, sem acesso ao PC): um .py em cenas/ viraria código rodando no PC
+        f"Write({fila}/*.json)", f"Edit({fila}/*.json)", "Write(cenas/*.3d.js)", "Edit(cenas/*.3d.js)",
+        *comando_permitido("palco-testar"), *comando_permitido("roteiro-auditar")), timeout=30 * 60)
     novos = sorted(set(perfil.fila.glob("*.json")) - antes)
     if not novos:
         limite = bateu_limite(proc)
@@ -516,12 +538,14 @@ def em_segundo_plano(perfil, quantidade: int, tema: str = "", serie: dict | None
         _adiar(perfil, quantidade, tema, serie=serie)
         return faltam
     log =(perfil.controle / "leva-ultima.log").open("w", encoding="utf-8")
-    sinais = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS if os.name == "nt" else 0
+    # Windows: grupo próprio e sem console; macOS e Linux: sessão própria. Assim a leva continua se o n8n fechar.
+    destacar = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS} \
+        if os.name == "nt" else {"start_new_session": True}
     tema_args = ["--tema", tema] if tema else []  # lista de argumentos: o tema nunca passa pelo cmd.exe
     if serie:
         tema_args += ["--serie", str(serie["total"]), "--serie-id", serie["id"]]
     subprocess.Popen([sys.executable, "-m", "darkops", "--perfil", perfil.id, "leva", "--quantidade", str(quantidade),
                       *tema_args],
-                     cwd=config.RAIZ, stdout=log, stderr=subprocess.STDOUT, creationflags=sinais,
+                     cwd=config.RAIZ, stdout=log, stderr=subprocess.STDOUT, **destacar,
                      env={**os.environ, "PYTHONIOENCODING": "utf-8"})
     return []

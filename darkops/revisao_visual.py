@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Revisão visual pela IA: o Claude olha os quadros do vídeo pronto, como um editor faria antes de aprovar.
 
 A conferência técnica (conferir.py) acha tela preta, silêncio e volume. Esta acha o que só se vê: texto cortado ou

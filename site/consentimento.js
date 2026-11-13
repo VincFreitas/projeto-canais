@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+// Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 // Consentimento de cookies (LGPD). Hoje o site não usa nenhum cookie opcional, então o aviso não aparece.
 // Para ligar um serviço opcional no futuro (ex.: medir visitas):
 //   1. acrescente a categoria em OPCIONAIS abaixo e descreva-a em cookies.html;

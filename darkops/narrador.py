@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Narrador cartoon: a pulga mascote do canal, desenhada em vetor com Pillow, que fala junto com a voz.
 
 A boca abre conforme o volume da narração (sincronia labial simples), os olhos piscam, as antenas

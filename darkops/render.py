@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Montagem com ffmpeg: uma cena por arquivo (cacheável), depois concatenação e mixagem final."""
 import re
 import subprocess
@@ -12,6 +14,14 @@ FPS = 30
 ZOOM = 0.12  # quanto a imagem aproxima/afasta ao longo da cena
 TRANSICAO = 0.15  # segundos de entrada (do preto) em cada cena, marca o corte sem dessincronizar o áudio
 VERSAO = 4  # mude para refazer as cenas em cache quando o visual do render mudar
+
+
+def _marca_png(destino) -> dict:
+    """Marca d'água invisível (metadados) nos PNG gerados; JPG e outros saem como estão."""
+    if str(destino).lower().endswith(".png"):
+        from .autoria import metadados_png
+        return {"pnginfo": metadados_png()}
+    return {}
 
 
 def rodar(args: list[str], cwd: Path | None = None) -> None:
@@ -221,7 +231,7 @@ def _selo(texto: str, largura: int, destino: Path) -> Path:
     d = ImageDraw.Draw(img)
     d.rounded_rectangle([0, 0, w - 1, h - 1], radius=h // 2, fill=(0, 0, 0, 120))
     d.text((30, 17 - caixa[1]), texto, font=fonte, fill=(255, 255, 255, 235))
-    img.save(destino)
+    img.save(destino, **_marca_png(destino))
     return destino
 
 
@@ -233,7 +243,7 @@ def _foto_canto(foto: Path, largura: int, destino: Path) -> Path:
     mascara = Image.new("L", (lado, lado), 0)
     ImageDraw.Draw(mascara).ellipse([0, 0, lado - 1, lado - 1], fill=255)
     img.putalpha(mascara)
-    img.save(destino)
+    img.save(destino, **_marca_png(destino))
     return destino
 
 
@@ -266,7 +276,7 @@ def _mascote(largura: int, destino: Path) -> Path:
             if ch in cores:
                 img.putpixel((x, y), cores[ch])
     lado = int(largura * 0.12)
-    img.resize((lado, lado), Image.NEAREST).save(destino)
+    img.resize((lado, lado), Image.NEAREST).save(destino, **_marca_png(destino))
     return destino
 
 
@@ -338,7 +348,7 @@ def _moldura_post(manchete: str, nome: str, arroba: str, destino: Path, avatar: 
     # sombra leve embaixo da janela do vídeo
     jw, jh = JANELA_POST
     d.rectangle([0, TOPO_JANELA_POST + jh, w, TOPO_JANELA_POST + jh + 3], fill=(235, 235, 235))
-    img.save(destino)
+    img.save(destino, **_marca_png(destino))
     return destino
 
 
@@ -457,5 +467,6 @@ def juntar(cenas: list[Path], musica: Path | str | None, saida: Path, volume_mus
     else:
         mapa_video, codec, filtro = "0:v", ["-c:v", "copy"], audio
     saida.parent.mkdir(parents=True, exist_ok=True)
+    from .autoria import metadados_video
     rodar([*entradas, "-filter_complex", filtro, "-map", mapa_video, "-map", "[a]", *codec,
-           "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(saida)])
+           "-c:a", "aac", "-b:a", "192k", "-ar", "48000", *metadados_video(), "-movflags", "+faststart", str(saida)])

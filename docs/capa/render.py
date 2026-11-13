@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 r"""Renderiza a animação da capa do README (docs/capa/capa.html) quadro a quadro e gera docs/img/capa.gif.
 
 Uso, na raiz do projeto (precisa do Playwright com Chromium e do `npm install` em web/, como o palco 3D):

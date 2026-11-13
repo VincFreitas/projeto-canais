@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Catálogo de vozes de cada público (mercado) e amostras para ouvir antes de escolher a voz do canal.
 
   python -m darkops vozes-amostras                       grava as amostras das vozes grátis que faltam
@@ -205,8 +207,8 @@ def _gravar_estado(motor: str, cod: str, valor: dict) -> None:
 
 
 def _tem_chave(motor: str) -> bool:
-    from dotenv import dotenv_values
-    return bool((dotenv_values(config.RAIZ / ".env").get(PAGOS[motor]["chave"]) or "").strip())
+    from .cofre import ler_env
+    return bool((ler_env().get(PAGOS[motor]["chave"]) or "").strip())
 
 
 def pagas(cod: str) -> list[dict]:

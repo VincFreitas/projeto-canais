@@ -1,0 +1,11 @@
+{
+  "name": "projeto-canais",
+  "version": "0.64.0",
+  "description": "Projeto Canais: pesquisa, roteiro, produção e publicação de canais de vídeo sem rosto (YouTube Shorts e Instagram Reels), com aprovação do dono antes de publicar.",
+  "author": {"name": "Vinicius Freitas", "url": "https://github.com/VincFreitas"},
+  "homepage": "https://github.com/VincFreitas/projeto-canais",
+  "repository": "https://github.com/VincFreitas/projeto-canais",
+  "license": "LicenseRef-PolyForm-Shield-1.0.0",
+  "keywords": ["youtube", "shorts", "reels", "canal-dark", "video", "pt-br"],
+  "skills": "./.claude/skills/"
+}

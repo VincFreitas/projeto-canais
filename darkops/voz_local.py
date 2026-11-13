@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Voz e escuta no próprio PC, de graça e sem chave, num ambiente separado (dados/apps/voz-local).
 
 - Kokoro (Apache 2.0, uso comercial liberado): motor de voz "kokoro". Vozes pt-BR: pf_dora, pm_alex, pm_santa.
@@ -6,13 +8,14 @@
 O ambiente é instalado por `python -m darkops instalar-voz-local` (pacotes e modelos baixados uma vez). O .venv do
 projeto não recebe nada disso: a ponte (voz_local_ponte.py) roda com o Python do ambiente separado."""
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 from . import config
 
-PYTHON = config.VOZ_LOCAL / "Scripts" / "python.exe"
+PYTHON = config.VOZ_LOCAL / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
 MODELOS = config.VOZ_LOCAL / "modelos"
 # av<16: o PyAV 16 tirou o argumento metadata_errors que o faster-whisper usa ao abrir o áudio
 PACOTES = ("kokoro-onnx", "soundfile", "faster-whisper", "av<16")

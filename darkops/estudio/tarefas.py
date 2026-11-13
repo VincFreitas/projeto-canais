@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Como a tela de tarefa fala com a pessoa: tempo estimado, se a página pode ser fechada e o resultado em
 uma frase. O log continua guardado em controle/jobs/ e aparece só em "Ver detalhes técnicos"."""
 from __future__ import annotations
@@ -36,6 +38,8 @@ _TIPOS = {
     "atualizar-dependencias": (1, 6, "Dependências conferidas."),
     "demanda": (1, 4, "A pesquisa de assuntos terminou."),
     "outliers": (1, 5, "A pesquisa de assuntos terminou."),
+    "rotinas": (0.5, 10, "A rotina terminou: veja o resultado em Saúde do app."),
+    "cofre-proteger": (0.2, 1, "Os segredos estão cifrados."),
 }
 
 

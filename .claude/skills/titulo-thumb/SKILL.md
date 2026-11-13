@@ -19,3 +19,6 @@ Argumento: o roteiro (`perfis/<perfil>/fila/NNN-*.json`) ou o tema. Argumentos r
 
 ## Alcance
 Siga [docs/viralizacao.md](../../../docs/viralizacao.md): palavra principal nos 40 primeiros caracteres do título, de 3 a 5 hashtags (o Instagram aceita no máximo 5), 1ª linha da legenda com até ~125 caracteres e sem lista de palavras-chave. A descrição e as tags de cada vídeo ficam em Estúdio > vídeo > Descrição e tags (manual ou pela IA).
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

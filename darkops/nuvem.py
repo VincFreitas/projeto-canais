@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Modo nuvem: a reserva da postagem no GitHub Actions, para o canal postar mesmo com o PC desligado.
 
 Os dois modos trabalham juntos:
@@ -24,7 +26,7 @@ import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import config, mercados
+from . import cofre, config, mercados
 from .seguranca import ocultar
 
 API = "https://api.github.com"
@@ -452,14 +454,14 @@ def enviar_segredos(perfis) -> list[str]:
                 enviados.append(nome)
     client = config.RAIZ / "credenciais" / "client_secret.json"
     if client.exists():
-        _segredo("CLIENT_SECRET", client.read_text(encoding="utf-8"))
+        _segredo("CLIENT_SECRET", cofre.ler(client))
         enviados.append("CLIENT_SECRET")
     for p in perfis:
         dados = {}
         if p.token_youtube.exists():
-            dados["token_youtube"] = p.token_youtube.read_text(encoding="utf-8")
+            dados["token_youtube"] = cofre.ler(p.token_youtube)
         if p.token_instagram.exists():
-            dados["token_instagram"] = p.token_instagram.read_text(encoding="utf-8").strip()
+            dados["token_instagram"] = cofre.ler(p.token_instagram).strip()
         if dados:
             _segredo(nome_segredo(p.id), json.dumps(dados))
             enviados.append(nome_segredo(p.id))

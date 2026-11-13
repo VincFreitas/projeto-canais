@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Estúdio: painel local (http://127.0.0.1:8765) para conectar contas, montar a fila, gerar prévias,
 aprovar e acompanhar a postagem automática de cada perfil.
 
@@ -21,7 +23,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 
 from .. import config
 from .. import fila as fila_mod
-from .. import ambiente, aparencia, autoria, canal_ia, mercados, plataformas, seguranca
+from .. import ambiente, aparencia, autoria, canal_ia, cofre, mercados, plataformas, seguranca
 from .. import nuvem as canal_nuvem
 from ..perfis import (DURACOES, FONTES_LEGENDA, FORMATOS, ID_VALIDO, MODELO, MOTORES_VOZ, PADRAO, RITMOS,
                       TAMANHOS_LEGENDA, TEMAS_CARDS, TIPOS_VISUAL, EDICOES, PERSONA, PLATAFORMAS, campos_video, campos_canal, campos_padrao, carregar, criar, listar,
@@ -162,18 +164,16 @@ def _env() -> dict:
             if "=" in linha and not linha.lstrip().startswith("#"):
                 k, v = linha.split("=", 1)
                 if v.strip():
-                    valores[k.strip()] = v.strip()
+                    try:  # segredo cifrado pelo cofre: abre aqui (o que não abrir conta como faltando)
+                        valores[k.strip()] = cofre.abrir_env(v.strip()) or ""
+                    except Exception:  # noqa: BLE001
+                        continue
     return valores
 
 
 def _salvar_env(novos: dict) -> None:
-    """Troca (ou acrescenta) as chaves no .env, sem duplicar linhas."""
-    arquivo = config.RAIZ / ".env"
-    linhas = arquivo.read_text(encoding="utf-8").splitlines() if arquivo.exists() else []
-    for chave, valor in novos.items():
-        linhas = [l for l in linhas if not re.match(rf"^\s*{chave}\s*=", l)]
-        linhas.append(f"{chave}={valor}")
-    arquivo.write_text("\n".join(linhas) + "\n", encoding="utf-8")
+    """Troca (ou acrescenta) as chaves no .env (segredos cifrados pelo cofre; recusa quebra de linha)."""
+    cofre.reescrever_env({k: str(v) for k, v in novos.items()})
 
 
 def _salvar_conferindo(novos: dict) -> None:
@@ -245,9 +245,14 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
             for args in comandos:
                 saida.write(f"$ darkops {' '.join(args)}\n")
                 saida.flush()
-                proc = subprocess.run(_cli(p.id, *args), cwd=config.RAIZ, stdout=saida,
-                                      stderr=subprocess.STDOUT, env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
-                if proc.returncode != 0:
+                # cada linha passa por ocultar() antes de chegar ao arquivo: o log nunca guarda token nem chave
+                proc = subprocess.Popen(_cli(p.id, *args), cwd=config.RAIZ, stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                                        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
+                for linha in proc.stdout:
+                    saida.write(seguranca.ocultar(linha))
+                    saida.flush()
+                if proc.wait() != 0:
                     JOBS[job_id].update(estado="falhou", fim=time.time())
                     return
         JOBS[job_id].update(estado="concluido", fim=time.time())
@@ -264,7 +269,16 @@ def _contexto():
             "duracoes": DURACOES, "rotulo_duracao": rotulo_duracao, "nomes_plataformas": nomes_plataformas,
             "estimar_leva": _estimar_leva, "novidade": _novidade(), "lista_plataformas": PLATAFORMAS, "rotulo_video": _rotulo_video, "autoria": autoria, "creditos_removidos": autoria.creditos_removidos(),
             "guiado": request.endpoint and bool(_guia_pendente()), "travadas": TRAVADAS, "avancado": _avancado(),
-            "whatsapp_ligado": _whatsapp_ligado(), "whatsapp_visivel": _whatsapp_visivel(), "ganchos": GANCHOS}
+            "whatsapp_ligado": _whatsapp_ligado(), "whatsapp_visivel": _whatsapp_visivel(), "ganchos": GANCHOS,
+            "saude_problemas": _saude_problemas()}
+
+
+def _saude_problemas() -> list[str]:
+    from .. import rotinas
+    try:
+        return rotinas.resumo()["problemas"]
+    except Exception:  # noqa: BLE001 — a lateral nunca quebra por causa da rotina
+        return []
 
 
 def _whatsapp_ligado() -> bool:
@@ -859,6 +873,40 @@ def configuracoes():
                            versao=__version__, pastas=app_local._pastas())
 
 
+@app.route("/saude", methods=["GET", "POST"])
+def saude():
+    """Saúde do app: integridade e segurança, atualizações de terceiros e ferramentas novas (rotinas.py)."""
+    from .. import app as app_local
+    from .. import ferramentas, rotinas, sistema
+    if request.method == "POST":
+        f = request.form
+        acao = f.get("acao", "")
+        perfis_ = listar()
+        p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
+        if acao == "rodar" and f.get("rotina") in rotinas.ROTINAS:
+            nome = f["rotina"]
+            job = _iniciar_job(p, rotinas.ROTINAS[nome]["titulo"], [["rotinas", "--rodar", nome]])
+            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + f"#{nome}"))
+        if acao == "aplicar":
+            itens = [i for i in f.getlist("itens") if re.fullmatch(r"[\w:./@-]{1,80}", i)]
+            if itens:
+                job = _iniciar_job(p, "Atualizar dependências", [["atualizar-dependencias", "--aplicar", "--itens", *itens],
+                                                                 ["rotinas", "--rodar", "atualizacoes"]])
+                return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + "#atualizacoes"))
+        elif acao == "proteger":
+            job = _iniciar_job(p, "Proteger os segredos", [["cofre-proteger"], ["rotinas", "--rodar", "integridade"]])
+            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + "#integridade"))
+        elif acao in ("interessa", "descartar"):
+            ferramentas.marcar(f.get("id", ""), "interessa" if acao == "interessa" else "descartada")
+            return redirect(url_for("saude") + "#ferramentas")
+        elif acao == "ligar":
+            app_local.salvar({"rotinas_ligadas": bool(f.get("ligadas"))})
+            flash("Rotinas " + ("ligadas." if f.get("ligadas") else "desligadas: só rodam quando você pedir."), "ok")
+        return redirect(url_for("saude"))
+    return render_template("saude.html", rotinas=rotinas.ROTINAS, estados=rotinas.resumo()["estados"],
+                           ligadas=rotinas.ligadas(), sugestoes=ferramentas.ler(), sistema=sistema.NOME)
+
+
 @app.get("/tema-card/<nome>.png")
 def tema_card(nome):
     """Amostra de um card de comparação no tema pedido (para escolher na aba Perfil)."""
@@ -1045,7 +1093,7 @@ def conectar_instagram(pid):
     p = _perfil(pid).preparar()
     valor = request.form.get("token", "").strip()
     if valor:
-        p.token_instagram.write_text(valor, encoding="utf-8")
+        cofre.gravar(p.token_instagram, valor)
     return redirect(url_for("testar_conexoes", pid=pid), code=307)
 
 
@@ -1174,7 +1222,7 @@ def instagram_app(pid):
 def instagram_entrar(pid):
     _perfil(pid)
     from ..contas import instagram_url
-    porta = int(request.host.rsplit(":", 1)[1]) if ":" in request.host else 80
+    porta = int(request.environ.get("SERVER_PORT") or 8765)
     try:
         return redirect(instagram_url(pid, porta))
     except SystemExit as erro:
@@ -1201,7 +1249,7 @@ def instagram_volta():
     except (SystemExit, OSError, ValueError) as erro:
         return render_template("instagram_retorno.html", ok=False, destino=destino, texto=seguranca.ocultar(str(erro)))
     p.preparar()
-    p.token_instagram.write_text(token, encoding="utf-8")
+    cofre.gravar(p.token_instagram, token)
     ok, saida = _rodar_agora(pid, "conta-instagram", timeout=60)
     achado = re.search(r"token válido: @([A-Za-z0-9_.]+)", saida) if ok else None
     if canal_nuvem.configurada():
@@ -2047,7 +2095,28 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     threading.Thread(target=_vigiar_atualizacao, daemon=True).start()
     threading.Thread(target=_vigiar_levas_adiadas, daemon=True).start()
     threading.Thread(target=_vigiar_palavra, daemon=True).start()
+    threading.Thread(target=_vigiar_rotinas, daemon=True).start()
     servidor.serve_forever()
+
+
+def _vigiar_rotinas() -> None:
+    """Cifra os segredos que ainda estão em claro e, a cada 10 min, roda as rotinas vencidas (integridade todo dia,
+    atualizações e ferramentas novas toda semana), nunca perto de um horário de postagem."""
+    from .. import cofre, rotinas
+    time.sleep(60)
+    try:
+        feitos = cofre.proteger()
+        if feitos:
+            print(f"cofre: {len(feitos)} segredo(s) cifrado(s)")
+    except Exception as erro:  # noqa: BLE001 — sem o cofre, os segredos continuam em claro e a rotina avisa
+        print(seguranca.ocultar(f"cofre: não deu para cifrar agora ({erro})"))
+    while True:
+        try:
+            for nome, r in rotinas.rodar_vencidas():
+                print(f"rotina {nome}: {r.get('situacao')} · {seguranca.ocultar(r.get('texto', ''))}")
+        except Exception as erro:  # noqa: BLE001
+            print(seguranca.ocultar(f"rotinas: {erro}"))
+        time.sleep(600)
 
 
 def _vigiar_palavra() -> None:

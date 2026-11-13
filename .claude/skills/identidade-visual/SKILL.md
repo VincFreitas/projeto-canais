@@ -93,3 +93,6 @@ No formato `svg`, troque a montagem do arquivo por `new File([await window.__svg
 
 ## 6. Fechar
 Mostre `identidade estado` e diga, em uma linha por conta, o que foi aplicado e onde conferir. Se algo falhou, diga o que ficou de fora; não marque como aplicada.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

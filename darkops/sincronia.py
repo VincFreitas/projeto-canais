@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Sincronia com a fala e efeitos sonoros.
 
 - momento(): em que segundo da cena uma palavra (ou número) é falada, a partir dos tempos por

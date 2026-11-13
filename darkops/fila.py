@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Fila de roteiros da postagem automática (orquestrada pelo n8n), por perfil.
 
 perfis/<id>/fila/*.json        próximos vídeos, em ordem alfabética (prefixo 001-, 002-...)

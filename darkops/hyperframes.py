@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Animação das cenas pelo HyperFrames (HeyGen, Apache 2.0): HTML + GSAP renderizado em MP4, local e determinístico.
 
 A cena-base continua sendo feita por render.cena (visual, movimento, card, palco, narrador), só que sem legenda.
@@ -20,7 +22,7 @@ from pathlib import Path
 
 import imageio_ffmpeg
 
-from . import config
+from . import config, sistema
 
 PASTA = config.RAIZ / "dados" / "apps" / "hyperframes-teste"
 NODE = config.RAIZ / "dados" / "apps" / "node"
@@ -36,10 +38,32 @@ CURVA = {"entra": "back.out(1.8)",   # entra passando um pouco do ponto e assent
          "respira": "sine.inOut"}    # movimento contínuo de câmera e luz, nunca linear
 
 
+def node() -> str:
+    """O Node do projeto (dados/apps/node) ou o do sistema."""
+    from .apps import node_exe
+    return node_exe() or "node"
+
+
+def caminho_binarios(binarios: Path) -> str:
+    """PATH com o ffmpeg do HyperFrames e o Node na frente (separador do sistema: ; no Windows, : no resto)."""
+    return os.pathsep.join([str(binarios), str(Path(node()).parent), os.environ.get("PATH", "")])
+
+
+def _x264() -> Path:
+    """bin-x264: o ffmpeg do projeto (libx264) no lugar do da placa, com o ffprobe do HyperFrames."""
+    pasta = PASTA / "bin-x264"
+    if not (pasta / sistema.exe("ffmpeg")).exists():
+        pasta.mkdir(parents=True, exist_ok=True)
+        shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), pasta / sistema.exe("ffmpeg"))
+        shutil.copy(PASTA / "bin" / sistema.exe("ffprobe"), pasta / sistema.exe("ffprobe"))
+    return pasta
+
+
 def disponivel() -> bool:
-    return all(p.exists() for p in (PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs",
-                                    PASTA / "node_modules" / "gsap" / "dist" / "gsap.min.js",
-                                    PASTA / "bin" / "ffprobe.exe", NODE / "node.exe"))
+    from .apps import node_exe
+    return bool(node_exe()) and all(p.exists() for p in (
+        PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs",
+        PASTA / "node_modules" / "gsap" / "dist" / "gsap.min.js", PASTA / "bin" / sistema.exe("ffprobe")))
 
 
 def _grupos(palavras: list[dict], maximo: int) -> list[list[dict]]:
@@ -309,17 +333,10 @@ def paralelo() -> int:
 def _render(pasta: Path, mudo: Path, chromes: int | None = None) -> subprocess.CompletedProcess:
     """Chama o HyperFrames. O número de Chromes é fixo (por cena: processadores / 2 / camadas ao mesmo tempo, de 1 a
     3): com ele o HyperFrames não gasta uns 7 s medindo a máquina para escolher sozinho."""
-    binarios = PASTA / "bin"
-    if _X264[0]:
-        binarios = PASTA / "bin-x264"
-        if not (binarios / "ffmpeg.exe").exists():
-            binarios.mkdir(parents=True, exist_ok=True)
-            shutil.copy(imageio_ffmpeg.get_ffmpeg_exe(), binarios / "ffmpeg.exe")
-            shutil.copy(PASTA / "bin" / "ffprobe.exe", binarios / "ffprobe.exe")
-    env = {**os.environ, "PATH": f"{binarios};{NODE};{os.environ.get('PATH', '')}", "DO_NOT_TRACK": "1",
-           "HYPERFRAMES_SKIP_SKILLS": "1"}
+    binarios = _x264() if _X264[0] else PASTA / "bin"
+    env = {**os.environ, "PATH": caminho_binarios(binarios), "DO_NOT_TRACK": "1", "HYPERFRAMES_SKIP_SKILLS": "1"}
     chromes = chromes or max(1, min(3, nucleos() // (2 * paralelo())))
-    return subprocess.run([str(NODE / "node.exe"), str(PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
+    return subprocess.run([node(), str(PASTA / "node_modules" / "hyperframes" / "bin" / "hyperframes.mjs"),
                            "render", str(pasta), "-o", str(mudo), "--quality", "looks", "--workers", str(chromes)],
                           capture_output=True, text=True, encoding="utf-8", errors="replace", env=env, timeout=1800,
                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))

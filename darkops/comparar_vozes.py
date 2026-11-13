@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Gera o mesmo trecho em cada motor de voz disponível, para ouvir lado a lado.
 
   python -m darkops comparar-vozes [--texto "..."]   grava saida/vozes-teste/<motor>.wav|mp3 e um resumo

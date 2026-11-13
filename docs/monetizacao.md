@@ -88,3 +88,6 @@ Meta seguem a mesma linha ("conteúdo original" é requisito de todos os program
 - Kwai: techtudo.com.br/guia/2025/07/como-ganhar-dinheiro-no-kwai-postando-video-veja-se-e-confiavel-edapps.ghtml, enjai.com.br/blog/como-monetizar-o-kwai.
 - Instagram: influencermarketinghub.com/instagram-reels-monetization, identitykit.in/blog/instagram-monetization-2026.
 - Facebook: shortsync.app/resources/facebook-content-monetization-program-2026, buffer.com/resources/how-to-make-money-on-facebook.
+
+<!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->
+<!-- Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais -->

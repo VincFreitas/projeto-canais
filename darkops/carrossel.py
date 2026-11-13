@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
+# Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Carrossel do Instagram a partir de cada roteiro: de 7 a 10 slides com o mesmo conteúdo do vídeo.
 
 Carrossel rende salvamento e compartilhamento, que pesam no alcance. O Claude (sem ferramentas) escreve os slides só
@@ -17,6 +19,7 @@ import imageio_ffmpeg
 from PIL import Image, ImageDraw, ImageFont
 
 from . import config
+from .autoria import MARCA
 from .seguranca import ocultar
 
 LARGURA, ALTURA = 1080, 1350
@@ -161,7 +164,7 @@ def _desenhar(slide: dict, n: int, total: int, foto: Path | None, estilo: dict, 
     largura_marca = d.textlength(marca, font=pequeno)
     d.text((LARGURA - margem - largura_marca, ALTURA - 90), marca, font=pequeno, fill=(200, 200, 200))
     d.rectangle((0, ALTURA - 14, int(LARGURA * n / total), ALTURA), fill=cor)
-    img.save(destino, "JPEG", quality=90)
+    img.save(destino, "JPEG", quality=90, comment=MARCA.encode())
 
 
 def gerar(perfil, roteiro: Path, refazer: bool = False) -> dict:
