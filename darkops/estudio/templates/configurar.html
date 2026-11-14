@@ -92,9 +92,18 @@
   {% endif %}
   <details class="mais" {{ 'open' if avancado }}>
   <summary>Mostrar mais opções (voz, visual, formato, plataformas, legenda, personalidade)</summary>
+{% set canal_cortes = d.get('tipo_canal') == 'cortes' or (d.get('nicho') or '') == 'cortes-de-lives' %}
+  {% if canal_cortes %}
+  <h2 style="margin-top:14px">Realce dos cortes</h2>
+  <p class="dica">Corte de live usa a voz e o som da própria live, então não tem narrador.</p>
+  <input type="hidden" name="corte_realce_form" value="1">
+  <label style="font-weight:400"><input type="checkbox" name="corte_realce" {{ 'checked' if d.get('corte_realce', True) }}>
+    Realçar o que já está no vídeo: fala mais clara, volume equilibrado, imagem mais nítida e viva e zoom na hora da reação</label>
+  {% else %}
   <h2 style="margin-top:14px">Voz do narrador</h2>
   <p class="dica">Toque no ▶ para ouvir e no cartão para escolher. Vale para os próximos vídeos.</p>
   {{ vozes.seletor(catalogo_vozes, mercado, d.motor_voz, d.voz) }}
+  {% endif %}
   <div class="grade">
     <div><label>Layout</label><select name="layout">
       <option value="post" {{ 'selected' if d.layout == 'post' }}>Post (fundo branco + manchete)</option>

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block titulo %}Novo canal{% endblock %}
 {% set icones = {'misterios': '🔍', 'terror': '👻', 'curiosidades': '💡', 'animais': '🐾', 'geopolitica': '🌍', 'noticias': '📰', 'o-que-acontece-se': '❓',
-                 'historias-bizarras': '🤯', 'mysteries-en': '🕵️', 'history-en': '🏛️'} %}
+                 'historias-bizarras': '🤯', 'mysteries-en': '🕵️', 'history-en': '🏛️', 'cortes-de-lives': '✂️'} %}
 {% set rotulos = {'misterios': 'Mistérios', 'terror': 'Terror', 'curiosidades': 'Curiosidades', 'animais': 'Animais',
                   'geopolitica': 'Geopolítica', 'noticias': 'Notícias do momento', 'o-que-acontece-se': 'O que acontece se...?', 'historias-bizarras': 'Histórias bizarras',
-                  'mysteries-en': 'Mistérios (inglês)', 'history-en': 'História (inglês)'} %}
+                  'mysteries-en': 'Mistérios (inglês)', 'history-en': 'História (inglês)', 'cortes-de-lives': 'Cortes de lives'} %}
 {% set icones_rede = {'youtube': '▶', 'instagram': '◎', 'facebook': 'f', 'tiktok': '♪', 'kwai': 'K'} %}
 {% import "_vozes.html" as vozes %}
 {% block corpo %}
@@ -74,7 +74,7 @@
           </label>
           {% endfor %}
         </div>
-        <label>Duração de cada vídeo</label>
+        <label class="duracao-rotulo">Duração de cada vídeo</label>
         {% for chave, opcoes in duracoes.items() %}
         {% set padrao = modelo.duracao_s if modelo.duracao_s in opcoes else (60 if chave == 'vertical' else 600) %}
         <div class="fichas" data-formato="{{ chave }}" data-padrao="{{ padrao }}">
@@ -83,9 +83,17 @@
           {% endfor %}
         </div>
         {% endfor %}
+        <div id="bloco-voz">
         <h2 style="margin-top:22px">Qual voz narra os vídeos?</h2>
         <p class="suave">Toque no ▶ para ouvir e no cartão para escolher. Dá para trocar depois em Ajustes.</p>
         {{ vozes.seletor(catalogo_vozes, mercado_padrao, 'auto', voz_padrao, auto=True) }}
+        </div>
+        <div id="bloco-cortes" class="cartao" hidden style="margin-top:18px">
+          <h2 style="margin-top:0">Sem narração: a voz é a da live</h2>
+          <p class="suave">Corte de live já tem a voz do streamer e o som do jogo. Em vez de narrar, o app realça o que já
+            está no vídeo: deixa a fala mais clara e o volume equilibrado, a imagem mais nítida e viva, dá um zoom na hora
+            da reação e põe o título e a legenda que acende a palavra falada. Cada corte tem de 20 a 59 segundos.</p>
+        </div>
       </section>
 
       {# 4. plataformas #}
@@ -198,6 +206,12 @@
     if (!arrobaEditado) form.arroba.value = nome ? '@' + slug(nome).slice(0, 30) : '';
     const nichoBotao = form.querySelector('.escolha[data-nicho][aria-pressed=true]');
     const nicho = nichoBotao ? rotuloNicho(nichoBotao) : form.nicho.value;
+    // cortes de lives: sempre vertical, sem duração fixa e sem voz (a voz é a da live)
+    const cortes = form.nicho.value === 'cortes-de-lives';
+    if (cortes) form.querySelector('input[name=formato][value=vertical]').checked = true;
+    form.querySelector('#bloco-voz').hidden = cortes;
+    form.querySelector('#bloco-cortes').hidden = !cortes;
+    form.querySelectorAll('.formato-longo, .fichas, .duracao-rotulo').forEach(x => x.classList.toggle('so-cortes-esconde', cortes));
     const formato = form.querySelector('input[name=formato]:checked').value;
     form.querySelectorAll('.fichas').forEach(f => {
       const ativo = f.dataset.formato === formato;
@@ -214,7 +228,7 @@
     ver('nicho', nicho || 'sem assunto');
     ver('mercado', form.mercado.options[form.mercado.selectedIndex].text);
     ver('bio', form.descricao.value.trim() || 'A bio aparece aqui.');
-    ver('formato', `${formato === 'vertical' ? 'Curto 9:16' : 'Longo 16:9'} · ${duracao ? duracao.nextElementSibling.textContent : ''}`);
+    ver('formato', cortes ? 'Cortes 9:16 de 20 a 59 s, sem narração' : `${formato === 'vertical' ? 'Curto 9:16' : 'Longo 16:9'} · ${duracao ? duracao.nextElementSibling.textContent : ''}`);
     ver('redes', redes.map(r => form.querySelector(`.rede-${r} b`).textContent).join(', ') || 'nenhuma (só criar os vídeos)');
     ver('icones', redes.map(r => icones[r] || '✦').join('  '));
     form.querySelector('[data-ver-formato]').dataset.formato = formato;

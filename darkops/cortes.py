@@ -35,6 +35,7 @@ from pathlib import Path
 from . import config, sistema
 from .seguranca import ocultar
 
+NICHO = "cortes-de-lives"      # assunto do Novo canal: canal só de cortes (sem leva de roteiros e sem narração)
 DURACAO_MIN, DURACAO_MAX = 20.0, 59.0
 ANTES, DEPOIS = 50, 25          # janela de cada candidato em volta do pico (s)
 CANDIDATOS_MAX = 14
@@ -45,6 +46,19 @@ TOPO_CAMERA = 640               # altura da faixa da câmera no layout câmera +
 GANCHO_MAX_S = 4.5
 PASTA = config.OBRA / "cortes"
 FEITOS = "cortes-feitos.json"   # perfis/<id>/controle: lives já cortadas (o vigia não repete)
+
+
+def canal_de_cortes(dados: dict) -> bool:
+    """Canal criado com o assunto "Cortes de lives": os vídeos vêm das lives, nunca da leva de roteiros."""
+    return dados.get("tipo_canal") == "cortes" or (dados.get("nicho") or "").strip().lower() == NICHO
+
+
+def padrao_canal() -> dict:
+    """O que o canal de cortes ganha ao nascer (pedido do dono em 2026-11-13: a voz e o som são os da live, então
+    não há narração; o app realça o que já está no vídeo)."""
+    return {"tipo_canal": "cortes", "formato": "vertical", "duracao_s": 60, "corte_gancho": "texto",
+            "corte_realce": True, "cortes_vigiar": True, "cortes_termos": "GTA 6, GTA VI", "cortes_por_live": 3,
+            "leva_reabastecer": False}
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -623,6 +637,63 @@ def _voz(perfil, texto: str, base: Path) -> tuple[Path | None, list[dict]]:
         return None, []
 
 
+ZOOM_REACAO = 1.18   # zoom seco na hora da reação (o corte de live realça o que já está no vídeo)
+REACAO_S = 1.6       # quanto tempo o zoom fica
+REACAO_DB = 6.0      # o pico precisa passar isso acima da mediana do próprio corte
+
+
+def reacoes(volume: list[float], inicio: float, fim: float, maximo: int = 2) -> list[float]:
+    """Segundos do corte (contados do começo dele) em que a live estoura: grito, risada, explosão."""
+    a, b = int(inicio) + 2, min(int(fim) - 2, len(volume))
+    if b - a < 3:
+        return []
+    trecho = [(s, volume[s]) for s in range(a, b)]
+    base = sorted(v for _, v in trecho)[len(trecho) // 2]
+    escolhidos: list[int] = []
+    for s, v in sorted(trecho, key=lambda x: x[1], reverse=True):
+        if v - base < REACAO_DB or len(escolhidos) >= maximo:
+            break
+        if all(abs(s - e) >= 5 for e in escolhidos):
+            escolhidos.append(s)
+    return sorted(round(s - inicio, 2) for s in escolhidos)
+
+
+def filtro_realce(dur: float, momentos: list[float], com_camera: bool, entrada: str = "[v]",
+                  saida: str = "[vr]") -> str:
+    """Imagem mais nítida e viva e um zoom seco em cada reação (na câmera, quando ela está em cima)."""
+    base = f"{entrada}eq=contrast=1.06:saturation=1.16,cas=strength=0.5"
+    trechos, t = [], 0.0
+    for r in sorted(momentos):
+        ini, fim = max(t, r - 0.2), min(dur - 0.3, r + REACAO_S)
+        if fim - ini >= 0.5 and ini > 0.3:
+            trechos.append((ini, fim))
+            t = fim
+    if not trechos:
+        return base + saida
+    cortes_t, zoom, inicio = [], [], 0.0
+    for ini, fim in trechos:
+        cortes_t += [(inicio, ini), (ini, fim)]
+        zoom += [False, True]
+        inicio = fim
+    cortes_t.append((inicio, None))
+    zoom.append(False)
+    w, h = _par(LARGURA * ZOOM_REACAO), _par(ALTURA * ZOOM_REACAO)
+    y = "0" if com_camera else "(ih-oh)/2"
+    partes = [f"{base},split={len(cortes_t)}" + "".join(f"[r{i}]" for i in range(len(cortes_t)))]
+    for i, ((ini, fim), z) in enumerate(zip(cortes_t, zoom)):
+        corte = f"trim=start={ini:.3f}" + (f":end={fim:.3f}" if fim is not None else "") + ",setpts=PTS-STARTPTS"
+        if z:
+            corte += f",scale={w}:{h},crop={LARGURA}:{ALTURA}:(iw-ow)/2:{y}"
+        partes.append(f"[r{i}]{corte},setsar=1[z{i}]")  # o concat exige o mesmo SAR em todos os pedaços
+    partes.append("".join(f"[z{i}]" for i in range(len(cortes_t))) + f"concat=n={len(cortes_t)}:v=1:a=0{saida}")
+    return ";".join(partes)
+
+
+# fala mais clara (o centro estéreo, onde fica a voz), dinâmica mais justa e volume no padrão das redes
+REALCE_AUDIO = ("aformat=channel_layouts=stereo,highpass=f=60,dialoguenhance=enhance=1.5,"
+                "acompressor=threshold=-20dB:ratio=2.5:attack=8:release=200:makeup=1.5")
+
+
 def montar(perfil, corte: dict, clipe: Path, cam: list[float] | None, credito: str, destino: Path,
            pasta: Path) -> Path:
     """O corte vertical pronto: layout, gancho narrado por cima do começo, legenda, crédito e volume no padrão."""
@@ -646,15 +717,21 @@ def montar(perfil, corte: dict, clipe: Path, cam: list[float] | None, credito: s
     ass = pasta / f"{destino.stem}.ass"
     legenda(falas, corte.get("texto_tela") or "", credito, gancho_fim, dur, bool(cam), ass,
             perfil.dados.get("legenda_cor") or "#FFE500")
-    filtro = filtro_video(largura, altura, cam) + f";[v]ass={ass.name}[vf]"
+    realce = perfil.dados.get("corte_realce", True)
+    filtro = filtro_video(largura, altura, cam)
+    if realce:  # realça o que já está no vídeo: nitidez, cor e zoom seco na reação
+        filtro += ";" + filtro_realce(dur, corte.get("reacoes") or [], bool(cam)) + f";[vr]ass={ass.name}[vf]"
+    else:
+        filtro += f";[v]ass={ass.name}[vf]"
+    som = f"[0:a]{REALCE_AUDIO}" if realce else "[0:a]anull"
     entradas = ["-i", str(clipe.resolve())]
     if gancho_audio:
         entradas += ["-i", str(gancho_audio.resolve())]
-        filtro += (f";[0:a]volume='if(lt(t,{gancho_fim:.2f}),0.22,1)':eval=frame[live];"
+        filtro += (f";{som},volume='if(lt(t,{gancho_fim:.2f}),0.22,1)':eval=frame[live];"
                    "[1:a]adelay=150|150,volume=1.5[narra];"
                    "[live][narra]amix=inputs=2:duration=first:normalize=0,loudnorm=I=-14:TP=-1.5:LRA=11[af]")
     else:
-        filtro += ";[0:a]loudnorm=I=-14:TP=-1.5:LRA=11[af]"
+        filtro += f";{som},loudnorm=I=-14:TP=-1.5:LRA=11[af]"
     destino.parent.mkdir(parents=True, exist_ok=True)
     proc = subprocess.run([_ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", *entradas, "-filter_complex", filtro,
                            "-map", "[vf]", "-map", "[af]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
@@ -778,6 +855,7 @@ def cortar(perfil, url: str, quantidade: int = 3, autorizar: bool = False, como:
     clipes = []
     for n, c in enumerate(escolhidos, 1):
         clipes.append(baixar_trecho(info, c["inicio"], c["fim"], pasta / f"trecho-{n}.mp4"))
+        c["reacoes"] = reacoes(volume, c["inicio"], c["fim"])  # onde entra o zoom seco do realce
     cam = camera(clipes, pasta)
     layout = "camera" if cam else "desfocado"
     arroba = info.get("arroba") or info["canal"]

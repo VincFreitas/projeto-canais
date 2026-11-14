@@ -422,13 +422,20 @@ def perfil_novo():
         flash("Dê um nome ao canal.", "erro")
         return redirect(url_for("perfis_pagina"))
     pid = slug(nome)
+    from .. import cortes
+    nicho = request.form.get("nicho", "").strip()
+    extra = cortes.padrao_canal() if nicho == cortes.NICHO else {}  # canal de cortes: sem narração e sem leva
     try:
         criar(pid, {"nome": nome, "arroba": request.form.get("arroba", "").strip() or f"@{pid.replace('-', '')}",
-                    "nicho": request.form.get("nicho", "").strip(),
-                    "descricao": request.form.get("descricao", "").strip(), **campos_canal(request.form)})
+                    "nicho": nicho, "descricao": request.form.get("descricao", "").strip(),
+                    **campos_canal(request.form), **extra})
     except SystemExit as erro:
         flash(str(erro), "erro")
         return redirect(url_for("perfis_pagina"))
+    if extra:
+        flash(f"Canal {nome} criado. Registre os streamers que autorizaram cortes e cole a primeira live; as lives "
+              "novas deles com GTA 6 no título viram cortes sozinhas. Depois, crie as contas do canal.", "ok")
+        return redirect(url_for("novo", pid=pid) + "#cortes")
     from .. import leva
     from ..aprendizado import LEVA_INICIAL
     canal = carregar(pid)

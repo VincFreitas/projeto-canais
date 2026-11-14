@@ -2,6 +2,8 @@
 {% import "_canal.html" as canal with context %}
 {% block titulo %}Novo vídeo · {{ d.nome }}{% endblock %}
 {% block corpo %}
+{% set canal_cortes = d.get('tipo_canal') == 'cortes' or (d.get('nicho') or '') == 'cortes-de-lives' %}
+{% if not canal_cortes %}
 <section class="cartao" style="margin-bottom:16px">
   <h2 style="margin-top:0">Sobre o que é o vídeo?</h2>
   <form method="post" action="{{ url_for('criar_video', pid=p.id) }}" class="pedido-video">
@@ -38,6 +40,7 @@
     <button class="botao">Gerar mais uma leva</button>
   </form>
 </section>
+{% endif %}
 
 {% set fontes_cortes = d.get('cortes_fontes') or [] %}
 <section class="cartao" id="cortes" style="margin-bottom:16px">
@@ -106,6 +109,7 @@
     deixa esses trechos de fora.</p>
 </section>
 
+{% if not canal_cortes %}
 <details class="mais" id="mais-opcoes" {{ 'open' if descoberta.termo or avancado }}>
 <summary>Mais opções: ideias de tema, roteiro ou narração prontos</summary>
 <section class="cartao" id="assuntos" style="margin-bottom:16px">
@@ -201,6 +205,7 @@ Dois deles bombeiam o sangue pelas brânquias. | octopus tentacles">{{ f.cenas o
 </form>
 {% endif %}
 </details>
+{% endif %}
 {% endblock %}
 
 <!-- SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0 -->

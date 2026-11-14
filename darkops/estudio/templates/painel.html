@@ -36,6 +36,20 @@
   <a href="{{ url_for('conexoes', pid=p.id) }}">Conectar agora</a></div>
 {% endif %}
 
+{% set canal_cortes = d.get('tipo_canal') == 'cortes' or (d.get('nicho') or '') == 'cortes-de-lives' %}
+{% if canal_cortes %}
+<section class="cartao" style="margin-top:16px">
+  <h2 style="margin-top:0">Novos cortes</h2>
+  <form method="post" action="{{ url_for('criar_cortes', pid=p.id) }}" class="pedido-video">
+    <input type="url" name="live" required maxlength="300" placeholder="Link de uma live que já acabou (YouTube, Twitch ou Kick)">
+    <input type="hidden" name="quantidade" value="{{ d.get('cortes_por_live') or 3 }}">
+    <button class="botao">Fazer cortes</button>
+  </form>
+  <p class="dica">A voz e o som são os da live: o app acha os melhores momentos, realça a fala e a imagem, dá zoom na reação e
+    põe título, legenda e crédito. {{ 'As lives novas dos streamers autorizados viram cortes sozinhas.' if d.get('cortes_vigiar') }}
+    <a href="{{ url_for('novo', pid=p.id) }}#cortes">Streamers autorizados</a></p>
+</section>
+{% else %}
 <section class="cartao" style="margin-top:16px">
   <h2 style="margin-top:0">Novo vídeo</h2>
   <form method="post" action="{{ url_for('criar_video', pid=p.id) }}" class="pedido-video">
@@ -44,6 +58,7 @@
   </form>
   <p class="dica">A IA pesquisa os fatos, escreve, narra e anima. Leva alguns minutos; o vídeo aparece aqui para você aprovar.</p>
 </section>
+{% endif %}
 
 {% if esperando %}
 <section style="margin-top:22px">

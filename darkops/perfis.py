@@ -192,6 +192,8 @@ def campos_canal(form) -> dict:
     # aprovação automática (aprovacao.py); sem o campo no formulário, fica a do perfil
     if "aprovacao_automatica" in form:
         teste["aprovacao_automatica"] = form.get("aprovacao_automatica") == "sim"
+    if form.get("corte_realce_form"):  # canal de cortes: realce do que já está no vídeo (cortes.filtro_realce)
+        teste["corte_realce"] = bool(form.get("corte_realce"))
     # gancho final do vídeo (palavra.GANCHOS); sem o campo no formulário, fica o do perfil
     from .palavra import GANCHOS, palavra as palavra_app
     chamada = ({"gancho_final": form.get("gancho_final"), "palavra_app": palavra_app({"palavra_app": form.get("palavra_app")})}

@@ -153,6 +153,31 @@ class TestLayout(unittest.TestCase):
         self.assertIn("\\kf", texto)
 
 
+class TestCanalDeCortes(unittest.TestCase):
+    def test_canal(self):
+        self.assertTrue(cortes.canal_de_cortes({"nicho": "cortes-de-lives"}))
+        self.assertTrue(cortes.canal_de_cortes({"tipo_canal": "cortes"}))
+        self.assertFalse(cortes.canal_de_cortes({"nicho": "curiosidades"}))
+        padrao = cortes.padrao_canal()
+        self.assertEqual(padrao["corte_gancho"], "texto")  # sem narração: a voz é a da live
+        self.assertTrue(padrao["corte_realce"] and padrao["cortes_vigiar"])
+
+    def test_reacoes(self):
+        volume = [-30.0] * 300
+        volume[120], volume[121], volume[140] = -8.0, -9.0, -10.0
+        self.assertEqual(cortes.reacoes(volume, 100, 150), [20, 40])
+        self.assertEqual(cortes.reacoes([-30.0] * 300, 100, 150), [])  # sem estouro, sem zoom
+
+    def test_filtro_realce(self):
+        sem = cortes.filtro_realce(40, [], True)
+        self.assertIn("cas=", sem)
+        self.assertNotIn("concat", sem)
+        com = cortes.filtro_realce(40, [10.0, 25.0], True)
+        self.assertIn("concat=n=5", com)
+        self.assertEqual(com.count("setsar=1"), 5)
+        self.assertTrue(com.endswith("[vr]"))
+
+
 class TestLinkDeLive(unittest.TestCase):
     def test_link(self):
         from darkops.estudio import link_de_live

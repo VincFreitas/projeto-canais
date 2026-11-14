@@ -374,6 +374,10 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "", serie_tota
     no meio, a próxima leva primeiro termina as prévias dos roteiros que ficaram sem vídeo.
     Com `serie_total` (2 ou 4), a leva é uma série em partes sobre o tema; `serie_id` continua uma série já começada."""
     from . import serie
+    from .cortes import canal_de_cortes
+    if canal_de_cortes(perfil.dados):  # canal de cortes: os vídeos vêm das lives (cortes.py), nunca de roteiros
+        print("canal de cortes de live: nada de leva de roteiros; os cortes saem das lives dos streamers autorizados")
+        return []
     trava = perfil.controle / "leva.trava"
     pendentes_arq = perfil.controle / "leva-pendentes.json"
     perfil.controle.mkdir(parents=True, exist_ok=True)
@@ -482,6 +486,9 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "", serie_tota
 
 def precisa_reabastecer(perfil) -> bool:
     d = perfil.dados
+    from .cortes import canal_de_cortes
+    if canal_de_cortes(d):
+        return False
     return bool(d.get("leva_reabastecer")) and len(list(perfil.fila.glob("*.json"))) <= int(d.get("leva_minimo", 3))
 
 
@@ -547,6 +554,9 @@ def retomar_adiada(perfil) -> bool:
 def em_segundo_plano(perfil, quantidade: int, tema: str = "", serie: dict | None = None) -> list[str]:
     """Dispara a leva num processo separado e volta na hora (o n8n não fica esperando horas).
     Com a configuração do canal incompleta, só guarda a leva e devolve o que falta."""
+    from .cortes import canal_de_cortes
+    if canal_de_cortes(perfil.dados):
+        return []
     faltam = falta_configurar(perfil)
     if faltam:
         _adiar(perfil, quantidade, tema, serie=serie)

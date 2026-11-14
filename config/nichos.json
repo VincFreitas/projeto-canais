@@ -49,5 +49,10 @@
     "idioma": "en",
     "descricao": "História em inglês, fatos pouco conhecidos",
     "buscas": ["dark history", "history facts you didn't know", "worst jobs in history", "what life was like in"]
+  },
+  "cortes-de-lives": {
+    "idioma": "pt",
+    "descricao": "Os melhores momentos das lives de jogos (GTA 6 e outros), com a voz e o som da própria live",
+    "buscas": ["cortes gta 6", "gta 6 live melhores momentos", "cortes de live gta rp", "momentos engraçados live gta"]
   }
 }
