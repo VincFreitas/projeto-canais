@@ -40,6 +40,7 @@ _TIPOS = {
     "outliers": (1, 5, "A pesquisa de assuntos terminou."),
     "rotinas": (0.5, 10, "A rotina terminou: veja o resultado em Saúde do app."),
     "cofre-proteger": (0.2, 1, "Os segredos estão cifrados."),
+    "cortes": (4, 25, "Os cortes estão no Início para você assistir e aprovar."),
 }
 
 

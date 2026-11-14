@@ -18,11 +18,13 @@
     <h2 style="font-size:22px">{{ r.manchete or r.titulo }}</h2>
     <p><span class="selo formato">{{ rotulo_video(r, d) }}</span></p>
     <p>
-      {% if s.aprovado %}<span class="selo aprovado">✓ aprovado para postar</span>
+      {% set auto = s.dados.get('aprovacao_automatica') or {} %}
+      {% if s.aprovado %}<span class="selo aprovado">✓ {{ 'aprovado sozinho (passou nas conferências)' if auto.resultado == 'aprovado sozinho' else 'aprovado para postar' }}</span>
       {% elif s.estado == 'pronta' %}<span class="selo pronta">prévia pronta</span>
       {% elif s.estado == 'desatualizada' %}<span class="selo desatualizada">prévia desatualizada</span>
       {% else %}<span class="selo sem-previa">sem prévia</span>{% endif %}
     </p>
+    {% if not s.aprovado and auto.motivos %}<p class="dica">Não aprovei sozinho: {{ auto.motivos | join('; ') }}</p>{% endif %}
     <div class="acoes">
       <form method="post" action="{{ url_for('previa', pid=p.id, nome=s.arquivo) }}"><button class="botao secundario">{{ 'Gerar prévia de novo' if s.video else 'Gerar prévia' }}</button></form>
       {% if avancado %}<a class="botao secundario" href="{{ url_for('editar', pid=p.id, nome=s.arquivo) }}">Editar</a>{% endif %}

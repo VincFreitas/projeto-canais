@@ -54,6 +54,8 @@
       <video src="{{ url_for('midia', nome=i.video) }}" controls playsinline preload="metadata"></video>
       <div class="corpo">
         <h3>{{ i.dados.manchete or i.dados.titulo }}</h3>
+        {% set auto = i.dados.get('aprovacao_automatica') %}
+        {% if auto and auto.motivos %}<p class="dica" style="margin:4px 0 8px">Não aprovei sozinho: {{ auto.motivos | join('; ') }}</p>{% endif %}
         <div class="acoes">
           <form method="post" action="{{ url_for('aprovar', pid=p.id, nome=i.arquivo) }}"><button class="botao pequeno">Aprovar</button></form>
           <a class="botao pequeno secundario" href="{{ url_for('ver', pid=p.id, nome=i.arquivo) }}">Detalhes</a>

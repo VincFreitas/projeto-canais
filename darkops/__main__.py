@@ -270,6 +270,27 @@ def cmd_perfis_ativos(a):
                            and (not na_hora or slot_na_hora(p.dados, janela_min=janela))]})
 
 
+def cmd_cortes(a):
+    from . import cortes
+    from .perfis import carregar
+    perfil = carregar()
+    if a.fonte:
+        f = cortes.registrar_fonte(perfil, url=a.fonte, como=a.como or "registrado pela linha de comando")
+        print(f"autorização registrada: {f['nome']} ({', '.join(f['chaves'])})")
+        return
+    if a.vigiar:
+        feitos = cortes.vigiar(perfil)
+        print(f"{len(feitos)} corte(s) novo(s) na fila")
+        return
+    if not a.live:
+        sys.exit("mande o link de uma live gravada, --vigiar ou --fonte <link do canal>")
+    quantidade = a.quantidade or int(perfil.dados.get("cortes_por_live") or 3)
+    feitos = cortes.cortar(perfil, a.live, max(1, min(quantidade, 10)), autorizar=a.autorizado, como=a.como)
+    for f in feitos:
+        print(f"na fila: {f.name}")
+    _resultado({"cortes": [f.name for f in feitos]})
+
+
 def cmd_mercados(_):
     from .mercados import MERCADOS
     for cod, m in MERCADOS.items():
@@ -1052,6 +1073,17 @@ def main():
     s.add_argument("--idioma", default="pt")
     s.set_defaults(fn=lambda a: print(__import__("darkops.voz_local", fromlist=["transcrever"])
                                       .transcrever(Path(a.arquivo).resolve(), a.idioma)["texto"]))
+
+    s = sub.add_parser("cortes", help="cortes verticais de uma live que já acabou (YouTube, Twitch ou Kick), na fila "
+                                      "para aprovar; --vigiar corta as lives novas dos streamers autorizados")
+    s.add_argument("live", nargs="?", help="link da live gravada")
+    s.add_argument("--quantidade", type=int, default=0, help="quantos cortes tirar da live (padrão: o do canal, ou 3)")
+    s.add_argument("--autorizado", action="store_true",
+                   help="registra que você tem autorização do streamer (por escrito ou no programa de cortes dele)")
+    s.add_argument("--como", default="", help="como foi a autorização (fica anotado no canal)")
+    s.add_argument("--vigiar", action="store_true", help="procura lives novas dos streamers autorizados e corta")
+    s.add_argument("--fonte", help="só registra o canal do streamer como autorizado (link do canal) e sai")
+    s.set_defaults(fn=cmd_cortes)
 
     s = sub.add_parser("autorizar-youtube", help="autoriza o canal uma vez pelo navegador e salva o token")
     s.add_argument("--analytics", action="store_true", help="também libera minutos assistidos e retenção")

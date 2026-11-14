@@ -62,6 +62,7 @@ MODELO = {
     "edicao": "pro",            # quantos elementos na tela: simples, leve ou pro (pro = tudo que o roteiro trouxer)
     "acervo_nasa": False,       # usar o acervo de imagens da NASA (domínio público, com crédito)
     "instagram_teste": "",      # trial reels: "" (normal), "automatico" ou "manual" (instagram.TESTE)
+    "aprovacao_automatica": True,  # o vídeo que passa nas conferências entra na postagem sozinho (aprovacao.py)
     "gancho_final": "comentario",  # o que a última frase pede (palavra.GANCHOS); "app" divulga o Projeto Canais
     "palavra_app": "DARK",
     # personalidade do canal: o /escrever-roteiro e a leva seguem isso em todo roteiro
@@ -188,6 +189,9 @@ def campos_canal(form) -> dict:
     # trial reels do Instagram (instagram.TESTE); sem o campo no formulário, fica o do perfil
     teste = ({"instagram_teste": form.get("instagram_teste") if form.get("instagram_teste") in ("manual", "automatico")
               else ""} if "instagram_teste" in form else {})
+    # aprovação automática (aprovacao.py); sem o campo no formulário, fica a do perfil
+    if "aprovacao_automatica" in form:
+        teste["aprovacao_automatica"] = form.get("aprovacao_automatica") == "sim"
     # gancho final do vídeo (palavra.GANCHOS); sem o campo no formulário, fica o do perfil
     from .palavra import GANCHOS, palavra as palavra_app
     chamada = ({"gancho_final": form.get("gancho_final"), "palavra_app": palavra_app({"palavra_app": form.get("palavra_app")})}

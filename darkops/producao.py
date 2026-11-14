@@ -191,6 +191,9 @@ def _tipo_da_cena(roteiro: dict, indice: int) -> str:
 
 def produzir(caminho: Path, legenda: bool | None = None) -> Path:
     caminho = caminho.resolve()
+    if json.loads(caminho.read_text(encoding="utf-8")).get("tipo") == "corte":  # corte de live: o vídeo já está pronto
+        from .cortes import garantir_video
+        return garantir_video(caminho)
     from .aparencia import PULGA, cores as cores_canal, garantir as garantir_foto
     from .perfis import carregar as carregar_perfil
     perfil = carregar_perfil()

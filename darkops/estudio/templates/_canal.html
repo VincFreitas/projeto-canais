@@ -89,6 +89,14 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <input type="text" name="outra_plataforma" value="{{ d.outra_plataforma }}" placeholder="Outra plataforma (opcional)">
 <p class="dica">A postagem automática funciona no YouTube e no Instagram; as outras ficam registradas para postar à mão.
   Dá para marcar uma plataforma que ainda falta configurar: ela só posta depois de pronta.</p>
+<label for="aprovacao_automatica">Aprovação dos vídeos</label>
+<select id="aprovacao_automatica" name="aprovacao_automatica">
+  <option value="sim" {{ 'selected' if d.get('aprovacao_automatica') }}>Aprovar sozinho os vídeos que passarem nas conferências</option>
+  <option value="" {{ 'selected' if not d.get('aprovacao_automatica') }}>Eu aprovo cada vídeo antes de postar</option>
+</select>
+<p class="dica">Aprovar sozinho: o vídeo entra na postagem se passar na conferência técnica (tela preta, silêncio, volume),
+  na revisão visual da IA (nota 7 ou mais) e na conferência do texto. Corte de live só de streamer autorizado. O que não
+  passar espera você no Início, com o motivo. Dá para tirar a aprovação de qualquer vídeo antes do horário.</p>
 <label for="instagram_teste">Reels de teste no Instagram (trial reels)</label>
 <select id="instagram_teste" name="instagram_teste">
   <option value="" {{ 'selected' if not d.get('instagram_teste') }}>Não: todo Reel vai para todo mundo</option>
@@ -131,7 +139,7 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
     <span class="suave" data-estimativa></span>
   </div>
   <p class="dica">Sempre em número par: 2 vídeos por dia (12h e 19h). {{ est.aviso }} O tempo é uma estimativa para o estilo e a duração atuais: cada roteiro é escrito pelo
-    Claude Code no seu PC (com pesquisa e fontes) e depois vira prévia. Nada vai ao ar sem a sua aprovação.</p>
+    Claude Code no seu PC (com pesquisa e fontes) e depois vira prévia. Com a aprovação automática, entra na postagem o que passar nas conferências.</p>
   <label style="font-weight:400"><input type="checkbox" name="leva_reabastecer" {{ 'checked' if d.leva_reabastecer }}>
     Criar outra leva sozinho quando sobrarem
     <input type="number" name="leva_minimo" min="0" max="14" value="{{ d.leva_minimo }}" style="width:70px;display:inline-block"> vídeos ou menos na fila</label>

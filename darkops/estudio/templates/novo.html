@@ -15,7 +15,7 @@
     <button class="botao">Criar vídeo</button>
   </form>
   <p class="dica">A IA pesquisa os fatos com fontes, escreve no jeito do canal, narra, anima e deixa o vídeo no Início para você aprovar.
-    Nada vai ao ar sem a sua aprovação. Na série, cada parte se entende sozinha, chama a próxima e sai sempre depois da anterior.</p>
+    {{ 'O que passar nas conferências entra na postagem sozinho; o resto espera você.' if d.get('aprovacao_automatica') else 'Nada vai ao ar sem a sua aprovação.' }} Na série, cada parte se entende sozinha, chama a próxima e sai sempre depois da anterior.</p>
 </section>
 
 <section class="cartao leva-anteriores" style="margin-bottom:16px">
@@ -37,6 +37,73 @@
     </select>
     <button class="botao">Gerar mais uma leva</button>
   </form>
+</section>
+
+{% set fontes_cortes = d.get('cortes_fontes') or [] %}
+<section class="cartao" id="cortes" style="margin-bottom:16px">
+  <h2 style="margin-top:0">Cortes de live</h2>
+  <p class="suave" style="margin:4px 0 12px">Cole o link de uma live que já acabou (YouTube, Twitch ou Kick). O app acha os
+    melhores momentos, corta em vertical com a câmera do streamer em cima, fala o gancho na voz do canal, põe legenda e o
+    crédito do streamer, e deixa os cortes no Início para você aprovar.</p>
+  <form method="post" action="{{ url_for('criar_cortes', pid=p.id) }}" class="pedido-video">
+    <label class="sr-only" for="link-live">Link da live gravada</label>
+    <input id="link-live" type="url" name="live" required maxlength="300"
+           placeholder="Ex.: https://www.twitch.tv/videos/... ou https://www.youtube.com/watch?v=...">
+    <label class="sr-only" for="qtd-cortes">Quantos cortes</label>
+    <select id="qtd-cortes" name="quantidade">
+      {% for n in range(1, 7) %}<option value="{{ n }}" {{ 'selected' if n == (d.get('cortes_por_live') or 3) }}>{{ n }} {{ 'corte' if n == 1 else 'cortes' }}</option>{% endfor %}
+    </select>
+    <button class="botao">Fazer cortes</button>
+    <label style="flex-basis:100%;display:flex;gap:8px;align-items:flex-start;font-size:14px">
+      <input type="checkbox" name="autorizado" value="1" style="width:auto;margin-top:3px">
+      <span>Tenho autorização deste streamer para postar cortes (por escrito ou no programa de cortes dele).
+        Corte de quem não autorizou fica na fila, mas não pode ser aprovado.</span>
+    </label>
+  </form>
+
+  <details class="mais" style="margin-top:12px" {{ 'open' if fontes_cortes }}>
+    <summary>Streamers autorizados ({{ fontes_cortes | length }}) e cortes automáticos das lives novas</summary>
+    {% if fontes_cortes %}
+    <ul style="list-style:none;padding:0;margin:8px 0;display:grid;gap:8px">
+      {% for f in fontes_cortes %}
+      <li style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+        <span><strong>{{ f.nome }}</strong> · {{ f.plataforma | capitalize }} · autorizado em {{ f.autorizado_em }}</span>
+        <form method="post" action="{{ url_for('criar_cortes', pid=p.id) }}">
+          <input type="hidden" name="acao" value="remover"><input type="hidden" name="chave" value="{{ (f.chaves or [''])[0] }}">
+          <button class="botao secundario pequeno">Retirar</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="suave">Nenhum streamer autorizado ainda: marque a caixa acima ao cortar a primeira live, ou registre o canal aqui.</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('criar_cortes', pid=p.id) }}" class="pedido-video" style="margin-top:8px">
+      <input type="hidden" name="acao" value="fonte">
+      <label class="sr-only" for="canal-streamer">Link do canal do streamer</label>
+      <input id="canal-streamer" type="url" name="canal" required maxlength="300" placeholder="Canal do streamer: youtube.com/@..., twitch.tv/... ou kick.com/...">
+      <button class="botao secundario">Registrar autorização</button>
+    </form>
+    <form method="post" action="{{ url_for('criar_cortes', pid=p.id) }}" style="margin-top:14px;display:grid;gap:10px">
+      <input type="hidden" name="acao" value="vigia">
+      <label style="display:flex;gap:8px;align-items:center">
+        <input type="checkbox" name="cortes_vigiar" value="1" style="width:auto" {{ 'checked' if d.get('cortes_vigiar') }}>
+        Cortar sozinho as lives novas dos streamers autorizados (o Estúdio confere a cada hora, longe dos horários de postar)
+      </label>
+      <label>Só lives com estas palavras no título (separe por vírgula; em branco, todas)
+        <input type="text" name="cortes_termos" maxlength="200" value="{{ d.get('cortes_termos') or 'GTA 6, GTA VI' }}">
+      </label>
+      <label>Cortes por live
+        <select name="cortes_por_live" style="width:auto">
+          {% for n in range(1, 7) %}<option value="{{ n }}" {{ 'selected' if n == (d.get('cortes_por_live') or 3) }}>{{ n }}</option>{% endfor %}
+        </select>
+      </label>
+      <div><button class="botao secundario">Salvar</button></div>
+    </form>
+  </details>
+  <p class="dica">O YouTube só paga por corte com valor próprio: o gancho narrado, o título e a montagem ajudam, mas corte só
+    aparado conta como conteúdo reutilizado (mesmo com autorização). A Rockstar derruba spoiler da história do GTA, e a IA
+    deixa esses trechos de fora.</p>
 </section>
 
 <details class="mais" id="mais-opcoes" {{ 'open' if descoberta.termo or avancado }}>

@@ -7,7 +7,8 @@
                                                leva_minimo vídeos ou menos (o n8n chama depois de cada post)
 
 Os roteiros são escritos pelo Claude Code do próprio PC (/escrever-roteiro, com pesquisa e fontes), no nicho,
-formato e duração do perfil. Tudo entra na fila sem aprovação: nada vai ao ar antes de você aprovar.
+formato e duração do perfil. Tudo entra na fila sem aprovação; com a aprovação automática do canal (aprovacao.py), o que passa nas
+conferências é aprovado sozinho, e o resto espera você.
 Tudo roda no seu PC, então ele precisa ficar ligado até a leva terminar.
 """
 import json
@@ -87,11 +88,11 @@ def _claude() -> str | None:
 # esforço de raciocínio por tarefa: tarefa simples gasta menos do limite do plano do Claude
 ESFORCO = {"roteiro": "high", "analise": "high", "aprendizado": "high", "ajuste": "medium",
            "descricao": "low", "comentarios": "low", "nomes": "low", "visual": "medium", "carrossel": "medium",
-           "prancha": "high", "ferramentas": "medium"}
+           "prancha": "high", "ferramentas": "medium", "cortes": "medium"}
 # modelo por tarefa (roteador por nível): tarefa curta vai para um modelo menor e mais rápido, que gasta menos do
 # limite do plano; roteiro, análise, aprendizado e ajuste ficam no modelo padrão do Claude Code (o maior)
 MODELO = {"descricao": "haiku", "comentarios": "haiku", "nomes": "haiku", "visual": "sonnet", "carrossel": "sonnet",
-          "ferramentas": "sonnet"}
+          "ferramentas": "sonnet", "cortes": "sonnet"}
 _LIMITE = re.compile(r"usage limit|limit reached|hit your limit|rate.?limit|out of (extra )?usage|"
                      r"limite de uso|resets? (at|às|as)? ?\d", re.I)
 
@@ -331,6 +332,18 @@ def _revisao_visual(perfil, roteiro: Path) -> None:
         print(f"  revisão visual não rodou: {str(erro)[:160]}", flush=True)
 
 
+def _aprovar_sozinho(perfil, roteiro: Path) -> bool:
+    """Aprovação automática ligada no canal: o vídeo que passa em todas as conferências entra na postagem."""
+    from . import aprovacao
+    r = aprovacao.aprovar_sozinho(perfil, roteiro)
+    if r:
+        print("  aprovado sozinho: passou nas conferências do vídeo, da imagem e do texto", flush=True)
+    elif r is False:
+        motivos = json.loads(roteiro.read_text(encoding="utf-8")).get("aprovacao_automatica", {}).get("motivos") or []
+        print(f"  esperando a sua aprovação: {'; '.join(motivos)[:300]}", flush=True)
+    return bool(r)
+
+
 def _carrossel(perfil, roteiro: Path) -> None:
     """Canal com Instagram: o carrossel do roteiro já fica pronto para o dono aprovar. Nunca trava a leva."""
     if not perfil.dados.get("instagram"):
@@ -448,8 +461,9 @@ def criar(perfil, quantidade: int, tema: str = "", formato: str = "", serie_tota
                 feitos.append(roteiro)
                 _revisao_visual(perfil, roteiro)
                 _carrossel(perfil, roteiro)
-                from . import whatsapp
-                whatsapp.pronto_para_aprovar(perfil, roteiro)  # o vídeo vai para o celular com Aprovar/Recusar
+                if not _aprovar_sozinho(perfil, roteiro):
+                    from . import whatsapp
+                    whatsapp.pronto_para_aprovar(perfil, roteiro)  # o vídeo vai para o celular com Aprovar/Recusar
             pendentes.remove(roteiro)
             anotar()
     finally:

@@ -778,6 +778,72 @@ def criar_video(pid):
     return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("painel", pid=pid)))
 
 
+_HOSTS_LIVE = ("youtube.com", "youtu.be", "twitch.tv", "kick.com")
+
+
+def link_de_live(texto: str) -> str:
+    """Link de live do YouTube, da Twitch ou do Kick, limpo (sem parâmetros soltos); "" se não for um deles."""
+    from urllib.parse import parse_qs, urlparse
+    bruto = (texto or "").strip()
+    try:
+        u = urlparse(bruto)
+    except ValueError:
+        return ""
+    host = (u.hostname or "").lower()
+    if u.scheme not in ("http", "https") or not any(host == h or host.endswith("." + h) for h in _HOSTS_LIVE):
+        return ""
+    if host.endswith("youtube.com") and u.path == "/watch":
+        video = (parse_qs(u.query).get("v") or [""])[0]
+        limpo = f"https://www.youtube.com/watch?v={video}" if re.fullmatch(r"[\w-]{6,20}", video) else ""
+    else:
+        limpo = f"https://{host}{u.path}"
+    return limpo if limpo and re.fullmatch(r"https://[\w./@-]+(\?v=[\w-]+)?", limpo) else ""
+
+
+@app.post("/p/<pid>/cortes")
+def criar_cortes(pid):
+    """Cortes de live: corta uma live gravada, registra ou tira a autorização de um streamer e liga o vigia."""
+    from .. import cortes
+    p = _perfil(pid)
+    acao = request.form.get("acao", "cortar")
+    voltar = url_for("novo", pid=pid) + "#cortes"
+    if acao == "vigia":
+        try:
+            por_live = max(1, min(6, int(request.form.get("cortes_por_live") or 3)))
+        except ValueError:
+            por_live = 3
+        p.salvar({"cortes_vigiar": bool(request.form.get("cortes_vigiar")), "cortes_por_live": por_live,
+                  "cortes_termos": " ".join(request.form.get("cortes_termos", "").split())[:200]})
+        flash("Vigia dos cortes salvo." if request.form.get("cortes_vigiar") else "Vigia dos cortes desligado.", "ok")
+        return redirect(voltar)
+    if acao == "remover":
+        chave = request.form.get("chave", "")
+        p.salvar({"cortes_fontes": [f for f in cortes.fontes(p) if chave not in (f.get("chaves") or [])]})
+        flash("Autorização retirada: os cortes desse streamer não podem mais ser aprovados.", "ok")
+        return redirect(voltar)
+    if acao == "fonte":
+        link = link_de_live(request.form.get("canal", ""))
+        if not link or not cortes.chaves_do_link(link):
+            flash("Cole o link do canal do streamer (youtube.com/@..., twitch.tv/... ou kick.com/...).", "erro")
+            return redirect(voltar)
+        cortes.registrar_fonte(p, url=link, como="marcado pelo dono no Estúdio")
+        flash("Autorização registrada.", "ok")
+        return redirect(voltar)
+    link = link_de_live(request.form.get("live", ""))
+    if not link:
+        flash("Cole o link de uma live gravada do YouTube, da Twitch ou do Kick.", "erro")
+        return redirect(voltar)
+    try:
+        quantidade = max(1, min(6, int(request.form.get("quantidade") or 3)))
+    except ValueError:
+        quantidade = 3
+    args = ["cortes", link, "--quantidade", str(quantidade)]
+    if request.form.get("autorizado"):
+        args += ["--autorizado", "--como", "marcado pelo dono no Estúdio"]
+    job = _iniciar_job(p, f"Cortes de live ({quantidade})", [args])
+    return redirect(url_for("acompanhar", pid=pid, job=job, voltar=url_for("painel", pid=pid)))
+
+
 def _novidade():
     from .. import app as app_local
     return app_local.novidade_pendente()
@@ -1160,8 +1226,12 @@ def aprovar(pid, nome):
     caminho = _arquivo_fila(p, nome)
     situacao = _situacao(caminho)
     dados = situacao["dados"]
+    from ..cortes import pode_aprovar
+    motivo = pode_aprovar(p, caminho, dados)  # corte de live: só de streamer com autorização registrada
     if not dados.get("aprovado") and situacao["estado"] != "pronta":
         flash("Gere e assista a prévia antes de aprovar.", "erro")
+    elif motivo:
+        flash(motivo, "erro")
     else:
         dados["aprovado"] = not dados.get("aprovado")
         _gravar(caminho, dados)
@@ -2102,7 +2172,48 @@ def rodar(porta: int = 8765, abrir: bool = True) -> None:
     threading.Thread(target=_vigiar_levas_adiadas, daemon=True).start()
     threading.Thread(target=_vigiar_palavra, daemon=True).start()
     threading.Thread(target=_vigiar_rotinas, daemon=True).start()
+    threading.Thread(target=_vigiar_cortes, daemon=True).start()
+    threading.Thread(target=_vigiar_aprovacao, daemon=True).start()
     servidor.serve_forever()
+
+
+def _vigiar_aprovacao() -> None:
+    """Aprovação automática (aprovacao.py): a cada 10 min, os vídeos com prévia pronta e sem aprovação passam pelas
+    conferências (cada prévia uma vez só). Com vídeo sendo feito, espera: a leva já confere o que ela produz."""
+    from .. import aprovacao, terceiros
+    time.sleep(3 * 60)
+    while True:
+        if not terceiros.ocupado():
+            for p in listar():
+                try:
+                    for nome, ok in aprovacao.pendentes(p):
+                        print(f"aprovação automática em {p.id}: {nome} " + ("aprovado" if ok else "espera o dono"))
+                except Exception as erro:  # noqa: BLE001
+                    print(seguranca.ocultar(f"aprovação automática em {p.id}: {erro}"))
+        time.sleep(600)
+
+
+def _vigiar_cortes() -> None:
+    """Cortes de live sozinhos: a cada hora, os canais com o vigia ligado procuram lives novas dos streamers
+    autorizados (cortes.vigiar). Nunca perto de um horário de postar nem com vídeo sendo feito; os cortes ficam na
+    fila esperando a aprovação do dono, como qualquer vídeo."""
+    from .. import rotinas, sistema, terceiros
+    time.sleep(5 * 60)
+    while True:
+        for p in listar():
+            if not p.dados.get("cortes_vigiar") or not p.dados.get("cortes_fontes"):
+                continue
+            if rotinas._perto_de_postar() or terceiros.ocupado():
+                break
+            try:
+                proc = subprocess.run(_cli(p.id, "cortes", "--vigiar"), cwd=config.RAIZ, capture_output=True,
+                                      text=True, encoding="utf-8", errors="replace", timeout=4 * 3600,
+                                      env={**os.environ, "PYTHONIOENCODING": "utf-8"}, **sistema.sem_janela())
+                ultima = (proc.stdout or proc.stderr or "").strip().splitlines()[-1:] or [""]
+                print(seguranca.ocultar(f"cortes de {p.id}: {ultima[0]}"))
+            except Exception as erro:  # noqa: BLE001 — sem internet ou live fora do ar: tenta na próxima hora
+                print(seguranca.ocultar(f"cortes de {p.id}: {erro}"))
+        time.sleep(3600)
 
 
 def _vigiar_rotinas() -> None:

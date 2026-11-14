@@ -450,6 +450,10 @@ def _decidir_video(perfil, nome: str, aprovar: bool) -> str:
     if aprovar:
         if caminho not in _pendentes(perfil) and not dados.get("aprovado"):
             return "A prévia desse vídeo não está pronta. Gere a prévia no Estúdio antes de aprovar."
+        from .cortes import pode_aprovar
+        motivo = pode_aprovar(perfil, caminho, dados)
+        if motivo:
+            return motivo
         video = _video(dados, caminho)
         dados["aprovado"] = True
         caminho.write_text(json.dumps(dados, ensure_ascii=False, indent=2), encoding="utf-8")

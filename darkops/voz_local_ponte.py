@@ -35,9 +35,19 @@ def ouvir(p: dict) -> dict:
     from faster_whisper import WhisperModel
     modelo = WhisperModel(p.get("modelo", "small"), device="cpu", compute_type="int8",
                           download_root=str(Path(p["modelos"]) / "whisper"))
-    segmentos, _ = modelo.transcribe(p["audio"], language=p.get("idioma") or None, vad_filter=True)
-    lista = [{"inicio": round(s.start, 2), "fim": round(s.end, 2), "texto": s.text.strip()} for s in segmentos]
-    return {"texto": " ".join(s["texto"] for s in lista), "segmentos": lista}
+    palavras = bool(p.get("palavras"))  # tempo de cada palavra (legenda dos cortes de live)
+    segmentos, _ = modelo.transcribe(p["audio"], language=p.get("idioma") or None, vad_filter=True,
+                                     word_timestamps=palavras)
+    lista, todas = [], []
+    for s in segmentos:
+        lista.append({"inicio": round(s.start, 2), "fim": round(s.end, 2), "texto": s.text.strip()})
+        if palavras:
+            todas += [{"texto": w.word.strip(), "inicio": round(w.start, 2), "fim": round(w.end, 2)}
+                      for w in (s.words or []) if w.word.strip()]
+    saida = {"texto": " ".join(s["texto"] for s in lista), "segmentos": lista}
+    if palavras:
+        saida["palavras"] = todas
+    return saida
 
 
 if __name__ == "__main__":

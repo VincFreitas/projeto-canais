@@ -58,12 +58,13 @@ def falar(frases: list[str], voz: str, velocidade: float, pasta: Path) -> int:
                    "velocidade": velocidade, "modelos": str(MODELOS), "pasta": str(pasta)}, 1800)["taxa"]
 
 
-def transcrever(audio: Path, idioma: str = "pt") -> dict:
-    """{"texto", "segmentos"} do áudio (ou vídeo), transcrito no PC. O modelo baixa uma vez na 1ª chamada."""
+def transcrever(audio: Path, idioma: str = "pt", palavras: bool = False) -> dict:
+    """{"texto", "segmentos"} do áudio (ou vídeo), transcrito no PC. O modelo baixa uma vez na 1ª chamada.
+    palavras=True traz também "palavras": [{"texto", "inicio", "fim"}] (legenda palavra por palavra)."""
     if not tem_escuta():
         raise SystemExit("a transcrição local exige `python -m darkops instalar-voz-local`")
     return _ponte({"acao": "ouvir", "audio": str(audio), "idioma": (idioma or "")[:2], "modelo": WHISPER,
-                   "modelos": str(MODELOS)}, 3600)
+                   "modelos": str(MODELOS), "palavras": palavras}, 3600)
 
 
 def instalar() -> None:

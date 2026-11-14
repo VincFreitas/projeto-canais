@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.65.1%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.66.0%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,7 +10,7 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.65.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.66.0 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
@@ -45,7 +45,7 @@ O canal nasceu em 20 de outubro de 2026, então tinha três semanas nessa contag
 | **Voz** | Azure Speech, Edge, Kokoro no PC (grátis, sem chave), Piper, Gemini, Chirp 3 HD, ElevenLabs ou a sua própria voz. A voz do canal se escolhe ouvindo amostras | `darkops/narracao.py`, `darkops/vozes.py` |
 | **Animação** | Legenda que acende a palavra falada, título letra a letra, números que contam, etiquetas e cenas 3D em Three.js, tudo sincronizado pelo tempo de cada palavra ([princípios de movimento](docs/movimento.md)) | `darkops/hyperframes.py`, `darkops/palco_web.py` |
 | **Conferência** | Tela preta, silêncio, volume, duração e resolução; depois a IA olha 12 quadros e aponta texto cortado ou cena que não combina com a fala | `conferir`, `revisar-visual` |
-| **Aprovação** | Você assiste à prévia no Estúdio, troca uma cena se quiser e aprova. Nada vai ao ar sem isso | Estúdio > Início |
+| **Aprovação** | Sozinha: o vídeo que passa na conferência técnica, na revisão visual da IA e na do texto entra na postagem; o resto espera você assistir e aprovar (Ajustes do canal > Aprovação dos vídeos) | Estúdio > Início |
 | **Postagem** | 12h e 19h no fuso do público do canal, pelas APIs oficiais. Depois, comentários lidos com resposta rascunhada e o ciclo "o que funcionou" ajustando os próximos vídeos | n8n, `darkops/nuvem.py`, `aprender` |
 
 ## O Estúdio
@@ -143,6 +143,7 @@ Na raiz do projeto: `.\dark.ps1 <comando>` no Windows, `./dark.sh <comando>` no 
 | `estudio` / `abrir` | Abre o Estúdio (o atalho da Área de Trabalho roda o `abrir`) |
 | `diagnostico` / `progresso` | O que está pronto e o que falta, por plataforma (`--json` para agentes) |
 | `demanda` / `outliers` / `transcrever` | Pesquisa de oferta e demanda de um nicho |
+| `cortes <link da live>` | Cortes verticais de uma live gravada (YouTube, Twitch ou Kick), com gancho narrado, legenda e crédito; só de streamer que autorizou (`--autorizado`, `--vigiar`) |
 | `leva --quantidade N` | Escreve N roteiros com o Claude Code e gera as prévias (`--tema`, `--se-faltar`, `--fundo`) |
 | `produzir <roteiro.json>` | Vídeo, thumbnail e metadados a partir do roteiro |
 | `conferir <video>` / `revisar-visual` | Conferência técnica e revisão visual pela IA |
