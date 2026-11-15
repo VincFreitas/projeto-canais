@@ -13,7 +13,7 @@
   <div style="font-size:48px">{{ '✓' if ok else '✗' }}</div>
   <h1>{{ 'Instagram conectado' if ok else 'Não deu certo' }}</h1>
   <p>{{ texto }}</p>
-  <p><a class="botao" href="{{ destino }}">Voltar ao Estúdio</a></p>
+  <p><a class="botao" href="{{ destino|link }}">Voltar ao Estúdio</a></p>
 </div>
 </body>
 </html>

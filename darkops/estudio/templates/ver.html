@@ -30,9 +30,9 @@
       {% if avancado %}<a class="botao secundario" href="{{ url_for('editar', pid=p.id, nome=s.arquivo) }}">Editar</a>{% endif %}
       <form method="post" action="{{ url_for('aprovar', pid=p.id, nome=s.arquivo) }}"><button class="botao">{{ 'Retirar aprovação' if s.aprovado else 'Aprovar' }}</button></form>
       {% if s.aprovado %}
-      <form method="post" action="{{ url_for('publicar_agora', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Publicar agora no YouTube e no Instagram?')"><button class="botao secundario">Publicar agora</button></form>
+      <form method="post" action="{{ url_for('publicar_agora', pid=p.id, nome=s.arquivo) }}" data-pergunta="Publicar agora no YouTube e no Instagram?"><button class="botao secundario">Publicar agora</button></form>
       {% endif %}
-      <form method="post" action="{{ url_for('arquivar', pid=p.id, nome=s.arquivo) }}" onsubmit="return confirm('Tirar este vídeo da fila?')"><button class="botao perigo">Tirar da fila</button></form>
+      <form method="post" action="{{ url_for('arquivar', pid=p.id, nome=s.arquivo) }}" data-pergunta="Tirar este vídeo da fila?"><button class="botao perigo">Tirar da fila</button></form>
     </div>
     <details class="mais" {{ 'open' if avancado }}>
     <summary>Mais opções: legenda, baixar e conferir</summary>
@@ -67,7 +67,7 @@
       {% if not carrossel.publicado %}
       <div class="acoes">
         <form method="post" action="{{ url_for('carrossel_acao', pid=p.id, nome=s.arquivo, acao='publicar') }}"
-              onsubmit="return confirm('Publicar este carrossel agora no Instagram do canal?')"><button class="botao">Aprovar e publicar no Instagram</button></form>
+              data-pergunta="Publicar este carrossel agora no Instagram do canal?"><button class="botao">Aprovar e publicar no Instagram</button></form>
         <form method="post" action="{{ url_for('carrossel_acao', pid=p.id, nome=s.arquivo, acao='criar') }}"><button class="botao claro">Refazer</button></form>
       </div>
       {% endif %}
@@ -124,8 +124,8 @@
       <div class="cena editor" id="cena{{ i }}">
         <div class="miniatura">
           {% set fonte = url_for('visual_cena', pid=p.id, nome=s.arquivo, i=i) %}
-          {% if (c.arquivo or '').lower().endswith(('.mp4', '.mov')) %}<video src="{{ fonte }}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
-          {% else %}<img src="{{ fonte }}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'suave', textContent: 'sem prévia'}))">{% endif %}
+          {% if (c.arquivo or '').lower().endswith(('.mp4', '.mov')) %}<video src="{{ fonte }}" muted loop playsinline data-previa-hover></video>
+          {% else %}<img src="{{ fonte }}" alt="" data-sem-previa>{% endif %}
         </div>
         <div style="flex:1">
           <b>{{ i }}.</b> {{ c.texto }}
@@ -148,14 +148,14 @@
               <button class="botao claro" name="acao" value="salvar">Salvar</button>
               <button class="botao claro" name="acao" value="outra">Outra opção</button>
               {% if c.arquivo %}<button class="botao claro" name="acao" value="banco">Voltar à busca</button>{% endif %}
-              <label class="botao claro" style="font-weight:600">Enviar do PC<input type="file" name="arquivo" accept="image/*,video/mp4,video/quicktime" hidden onchange="this.form.submit()"></label>
+              <label class="botao claro" style="font-weight:600">Enviar do PC<input type="file" name="arquivo" accept="image/*,video/mp4,video/quicktime" hidden data-enviar-ao-mudar></label>
             </div>
           </form>
         </div>
       </div>
     {% endfor %}
     </details>
-    {% if r.fontes %}<h2>Fontes</h2><ul>{% for f in r.fontes %}<li><a href="{{ f }}" target="_blank">{{ f }}</a></li>{% endfor %}</ul>{% endif %}
+    {% if r.fontes %}<h2>Fontes</h2><ul>{% for f in r.fontes %}<li><a href="{{ f|link }}" target="_blank" rel="noopener noreferrer">{{ f }}</a></li>{% endfor %}</ul>{% endif %}
   </div>
 </div>
 {% endblock %}

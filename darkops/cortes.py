@@ -33,7 +33,7 @@ from datetime import date
 from pathlib import Path
 
 from . import config, sistema
-from .seguranca import ocultar
+from .seguranca import link_publico, ocultar
 
 NICHO = "cortes-de-lives"      # assunto do Novo canal: canal só de cortes (sem leva de roteiros e sem narração)
 DURACAO_MIN, DURACAO_MAX = 20.0, 59.0
@@ -162,6 +162,8 @@ def registrar_fonte(perfil, info: dict | None = None, url: str = "", como: str =
 
 
 def informacoes(url: str) -> dict:
+    if not link_publico(url):  # um "link" começando com - viraria opção do yt-dlp (--exec roda comando)
+        raise SystemExit("link recusado: mande o link https da live (YouTube, Twitch ou Kick)")
     proc = _ytdlp("-J", "--skip-download", url, timeout=240)
     if proc.returncode or not proc.stdout.strip():
         raise SystemExit(f"não consegui abrir a live: {ocultar((proc.stderr or '').strip()[-300:])}")
@@ -951,6 +953,8 @@ def lives_novas(perfil, dias: int = 3, por_fonte: int = 5) -> list[str]:
     termos = [t.strip().lower() for t in re.split(r"[,;\n]", perfil.dados.get("cortes_termos") or "") if t.strip()]
     novas = []
     for fonte in fontes(perfil):
+        if not link_publico(_aba_lives(fonte)):
+            continue  # fonte gravada à mão com link estranho: o vigia não abre
         proc = _ytdlp("--flat-playlist", "--playlist-end", str(por_fonte), "-J", _aba_lives(fonte), timeout=180)
         try:
             itens = json.loads(proc.stdout).get("entries") or []

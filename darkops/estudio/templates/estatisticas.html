@@ -97,11 +97,11 @@
     {% endfor %}
     <details class="mais"><summary>Outros requisitos (conferir no YouTube Studio)</summary>
       <ul>{% for item in m.checklist %}<li>{{ item }}</li>{% endfor %}</ul>
-      <p class="dica">Quando os números baterem: YouTube Studio &gt; <a href="{{ m.inscrever }}" target="_blank" rel="noopener">Ganhar dinheiro ↗</a> &gt; Inscrever-se. A análise costuma levar cerca de 1 mês.</p>
+      <p class="dica">Quando os números baterem: YouTube Studio &gt; <a href="{{ m.inscrever|link }}" target="_blank" rel="noopener">Ganhar dinheiro ↗</a> &gt; Inscrever-se. A análise costuma levar cerca de 1 mês.</p>
     </details>
     {% endif %}
     <p class="dica">Horas e Shorts são estimativas (o YouTube conta só as "qualificadas"; o número oficial está no YouTube Studio). Requisitos conferidos na
-      <a href="{{ m.fonte }}" target="_blank" rel="noopener">página oficial ↗</a>{% if m.aviso_2027 %}; a partir de 01/02/2027, o programa completo passa a pedir 8.000 horas ou 20 milhões de visualizações de Shorts{% endif %}.</p>
+      <a href="{{ m.fonte|link }}" target="_blank" rel="noopener">página oficial ↗</a>{% if m.aviso_2027 %}; a partir de 01/02/2027, o programa completo passa a pedir 8.000 horas ou 20 milhões de visualizações de Shorts{% endif %}.</p>
   </div>
   {% elif modo == 'monetizacao' and plataforma == 'instagram' %}
   <div class="monetizacao">
@@ -125,7 +125,7 @@
       <ul>{% for item in m.checklist %}<li>{{ item }}</li>{% endfor %}</ul>
     </details>
     <p class="dica">As metas de seguidores são referências (a Meta não publica uma lista oficial fixa e muda por país e por conta); o app mostra se a sua conta já pode usar.
-      <a href="{{ m.fonte }}" target="_blank" rel="noopener">Ferramentas de ganho do Instagram ↗</a></p>
+      <a href="{{ m.fonte|link }}" target="_blank" rel="noopener">Ferramentas de ganho do Instagram ↗</a></p>
     {% endif %}
   </div>
   {% endif %}
@@ -137,7 +137,7 @@
       <th>Curtidas</th><th>Comentários</th><th title="positivos / negativos, entre os comentários lidos">Clima</th><th>Compart.</th>{% if plataforma == 'instagram' %}<th>Salvos</th>{% endif %}
       <th>Minutos</th><th>Duração média</th>{% if plataforma == 'youtube' %}<th>Retenção</th>{% endif %}</tr>
     {% for v in info.videos[:limite] %}
-    <tr{% if modo == 'resumo' and loop.index > RESUMO_VIDEOS %} class="extra" hidden{% endif %}><td><a href="{{ v.url }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
+    <tr{% if modo == 'resumo' and loop.index > RESUMO_VIDEOS %} class="extra" hidden{% endif %}><td><a href="{{ v.url|link }}" target="_blank" rel="noopener">{{ v.titulo or v.id }}</a>{% if v.roteiro %}<br><span class="suave">{{ v.roteiro }}</span>{% endif %}</td>
       <td>{{ v.publicado }}</td><td>{{ numero(v.visualizacoes) }}</td>{% if plataforma == 'instagram' %}<td>{{ numero(v.alcance) }}</td>{% endif %}
       <td>{{ numero(v.curtidas) }}</td><td>{{ numero(v.comentarios) }}</td><td>{% set r = v.comentarios_resumo %}{% if r and r.positivos_pct is not none %}<span title="{{ r.perguntas }} pergunta(s), {{ r.correcoes }} correção(ões), {{ r.respondidos }} respondido(s)">{{ r.positivos_pct }}% 👍 · {{ r.negativos_pct }}% 👎</span>{% else %}—{% endif %}</td><td>{{ numero(v.compartilhamentos) }}</td>
       {% if plataforma == 'instagram' %}<td>{{ numero(v.salvos) }}</td>{% endif %}
@@ -182,7 +182,7 @@
   <p class="dica">O /escrever-roteiro e as levas seguem essas diretrizes.</p>{% endif %}
 </section>
 <p style="margin-top:16px"><a class="botao secundario" href="{{ url_for('historico', pid=p.id) }}">Tudo que já foi publicado</a></p>
-<script>
+<script nonce="{{ csp_nonce() }}">
 // "Ver mais": mostra mais 5 vídeos da lista; os demais ficam na tela "Ver todos"
 document.querySelectorAll('[data-ver-mais]').forEach(b => b.addEventListener('click', () => {
   const ocultos = [...b.closest('section').querySelectorAll('tr.extra[hidden]')];

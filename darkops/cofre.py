@@ -82,16 +82,34 @@ def _arquivo_chave() -> Path:
     return _raiz() / "dados" / "cofre.chave" if sistema.WINDOWS else sistema.pasta_usuario() / "cofre.chave"
 
 
-def _gravar_privado(arquivo: Path, dados: bytes) -> None:
+def _gravar_privado(arquivo: Path, dados: bytes, so_se_novo: bool = False) -> bool:
+    """Grava de uma vez (arquivo temporário e troca). `so_se_novo` não troca um arquivo que já existe: com duas
+    partidas criando a chave do cofre ao mesmo tempo, a segunda usa a da primeira (senão o que foi cifrado com a
+    primeira ficaria sem chave). Devolve se gravou."""
     arquivo.parent.mkdir(parents=True, exist_ok=True)
-    temp = arquivo.with_name(arquivo.name + ".novo")
-    if not sistema.WINDOWS:  # nasce só do dono, antes de ter conteúdo
-        fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, "wb") as f:
-            f.write(dados)
-    else:
-        temp.write_bytes(dados)
-    os.replace(temp, arquivo)
+    temp = arquivo.with_name(f"{arquivo.name}.{os.getpid()}.novo")  # um por processo: dois não escrevem no mesmo
+    try:
+        if not sistema.WINDOWS:  # nasce só do dono, antes de ter conteúdo
+            fd = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "wb") as f:
+                f.write(dados)
+        else:
+            temp.write_bytes(dados)
+        if not so_se_novo:
+            os.replace(temp, arquivo)
+            return True
+        try:
+            os.link(temp, arquivo)  # cria só se não existir, já com o conteúdo inteiro
+            return True
+        except FileExistsError:
+            return False
+        except OSError:  # disco sem link (FAT, pasta de rede): o melhor possível
+            if arquivo.exists():
+                return False
+            os.replace(temp, arquivo)
+            return True
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def _ler_chave() -> bytes | None:
@@ -109,13 +127,21 @@ def _ler_chave() -> bytes | None:
     return base64.b64decode(arquivo.read_text().strip()) if arquivo.exists() else None
 
 
+def _chave_existente() -> bytes:
+    chave = _ler_chave()
+    if not chave:  # nunca cifra com uma chave que não ficou guardada: o segredo se perderia
+        raise CofreFechado("não consegui gravar nem ler a chave do cofre")
+    return chave
+
+
 def _criar_chave() -> bytes:
     from nacl.secret import SecretBox
     from nacl.utils import random
     chave = random(SecretBox.KEY_SIZE)
     if sistema.WINDOWS:
-        _gravar_privado(_arquivo_chave(), _dpapi(chave, proteger=True))
-        return chave
+        if _gravar_privado(_arquivo_chave(), _dpapi(chave, proteger=True), so_se_novo=True):
+            return chave
+        return _chave_existente()  # outra partida criou a chave primeiro: vale a dela
     try:
         import keyring
         keyring.set_password(SERVICO, CONTA, base64.b64encode(chave).decode())
@@ -123,8 +149,9 @@ def _criar_chave() -> bytes:
             return chave
     except Exception:  # noqa: BLE001
         pass
-    _gravar_privado(_arquivo_chave(), base64.b64encode(chave))
-    return chave
+    if _gravar_privado(_arquivo_chave(), base64.b64encode(chave), so_se_novo=True):
+        return chave
+    return _chave_existente()  # outra partida criou a chave primeiro: vale a dela
 
 
 def _chave(criar: bool = True) -> bytes | None:

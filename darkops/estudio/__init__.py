@@ -9,6 +9,7 @@ como processos da CLI (`python -m darkops --perfil ...`), os mesmos que o n8n us
 import json
 import os
 import re
+import secrets
 import subprocess
 import sys
 import threading
@@ -19,7 +20,7 @@ import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Flask, abort, flash, jsonify, redirect, render_template, request, send_file, url_for
+from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, send_file, url_for
 
 from .. import config
 from .. import fila as fila_mod
@@ -68,24 +69,72 @@ def _so_local():
             abort(403)
 
 
+def csp_nonce() -> str:
+    """Senha de uso único da página (CSP com nonce): só os <script nonce="{{ csp_nonce() }}"> do próprio template
+    rodam. onclick=, javascript: e qualquer script que um texto malicioso consiga pôr na tela ficam bloqueados.
+    Função global do Jinja para valer também nos macros importados sem contexto (_vozes.html)."""
+    if "csp_nonce" not in g:
+        g.csp_nonce = secrets.token_urlsafe(18)
+    return g.csp_nonce
+
+
+app.jinja_env.globals["csp_nonce"] = csp_nonce
+
+
 @app.after_request
 def _cabecalhos(resposta):
     """Cabeçalhos do OWASP: sem moldura em outro site (clickjacking), sem adivinhar tipo de arquivo, sem vazar o
-    endereço em links externos e sem carregar scripts de fora."""
+    endereço em links externos e sem carregar scripts de fora nem scripts dentro do HTML (só com o nonce da página;
+    os comportamentos das telas ficam em static/estudio.js, por data-*)."""
     resposta.headers.setdefault("X-Frame-Options", "DENY")
     resposta.headers.setdefault("X-Content-Type-Options", "nosniff")
     resposta.headers.setdefault("Referrer-Policy", "same-origin")  # no-referrer faria o navegador mandar Origin: null
+    nonce = g.get("csp_nonce")
+    scripts = f"script-src 'self' 'nonce-{nonce}'" if nonce else "script-src 'self'"
     resposta.headers.setdefault("Content-Security-Policy",
                                 "default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; "
-                                "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+                                f"style-src 'self' 'unsafe-inline'; {scripts}; script-src-attr 'none'; object-src 'none'; "
                                 "frame-ancestors 'none'; form-action 'self' https://github.com https://www.instagram.com; base-uri 'none'")
+    # outro site não embute imagem, vídeo nem áudio do Estúdio (nem para descobrir se ele está aberto ou que canais
+    # existem), não fica com a referência da janela e as permissões do navegador ficam só com o microfone (sua voz)
+    resposta.headers.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+    resposta.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    resposta.headers.setdefault("Permissions-Policy", "camera=(), geolocation=(), payment=(), usb=(), microphone=(self)")
     return resposta
+
+
+def volta_segura(url: str | None, padrao: str) -> str:
+    """Endereço de volta só dentro do Estúdio. Aceita um caminho que começa com uma barra (nunca // nem /\\, que o
+    navegador lê como outro site) ou um endereço do próprio Estúdio (Referer); qualquer outro vira `padrao`.
+    Sem isso, /p/<id>/tarefa/x?voltar=javascript:... rodava script no Estúdio com um clique em Voltar."""
+    from urllib.parse import urlsplit, urlunsplit
+    texto = (url or "").strip()
+    if re.search(r"[\\\x00-\x1f\x7f]", texto):
+        return padrao
+    if texto.startswith("/") and not texto.startswith("//"):
+        return texto
+    if ambiente.origem_permitida(texto):
+        u = urlsplit(texto)
+        return urlunsplit(("", "", u.path or "/", u.query, u.fragment))
+    return padrao
+
+
+@app.template_filter("link")
+def link_seguro(url) -> str:
+    """Link que vem de dado (fonte do roteiro, resposta de API, sugestão da IA, link colado): só http(s) ou caminho
+    do próprio Estúdio. Um javascript: escrito por uma página maliciosa que o Claude leu vira "#"."""
+    texto = str(url or "").strip()
+    if re.match(r"https?://[^\s\\]", texto, re.I) and not re.search(r"[\x00-\x1f\x7f]", texto):
+        return texto
+    if texto.startswith("#") or (texto.startswith("/") and volta_segura(texto, "") == texto):
+        return texto
+    return "#"
 
 
 @app.errorhandler(413)
 def _grande_demais(_):
     flash("Arquivo grande demais: o limite de envio é 512 MB.", "erro")
-    return redirect(request.referrer or url_for("inicio"))
+    return redirect(volta_segura(request.referrer, url_for("inicio")))
 
 
 # ---------- modo guiado: enquanto a configuração não termina, só as telas de configurar ----------
@@ -242,19 +291,24 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 
     def trabalhar():
         with log.open("w", encoding="utf-8") as saida:
-            for args in comandos:
-                saida.write(f"$ darkops {' '.join(args)}\n")
-                saida.flush()
-                # cada linha passa por ocultar() antes de chegar ao arquivo: o log nunca guarda token nem chave
-                proc = subprocess.Popen(_cli(p.id, *args), cwd=config.RAIZ, stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
-                                        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
-                for linha in proc.stdout:
-                    saida.write(seguranca.ocultar(linha))
+            try:
+                for args in comandos:
+                    saida.write(f"$ darkops {' '.join(args)}\n")
                     saida.flush()
-                if proc.wait() != 0:
-                    JOBS[job_id].update(estado="falhou", fim=time.time())
-                    return
+                    # cada linha passa por ocultar() antes de chegar ao arquivo: o log nunca guarda token nem chave
+                    proc = subprocess.Popen(_cli(p.id, *args), cwd=config.RAIZ, stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT, text=True, encoding="utf-8", errors="replace",
+                                            env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"})
+                    for linha in proc.stdout:
+                        saida.write(seguranca.ocultar(linha))
+                        saida.flush()
+                    if proc.wait() != 0:
+                        JOBS[job_id].update(estado="falhou", fim=time.time())
+                        return
+            except Exception as erro:  # noqa: BLE001 — sem isso a tela ficava "rodando" para sempre
+                saida.write(f"\nerro ao rodar a tarefa: {seguranca.ocultar(str(erro))}\n")
+                JOBS[job_id].update(estado="falhou", fim=time.time())
+                return
         JOBS[job_id].update(estado="concluido", fim=time.time())
 
     threading.Thread(target=trabalhar, daemon=True).start()
@@ -300,7 +354,7 @@ def _avancado() -> bool:
 @app.post("/avancado")
 def alternar_avancado():
     _salvar_env({"DARKOPS_AVANCADO": "0" if _avancado() else "1"})
-    return redirect(request.referrer or url_for("inicio"))
+    return redirect(volta_segura(request.referrer, url_for("inicio")))
 
 
 # ---------- perfis e chaves ----------
@@ -694,7 +748,8 @@ def decidir_ajuste(pid, decisao):
 @app.post("/p/<pid>/referencia")
 def referencia_analisar(pid):
     p = _perfil(pid)
-    urls = [u.strip() for u in request.form.get("urls", "").split() if re.match(r"^https?://\S+$", u.strip())][:5]
+    urls = [u.strip() for u in request.form.get("urls", "").split()
+            if re.match(r"^https?://\S+$", u.strip()) and seguranca.link_publico(u.strip())][:5]
     if not urls:
         flash("Cole pelo menos um link de vídeo (YouTube, Shorts, Instagram...).", "erro")
         return redirect(url_for("configurar", pid=pid) + "#referencia")
@@ -902,7 +957,7 @@ def abertura_estado():
 def novidade_vista():
     from .. import app as app_local
     app_local.marcar_novidade_vista()
-    return redirect(request.referrer or url_for("inicio"))
+    return redirect(volta_segura(request.referrer, url_for("inicio")))
 
 
 @app.route("/configuracoes", methods=["GET", "POST"])
@@ -1024,7 +1079,7 @@ def ativar(pid):
     p = _perfil(pid)
     p.salvar({"ativo": not p.dados.get("ativo")})
     flash("Postagem automática " + ("ligada." if p.dados["ativo"] else "pausada."), "ok")
-    return redirect(request.referrer or url_for("painel", pid=pid))
+    return redirect(volta_segura(request.referrer, url_for("painel", pid=pid)))
 
 
 # ---------- conexões ----------
@@ -1245,7 +1300,7 @@ def aprovar(pid, nome):
         os.utime(config.SAIDA / situacao["video"]) if situacao["video"] else None  # prévia continua em dia
         flash("Aprovado: entra na postagem automática." if dados["aprovado"] else "Aprovação retirada.", "ok")
         _nuvem_em_fundo(p, "sincronizar")  # a reserva na nuvem passa a ter (ou deixa de ter) este vídeo
-    return redirect(request.referrer or url_for("fila", pid=pid))
+    return redirect(volta_segura(request.referrer, url_for("fila", pid=pid)))
 
 
 def _nuvem_em_fundo(p, acao: str) -> None:
@@ -2069,7 +2124,7 @@ def midia(nome):
 def acompanhar(pid, job):
     p = _perfil(pid)
     return render_template("tarefa.html", p=p, d=p.dados, job=JOBS.get(job), job_id=job,
-                           voltar=request.args.get("voltar") or url_for("painel", pid=pid))
+                           voltar=volta_segura(request.args.get("voltar"), url_for("painel", pid=pid)))
 
 
 @app.get("/tarefa/<job>.json")

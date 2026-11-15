@@ -1,4 +1,4 @@
-# Segurança do Projeto Canais (revisão de 2026-10-24)
+# Segurança do Projeto Canais (revisões de 2026-10-24 e 2026-11-15)
 
 O projeto roda no seu PC, guarda tokens das suas contas e dispara comandos (produção, publicação, Claude Code).
 Estas são as proteções em vigor e o motivo de cada uma.
@@ -10,7 +10,10 @@ Estas são as proteções em vigor e o motivo de cada uma.
 | Só escuta em 127.0.0.1 e recusa conexões de outros endereços | outra máquina da rede abrir o painel | `estudio/__init__.py` (`rodar`, `_so_local`) |
 | Confere o cabeçalho Host (só `127.0.0.1`, `localhost`, `[::1]`) | **DNS rebinding**: um site aponta o próprio domínio para 127.0.0.1 e lê o painel pelo seu navegador ([NCC Group](https://github.com/nccgroup/singularity/wiki/Preventing-DNS-Rebinding-Attacks)) | `_so_local` |
 | Toda ação (POST) exige Origin ou Referer do próprio Estúdio | **CSRF**: um site manda seu navegador apertar um botão do painel | `_so_local` |
+| Endereço de volta (`?voltar=`, Referer) só dentro do Estúdio, e todo link que vem de dado (fonte do roteiro, resposta de API, sugestão da IA) só http(s) | **XSS por link** (`javascript:` num botão Voltar ou numa fonte escrita por uma página maliciosa) e **redirecionamento aberto** | `volta_segura`, filtro `\|link` nos templates |
+| `Cross-Origin-Resource-Policy` e `Cross-Origin-Opener-Policy: same-origin`; `Permissions-Policy` só com o microfone | outro site embutir imagem, vídeo ou áudio do Estúdio (até para descobrir se ele está aberto ou que canais existem) e ficar com a referência da janela | `_cabecalhos` |
 | `X-Frame-Options: DENY` e CSP `frame-ancestors 'none'` | **clickjacking**: o painel escondido dentro de outro site ([OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Clickjacking_Defense_Cheat_Sheet.html)) | `_cabecalhos` |
+| CSP com nonce: só rodam os `<script>` da própria página, com a senha de uso único dela (`script-src 'self' 'nonce-...'`, sem `'unsafe-inline'`, `script-src-attr 'none'`). `onclick=`, `javascript:` e qualquer script que um texto malicioso consiga pôr na tela não rodam; os comportamentos das telas ficam em `static/estudio.js`, por `data-*` | **XSS**: mesmo que um dado escape do filtro, o navegador recusa o script | `csp_nonce`, `_cabecalhos`, `static/estudio.js` |
 | CSP `default-src 'self'` (sem scripts de outros sites), `nosniff`, `Referrer-Policy: same-origin` | script de fora, arquivo interpretado com outro tipo, endereço vazando em links ([OWASP](https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet)) | `_cabecalhos` |
 | Cookie de sessão `SameSite=Strict` e `HttpOnly`; chave de sessão nova a cada início | sessão reaproveitada por outro site ou por script | `app.config` |
 | Envio de arquivo limitado a 512 MB, só extensões permitidas, nomes gerados pelo Estúdio | disco cheio e arquivo gravado fora da pasta | `MAX_CONTENT_LENGTH`, rotas de envio |
@@ -39,12 +42,14 @@ Estas são as proteções em vigor e o motivo de cada uma.
 ## Tokens e chaves
 
 - `.env` e `credenciais/` ficam fora do Git (`.gitignore`); o histórico foi conferido em 2026-10-24 e não tem chave nem token.
-- Mensagens de erro, avisos das estatísticas e `falhas.log` passam por `seguranca.ocultar()`, que troca `access_token=...`, tokens da Meta e do Google e chaves de API por `***`.
+- Mensagens de erro, avisos das estatísticas e `falhas.log` passam por `seguranca.ocultar()`, que troca por `***` qualquer parâmetro de endereço com nome de segredo (`access_token`, `fb_exchange_token`, `client_secret`, `password`, `key`...), os mesmos campos em JSON e em dicionário do Python, cabeçalhos de chave (`xi-api-key`, `x-goog-api-key`...), tokens da Meta, do Google e do GitHub e chaves de API (`AIza...`, `sk-...`, `sk_...`).
+- Links que o app abre sozinho a partir do que você colou (vídeos de referência, lives dos cortes) só podem ser http(s) de um site da internet (`seguranca.link_publico`): endereços do próprio PC e da rede de casa são recusados (**SSRF**), e um "link" começando com `-` não vira opção do yt-dlp.
 - A tela de chaves só mostra o valor das variáveis que não são segredo.
 - **Cofre** (`darkops/cofre.py`, 2026-11-12): os tokens dos canais, tudo em `credenciais/` e os valores secretos do `.env` ficam cifrados no disco (XSalsa20-Poly1305, SecretBox do PyNaCl).
   - Windows: a chave é protegida pelo DPAPI e só abre no mesmo usuário do mesmo PC.
   - macOS e Linux: a chave fica no chaveiro do sistema; sem chaveiro, num arquivo só do dono fora da pasta do projeto.
   - Copiar a pasta para outro computador não leva os segredos legíveis.
+  - Duas partidas criando a chave ao mesmo tempo usam a mesma (a segunda lê a da primeira): nenhum segredo fica cifrado com uma chave perdida.
   - O Estúdio cifra o que estiver em claro ao abrir; `cofre-proteger` faz isso à mão.
 - **Rotina de integridade e segurança** (todo dia, tela Saúde do app):
   - arquivos do app contra o Git;
@@ -60,6 +65,7 @@ Estas são as proteções em vigor e o motivo de cada uma.
 ## Claude Code chamado pelo projeto (leva, descrição, análise, ajuste do canal)
 
 - O pedido vai pela **entrada padrão**, nunca como argumento: no Windows, um `.cmd` passa os argumentos pelo cmd.exe, que interpreta `&`, `|` e `^` (falha **BatBadBut**, [SecurityWeek](https://www.securityweek.com/batbadbut-command-injection-vulnerability-affects-multiple-programming-languages/)). O `claude.exe` é preferido ao `claude.cmd`.
+- A lista negada também cobre segredos fora do projeto (login do Claude Code em `~/.claude`, chaves SSH, banco do n8n em `~/.n8n`, a chave do cofre no macOS e no Linux): o modo `-p` já recusa ler fora da pasta, e a lista garante o mesmo se isso mudar.
 - Na leva, o Claude lê páginas da internet, então:
   - só pode **gravar os roteiros da fila e o palco 3D** (`cenas/*.3d.js`, que roda isolado no Chromium). Um `.py` em `cenas/` viraria código rodando no PC, por isso fica proibido desde a auditoria de 2026-11-12;
   - só roda `palco-testar` e `roteiro-auditar` com o Python do projeto, não qualquer Python;
@@ -71,7 +77,7 @@ Estas são as proteções em vigor e o motivo de cada uma.
 
   Um comentário ou página com instrução escondida não consegue ler nem vazar segredo.
 - Descrição, análise, comentários e ajuste do canal ("Como você quer o canal?") rodam com `--tools ""`, sem ferramenta nenhuma: só devolvem texto.
-- O nome do arquivo da fila vai dentro do comando do n8n e da nuvem, então nada de `$`, crase, aspas ou `;`. Roteiro com slug, palco ou mídia fora do projeto é recusado antes de produzir.
+- O nome do arquivo da fila vai dentro do comando do n8n e da nuvem, então nada de `$`, crase, aspas, `%`, `!`, `&`, `|`, `;`, `<`, `>`, `^` nem quebra de linha (`fila.seguro_para_comando`); a mensagem de erro do nó Registrar falha passa pelo mesmo filtro e troca `\` por `/` (no sh, uma barra invertida no fim escaparia a aspa). Roteiro com slug, palco ou mídia fora do projeto é recusado antes de produzir.
 - O servidor MCP (`python -m darkops mcp`) deixa qualquer IA consultar e preparar, mas não publicar, aprovar, responder comentário, excluir canal nem mexer em contas.
 - Sugestões da análise e propostas do ajuste do canal só mudam campos permitidos do perfil, e só com a sua aprovação.
 - Nuvem de reserva: a fila fica num repositório **privado** seu; o token do GitHub (`NUVEM_TOKEN`, criado por você com acesso só a esse repositório) fica no `.env`; os tokens do YouTube e do Instagram vão como Secrets criptografados (sealed box do GitHub) e só existem dentro do job do Actions.

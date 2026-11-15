@@ -130,8 +130,8 @@
       <b>{{ v.titulo }}</b>
       <p class="suave">{{ v.canal }} · {{ '{:,}'.format(v.views).replace(',', '.') }} views ·
         <span class="selo pronta">{{ v.score }}x a média</span> · {{ 'Short' if v.formato == 'short' else 'longo' }}</p>
-      <div class="acoes"><a href="{{ v.url }}" target="_blank" rel="noopener">ver</a>
-        <button type="button" class="botao claro" data-titulo="{{ v.titulo }}" data-url="{{ v.url }}" onclick="usarTema(this)">Usar este tema</button></div>
+      <div class="acoes"><a href="{{ v.url|link }}" target="_blank" rel="noopener">ver</a>
+        <button type="button" class="botao claro" data-titulo="{{ v.titulo }}" data-url="{{ v.url }}" data-ao-clicar="usarTema">Usar este tema</button></div>
     </div>
     {% endfor %}
   </div>
@@ -139,7 +139,7 @@
   <p class="dica">A pesquisa por “{{ descoberta.termo }}” ainda está rodando ou não achou vídeos. Recarregue em instantes.</p>
   {% endif %}
 </section>
-<script>
+<script nonce="{{ csp_nonce() }}">
 // "Usar este tema" leva o assunto para a caixa do topo: a IA cria o vídeo com um ângulo próprio
 function usarTema(botao) {
   const caixa = document.querySelector('.pedido-video input[name=tema]');
@@ -151,8 +151,8 @@ function usarTema(botao) {
 <section class="cartao" id="pronto" style="margin-bottom:16px">
   <h2>Já tenho o roteiro ou a narração</h2>
   <div class="abas-mini">
-    <button type="button" class="botao claro ativo" onclick="trocarPronto(this, 'pronto-roteiro')">Roteiro pronto</button>
-    <button type="button" class="botao claro" onclick="trocarPronto(this, 'pronto-narracao')">Narração pronta (áudio)</button>
+    <button type="button" class="botao claro ativo" data-ao-clicar="trocarPronto" data-arg="pronto-roteiro">Roteiro pronto</button>
+    <button type="button" class="botao claro" data-ao-clicar="trocarPronto" data-arg="pronto-narracao">Narração pronta (áudio)</button>
   </div>
   <form method="post" action="{{ url_for('novo_de_roteiro', pid=p.id) }}" id="pronto-roteiro">
     <p class="suave">Cole o texto. O Estúdio divide em cenas de ~{{ d.ritmo_corte_s }} s (o ritmo do canal), sempre em fim de
@@ -167,7 +167,7 @@ function usarTema(botao) {
     <p><button class="botao">Dividir em cenas e criar na fila</button></p>
   </form>
   <form method="post" action="{{ url_for('novo_de_narracao', pid=p.id) }}" enctype="multipart/form-data" id="pronto-narracao" hidden
-        onsubmit="this.querySelector('button').textContent = 'Transcrevendo... (cerca de 15 s por minuto de áudio)'">
+        data-enviando="Transcrevendo... (cerca de 15 s por minuto de áudio)">
     <p class="suave">Envie a sua narração gravada (mp3, wav, m4a...). O Estúdio transcreve com o Azure Speech, corta em cenas
       nas pausas da fala e usa a <b>sua voz</b> no vídeo, com a legenda sincronizada palavra por palavra.</p>
     <div class="grade">
@@ -180,7 +180,7 @@ function usarTema(botao) {
     <p><button class="botao">Transcrever e criar na fila</button></p>
   </form>
 </section>
-<script>
+<script nonce="{{ csp_nonce() }}">
 function trocarPronto(botao, id) {
   document.querySelectorAll('#pronto form').forEach(f => f.hidden = f.id !== id);
   document.querySelectorAll('.abas-mini .botao').forEach(b => b.classList.toggle('ativo', b === botao));

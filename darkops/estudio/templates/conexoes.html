@@ -82,12 +82,12 @@
       <form method="post" action="{{ url_for('instagram_app', pid=p.id) }}" class="campos-chave" id="form-app-instagram">
         <input type="text" name="INSTAGRAM_APP_ID" placeholder="ID do app do Instagram" autocomplete="off" inputmode="numeric" required>
         <input type="password" name="INSTAGRAM_APP_SECRET" placeholder="Chave secreta do app do Instagram" autocomplete="off" required
-               onpaste="setTimeout(() => this.form.INSTAGRAM_APP_ID.value.trim() && this.value.trim() && this.form.requestSubmit(), 50)">
+               data-enviar-ao-colar="INSTAGRAM_APP_ID">
         <button type="button" class="botao pequeno secundario" id="colar-chave-instagram">Colar a chave</button>
         <button class="botao pequeno">Salvar e entrar com Instagram</button>
       </form>
       <p class="dica" id="colar-chave-aviso">Copie a chave no painel da Meta (Mostrar, depois selecione e copie) e aperte <b>Colar a chave</b>: ela entra sem você digitar, e o login do Instagram já abre.</p>
-      <script>
+      <script nonce="{{ csp_nonce() }}">
       (() => {
         const form = document.getElementById('form-app-instagram'), aviso = document.getElementById('colar-chave-aviso');
         document.getElementById('colar-chave-instagram').addEventListener('click', async () => {
@@ -111,7 +111,7 @@
     {% if situacao != 'ok' %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
     <form method="post" action="{{ url_for('conectar_instagram', pid=p.id) }}" class="linha-form">
       <input type="password" name="token" placeholder="{{ 'cole outro token para trocar' if situacao == 'ok' else 'cole o token aqui' }}" autocomplete="off"
-             onpaste="setTimeout(() => this.form.requestSubmit(), 50)">
+             data-enviar-ao-colar>
       <button class="botao pequeno">Salvar e testar</button>
     </form></details>
   {% elif c.tipo == 'chave' %}
@@ -122,13 +122,13 @@
       <details class="mais"><summary>Ou cole uma chave que você já tem</summary>
     {% endif %}
     {% if situacao not in ('ok',) and c.passos %}<ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>{% endif %}
-    {% if c.link and situacao != 'ok' %}<p><a class="botao pequeno secundario" href="{{ c.link }}" target="_blank" rel="noopener">1. Abrir a página da chave ↗</a></p>{% endif %}
+    {% if c.link and situacao != 'ok' %}<p><a class="botao pequeno secundario" href="{{ c.link|link }}" target="_blank" rel="noopener">1. Abrir a página da chave ↗</a></p>{% endif %}
     <form method="post" action="{{ url_for('salvar_chaves_conector', pid=p.id) }}" class="campos-chave">
       <input type="hidden" name="ancora" value="{{ c.id }}">
       {% for chave, rotulo, segredo in c.chaves %}
         <input type="{{ 'password' if segredo else 'text' }}" name="{{ chave }}" value="{{ item.valores[chave] }}"
                placeholder="{{ ('2. Cole a chave aqui: ela é testada e salva sozinha' if segredo and situacao != 'ok' else rotulo) }}{{ ' (salva, deixe vazio para manter)' if item.salvas[chave] and segredo }}" autocomplete="off"
-               {% if segredo and loop.first %}onpaste="setTimeout(() => this.form.requestSubmit(), 50)"{% endif %}>
+               {% if segredo and loop.first %}data-enviar-ao-colar{% endif %}>
       {% endfor %}
       <button class="botao pequeno">Salvar</button>
     </form>
@@ -143,7 +143,7 @@
   {% elif c.passos and situacao != 'ok' %}
     <ol class="passos">{% for passo in c.passos %}<li>{{ passo }}</li>{% endfor %}</ol>
   {% endif %}
-  {% if c.link and c.tipo != 'embutido' and not (c.tipo == 'chave' and situacao != 'ok') %}<a class="link" href="{{ c.link }}" target="_blank" rel="noopener">{{ 'Saiba mais' if c.tipo == 'em_breve' else 'Onde conseguir' }} ↗</a>{% endif %}
+  {% if c.link and c.tipo != 'embutido' and not (c.tipo == 'chave' and situacao != 'ok') %}<a class="link" href="{{ c.link|link }}" target="_blank" rel="noopener">{{ 'Saiba mais' if c.tipo == 'em_breve' else 'Onde conseguir' }} ↗</a>{% endif %}
 </article>
 {% endmacro %}
 

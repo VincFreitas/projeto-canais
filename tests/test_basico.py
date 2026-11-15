@@ -81,6 +81,43 @@ class Basico(unittest.TestCase):
         self.assertEqual(c.get("/", headers={"Host": "exemplo.invalid"}).status_code, 403)
         self.assertEqual(c.post("/configuracoes", headers=local, data={"acao": "x"}).status_code, 403)
 
+    def test_estudio_modo_escuro(self):
+        """Tema claro, escuro e automático: o tema.js vem antes do CSS (sem piscar branco), o seletor tem as três
+        opções e o texto passa no contraste WCAG AA (4,5:1) nos dois temas."""
+        import re
+        from darkops.estudio import app
+        html = app.test_client().get("/sobre", headers={"Host": "127.0.0.1:8765"}).get_data(as_text=True)
+        cabeca = html.split("</head>")[0]
+        self.assertLess(cabeca.find("tema.js"), cabeca.find("estudio.css"))
+        etiqueta = re.search(r"<script[^>]*tema\.js[^>]*>", cabeca)
+        self.assertIsNotNone(etiqueta)
+        self.assertNotIn("defer", etiqueta.group(0) if etiqueta else "")
+        self.assertEqual(sorted(re.findall(r'data-escolher-tema="(\w+)"', html)), ["auto", "claro", "escuro"])
+        css = (RAIZ / "darkops" / "estudio" / "static" / "estudio.css").read_text(encoding="utf-8")
+
+        def variaveis(seletor):
+            bloco = css.split(seletor + " {", 1)[1].split("}", 1)[0]
+            return dict(re.findall(r"--([\w-]+):\s*(#[0-9a-fA-F]{6})\b", bloco))
+
+        def contraste(a, b):
+            def lum(cor):
+                canais = [int(cor[i:i + 2], 16) / 255 for i in (1, 3, 5)]
+                r, g, b_ = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in canais]
+                return 0.2126 * r + 0.7152 * g + 0.0722 * b_
+            claro, escuro = sorted((lum(a), lum(b)), reverse=True)
+            return (claro + 0.05) / (escuro + 0.05)
+
+        claro = variaveis(":root")
+        escuro = {**claro, **variaveis(':root[data-tema="escuro"]')}
+        self.assertEqual(escuro["amarelo"], "#ffc400")  # a cor da logo não muda no escuro
+        pares = [("texto", "fundo"), ("texto", "cartao"), ("texto", "elevado"), ("texto", "escolhido"), ("texto", "neutro"),
+                 ("suave", "fundo"), ("suave", "cartao"), ("suave", "cartao-suave"), ("suave", "neutro"), ("suave", "elevado"),
+                 ("ok-texto", "ok-fundo"), ("erro-texto", "erro-fundo"), ("alerta-texto", "alerta-fundo"),
+                 ("info-texto", "info-fundo"), ("verde-texto", "cartao"), ("vermelho", "cartao"), ("azul", "cartao")]
+        for nome, tema in (("claro", claro), ("escuro", escuro)):
+            for texto, fundo in pares:
+                self.assertGreaterEqual(contraste(tema[texto], tema[fundo]), 4.5, f"{nome}: --{texto} sobre --{fundo}")
+
     def test_skills_tem_cabecalho(self):
         for skill in (RAIZ / ".claude" / "skills").glob("*/SKILL.md"):
             texto = skill.read_text(encoding="utf-8")

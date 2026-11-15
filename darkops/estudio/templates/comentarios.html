@@ -50,7 +50,7 @@
     </span>
   </div>
   <p style="margin:8px 0;white-space:pre-wrap">{{ c.texto }}</p>
-  <p class="dica" style="margin:0">Vídeo: {{ c.video_titulo or c.video_id }} · <a href="{{ c.url }}" target="_blank" rel="noopener">abrir ↗</a>
+  <p class="dica" style="margin:0">Vídeo: {{ c.video_titulo or c.video_id }} · <a href="{{ c.url|link }}" target="_blank" rel="noopener">abrir ↗</a>
     {% if c.ideia %} · ideia: <b>{{ c.ideia }}</b>{% endif %}</p>
   {% if c.estado == 'respondido' %}
   <p style="margin:8px 0 0">↳ <b>{{ d.nome }}:</b> {{ c.resposta }} <span class="suave">({{ 'automático' if c.por == 'auto' else 'respondido fora do app' if c.por == 'fora do app' else 'aprovado por você' }}{{ ', ' ~ c.respondido_em if c.respondido_em }})</span></p>

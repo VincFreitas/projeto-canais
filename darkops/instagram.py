@@ -75,14 +75,6 @@ def conta() -> dict:
                                                         "access_token": token()}, timeout=30))
 
 
-def renovar_token() -> str:
-    """Renova o token de longa duração por mais 60 dias (precisa ter mais de 24 h)."""
-    dados = _checar(requests.get("https://graph.instagram.com/refresh_access_token",
-                                 params={"grant_type": "ig_refresh_token", "access_token": token()},
-                                 timeout=30))
-    return dados["access_token"]
-
-
 def legenda_instagram(roteiro: dict, video: Path | None = None, publicacao: dict | None = None) -> str:
     """Legenda do Reel. 'publicacao' (descricao.para_publicar) traz a descrição e as hashtags do vídeo."""
     from .musica import credito

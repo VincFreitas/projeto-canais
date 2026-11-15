@@ -2,7 +2,7 @@
 
 # Projeto Canais
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.67.1%20beta-ffc400?style=flat-square)](darkops/__init__.py)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.68.1%20beta-ffc400?style=flat-square)](darkops/__init__.py)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-PolyForm%20Shield-blue?style=flat-square)](LICENSE)
 [![Python 3.13](https://img.shields.io/badge/python-3.13-3776AB?style=flat-square&logo=python&logoColor=white)](#começar-em-3-passos)
 [![n8n](https://img.shields.io/badge/automa%C3%A7%C3%A3o-n8n-EA4B71?style=flat-square&logo=n8n&logoColor=white)](#postagem-automática-com-o-n8n)
@@ -10,7 +10,7 @@
 [![Agentes](https://img.shields.io/badge/agentes-AGENTS.md-111111?style=flat-square)](AGENTS.md)
 [![Site](https://img.shields.io/badge/site-projeto--canais-222?style=flat-square)](https://vincfreitas.github.io/projeto-canais/)
 
-> **Projeto Canais v0.67.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
+> **Projeto Canais v0.68.1 (beta)** · criado por Vinicius Freitas · uso comercial liberado, inclusive monetização ([LICENSE](LICENSE))
 
 Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa o que já dá certo num assunto, escreve roteiros com fatos checados, narra, anima cada cena junto com a fala, confere o vídeo pronto e **posta no YouTube e no Instagram nos horários marcados, só o que você aprovou**. Tudo se controla pelo **Estúdio**, um painel local no navegador, e a postagem roda pelo **n8n** no PC ou pelo **GitHub Actions** com o PC desligado.
 
@@ -50,7 +50,7 @@ O canal nasceu em 20 de outubro de 2026, então tinha três semanas nessa contag
 
 ## O Estúdio
 
-Painel local (Flask, só em `127.0.0.1:8765`) com um canal por perfil. Enxuto por padrão; o resto fica em **Mostrar mais opções** ou no **Modo avançado**.
+Painel local (Flask, só em `127.0.0.1:8765`) com um canal por perfil. Enxuto por padrão; o resto fica em **Mostrar mais opções** ou no **Modo avançado**. Tema **claro, escuro ou automático** (segue o sistema), no rodapé da lateral.
 
 <img src="docs/img/novo-canal.png" alt="Novo canal em 6 passos, no passo do nome, com a prévia do canal ao lado" width="100%">
 
@@ -158,6 +158,8 @@ Na raiz do projeto: `.\dark.ps1 <comando>` no Windows, `./dark.sh <comando>` no 
 | `cofre-proteger` | Cifra no disco os tokens dos canais, o app do Google e as chaves do `.env` |
 | `mcp` / `mcp-configurar` | Servidor MCP para qualquer IA comandar o app |
 
+Todos os comandos e opções: [docs/cli.md](docs/cli.md). Para mexer no código: [arquitetura](docs/arquitetura.md) (módulos e o caminho da leva até a postagem, no PC e na nuvem) e [guia de desenvolvimento](docs/desenvolvimento.md) (como rodar, testar e onde mexer em cada coisa).
+
 Skills do Claude Code (em `.claude/skills/`; outro agente lê o `SKILL.md` e segue): `/configurar`, `/conectar-contas`, `/pesquisar-nicho`, `/escrever-roteiro`, `/desenhar-prancha`, `/produzir-video`, `/titulo-thumb`, `/serie`, `/ajustar-canal`, `/estudar-referencia`, `/planejar-semana`, `/responder-comentarios`, `/revisar-desempenho`, `/identidade-visual`, `/verificar-app`, `/atualizar-app` e `/buscar-ferramentas`.
 
 ## Conectores e custo
@@ -202,7 +204,7 @@ Com um plano do Claude (Pro ou Max), não há cobrança por vídeo: cada vídeo 
 | `darkops/estudio/` | O Estúdio (Flask, templates e `static/estudio.css`) |
 | `n8n/` | Modelos dos workflows e o lançador escondido (`n8n.ps1`) |
 | `.claude/skills/` | As skills do fluxo (pesquisar, escrever, produzir, revisar...) |
-| `docs/` | [Instalação](docs/instalacao.md), [roteiro](docs/roteiro.md), [ganchos](docs/ganchos.md), [movimento](docs/movimento.md), [viralização](docs/viralizacao.md), [monetização](docs/monetizacao.md), [segurança](docs/seguranca.md) e [app e site](docs/app-e-site.md) |
+| `docs/` | [Arquitetura](docs/arquitetura.md), [desenvolvimento](docs/desenvolvimento.md), [comandos](docs/cli.md), [instalação](docs/instalacao.md), [roteiro](docs/roteiro.md), [ganchos](docs/ganchos.md), [movimento](docs/movimento.md), [viralização](docs/viralizacao.md), [monetização](docs/monetizacao.md), [segurança](docs/seguranca.md) e [app e site](docs/app-e-site.md) |
 | `assets/` | Amostras de voz, músicas e efeitos com licença registrada |
 | `cenas/comum3d.js` | Kit comum das cenas 3D (sala, materiais, câmera e etiquetas) |
 | `roteiros/exemplo-*.json` | Roteiros de exemplo (vertical e longo) |

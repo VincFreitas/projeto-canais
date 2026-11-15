@@ -631,6 +631,24 @@ def _esperar(condicao, segundos: int) -> bool:
 
 # --- n8n, Claude Code e desenho no PC ---
 
+def _n8n_de_pe(firme_s: int = 60) -> list[str]:
+    """Liga o n8n, fecha e liga de novo, e confere que ele continua de pé depois de cada partida. Uma partida só
+    não basta: a 2.47.5 subia na 1ª e caía em todas as seguintes, num registro que ela mesma gravou no banco
+    (2026-11-15: o PC ficou sem postar até alguém reiniciar o n8n)."""
+    import time
+    from . import app
+    for vez in (1, 2):
+        app.ligar_n8n()
+        if not _esperar(app.n8n_ligado, 300):
+            return [f"o n8n não ligou na {vez}ª partida"]
+        time.sleep(firme_s)
+        if not app.n8n_ligado():
+            return [f"o n8n caiu logo depois da {vez}ª partida"]
+        if vez == 1:
+            app.parar_n8n(forcar=True)
+    return []
+
+
 def _aplicar_n8n(item: dict) -> None:
     from . import app, apps
     from .instalacao import _n8n_cmd
@@ -651,8 +669,7 @@ def _aplicar_n8n(item: dict) -> None:
                   or [""])[-1]
         falhas = [] if versao == item["nova"] else [f"n8n --version deu {versao or 'nada'}"]
     if not falhas and ligado:
-        app.ligar_n8n()
-        falhas = [] if _esperar(app.n8n_ligado, 300) else ["o n8n não voltou a ligar em 5 minutos"]
+        falhas = _n8n_de_pe()
     if falhas:
         if ligado:
             app.parar_n8n(forcar=True)

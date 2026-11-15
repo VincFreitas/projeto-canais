@@ -40,9 +40,9 @@
     <pre class="log" id="log"></pre>
   </details>
 
-  <p><a class="botao secundario" id="voltar" href="{{ voltar }}">Voltar</a></p>
+  <p><a class="botao secundario" id="voltar" href="{{ voltar|link }}">Voltar</a></p>
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 (() => {
   const job = {{ {"pronto": job.pronto, "longa": job.longa, "animacao_max_s": job.animacao_max_s,
                   "min_s": job.estimativa_min_s, "max_s": job.estimativa_max_s} | tojson if job else 'null' }};

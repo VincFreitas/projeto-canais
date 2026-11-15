@@ -214,11 +214,6 @@ QUALIDADE_ALTA = os.getenv("DARKOPS_IA_QUALIDADE", "").strip().lower() == "alta"
 ESTILOS_SINTETICOS = {"realista", "foto_antiga"}
 
 
-def ilustracao_pixel(prompt: str, personagem: str, indice: int, pasta_visuais: Path, largura: int, altura: int,
-                     pixel: int, semente: str) -> Path | None:
-    return ilustracao_local(prompt, personagem, indice, pasta_visuais, largura, altura, "pixel", semente, pixel)
-
-
 @contextlib.contextmanager
 def _vez_na_placa():
     """Trava entre processos (vídeos, prévias e a identidade visual podem rodar juntos): espera o outro desenho terminar."""

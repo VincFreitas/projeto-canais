@@ -31,7 +31,7 @@
     </div>
     {% endfor %}
     <div class="acoes conta-links">
-      {% for rotulo, url in s.links %}<a class="botao pequeno {{ '' if loop.first else 'secundario' }}" href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ rotulo }} ↗</a>{% endfor %}
+      {% for rotulo, url in s.links %}<a class="botao pequeno {{ '' if loop.first else 'secundario' }}" href="{{ url|link }}" target="_blank" rel="noopener noreferrer">{{ rotulo }} ↗</a>{% endfor %}
       {% if p and s.id == 'gmail' %}
       <form method="post" action="{{ url_for('contas_bloqueio', pid=p.id) }}" class="inline">
         {% if s.bloqueio %}<button class="botao pequeno claro" name="acao" value="limpar">Consegui criar / limpar o bloqueio</button>{% endif %}
@@ -72,7 +72,7 @@
     <span class="suave">· {{ '✓ já feito: num canal novo, não precisa refazer' if uma_vez_pronta else 'feito no primeiro canal; os próximos usam o mesmo' }}</span></h3></summary>
   {{ lista(uma_vez) }}
 </details>
-<script>
+<script nonce="{{ csp_nonce() }}">
 // horário local de quando liberar e contagem regressiva do bloqueio
 document.querySelectorAll('.bloqueio-ate').forEach(el => {
   el.textContent = new Date(+el.dataset.ate).toLocaleString('pt-BR', {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});

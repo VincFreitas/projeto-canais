@@ -77,7 +77,7 @@
   </div>
   {% endfor %}
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 (() => {
   const raiz = document.currentScript.previousElementSibling;
   const campo = raiz.querySelector('[name=voz_escolha]'), tocador = raiz.querySelector('[data-tocador]');

@@ -66,6 +66,15 @@ def proximo(perfil=None) -> Path | None:
     return next((r for r in fila if aprovado(r) and not espera(r, fila)), None)
 
 
+PERIGOSOS_NO_COMANDO = "$`\"'%!&|;<>^\r\n"
+
+
+def seguro_para_comando(caminho: Path) -> bool:
+    """O caminho do roteiro vai entre aspas dentro de um comando do n8n e da nuvem (cmd.exe ou sh): nada de $, crase,
+    aspas, %, !, &, |, ;, <, >, ^ nem quebra de linha. Espaço pode: a pasta do projeto pode ter espaço no nome."""
+    return caminho.name.endswith(".json") and not any(c in str(caminho) for c in PERIGOSOS_NO_COMANDO)
+
+
 def restantes(perfil=None) -> int:
     return sum(1 for r in roteiros(perfil) if aprovado(r))
 

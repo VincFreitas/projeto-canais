@@ -35,7 +35,7 @@
   <p>O projeto é gratuito para testar e estudar. Se ele te ajudou, o apoio que mais faz diferença é:</p>
   <div class="botoes-apoio">
     <a class="botao" href="{{ autoria.REPOSITORIO }}" target="_blank" rel="noopener">★ Dar uma estrela no GitHub</a>
-    <button type="button" class="botao claro" onclick="compartilhar(this)">Compartilhar o projeto</button>
+    <button type="button" class="botao claro" data-ao-clicar="compartilhar">Compartilhar o projeto</button>
     <a class="botao claro" href="{{ autoria.LINKEDIN }}" target="_blank" rel="noopener">Falar comigo no LinkedIn</a>
   </div>
   <p class="dica">Parcerias: fale pelo LinkedIn. A licença permite usar o app para monetizar os seus próprios canais.</p>
@@ -66,7 +66,7 @@
   <p><a href="{{ autoria.REPOSITORIO }}" target="_blank" rel="noopener">{{ autoria.REPOSITORIO }}</a></p>
 </section>
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 function compartilhar(botao) {
   const dados = {title: "{{ autoria.PROJETO }}", text: "Projeto de canais dark que roda no seu PC", url: "{{ autoria.REPOSITORIO }}"};
   if (navigator.share) { navigator.share(dados).catch(() => {}); return; }

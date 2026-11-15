@@ -251,8 +251,8 @@ def cmd_fila_proximo(_):
     if not caminho:
         _resultado({"perfil": atual(), "vazia": True, "restantes": 0})
         return
-    # o caminho vai dentro de um comando do n8n e da nuvem (sh no Linux): nada de $, crase, aspas ou espaço
-    if not caminho.name.endswith(".json") or any(c in str(caminho) for c in "$`\"'%!&|;<>^\r\n"):
+    from .fila import seguro_para_comando
+    if not seguro_para_comando(caminho):
         sys.exit(f"nome de arquivo recusado na fila (use só letras, números, ponto e hífen): {caminho.name!r}")
     if not nuvem.reservar_slot(perfil):
         print("outra rodada já está postando neste horário: nada a fazer agora")
@@ -387,13 +387,17 @@ def cmd_progresso(a):
 def cmd_referencia(a):
     from . import referencia
     from .perfis import carregar
+    from .seguranca import link_publico, ocultar
     analises = []
     for url in a.url:
         print(f"analisando: {url}")
+        if not link_publico(url):
+            print("  recusado: use o link público do vídeo (http ou https de um site da internet)")
+            continue
         try:
             r = referencia.analisar(url)
         except Exception as erro:  # um link quebrado não derruba os outros
-            print(f"  falhou: {erro}")
+            print(f"  falhou: {ocultar(str(erro))}")
             continue
         print(f"  {r['titulo']} ({r['canal']}): {r['duracao_s']:.0f}s, {r['formato']}, "
               f"{r['cortes_por_min']} cortes/min, {r['segundos_por_corte']} s por corte, "
@@ -938,9 +942,8 @@ def cmd_nichos(_):
         print(f"{nome:<22} [{n['idioma']}] {n['descricao']}")
 
 
-def main():
-    from .janelas import esconder
-    esconder()  # aberto pelo atalho (pythonw): nenhum comando chamado daqui pisca uma janela de prompt
+def criar_parser() -> argparse.ArgumentParser:
+    """Todos os comandos da CLI. Separado do main() para os testes e o docs/cli.md lerem a mesma lista."""
     from .autoria import ROTULO, VERSAO
     p = argparse.ArgumentParser(prog="dark", description=f"Pesquisa e produção de canais dark. {ROTULO}")
     p.add_argument("--version", action="version", version=f"%(prog)s {VERSAO}")
@@ -955,16 +958,16 @@ def main():
     s.set_defaults(fn=cmd_perfis_ativos)
 
     s = sub.add_parser("revisar-visual", help="a IA olha 12 quadros do vídeo pronto e aponta problemas visuais")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON (perfis/<id>/fila/...)")
     s.set_defaults(fn=cmd_revisar_visual)
 
     s = sub.add_parser("carrossel", help="carrossel do Instagram (7 a 10 slides) a partir do roteiro, para aprovar")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON (perfis/<id>/fila/...)")
     s.set_defaults(fn=cmd_carrossel)
 
     s = sub.add_parser("tendencias", help="assuntos em alta agora no país do público (pauta dos canais de notícias)")
-    s.add_argument("--mercado", default="pt-BR")
-    s.add_argument("--quantidade", type=int, default=10)
+    s.add_argument("--mercado", default="pt-BR", help="público (pt-BR, en-US...; padrão: pt-BR)")
+    s.add_argument("--quantidade", type=int, default=10, help="quantos assuntos (padrão: 10)")
     s.set_defaults(fn=cmd_tendencias)
     s = sub.add_parser("mercados", help="línguas e regiões de público disponíveis para os canais")
     s.set_defaults(fn=cmd_mercados)
@@ -974,7 +977,7 @@ def main():
     s.set_defaults(fn=cmd_diagnostico)
 
     s = sub.add_parser("leva", help="cria vários vídeos de uma vez (roteiro pelo Claude Code + prévia)")
-    s.add_argument("--quantidade", type=int)
+    s.add_argument("--quantidade", type=int, help="quantos vídeos (padrão: leva_quantidade do canal, ou 4)")
     s.add_argument("--se-faltar", action="store_true", help="só cria se a fila estiver no mínimo do perfil")
     s.add_argument("--fundo", action="store_true", help="roda num processo separado e volta na hora")
     s.add_argument("--tema", help="assunto do vídeo (sem ele, o Claude escolhe um tema forte)")
@@ -984,16 +987,16 @@ def main():
     s.set_defaults(fn=cmd_leva)
 
     s = sub.add_parser("descricao", help="cria pela IA a descrição e as tags do vídeo que estiverem no modo automático")
-    s.add_argument("roteiro")
-    s.add_argument("--refazer", action="store_true")
+    s.add_argument("roteiro", help="roteiro JSON da fila")
+    s.add_argument("--refazer", action="store_true", help="escreve de novo mesmo se já houver descrição")
     s.set_defaults(fn=cmd_descricao)
 
     s = sub.add_parser("conferir", help="confere o vídeo pronto: tela preta, silêncio, volume, duração e resolução")
-    s.add_argument("video")
+    s.add_argument("video", help="arquivo MP4 pronto (saida/...)")
     s.set_defaults(fn=cmd_conferir)
 
     s = sub.add_parser("referencia", help="mede o estilo de vídeos de referência e propõe o padrão do perfil")
-    s.add_argument("url", nargs="+")
+    s.add_argument("url", nargs="+", help="links dos vídeos de referência (até 5)")
     s.set_defaults(fn=cmd_referencia)
 
     s = sub.add_parser("progresso", help="progresso da configuração de cada plataforma (YouTube, Instagram...)")
@@ -1001,16 +1004,16 @@ def main():
     s.set_defaults(fn=cmd_progresso)
 
     s = sub.add_parser("n8n-workflow", help="gera n8n/workflow.json para esta pasta (e importa com --importar)")
-    s.add_argument("--importar", action="store_true")
+    s.add_argument("--importar", action="store_true", help="importa no n8n (vale depois de reiniciar o n8n)")
     s.set_defaults(fn=cmd_n8n_workflow)
 
     s = sub.add_parser("estudio", help="abre o Estúdio (painel local no navegador)")
-    s.add_argument("--porta", type=int, default=8765)
-    s.add_argument("--sem-navegador", action="store_true")
+    s.add_argument("--porta", type=int, default=8765, help="porta local (padrão: 8765)")
+    s.add_argument("--sem-navegador", action="store_true", help="não abre o navegador")
     s.set_defaults(fn=cmd_estudio)
 
     s = sub.add_parser("identidade", help="foto, capa, marca d'água e bio das contas (gerar, aprovar, pacote, aplicada)")
-    s.add_argument("acao", nargs="?", default="estado", choices=["estado", "gerar", "aprovar", "pacote", "bloco", "aplicada"])
+    s.add_argument("acao", nargs="?", default="estado", choices=["estado", "gerar", "aprovar", "pacote", "bloco", "aplicada"], help="o que fazer (padrão: estado)")
     s.add_argument("--plataforma", help="com 'aplicada': youtube ou instagram")
     s.add_argument("--por", help="com 'aprovar': quem aprovou")
     s.add_argument("--arquivo", choices=["foto", "marca", "capa"], help="com 'bloco'")
@@ -1021,58 +1024,58 @@ def main():
     s.set_defaults(fn=cmd_nichos)
 
     s = sub.add_parser("demanda", help="mapa de demanda pelo autocomplete do YouTube")
-    s.add_argument("termo", nargs="*")
-    s.add_argument("--nicho")
-    s.add_argument("--idioma", default="pt")
-    s.add_argument("--top", type=int, default=25)
+    s.add_argument("termo", nargs="*", help="termo de busca (ou use --nicho)")
+    s.add_argument("--nicho", help="preset de config/nichos.json")
+    s.add_argument("--idioma", default="pt", help="idioma das sugestões (padrão: pt)")
+    s.add_argument("--top", type=int, default=25, help="quantos termos mostrar (padrão: 25)")
     s.add_argument("--rapido", action="store_true", help="sem expansões a-z")
     s.set_defaults(fn=cmd_demanda)
 
     s = sub.add_parser("outliers", help="vídeos muito acima da mediana do próprio canal")
-    s.add_argument("--nicho")
+    s.add_argument("--nicho", help="preset de config/nichos.json")
     s.add_argument("--busca", action="append", help="pode repetir; substitui as buscas do nicho")
-    s.add_argument("--idioma", default="pt")
-    s.add_argument("--por-busca", type=int, default=30)
-    s.add_argument("--min-views", type=int, default=10_000)
-    s.add_argument("--top", type=int, default=30)
+    s.add_argument("--idioma", default="pt", help="idioma da busca (padrão: pt)")
+    s.add_argument("--por-busca", type=int, default=30, help="vídeos lidos por busca (padrão: 30)")
+    s.add_argument("--min-views", type=int, default=10_000, help="mínimo de visualizações (padrão: 10000)")
+    s.add_argument("--top", type=int, default=30, help="quantos outliers guardar (padrão: 30)")
     s.add_argument("--detalhar", type=int, default=15, help="quantos buscam data e views/dia (lento)")
     s.add_argument("--nome", help="pasta em pesquisa/ para uma busca avulsa (padrão: avulso)")
     s.set_defaults(fn=cmd_outliers)
 
     s = sub.add_parser("transcrever", help="transcrição de um vídeo ou dos top de um outliers.json")
     s.add_argument("alvo", help="URL do vídeo ou caminho de outliers.json")
-    s.add_argument("--top", type=int, default=5)
-    s.add_argument("--idioma", default="pt")
+    s.add_argument("--top", type=int, default=5, help="quantos vídeos do outliers.json (padrão: 5)")
+    s.add_argument("--idioma", default="pt", help="idioma da legenda (padrão: pt)")
     s.set_defaults(fn=cmd_transcrever)
 
     s = sub.add_parser("produzir", help="gera vídeo, thumbnail e metadados a partir de roteiro(s) JSON")
-    s.add_argument("roteiro", nargs="+")
-    s.add_argument("--sem-legenda", action="store_true")
+    s.add_argument("roteiro", nargs="+", help="um ou mais roteiros JSON")
+    s.add_argument("--sem-legenda", action="store_true", help="vídeo sem legenda queimada")
     s.set_defaults(fn=cmd_produzir)
 
     s = sub.add_parser("vozes", help="lista vozes do edge-tts")
-    s.add_argument("prefixo", nargs="?", default="pt-BR")
+    s.add_argument("prefixo", nargs="?", default="pt-BR", help="começo do código da voz (padrão: pt-BR)")
     s.set_defaults(fn=cmd_vozes)
 
     s = sub.add_parser("efeitos-baixar", help="baixa efeitos sonoros CC0 do Openverse para assets/efeitos")
-    s.add_argument("--por-tipo", type=int, default=6)
+    s.add_argument("--por-tipo", type=int, default=6, help="quantos efeitos por tipo de som (padrão: 6)")
     s.set_defaults(fn=cmd_efeitos_baixar)
 
     s = sub.add_parser("comparar-vozes", help="gera o mesmo trecho em cada motor de voz para ouvir lado a lado")
-    s.add_argument("--texto")
+    s.add_argument("--texto", help="trecho a narrar (padrão: um texto de exemplo)")
     s.set_defaults(fn=cmd_comparar_vozes)
 
     s = sub.add_parser("vozes-amostras", help="amostras das vozes para escolher a voz do canal (grátis ou, com a chave, pagas)")
     s.add_argument("--mercado", help="só um público, ex.: pt-BR")
     s.add_argument("--motor", choices=["gemini", "chirp", "elevenlabs"], help="opção paga (precisa da chave)")
     s.add_argument("--minha-voz", action="store_true", help="amostra da sua própria voz (gravação em dados/minha-voz)")
-    s.add_argument("--refazer", action="store_true")
+    s.add_argument("--refazer", action="store_true", help="gera de novo as amostras que já existem")
     s.set_defaults(fn=cmd_vozes_amostras)
     s = sub.add_parser("instalar-voz-local", help="voz Kokoro e transcrição faster-whisper no PC (grátis, sem chave)")
     s.set_defaults(fn=lambda a: __import__("darkops.voz_local", fromlist=["instalar"]).instalar())
     s = sub.add_parser("ouvir", help="transcreve um áudio ou vídeo no PC (faster-whisper)")
-    s.add_argument("arquivo")
-    s.add_argument("--idioma", default="pt")
+    s.add_argument("arquivo", help="áudio ou vídeo do PC")
+    s.add_argument("--idioma", default="pt", help="idioma da fala (padrão: pt)")
     s.set_defaults(fn=lambda a: print(__import__("darkops.voz_local", fromlist=["transcrever"])
                                       .transcrever(Path(a.arquivo).resolve(), a.idioma)["texto"]))
 
@@ -1098,7 +1101,7 @@ def main():
     s.set_defaults(fn=cmd_comentarios)
 
     s = sub.add_parser("comentario-responder", help="publica a resposta de um comentário (o rascunho aprovado)")
-    s.add_argument("id")
+    s.add_argument("id", help="id do comentário (tela Comentários)")
     s.add_argument("--texto", help="outra resposta no lugar do rascunho")
     s.set_defaults(fn=cmd_comentario_responder)
 
@@ -1106,10 +1109,10 @@ def main():
     s.set_defaults(fn=cmd_abrir)
 
     s = sub.add_parser("atalhos", help="cria (ou remove) os atalhos do Projeto Canais no Windows")
-    s.add_argument("--area-de-trabalho", action="store_true")
-    s.add_argument("--menu-iniciar", action="store_true")
+    s.add_argument("--area-de-trabalho", action="store_true", help="atalho na Área de Trabalho")
+    s.add_argument("--menu-iniciar", action="store_true", help="atalho no Menu Iniciar")
     s.add_argument("--barra-de-tarefas", action="store_true", help="cria no Menu Iniciar e explica como fixar")
-    s.add_argument("--remover", action="store_true")
+    s.add_argument("--remover", action="store_true", help="apaga os atalhos criados")
     s.set_defaults(fn=cmd_atalhos)
 
     s = sub.add_parser("atualizar", help="busca a versão nova no GitHub e atualiza esta pasta")
@@ -1118,17 +1121,17 @@ def main():
 
     s = sub.add_parser("atualizar-dependencias",
                        help="verifica (e atualiza) tudo de terceiros: Python, n8n, Node, HyperFrames, Claude Code...")
-    s.add_argument("--aplicar", action="store_true")
+    s.add_argument("--aplicar", action="store_true", help="instala as versões novas (com conferência e volta)")
     s.add_argument("--itens", nargs="*", help="só estes ids (py:yt-dlp, n8n, node, npm:gsap, claude...)")
-    s.add_argument("--json", action="store_true")
+    s.add_argument("--json", action="store_true", help="saída em JSON")
     s.set_defaults(fn=cmd_atualizar_dependencias)
 
     s = sub.add_parser("integridade", help="confere arquivos, segredos, programas, pacotes e falhas conhecidas")
-    s.add_argument("--json", action="store_true")
+    s.add_argument("--json", action="store_true", help="saída em JSON")
     s.set_defaults(fn=cmd_integridade)
 
     s = sub.add_parser("rotinas", help="rotinas automáticas (integridade, atualizações, ferramentas novas)")
-    s.add_argument("--rodar", choices=["integridade", "atualizacoes", "ferramentas", "vitrine"])
+    s.add_argument("--rodar", choices=["integridade", "atualizacoes", "ferramentas", "vitrine"], help="roda uma rotina agora")
     s.add_argument("--vencidas", action="store_true", help="roda só as que passaram do prazo (o n8n usa)")
     s.set_defaults(fn=cmd_rotinas)
 
@@ -1156,19 +1159,19 @@ def main():
     s.set_defaults(fn=cmd_ferramentas_buscar)
 
     s = sub.add_parser("roteiro-auditar", help="confere gancho, estrutura e CTA de roteiros (sai com erro se faltar algo)")
-    s.add_argument("roteiros", nargs="+")
+    s.add_argument("roteiros", nargs="+", help="um ou mais roteiros JSON")
     s.set_defaults(fn=cmd_roteiro_auditar)
 
     s = sub.add_parser("palco-testar", help="desenha alguns quadros de cada cena do palco de um roteiro (sem gravar)")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON com palco 3D")
     s.set_defaults(fn=cmd_palco_testar)
 
     s = sub.add_parser("prancha-testar", help="monta e confere a Prancha de Campo de um roteiro e grava a folha de contato")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON com cenas/<slug>.prancha.json")
     s.set_defaults(fn=cmd_prancha_testar)
 
     s = sub.add_parser("prancha-escrever", help="pede ao Claude a Prancha de Campo de roteiros já escritos")
-    s.add_argument("roteiros", nargs="+")
+    s.add_argument("roteiros", nargs="+", help="um ou mais roteiros JSON")
     s.add_argument("--refazer", action="store_true", help="reescreve mesmo se já existir")
     s.set_defaults(fn=cmd_prancha_escrever)
 
@@ -1189,14 +1192,14 @@ def main():
         s.set_defaults(fn=cmd_nuvem, acao=acao)
 
     s = sub.add_parser("ajustar-canal", help="a IA transforma a descrição do canal em mudanças do perfil (pede aprovação)")
-    s.add_argument("pedido")
+    s.add_argument("pedido", help="o pedido em texto livre (ex.: \"vídeos mais rápidos\")")
     s.set_defaults(fn=cmd_ajustar_canal)
 
     s = sub.add_parser("analisar", help="a IA analisa as estatísticas e sugere mudanças (cada uma pede aprovação)")
     s.set_defaults(fn=cmd_analisar)
 
     s = sub.add_parser("publicar-youtube", help="envia o vídeo produzido de um roteiro ao YouTube")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON com o vídeo produzido")
     s.add_argument("--privacidade", default=None, choices=["private", "unlisted", "public"],
                    help="padrão: o configurado no perfil")
     s.set_defaults(fn=cmd_publicar_youtube)
@@ -1205,18 +1208,18 @@ def main():
     s.set_defaults(fn=cmd_conta_instagram)
 
     s = sub.add_parser("publicar-instagram", help="publica o vídeo vertical de um roteiro como Reel")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON com o vídeo vertical produzido")
     s.set_defaults(fn=cmd_publicar_instagram)
 
     s = sub.add_parser("fila-proximo", help="próximo roteiro aprovado da fila do perfil (saída JSON para o n8n)")
     s.set_defaults(fn=cmd_fila_proximo)
 
     s = sub.add_parser("fila-produzir", help="produz um roteiro e devolve o vídeo em JSON")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON da fila")
     s.set_defaults(fn=cmd_fila_produzir)
 
     s = sub.add_parser("fila-concluir", help="move o roteiro publicado e anota no testes.csv do perfil")
-    s.add_argument("roteiro")
+    s.add_argument("roteiro", help="roteiro JSON publicado")
     s.set_defaults(fn=cmd_fila_concluir)
 
     s = sub.add_parser("aprender", help="analisa o que funcionou a cada 14 vídeos no ar e ajusta o canal sozinho")
@@ -1238,8 +1241,8 @@ def main():
     s.set_defaults(fn=cmd_conectar_azure)
 
     s = sub.add_parser("instalar-apps", help="instala sozinho o Node.js, o n8n e o Claude Code (na pasta do projeto)")
-    s.add_argument("--sem-claude", action="store_true")
-    s.add_argument("--sem-n8n", action="store_true")
+    s.add_argument("--sem-claude", action="store_true", help="não instala o Claude Code")
+    s.add_argument("--sem-n8n", action="store_true", help="não instala o n8n")
     s.add_argument("--sem-logon", action="store_true", help="não liga o n8n junto com o Windows")
     s.set_defaults(fn=cmd_instalar_apps)
 
@@ -1247,19 +1250,24 @@ def main():
     s.set_defaults(fn=cmd_aprender_desfazer)
 
     s = sub.add_parser("whatsapp", help="WhatsApp do dono: testar, status, resumo, versao (avisa a versão nova) ou n8n (importa o workflow de comandos)")
-    s.add_argument("acao", choices=["testar", "status", "resumo", "versao", "n8n"], nargs="?", default="status")
+    s.add_argument("acao", choices=["testar", "status", "resumo", "versao", "n8n"], nargs="?", default="status", help="o que fazer (padrão: status)")
     s.set_defaults(fn=cmd_whatsapp)
 
     s = sub.add_parser("whatsapp-receber", help="processa uma mensagem recebida do WhatsApp (chamado pelo n8n)")
-    s.add_argument("--arquivo", required=True)
+    s.add_argument("--arquivo", required=True, help="nome do arquivo em dados/whatsapp/entrada/")
     s.set_defaults(fn=cmd_whatsapp_receber)
 
     s = sub.add_parser("registrar-falha", help="anota um erro do workflow em controle/falhas.log")
-    s.add_argument("--etapa", required=True)
-    s.add_argument("--mensagem", required=True)
+    s.add_argument("--etapa", required=True, help="nome do nó do n8n que falhou")
+    s.add_argument("--mensagem", required=True, help="mensagem de erro (passa por ocultar)")
     s.set_defaults(fn=cmd_registrar_falha)
+    return p
 
-    a = p.parse_args()
+
+def main():
+    from .janelas import esconder
+    esconder()  # aberto pelo atalho (pythonw): nenhum comando chamado daqui pisca uma janela de prompt
+    a = criar_parser().parse_args()
     if a.perfil:
         import os
         os.environ["DARKOPS_PERFIL"] = a.perfil

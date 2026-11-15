@@ -64,7 +64,7 @@
     </div>
     {% if novas | rejectattr('atualizado') | selectattr('aplicavel') | list %}
     <p class="acoes"><button class="botao" name="acao" value="aplicar"
-      onclick="return confirm('Atualizar os itens marcados agora? Pode levar alguns minutos; o app é conferido depois e o que quebrar volta sozinho.')">Atualizar os marcados agora</button>
+      data-pergunta="Atualizar os itens marcados agora? Pode levar alguns minutos; o app é conferido depois e o que quebrar volta sozinho.">Atualizar os marcados agora</button>
       <span class="dica">Os sem caixa chegam com a próxima versão do app ou pelo sistema (a observação diz como).</span></p>
     {% endif %}
   </form>
@@ -86,7 +86,7 @@
   {% set abertas = sugestoes | selectattr('estado', 'in', ['nova', 'interessa']) | list %}
   {% for s in abertas %}
   <div class="cartao" style="margin:10px 0;box-shadow:none;background:var(--fundo-suave, #f5f5f7)">
-    <p><b><a href="{{ s.link }}" target="_blank" rel="noopener noreferrer">{{ s.nome }}</a></b>
+    <p><b><a href="{{ s.link|link }}" target="_blank" rel="noopener noreferrer">{{ s.nome }}</a></b>
       <span class="selo formato">{{ s.licenca }}</span> <span class="selo formato">esforço {{ s.esforco }}</span>
       {% if s.estado == 'interessa' %}<span class="selo pronta">interessa</span>{% endif %}</p>
     <p>{{ s.o_que_melhora }} <small class="suave">({{ s.onde_entra }} · {{ s.custo }})</small></p>

@@ -4,7 +4,7 @@
 <ul class="etapas">
   {% for e in lista %}
   <li><span class="ok-x {{ 'sim' if e.feita }}">{{ '✓' if e.feita else '○' }}</span> {{ e.nome }}
-    {% if not e.feita and e.como %}<span class="como">{{ e.como }}{% if e.link %} · <a href="{{ e.link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</span>{% endif %}</li>
+    {% if not e.feita and e.como %}<span class="como">{{ e.como }}{% if e.link %} · <a href="{{ e.link|link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</span>{% endif %}</li>
   {% endfor %}
 </ul>
 {% endmacro %}
@@ -18,7 +18,7 @@
 <section class="cartao passo-atual" style="margin-bottom:16px">
   <h2>Modo guiado · próximo passo</h2>
   <p><b>{{ e.nome }}</b></p>
-  {% if e.como %}<p>{{ e.como }}{% if e.link %} · <a href="{{ e.link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</p>{% endif %}
+  {% if e.como %}<p>{{ e.como }}{% if e.link %} · <a href="{{ e.link|link }}" target="_blank" rel="noopener">abrir</a>{% endif %}</p>{% endif %}
   <p class="suave">Faltam {{ pendentes | length }} etapa(s). Fila, Novo vídeo e Histórico ficam travados até terminar, para
     você não pular nenhuma parte da configuração da aplicação e das contas. Depois de cada passo, recarregue esta página.</p>
   <p class="acoes">{% for item in perfis %}<a class="botao pequeno secundario" href="{{ url_for('contas_criar', pid=item.id) }}">Criar as contas: {{ item.dados.nome }}</a>{% endfor %}

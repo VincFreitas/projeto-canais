@@ -17,7 +17,8 @@ from pathlib import Path
 from . import config
 
 SEM_USO = ("agents", "agent-evals", "insights", "chat-hub", "mcp", "mcp-discovery", "mcp-registry", "instance-ai",
-           "workflow-builder", "quick-connect", "data-table", "inbox", "otel")
+           "workflow-builder", "quick-connect", "data-table", "inbox", "otel",
+           "inbound-auth-core")  # o n8n 2.47 caía ao abrir de novo, num registro que ele mesmo gravou (2026-11-15)
 LOG = config.RAIZ / "dados" / "n8n.log"
 
 

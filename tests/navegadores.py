@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: LicenseRef-PolyForm-Shield-1.0.0
 # Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Abre as telas do Estúdio no Chromium, no Firefox e no WebKit (o motor do Safari) e confere: sem erro de script e
-sem rolagem lateral em 320, 375, 768 e 1920 px. Motor que não estiver instalado é pulado.
+sem rolagem lateral em 320, 375, 768 e 1920 px e sem script bloqueado pela CSP. Motor que não estiver
+instalado é pulado.
 
     python -m playwright install chromium firefox webkit   (no Linux: --with-deps)
     python tests/navegadores.py"""
@@ -34,18 +35,27 @@ def main() -> int:
                 print(f"{nome}: não instalado, pulado ({str(erro).splitlines()[0][:80]})")
                 continue
             testados.append(nome)
-            for largura in LARGURAS:
-                pg = nav.new_page(viewport={"width": largura, "height": 900})
+            # os dois temas: sem escolha guardada o Estúdio segue o sistema (Automático)
+            for largura, esquema in [(lg, es) for lg in LARGURAS for es in ("light", "dark")]:
+                pg = nav.new_page(viewport={"width": largura, "height": 900}, color_scheme=esquema)
+                rotulo = f"{nome} {largura}px {'escuro' if esquema == 'dark' else 'claro'}"
                 erros = []
                 pg.on("pageerror", lambda e, lista=erros: lista.append(str(e)))
+                # script bloqueado pela CSP (onclick= esquecido, <script> sem nonce) aparece só no console
+                pg.on("console", lambda m, lista=erros: lista.append(f"CSP: {m.text}") if m.type == "error" and (
+                    "Content Security Policy" in m.text or "Content-Security-Policy" in m.text
+                    or "Refused to" in m.text) else None)
                 for tela in TELAS:
                     resposta = pg.goto(f"http://127.0.0.1:{porta}{tela}", wait_until="load")
                     if resposta and resposta.status >= 500:
-                        falhas.append(f"{nome} {largura}px {tela}: HTTP {resposta.status}")
+                        falhas.append(f"{rotulo} {tela}: HTTP {resposta.status}")
                     lateral = pg.evaluate("document.documentElement.scrollWidth - document.documentElement.clientWidth")
                     if lateral > 1:
-                        falhas.append(f"{nome} {largura}px {tela}: rolagem lateral de {lateral}px")
-                falhas += [f"{nome} {largura}px: erro de script: {e[:160]}" for e in erros]
+                        falhas.append(f"{rotulo} {tela}: rolagem lateral de {lateral}px")
+                    tema = pg.evaluate("document.documentElement.dataset.tema || ''")
+                    if tela != "/abertura" and tema != ("escuro" if esquema == "dark" else "claro"):
+                        falhas.append(f"{rotulo} {tela}: tema '{tema}' não segue o sistema")
+                falhas += [f"{rotulo}: erro de script: {e[:160]}" for e in erros]
                 pg.close()
             nav.close()
     servidor.shutdown()

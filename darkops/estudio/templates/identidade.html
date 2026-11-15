@@ -44,7 +44,7 @@
 <form method="post" class="cartao">
   <label>Bio do Instagram (até {{ bio_max }} caracteres)</label>
   <textarea name="bio_instagram" maxlength="{{ bio_max }}" rows="4"
-            oninput="this.nextElementSibling.textContent = this.value.length + ' / {{ bio_max }}'">{{ textos.bio_instagram }}</textarea>
+            data-contador="{{ bio_max }}">{{ textos.bio_instagram }}</textarea>
   <p class="dica">{{ textos.bio_instagram | length }} / {{ bio_max }}</p>
   <label>Descrição do canal no YouTube</label>
   <textarea name="descricao_youtube" rows="6">{{ textos.descricao_youtube }}</textarea>

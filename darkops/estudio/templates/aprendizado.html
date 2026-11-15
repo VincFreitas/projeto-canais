@@ -15,7 +15,7 @@
       {{ v.curtidas }} curtidas · {{ v.comentarios }} comentários{% if v.duracao_s %} · {{ v.duracao_s }}s{% endif %}</span>
     {% if v.gancho %}<span class="gancho">“{{ v.gancho }}”</span>{% endif %}
   </div>
-  {% for plataforma, link in v.links.items() if link %}<a class="link" href="{{ link }}" target="_blank" rel="noopener">{{ 'YouTube' if plataforma == 'youtube' else 'Instagram' }} ↗</a>{% endfor %}
+  {% for plataforma, link in v.links.items() if link %}<a class="link" href="{{ link|link }}" target="_blank" rel="noopener">{{ 'YouTube' if plataforma == 'youtube' else 'Instagram' }} ↗</a>{% endfor %}
 </li>
 {% endmacro %}
 {% block corpo %}
@@ -60,7 +60,7 @@
       <h3 style="margin:0">{{ 'Mudanças desfeitas em ' ~ c.desfeito_em if c.desfeito else 'O que mudou sozinho' }}</h3>
       {% if loop.first and not c.desfeito %}
       <form method="post" action="{{ url_for('aprendizado_acao', pid=p.id, acao='desfazer') }}"
-            onsubmit="return confirm('Voltar o canal ao que era antes desta análise?')">
+            data-pergunta="Voltar o canal ao que era antes desta análise?">
         <button class="botao pequeno claro">↩ Desfazer</button></form>
       {% endif %}
     </div>

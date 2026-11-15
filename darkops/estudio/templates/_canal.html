@@ -4,15 +4,15 @@
 <div class="textos-video">
   <label style="margin-top:8px">Descrição (o que aparece embaixo do vídeo)</label>
   <div class="acoes">
-    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="ia" {{ 'checked' if (t.descricao_modo or 'ia') == 'ia' }} onchange="modoTexto(this)"> A IA cria automaticamente</label>
-    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="manual" {{ 'checked' if t.descricao_modo == 'manual' }} onchange="modoTexto(this)"> Eu escrevo</label>
+    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="ia" {{ 'checked' if (t.descricao_modo or 'ia') == 'ia' }} data-ao-mudar="modoTexto"> A IA cria automaticamente</label>
+    <label style="font-weight:400"><input type="radio" name="descricao_modo" value="manual" {{ 'checked' if t.descricao_modo == 'manual' }} data-ao-mudar="modoTexto"> Eu escrevo</label>
   </div>
   <textarea name="descricao" rows="5" data-modo="descricao_modo" placeholder="1ª linha: a palavra que as pessoas buscariam e o gancho (até ~125 caracteres). Depois 2 ou 3 frases sobre o vídeo, um convite para comentar ou mandar para alguém. Sem fontes nem links."
     {{ 'hidden' if (t.descricao_modo or 'ia') == 'ia' and not t.descricao }}>{{ t.descricao or '' }}</textarea>
   <label>Tags e hashtags (ajudam a busca e a recomendação)</label>
   <div class="acoes">
-    <label style="font-weight:400"><input type="radio" name="tags_modo" value="ia" {{ 'checked' if (t.tags_modo or 'ia') == 'ia' }} onchange="modoTexto(this)"> A IA cria automaticamente</label>
-    <label style="font-weight:400"><input type="radio" name="tags_modo" value="manual" {{ 'checked' if t.tags_modo == 'manual' }} onchange="modoTexto(this)"> Eu escrevo</label>
+    <label style="font-weight:400"><input type="radio" name="tags_modo" value="ia" {{ 'checked' if (t.tags_modo or 'ia') == 'ia' }} data-ao-mudar="modoTexto"> A IA cria automaticamente</label>
+    <label style="font-weight:400"><input type="radio" name="tags_modo" value="manual" {{ 'checked' if t.tags_modo == 'manual' }} data-ao-mudar="modoTexto"> Eu escrevo</label>
   </div>
   <div data-modo="tags_modo" {{ 'hidden' if (t.tags_modo or 'ia') == 'ia' and not t.tags }}>
     <input type="text" name="tags" value="{{ (t.tags or []) | join(', ') }}" placeholder="tags do YouTube, separadas por vírgula: do mais específico ao mais geral">
@@ -20,7 +20,7 @@
   </div>
   <p class="dica">No modo automático, a IA escreve com as regras de alcance de cada plataforma (veja docs/viralizacao.md) e você pode editar depois, na tela do vídeo.</p>
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 function modoTexto(radio) {
   const caixa = radio.closest('.textos-video').querySelector(`[data-modo="${radio.name}"]`);
   if (radio.value === 'manual') caixa.hidden = false;
@@ -35,7 +35,7 @@ function modoTexto(radio) {
   <div class="acoes">
     {% for chave, nome in formatos.items() %}
     <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
-      onchange="formatoDoVideo(this.form)"> {{ 'Curto (Shorts/Reels 9:16)' if chave == 'vertical' else 'Longo (YouTube 16:9)' }}</label>
+      data-ao-mudar-form="formatoDoVideo"> {{ 'Curto (Shorts/Reels 9:16)' if chave == 'vertical' else 'Longo (YouTube 16:9)' }}</label>
     {% endfor %}
     {% for chave, opcoes in duracoes.items() %}
     <select name="duracao_s" data-formato="{{ chave }}" {{ 'hidden disabled' if d.formato != chave }} style="width:auto">
@@ -55,7 +55,7 @@ function modoTexto(radio) {
     ficam marcados para postar à mão.</p>
   {{ textos_campos({}) }}
 </div>
-<script>
+<script nonce="{{ csp_nonce() }}">
 function formatoDoVideo(form) {
   const formato = form.querySelector('input[name=formato]:checked').value;
   form.querySelectorAll('select[name=duracao_s]').forEach(s => { s.hidden = s.disabled = s.dataset.formato !== formato; });
@@ -107,7 +107,7 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
   os seguidores. Se a conta ainda não puder usar (o Instagram pode exigir mais seguidores), o Reel sai normal.</p>
 {% set gancho_atual = d.get('gancho_final') if d.get('gancho_final') in ganchos else 'comentario' %}
 <label for="gancho_final">Fim do vídeo: o que a última frase pede</label>
-<select id="gancho_final" name="gancho_final" onchange="document.getElementById('bloco-palavra').hidden = this.value !== 'app'">
+<select id="gancho_final" name="gancho_final" data-mostra="#bloco-palavra" data-quando="app">
   {% for chave, nome in ganchos.items() %}<option value="{{ chave }}" {{ 'selected' if gancho_atual == chave }}>{{ nome }}</option>{% endfor %}
 </select>
 <p class="dica">A IA escreve a última frase assim em todo roteiro novo, e a conferência do roteiro segue a mesma escolha.</p>
@@ -122,7 +122,7 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <label>Formato</label>
 {% for chave, nome in formatos.items() %}
 <label style="font-weight:400"><input type="radio" name="formato" value="{{ chave }}" {{ 'checked' if d.formato == chave }}
-  onchange="trocarFormato(this.form)"> {{ nome }}</label>
+  data-ao-mudar-form="trocarFormato"> {{ nome }}</label>
 {% endfor %}
 <label>Duração de cada vídeo</label>
 {% for chave, opcoes in duracoes.items() %}
@@ -135,7 +135,7 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
 <div class="leva" data-min="{{ est.por_video[0] }}" data-max="{{ est.por_video[1] }}">
   <label>Quantos vídeos criar de uma vez</label>
   <div class="acoes">
-    <input type="number" name="leva_quantidade" min="2" max="14" step="2" value="{{ (d.leva_quantidade or 4) + (d.leva_quantidade or 4) % 2 if (d.leva_quantidade or 4) < 14 else 14 }}" style="width:90px" oninput="estimarLeva(this.form)">
+    <input type="number" name="leva_quantidade" min="2" max="14" step="2" value="{{ (d.leva_quantidade or 4) + (d.leva_quantidade or 4) % 2 if (d.leva_quantidade or 4) < 14 else 14 }}" style="width:90px" data-ao-digitar-form="estimarLeva">
     <span class="suave" data-estimativa></span>
   </div>
   <p class="dica">Sempre em número par: 2 vídeos por dia (12h e 19h). {{ est.aviso }} O tempo é uma estimativa para o estilo e a duração atuais: cada roteiro é escrito pelo
@@ -145,12 +145,12 @@ document.querySelectorAll('.tipo-video').forEach(b => formatoDoVideo(b.closest('
     <input type="number" name="leva_minimo" min="0" max="14" value="{{ d.leva_minimo }}" style="width:70px;display:inline-block"> vídeos ou menos na fila</label>
   <p class="dica">Quem confere a fila é o n8n, depois de cada postagem. Na hora de reabastecer, o PC precisa estar ligado.</p>
   {% if not novo %}<p><button class="botao secundario" formaction="{{ url_for('criar_leva', pid=p.id) }}"
-     onclick="return confirm('Criar ' + this.form.leva_quantidade.value + ' vídeo(s) agora? ' + this.form.querySelector('[data-estimativa]').textContent + '. Deixe o PC ligado até terminar.')">Criar a leva agora</button></p>{% endif %}
+     data-ao-clicar="confirmarLeva">Criar a leva agora</button></p>{% endif %}
 </div>
 <label>Vídeo de exemplo (link)</label>
 <input type="url" name="video_exemplo" value="{{ d.video_exemplo }}" placeholder="https://www.youtube.com/shorts/...">
 <p class="dica">Um vídeo de referência do estilo que você quer. Ele serve de modelo para os roteiros, nunca para copiar.</p>
-<script>
+<script nonce="{{ csp_nonce() }}">
 function estimarLeva(form) {
   const caixa = form.querySelector('.leva'), n = Math.max(2, Math.min(14, Math.ceil((+form.leva_quantidade.value || 2) / 2) * 2));
   const fmt = m => m < 60 ? `${Math.round(m)} min` : `${Math.floor(m / 60)} h${Math.round(m % 60) ? ' ' + Math.round(m % 60) + ' min' : ''}`;
@@ -158,6 +158,11 @@ function estimarLeva(form) {
     `cerca de ${fmt(caixa.dataset.min * n)} a ${fmt(caixa.dataset.max * n)} para ${n} vídeo(s)`;
 }
 document.querySelectorAll('.leva').forEach(c => estimarLeva(c.closest('form')));
+function confirmarLeva(botao) {
+  const form = botao.form;
+  return confirm('Criar ' + form.leva_quantidade.value + ' vídeo(s) agora? '
+                 + form.querySelector('[data-estimativa]').textContent + '. Deixe o PC ligado até terminar.');
+}
 function trocarFormato(form) {
   const formato = form.querySelector('input[name=formato]:checked').value;
   form.querySelectorAll('select[name=duracao_s]').forEach(s => {

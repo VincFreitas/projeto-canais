@@ -51,7 +51,8 @@ $lista = Join-Path (Split-Path $pacote -Parent) '@n8n\backend-common\dist\module
 if (Test-Path $lista) {
     $conhecidos = [regex]::Matches((Get-Content $lista -Raw), "'([a-z0-9-]+)'") | ForEach-Object { $_.Groups[1].Value }
     $sem_uso = 'agents', 'agent-evals', 'insights', 'chat-hub', 'mcp', 'mcp-discovery', 'mcp-registry', 'instance-ai',
-               'workflow-builder', 'quick-connect', 'data-table', 'inbox', 'otel'
+               'workflow-builder', 'quick-connect', 'data-table', 'inbox', 'otel', 'inbound-auth-core'
+    # inbound-auth-core: o n8n 2.47 caia ao abrir de novo, num registro que ele mesmo gravou (2026-11-15)
     $env:N8N_DISABLED_MODULES = ($sem_uso | Where-Object { $conhecidos -contains $_ }) -join ','
 }
 # 2) cache de onde o Node acha cada modulo (n8n\acelerar.cjs). O nome muda com a versao do n8n e com a data

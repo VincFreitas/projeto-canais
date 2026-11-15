@@ -36,10 +36,6 @@ def venv_python(raiz: Path) -> Path:
     return raiz / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
 
 
-def venv_bin(raiz: Path) -> Path:
-    return raiz / ".venv" / ("Scripts" if WINDOWS else "bin")
-
-
 def sem_janela() -> dict:
     """Argumentos do subprocess para não abrir janela de terminal (só o Windows abre)."""
     return {"creationflags": subprocess.CREATE_NO_WINDOW} if WINDOWS else {}

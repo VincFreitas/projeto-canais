@@ -124,7 +124,11 @@ def comando_permitido(comando: str) -> tuple[str, ...]:
 
 
 NEGADOS = ("Read(./.env)", "Read(./.env.*)", "Read(./credenciais/**)", "Read(./perfis/*/credenciais/**)",
-           "Read(./dados/**)", "Edit(./.env)", "Write(./.env)")
+           "Read(./dados/**)", "Edit(./.env)", "Write(./.env)",
+           # fora do projeto o modo -p já recusa a leitura; a lista garante o mesmo se isso mudar: login do Claude
+           # Code, chaves SSH, banco e chave do n8n e a chave do cofre no macOS e no Linux
+           "Read(~/.claude/**)", "Read(~/.ssh/**)", "Read(~/.n8n/**)", "Read(~/.config/projeto-canais/**)",
+           "Read(~/Library/Application Support/projeto-canais/**)", "Read(~/.git-credentials)")
 
 
 def rodar_claude(pedido: str, ferramentas: tuple[str, ...] = (), timeout: int = 300,

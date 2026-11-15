@@ -34,6 +34,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-proximo"
       },
       "id": "a1f0c001-0000-4000-8000-000000000002",
@@ -107,6 +108,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-produzir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000006",
@@ -121,6 +123,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-youtube \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000007",
@@ -135,6 +138,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} publicar-instagram \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000008",
@@ -149,6 +153,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} fila-concluir \"{{ $('Ler fila').item.json.roteiro }}\""
       },
       "id": "a1f0c001-0000-4000-8000-000000000009",
@@ -163,7 +168,8 @@
     },
     {
       "parameters": {
-        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^$`'\\r\\n]/g, ' ').slice(-300) }}\""
+        "executeOnce": false,
+        "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} registrar-falha --etapa \"{{ $prevNode.name }}\" --mensagem \"{{ String($json.error || $json.stderr || 'erro sem mensagem').replace(/[\"%&|<>^$`'!\\r\\n]/g, ' ').replace(/\\\\/g, '/').slice(-300) }}\""
       },
       "id": "a1f0c001-0000-4000-8000-00000000000a",
       "name": "Registrar falha",
@@ -216,6 +222,7 @@
     },
     {
       "parameters": {
+        "executeOnce": false,
         "command": "=cd /d __PASTA__ && __PYTHON__ -m darkops --perfil {{ $('Separar perfis').item.json.perfil }} leva --se-faltar --fundo"
       },
       "id": "a1f0c001-0000-4000-8000-000000000020",

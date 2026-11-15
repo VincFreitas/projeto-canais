@@ -3,7 +3,8 @@
 """O que derrubou o alcance do Enigma em 2026-11-15:
 - a capa preta (o primeiro quadro vazio);
 - o roteiro longo demais para a duração do canal;
-- o horário perdido com o PC desligado."""
+- o horário perdido com o PC desligado;
+- o n8n que só postava no primeiro canal da lista."""
 import json
 import subprocess
 import sys
@@ -95,6 +96,20 @@ class TestHorarioPerdido(unittest.TestCase):
             self.assertTrue(nuvem.reservar_slot(perfil))  # a postagem caiu: tenta de novo
             nuvem.registrar_slot(perfil, "x")
             self.assertIsNone(nuvem.slot_pendente(perfil))  # já postado
+
+
+class TestTodosOsCanais(unittest.TestCase):
+    def test_comando_roda_para_cada_canal(self):
+        """No n8n 2.x o Execute Command vem com "Execute Once" ligado: só o 1º canal postava (Pulga parada)."""
+        raiz = Path(__file__).resolve().parent.parent
+        modelos = {"PC": json.loads((raiz / "n8n" / "workflow.modelo.json").read_text(encoding="utf-8")),
+                   "nuvem": json.loads(nuvem.workflow_n8n_nuvem())}
+        for lado, w in modelos.items():
+            por_canal = [n for n in w["nodes"] if n["type"].endswith("executeCommand")
+                         and "Separar perfis" in n["parameters"].get("command", "")]
+            self.assertTrue(por_canal, lado)
+            for n in por_canal:
+                self.assertIs(n["parameters"].get("executeOnce"), False, f"{lado}: {n['name']}")
 
 
 if __name__ == "__main__":

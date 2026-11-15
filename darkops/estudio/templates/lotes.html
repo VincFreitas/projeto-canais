@@ -12,12 +12,12 @@
   <p class="suave">Cole isto primeiro no gerador, para ele manter o estilo e o personagem iguais em todas as imagens:</p>
   {% set instrucao %}Vou mandar prompts numerados. Gere exatamente 1 imagem por prompt, na ordem, sem texto, letras ou marca d'água na imagem, {{ 'formato vertical 9:16' if r.formato == 'vertical' else 'formato horizontal 16:9' }}. Mantenha o mesmo estilo{{ ' e o mesmo personagem: ' ~ r.personagem if r.personagem else '' }} em todas.{% endset %}
   <pre class="prompt" id="instrucao">{{ instrucao }}</pre>
-  <button type="button" class="botao claro" onclick="copiar('instrucao', this)">Copiar instruções</button>
+  <button type="button" class="botao claro" data-ao-clicar="copiar" data-arg="instrucao">Copiar instruções</button>
   {% if r.personagem %}
   <h3>Ficha do personagem</h3>
   <p class="suave">Se o gerador tiver uma área de personagens (como o Flow), crie o personagem com esta ficha antes das cenas.</p>
   <pre class="prompt" id="ficha">{{ r.personagem }}</pre>
-  <button type="button" class="botao claro" onclick="copiar('ficha', this)">Copiar ficha</button>
+  <button type="button" class="botao claro" data-ao-clicar="copiar" data-arg="ficha">Copiar ficha</button>
   {% endif %}
 </section>
 
@@ -27,7 +27,7 @@
   <h3>Lote {{ loop.index }}: cenas {{ bloco[0][0] }} a {{ bloco[-1][0] }}</h3>
   <pre class="prompt" id="lote{{ loop.index }}">{% for n, texto in bloco %}{{ '%02d' % n }}. {{ texto }}
 {% endfor %}</pre>
-  <button type="button" class="botao claro" onclick="copiar('lote{{ loop.index }}', this)">Copiar lote {{ loop.index }}</button>
+  <button type="button" class="botao claro" data-ao-clicar="copiar" data-arg="lote{{ loop.index }}">Copiar lote {{ loop.index }}</button>
   {% endfor %}
 </section>
 
@@ -44,8 +44,8 @@
   <p class="dica">Só contam as imagens baixadas depois que você abriu esta página. Elas entram nas cenas vazias, na ordem em que
     chegaram. Imagem feita por IA: confira se nenhuma cena tem gente real reconhecível ou marca registrada.</p>
 </section>
-<script>
-function copiar(id, botao) {
+<script nonce="{{ csp_nonce() }}">
+function copiar(botao, id) {
   navigator.clipboard.writeText(document.getElementById(id).textContent.trim());
   const antes = botao.textContent; botao.textContent = 'Copiado!'; setTimeout(() => botao.textContent = antes, 1500);
 }
