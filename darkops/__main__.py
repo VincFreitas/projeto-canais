@@ -237,6 +237,10 @@ def cmd_fila_proximo(_):
     from .fila import proximo, restantes
     from .perfis import atual, carregar
     perfil = carregar()
+    if nuvem.postando_agora(perfil):  # nem sincroniza: mexeria na fila da rodada que ainda está publicando
+        print("outra rodada já está postando neste horário: nada a fazer agora")
+        _resultado({"perfil": atual(), "vazia": True, "restantes": restantes(), "atendido_por": "postando"})
+        return
     if nuvem.configurada() and not nuvem.na_nuvem():
         try:
             nuvem.sincronizar(perfil, enviar_videos=False)  # pega o que a nuvem postou enquanto o PC estava desligado
@@ -254,7 +258,8 @@ def cmd_fila_proximo(_):
     from .fila import seguro_para_comando
     if not seguro_para_comando(caminho):
         sys.exit(f"nome de arquivo recusado na fila (use só letras, números, ponto e hífen): {caminho.name!r}")
-    if not nuvem.reservar_slot(perfil):
+    slug = json.loads(caminho.read_text(encoding="utf-8")).get("slug") or caminho.stem
+    if not nuvem.reservar_slot(perfil, slug):
         print("outra rodada já está postando neste horário: nada a fazer agora")
         _resultado({"perfil": atual(), "vazia": True, "restantes": restantes(), "atendido_por": "postando"})
         return
@@ -749,6 +754,17 @@ def cmd_fila_concluir(a):
     from .fila import concluir
     from .perfis import carregar
     from .render import duracao
+    pedido = Path(a.roteiro).resolve()
+    publicado = carregar().publicados / pedido.name
+    if not pedido.exists() and publicado.exists():
+        # outra rodada ou a sincronização já concluiu: ainda falta anotar o horário que este vídeo ocupou, senão a
+        # próxima rodada posta outro vídeo no mesmo horário (Enigma, 2026-11-15)
+        slug = json.loads(publicado.read_text(encoding="utf-8")).get("slug") or publicado.stem
+        if not nuvem.simulando():
+            nuvem.registrar_slot(carregar(), slug)
+        print(f"{pedido.name} já tinha saído da fila: horário anotado")
+        _resultado({"slug": slug, "ja_concluido": True})
+        return
     caminho, roteiro, slug, video = _roteiro_e_video(a.roteiro)
     if nuvem.simulando():
         print(f"[simulação] {caminho.name} sairia da fila e ocuparia este horário")

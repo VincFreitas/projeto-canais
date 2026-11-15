@@ -269,23 +269,38 @@ def slot_pendente(perfil) -> str | None:
     return slot if slot and slot not in ler_slots(perfil) else None
 
 
-def reservar_slot(perfil) -> bool:
+def _reserva(perfil) -> dict:
+    try:
+        return json.loads((perfil.controle / "slot-reservado.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def postando_agora(perfil) -> str:
+    """O vídeo (slug) que uma rodada deste lado está postando no horário da vez, ou "" se ninguém está. Reserva sem
+    slug (de antes da 0.68.2) devolve "?": alguém está postando, só não se sabe o quê."""
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
+    reserva = _reserva(perfil)
+    try:
+        fresca = datetime.now(timezone.utc) - datetime.fromisoformat(reserva["em"]) < timedelta(minutes=RESERVA_MIN)
+    except (KeyError, ValueError, TypeError):
+        return ""
+    return (reserva.get("slug") or "?") if slot and reserva.get("slot") == slot and fresca else ""
+
+
+def reservar_slot(perfil, slug: str = "") -> bool:
     """Segura o horário da vez enquanto este lado posta. Falso se outra rodada já está postando nele (o gatilho do
     n8n roda de 30 em 30 min e a postagem com vídeo por fazer passa disso). A reserva vence em RESERVA_MIN, para a
-    próxima rodada tentar de novo se a postagem caiu no meio. Fica só neste lado: não vai para o slots.json."""
+    próxima rodada tentar de novo se a postagem caiu no meio. Guarda o vídeo da vez (`slug`), para a sincronização
+    não concluir no meio um vídeo que esta rodada ainda está publicando. Fica só neste lado: não vai para o slots.json."""
     slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
     if not slot:
         return True
-    arquivo = perfil.controle / "slot-reservado.json"
-    agora = datetime.now(timezone.utc)
-    try:
-        antes = json.loads(arquivo.read_text(encoding="utf-8"))
-        if antes.get("slot") == slot and agora - datetime.fromisoformat(antes["em"]) < timedelta(minutes=RESERVA_MIN):
-            return False
-    except (OSError, ValueError, KeyError, TypeError):
-        pass
+    if postando_agora(perfil):
+        return False
     perfil.controle.mkdir(parents=True, exist_ok=True)
-    arquivo.write_text(json.dumps({"slot": slot, "em": agora.isoformat()}), encoding="utf-8")
+    (perfil.controle / "slot-reservado.json").write_text(
+        json.dumps({"slot": slot, "em": datetime.now(timezone.utc).isoformat(), "slug": slug}), encoding="utf-8")
     return True
 
 
@@ -393,16 +408,25 @@ def _sincronizar(perfil, enviar_videos: bool = True) -> dict:
         arquivo.write_text(json.dumps(junto, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # 2. o que a nuvem já publicou sai da fila daqui (mesmo caminho do "Registrar publicação" do n8n)
+    agora, reserva = postando_agora(perfil), _reserva(perfil)
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
     for caminho in fila_mod.roteiros(perfil):
         dados = json.loads(caminho.read_text(encoding="utf-8"))
         slug = dados.get("slug") or caminho.stem
         if fila_mod.ler_estado(perfil).get(slug):
+            if slug == agora:
+                # uma rodada daqui está publicando este vídeo agora: o "Registrar publicação" dela conclui e anota o
+                # horário. Em 2026-11-15 a rodada das 19h30 concluiu aqui o vídeo da rodada das 19h (o YouTube já
+                # tinha o ID), o horário ficou sem anotação e o n8n ia postar outro vídeo nas 19h
+                continue
             video = config.SAIDA / f"{slug}-{dados.get('formato', 'vertical')}.mp4"
             try:
                 fila_mod.concluir(caminho, dados, duracao(video) if video.exists() else None, perfil)
                 resumo["concluidos_aqui"].append(caminho.name)
             except SystemExit:
-                pass  # publicado só em parte: continua na fila para a próxima tentativa
+                continue  # publicado só em parte: continua na fila para a próxima tentativa
+            if slot and reserva.get("slug") == slug and reserva.get("slot") == slot:
+                registrar_slot(perfil, slug)  # publicado por uma rodada daqui neste horário que caiu antes de anotar
 
     # 3. o estado somado volta para a nuvem
     for nome in ("estado.json", "slots.json"):

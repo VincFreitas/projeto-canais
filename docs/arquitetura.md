@@ -105,7 +105,7 @@ Todo nó que roda por canal no n8n precisa de `"executeOnce": false` (o n8n 2.x 
 
 - **PC**: o n8n local posta às 12:00 e 19:00 no fuso do mercado do canal (`mercados.fuso`, nunca o do Windows). Ligado depois do horário, posta o que perdeu (janela de 6 horas, `nuvem.JANELA_SLOT_H`).
 - **Nuvem** (opcional, `nuvem.py`): um repositório **privado** de fila no GitHub roda o mesmo workflow no Actions às 12:20 e 19:20, sem produzir vídeo. O PC manda os vídeos aprovados (`nuvem-sincronizar`) e os tokens como Secrets cifrados. No Actions, `nuvem-preparar` monta a fila e as credenciais, o n8n executa e `nuvem-devolver` grava o estado de volta.
-- **Sem post duplicado**: `controle/slots.json` (quem atendeu cada horário) e `estado.json` (IDs por vídeo e plataforma) vão e voltam com a nuvem. `nuvem.reservar_slot` impede duas rodadas do n8n no mesmo horário, e `fila.ja_publicado` impede repetir um upload num retry.
+- **Sem post duplicado**: `controle/slots.json` (quem atendeu cada horário) e `estado.json` (IDs por vídeo e plataforma) vão e voltam com a nuvem. `nuvem.reservar_slot` impede duas rodadas do n8n no mesmo horário e guarda o vídeo da vez: quando a produção passa de 30 minutos, a rodada seguinte não sincroniza nem mexe na fila (`nuvem.postando_agora`), e `fila-concluir` de um roteiro que outra rodada já concluiu só anota o horário. `fila.ja_publicado` impede repetir um upload num retry.
 - **Instagram**: a API exige `video_url` público, então o vídeo passa pelo repositório **público** de passagem (`NUVEM_VIDEOS_REPO`) só enquanto a Meta baixa.
 
 ## n8n

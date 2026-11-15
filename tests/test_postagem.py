@@ -101,6 +101,58 @@ class Horarios(ComPerfilTemporario):
         self.assertTrue(nuvem.reservar_slot(self.p))
         self.assertFalse(nuvem.reservar_slot(self.p))  # a rodada seguinte do n8n não posta de novo no mesmo horário
 
+    def _publicado(self, nome="001-video-a.json"):
+        """Roteiro na fila já publicado nas duas plataformas (IDs no estado), como no meio de uma rodada."""
+        caminho = self.roteiro(nome, aprovado=True, formato="vertical")
+        fila.marcar(caminho.stem, "youtube", "abc", self.p)
+        fila.marcar(caminho.stem, "instagram", "123", self.p)
+        return caminho
+
+    def test_reserva_guarda_o_video(self):
+        self._na_hora()
+        self.assertEqual(nuvem.postando_agora(self.p), "")
+        self.assertTrue(nuvem.reservar_slot(self.p, "video-a"))
+        self.assertEqual(nuvem.postando_agora(self.p), "video-a")
+        self.assertFalse(nuvem.reservar_slot(self.p, "video-b"))
+
+    def test_sincronizar_nao_conclui_o_video_da_rodada_em_andamento(self):
+        """Enigma, 2026-11-15: a rodada das 19h30 concluiu o vídeo que a das 19h ainda publicava, e o horário das
+        19h ficou sem anotação. A sincronização deixa esse vídeo para o "Registrar publicação" da rodada dele."""
+        self._na_hora()
+        caminho = self._publicado()
+        nuvem.reservar_slot(self.p, caminho.stem)
+        with mock.patch.object(nuvem, "_ler", return_value=(None, None)), \
+                mock.patch.object(nuvem, "_gravar", return_value=True), \
+                mock.patch.object(nuvem, "na_nuvem", return_value=False):
+            nuvem._sincronizar(self.p, enviar_videos=False)
+            self.assertTrue(caminho.exists())
+            # a rodada caiu antes de concluir: com a reserva vencida, a sincronização conclui e anota o horário
+            reserva = self.p.controle / "slot-reservado.json"
+            dados = json.loads(reserva.read_text(encoding="utf-8"))
+            dados["em"] = (datetime.fromisoformat(dados["em"]) - timedelta(minutes=nuvem.RESERVA_MIN + 1)).isoformat()
+            reserva.write_text(json.dumps(dados), encoding="utf-8")
+            nuvem._sincronizar(self.p, enviar_videos=False)
+        self.assertFalse(caminho.exists())
+        self.assertTrue((self.p.publicados / caminho.name).exists())
+        self.assertEqual(nuvem.slot_atendido(self.p), "pc")
+
+    def test_fila_concluir_de_roteiro_ja_concluido_anota_o_horario(self):
+        import argparse
+        import contextlib
+        import io
+        import os
+        from darkops import __main__ as cli
+        self._na_hora()
+        self.p.publicados.mkdir(parents=True, exist_ok=True)
+        (self.p.publicados / "001-video-a.json").write_text(json.dumps({"slug": "video-a"}), encoding="utf-8")
+        ambiente = {k: v for k, v in os.environ.items() if k != "DARKOPS_SIMULAR"}
+        with mock.patch.dict(os.environ, {**ambiente, "DARKOPS_PERFIL": "teste"}, clear=True), \
+                mock.patch.object(nuvem, "na_nuvem", return_value=False), \
+                contextlib.redirect_stdout(io.StringIO()) as saida:
+            cli.cmd_fila_concluir(argparse.Namespace(roteiro=str(self.p.fila / "001-video-a.json")))
+        self.assertIn('"ja_concluido": true', saida.getvalue())
+        self.assertEqual(nuvem.slot_atendido(self.p), "pc")
+
     def test_slot_atendido_pelo_pc(self):
         self._na_hora()
         self.assertIsNone(nuvem.slot_atendido(self.p))
