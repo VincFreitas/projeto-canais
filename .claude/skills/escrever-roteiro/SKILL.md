@@ -51,7 +51,7 @@ Notas para a revisão: grave em `notas_roteiro` (uma lista curta de frases) o qu
 - Use **só** números que estão na narração. Nada de dado novo só na tela.
 
 ## 3c. Formato explicativo ("como funciona", 75 a 110 s)
-Quando a ideia é explicar como algo funciona, use o formato explicativo de [docs/ganchos.md](../../../docs/ganchos.md#formato-explicativo-você-monta) e os campos de [docs/roteiro.md](../../../docs/roteiro.md#formato-explicativo-tela-cheia-você-monta).
+Só em canal de "como funciona". Se o pedido da leva disser "vídeo curto de curiosidade", siga o formato e o tamanho do pedido, mesmo que o tema seja "como X foi feito": nada de "Se você..." nem de 280 a 320 palavras. Quando a ideia é explicar como algo funciona, use o formato explicativo de [docs/ganchos.md](../../../docs/ganchos.md#formato-explicativo-você-monta) e os campos de [docs/roteiro.md](../../../docs/roteiro.md#formato-explicativo-tela-cheia-você-monta).
 - Use `"layout": "cheio"`, `"legenda_modo": "grupo"` e `"velocidade": "+15%"`, e escreva de 12 a 16 cenas com 1 ou 2 frases cada (cerca de 280 a 320 palavras). Conte as palavras antes de salvar: com menos de 260, o vídeo fica curto demais e falta passo.
 - Não use o bordão. A 1ª frase já é "Se você [ação simples]..." (nunca uma definição como "O fogo precisa de...").
 - Cada ciclo "Mas... / Então você... / Esse é o [termo]" põe o nome técnico em `termo`. Marque as peças com `rotulos` (2 ou 3 palavras, com `em` na palavra falada).

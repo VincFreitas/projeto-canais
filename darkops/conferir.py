@@ -20,12 +20,21 @@ from . import config
 LIMITE_SHORTS_S = 180
 PARADA_S = 2.5  # quadros idênticos por mais tempo que isso, com a narração correndo, é cena travada
 PARADA_FINAL_S = 5
+CAPA_MIN_PCT = 1.0  # primeiro quadro com menos de 1% de pontos claros vira capa preta no Reel (Enigma, 2026-11-15)
 
 
 def _ffmpeg(video: Path, *filtros: str) -> str:
     proc = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(video), *filtros,
                            "-f", "null", "-"], capture_output=True, text=True, errors="replace")
     return proc.stderr
+
+
+def _claros_no_inicio(video: Path) -> float | None:
+    """Porcentagem de pontos claros no primeiro quadro. Abaixo de CAPA_MIN_PCT a tela está vazia ou preta."""
+    proc = subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-i", str(video), "-frames:v", "1",
+                           "-vf", "scale=108:192,format=gray", "-f", "rawvideo", "-"], capture_output=True)
+    pontos = proc.stdout
+    return 100 * sum(1 for b in pontos if b > 70) / len(pontos) if pontos else None
 
 
 def _minuto(t: float) -> str:
@@ -49,6 +58,10 @@ def conferir(video: Path, duracao_alvo: float | None = None) -> dict:
         ini, fim = float(ini), float(fim)
         if ini > 0.3 and fim < total - 0.3:  # o fade do começo e do fim não conta
             anotar("erro", f"tela preta de {fim - ini:.1f} s em {_minuto(ini)}", ini)
+    claros = _claros_no_inicio(video)
+    if claros is not None and claros < CAPA_MIN_PCT:
+        anotar("erro", "o primeiro quadro está quase vazio: ele vira a capa do Reel e é o que aparece primeiro no feed "
+                       "(mostre o assunto já no começo)", 0)
     paradas = [float(x) for x in re.findall(r"freeze_start: ([\d.]+)", imagem)]
     fins = [float(x) for x in re.findall(r"freeze_end: ([\d.]+)", imagem)]
     for ini, fim in zip(paradas, fins + [total] * (len(paradas) - len(fins))):  # sem fim = parada até o último quadro

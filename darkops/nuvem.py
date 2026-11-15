@@ -33,7 +33,10 @@ API = "https://api.github.com"
 UPLOADS = "https://uploads.github.com"
 TAG = "fila"
 BRASILIA = timezone(timedelta(hours=-3))  # sem horário de verão desde 2019
-JANELA_SLOT_H = 3                          # um post até 3 h depois do horário ainda conta para aquele horário
+# um post até 6 h depois do horário ainda conta para aquele horário. Era 3 h, mas a agenda do Actions atrasou de
+# 4,5 a 6,7 h em 2026-11 e a nuvem nunca postava; o PC ligado depois do horário também posta o que perdeu.
+JANELA_SLOT_H = 6
+RESERVA_MIN = 60                           # o PC "segura" o horário enquanto posta (gatilho de 30 em 30 min)
 CODIGO = "VincFreitas/projeto-canais"
 ID_WORKFLOW = "nuvemcanais0001"
 
@@ -258,6 +261,32 @@ def slot_atendido(perfil) -> str | None:
     """Quem já postou no horário da vez ('pc' ou 'nuvem'), ou None."""
     slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
     return ler_slots(perfil).get(slot, {}).get("por") if slot else None
+
+
+def slot_pendente(perfil) -> str | None:
+    """O horário da vez se ninguém postou nele ainda (pelo slots.json daqui, sem rede), ou None."""
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
+    return slot if slot and slot not in ler_slots(perfil) else None
+
+
+def reservar_slot(perfil) -> bool:
+    """Segura o horário da vez enquanto este lado posta. Falso se outra rodada já está postando nele (o gatilho do
+    n8n roda de 30 em 30 min e a postagem com vídeo por fazer passa disso). A reserva vence em RESERVA_MIN, para a
+    próxima rodada tentar de novo se a postagem caiu no meio. Fica só neste lado: não vai para o slots.json."""
+    slot = slot_atual(perfil.dados.get("horarios", ["12:00", "19:00"]), fuso=mercados.fuso(perfil.dados))
+    if not slot:
+        return True
+    arquivo = perfil.controle / "slot-reservado.json"
+    agora = datetime.now(timezone.utc)
+    try:
+        antes = json.loads(arquivo.read_text(encoding="utf-8"))
+        if antes.get("slot") == slot and agora - datetime.fromisoformat(antes["em"]) < timedelta(minutes=RESERVA_MIN):
+            return False
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    perfil.controle.mkdir(parents=True, exist_ok=True)
+    arquivo.write_text(json.dumps({"slot": slot, "em": agora.isoformat()}), encoding="utf-8")
+    return True
 
 
 def registrar_slot(perfil, slug: str) -> None:

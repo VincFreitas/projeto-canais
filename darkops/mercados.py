@@ -170,20 +170,6 @@ def instrucao_roteiro(dados: dict) -> str:
 
 # ---------- horários de postagem no fuso do mercado ----------
 
-def slot_na_hora(dados: dict, agora: datetime | None = None, janela_min: int = 30) -> str | None:
-    """O horário de postagem que acabou de chegar (nos últimos `janela_min` minutos, no fuso do mercado), ou None.
-    O gatilho do n8n roda a cada 30 minutos: cada horário cai em uma única rodada."""
-    tz = fuso(dados)
-    agora = (agora or datetime.now(tz)).astimezone(tz)
-    for h in dados.get("horarios") or []:
-        hh, mm = map(int, h.split(":"))
-        for dia in (0, -1):  # 23:50 ainda vale à 00:10
-            momento = agora.replace(hour=hh, minute=mm, second=0, microsecond=0) + timedelta(days=dia)
-            if timedelta(0) <= agora - momento < timedelta(minutes=janela_min):
-                return momento.strftime("%Y-%m-%d %H:%M")
-    return None
-
-
 def perto_de_postar(perfis_dados: list[dict], antes_min: int = 10, depois_min: int = 40,
                     agora: datetime | None = None) -> bool:
     """Algum canal ativo está a poucos minutos de um horário de postagem (no fuso de cada mercado)."""

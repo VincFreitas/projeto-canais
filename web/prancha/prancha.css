@@ -73,6 +73,15 @@ html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--
   color: var(--linha); white-space: nowrap; clip-path: inset(0 100% 0 0); }
 #cab-olho { width: 40px; height: 40px; flex: none; }
 
+/* capa (quadro 0 até ~1 s): é a capa do Reel e o primeiro relance no feed, então já mostra o assunto */
+#capa { background: radial-gradient(ellipse 760px 560px at 50% 44%, rgba(11, 15, 20, .94) 40%, rgba(11, 15, 20, .55) 100%); }
+#capa-caixa { position: absolute; left: 70px; right: 70px; top: 330px; height: 820px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; gap: 34px; }
+#capa-rotulo { font: 700 30px 'Consolas', monospace; color: var(--linha); letter-spacing: .18em; text-transform: uppercase; }
+#capa-titulo { font-family: 'Bahnschrift', sans-serif; font-weight: 700; line-height: 1.04; color: var(--osso-cheio);
+  text-transform: uppercase; text-wrap: balance; text-shadow: 0 0 28px rgba(92, 242, 224, .45), 0 4px 0 rgba(0, 0, 0, .6); }
+#capa-traco { width: 220px; height: 8px; border-radius: 4px; background: var(--linha); box-shadow: 0 0 22px rgba(92, 242, 224, .7); }
+
 /* palco do assunto (y 250-1230, x 60-1020) */
 .cena { position: absolute; left: 60px; top: 250px; width: 960px; height: 980px; opacity: 0; visibility: hidden; }
 .cena > svg, .plano > svg { position: absolute; left: 0; top: 0; width: 960px; height: 980px; overflow: visible; }

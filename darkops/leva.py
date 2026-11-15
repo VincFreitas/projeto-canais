@@ -204,6 +204,34 @@ def _formato_e_se(dados: dict) -> str:
         p in nicho for p in ("acontece se", "aconteceria", "what happens if", "what if")) else ""
 
 
+def explicativo(dados: dict) -> bool:
+    """Canal de "como funciona": o único que usa o formato explicativo ("Se você...", 280 a 320 palavras)."""
+    from .aparencia import _sem_acento
+    nicho = _sem_acento(dados.get("nicho") or "").replace("-", " ")
+    return dados.get("formato_conteudo") == "explicativo" or any(
+        p in nicho for p in ("como funciona", "how it works", "explicativ"))
+
+
+def _formato_e_tamanho(dados: dict) -> str:
+    """Tamanho da fala pela duração pedida e, fora do "como funciona", o formato de curiosidade.
+    Sem isso o Enigma (mistérios, 60 s) escreveu no explicativo da Pulga e saiu com 90 a 113 s (2026-11-15)."""
+    from .auditoria import palavras_alvo
+    if dados.get("formato", "vertical") != "vertical":
+        return ""
+    duracao = dados.get("duracao_s") or 60
+    minimo, maximo = palavras_alvo(duracao, dados.get("velocidade"))
+    tamanho = (f"Tamanho: de {minimo} a {maximo} palavras de fala no total, somando todas as cenas (cerca de "
+               f"{duracao} s); conte antes de salvar e grave \"duracao_alvo_s\": {duracao} no roteiro. ")
+    if explicativo(dados):
+        return f"Grave \"duracao_alvo_s\": {duracao} no roteiro. "
+    return ("Formato: vídeo curto de curiosidade (seção 3b da skill), não o explicativo da seção 3c. Este canal "
+            "não é de \"como funciona\": nada de abrir com \"Se você...\" nem do ciclo \"Mas... / Então você...\". "
+            "Abra com uma fórmula de docs/ganchos.md que combine com o nicho (pergunta, fato que parece impossível, "
+            "número, contradição), em até 14 palavras e diferente da abertura dos vídeos anteriores do canal. "
+            f"Use \"velocidade\": \"{dados.get('velocidade') or '+0%'}\" e de {max(duracao // 7, 5)} a "
+            f"{max(duracao // 5, 7)} cenas. " + tamanho)
+
+
 def _pauta_noticias(dados: dict, tema: str) -> str:
     """Canal de notícias: regras do formato e, sem tema pedido, os assuntos em alta agora no país do público."""
     from . import mercados, tendencias
@@ -244,7 +272,7 @@ def _escrever_roteiro(perfil, tema: str = "", formato: str = "", parte: dict | N
     inspiracao = ""
     if tema == SEGUIR_ANTERIORES:
         tema, inspiracao = "", _inspiracao_anteriores(perfil)
-    noticia = _pauta_noticias(d, tema) + _formato_e_se(d) + inspiracao
+    noticia = _pauta_noticias(d, tema) + _formato_e_se(d) + _formato_e_tamanho(d) + inspiracao
     if parte:  # as partes já escritas entram no pedido para a nova não repetir os fatos delas
         noticia += serie.instrucao(parte, [dados for _, _, dados in serie.partes(perfil, parte["id"])])
     pedido = (

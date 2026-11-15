@@ -254,20 +254,22 @@ def cmd_fila_proximo(_):
     # o caminho vai dentro de um comando do n8n e da nuvem (sh no Linux): nada de $, crase, aspas ou espaço
     if not caminho.name.endswith(".json") or any(c in str(caminho) for c in "$`\"'%!&|;<>^\r\n"):
         sys.exit(f"nome de arquivo recusado na fila (use só letras, números, ponto e hífen): {caminho.name!r}")
+    if not nuvem.reservar_slot(perfil):
+        print("outra rodada já está postando neste horário: nada a fazer agora")
+        _resultado({"perfil": atual(), "vazia": True, "restantes": restantes(), "atendido_por": "postando"})
+        return
     _resultado({"perfil": atual(), "vazia": False, "roteiro": str(caminho), "restantes": restantes()})
 
 
 def cmd_perfis_ativos(a):
     """Perfis com postagem ligada. Com --na-hora (gatilho de 30 em 30 minutos do n8n, ou a agenda da nuvem), só os
     que acabaram de chegar a um horário de postagem no fuso do seu mercado (12:00 em Nova York, 12:00 em Lisboa...)."""
-    from .mercados import slot_na_hora
-    from .nuvem import JANELA_SLOT_H
+    from .nuvem import slot_pendente
     from .perfis import listar
     na_hora = a.na_hora or os.environ.get("DARKOPS_NA_HORA") == "1"
-    # no PC o gatilho é exato (30 min); a agenda do GitHub Actions pode atrasar, então a nuvem aceita a janela toda
-    janela = 30 if a.na_hora else JANELA_SLOT_H * 60
-    _resultado({"perfis": [p.id for p in listar() if p.dados.get("ativo")
-                           and (not na_hora or slot_na_hora(p.dados, janela_min=janela))]})
+    # a janela toda (nuvem.JANELA_SLOT_H), no PC e na nuvem: o PC ligado depois do horário posta o que perdeu e a
+    # agenda atrasada do Actions ainda acha o horário; o que já tem post no slots.json fica de fora
+    _resultado({"perfis": [p.id for p in listar() if p.dados.get("ativo") and (not na_hora or slot_pendente(p))]})
 
 
 def cmd_cortes(a):

@@ -163,6 +163,19 @@
     resAnt = r; resTxt = texto;
   }
 
+  // ---------- capa: o quadro 0 vira a capa do Reel e é o primeiro relance de quem passa o feed. Sem ela a prancha
+  // começa vazia (capa preta). Mostra o assunto e sai antes da primeira peça crescer.
+  const CAPA_SAI = .75;
+  if (D.capa) {
+    const capa = div({ id: "capa", class: "camada" }, raiz);
+    const caixa = div({ id: "capa-caixa" }, capa);
+    if (D.subtitulo) div({ id: "capa-rotulo", texto: D.subtitulo }, caixa);
+    const n = D.capa.length;
+    div({ id: "capa-titulo", texto: D.capa, style: `font-size:${n <= 28 ? 104 : n <= 48 ? 90 : 74}px` }, caixa);
+    div({ id: "capa-traco" }, caixa);
+    tl.to(capa, { opacity: 0, duration: T.medio, ease: C.sai }, CAPA_SAI);
+  }
+
   // ---------- legenda: grupos curtos na faixa de baixo; a palavra futura fica a 30% e acende quando é dita
   const LIGA = new Set(["e", "de", "da", "do", "das", "dos", "a", "o", "as", "os", "um", "uma", "que", "pra", "para",
     "com", "sem", "no", "na", "em", "se", "por", "mais", "so", "nao", "num", "numa", "bem", "ao", "mil"]);

@@ -2,11 +2,12 @@
 # Projeto Canais · Vinicius Freitas · github.com/VincFreitas/projeto-canais
 """Auditoria do roteiro antes de ir para a fila: gancho, estrutura e voz do canal.
 
-Quatro checagens, as mesmas que um roteirista faria:
+Cinco checagens, as mesmas que um roteirista faria:
 - Gancho: a 1ª fala cabe nos 3 primeiros segundos, não começa com abertura genérica ("oi", "hoje eu trago",
   "neste vídeo") e cria tensão (pergunta, número, contraste ou algo que parece errado).
 - Estrutura: Gancho, Problema, Solução, Prova e CTA. A prova é um dado, nome, data ou fonte; o CTA do fim pede
   uma ação com palavra-chave ("Comenta NAZCA").
+- Tamanho: a fala cabe na duração do vídeo ("duracao_alvo_s" do roteiro ou "duracao_s" do canal).
 - Texto humano: nada dos vícios de texto de IA (CARA_DE_IA: "mergulhe", "desvende", "não é apenas X, é Y",
   travessão em excesso...) e um ponto de vista próprio ("ponto_de_vista" no roteiro). Vídeo automático sem
   opinião vira a média do que já existe, e o YouTube trata produção em massa sem valor como "inautêntica".
@@ -41,6 +42,23 @@ CARA_DE_IA = [
     (r"\bdelve|tapestry|in today's (fast-paced )?world|it's not just .{1,40}, it's\b", "clichê de IA em inglês"),
     (r"\b(al[ée]m disso|ademais|outrossim)\b", "\"além disso/ademais\" (escrita, não fala)"),
 ]
+# ritmo da narração a +0%, com as pausas entre cenas (medido em 2026-11-15: ~3,2 palavras/s a +15%)
+PALAVRAS_POR_S = 2.8
+TAMANHO_MAX = 1.3  # fala estimada acima de 130% da duração do canal trava
+
+
+def palavras_por_segundo(velocidade: str | None) -> float:
+    """Palavras faladas por segundo na velocidade do roteiro ou do canal ("+15%", "-5%")."""
+    m = re.fullmatch(r"\s*([+-]?\d+)\s*%\s*", str(velocidade or ""))
+    return PALAVRAS_POR_S * (1 + (int(m.group(1)) if m else 0) / 100)
+
+
+def palavras_alvo(duracao_s: float, velocidade: str | None) -> tuple[int, int]:
+    """Faixa de palavras de fala (mínimo, máximo) para a duração pedida."""
+    alvo = duracao_s * palavras_por_segundo(velocidade)
+    return round(alvo * .85), round(alvo * 1.05)
+
+
 PROVA = re.compile(r"\d|\b(mil|cem|cento|milhões|milhoes|metros|toneladas|anos|séculos|seculos|graus|segundo|pesquisa|estudo|arqueólog|cientista|registro|documento|teste|confirm|"
                    r"descobri|encontr|mediu|datação|datacao)\w*", re.I)
 
@@ -109,7 +127,21 @@ def auditar(roteiro: dict, perfil_dados: dict | None = None) -> list[dict]:
         problemas.append({"parte": "cta", "nivel": "erro",
                           "texto": f"a última fala precisa ser a chamada do app: diga que o vídeo foi feito por um "
                                    f"app e peça para comentar {palavra.palavra(perfil_dados)} (em MAIÚSCULAS)"})
-    # 3. texto humano: vícios de texto de IA e um ponto de vista do canal
+    # 3. tamanho: a fala cabe na duração pedida (o Enigma saiu com 90 a 113 s num canal de 60, em 2026-11-15)
+    dados = perfil_dados or {}
+    alvo_s = roteiro.get("duracao_alvo_s") or (dados.get("duracao_s") if dados.get("formato", "vertical") == "vertical"
+                                                else None)
+    if alvo_s and roteiro.get("formato", "vertical") == "vertical" and roteiro.get("tipo") != "corte":
+        total = sum(len(f.split()) for f in falas)
+        velocidade = roteiro.get("velocidade") or dados.get("velocidade")
+        estimado = total / palavras_por_segundo(velocidade)
+        if estimado > alvo_s * TAMANHO_MAX:
+            problemas.append({"parte": "tamanho", "nivel": "erro",
+                              "texto": f"a fala tem {total} palavras, uns {estimado:.0f} s; o vídeo pede cerca de "
+                                       f"{alvo_s:.0f} s: corte para até {palavras_alvo(alvo_s, velocidade)[1]} "
+                                       "palavras"})
+
+    # 4. texto humano: vícios de texto de IA e um ponto de vista do canal
     todo = " ".join(falas + [str((roteiro.get("metadados") or {}).get(k) or "") for k in ("titulo", "descricao")])
     achados = sorted({nome for padrao, nome in CARA_DE_IA if re.search(padrao, todo, re.I)})
     if todo.count("—") + todo.count(" – ") > max(1, len(falas) // 3):

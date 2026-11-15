@@ -113,6 +113,12 @@ def _preparar_mapas(itens: list) -> None:
                 _preparar_mapas(it[lado].get("itens", []))
 
 
+def capa(roteiro: dict, pr: dict) -> str:
+    """Texto da capa (quadro 0): o "capa" da prancha ou o título do roteiro, sem hashtag."""
+    texto = pr.get("capa") or roteiro.get("titulo") or pr.get("titulo") or ""
+    return re.sub(r"\s+", " ", re.sub(r"#\w+", "", texto)).strip()[:70]
+
+
 def dados(roteiro: dict, pr: dict, falas: list[tuple[list[dict], float]]) -> tuple[dict, float]:
     """Junta o roteiro, a cena da prancha e a narração (palavras e duração de cada cena) no JSON do runtime."""
     if len(pr["cenas"]) != len(roteiro["cenas"]):
@@ -125,6 +131,7 @@ def dados(roteiro: dict, pr: dict, falas: list[tuple[list[dict], float]]) -> tup
                       "destaque": p["destaque"] if "destaque" in p else c.get("destaque")})
         ini += dur
     return {"titulo": pr.get("titulo") or roteiro.get("titulo", ""), "subtitulo": pr.get("subtitulo", ""),
+            "capa": capa(roteiro, pr),
             "semente": pr.get("semente") or roteiro.get("slug", ""), "ressalva": pr.get("ressalva"),
             "capitulos": pr.get("capitulos", []), "pecas": pecas(pr.get("pecas")), "regioes": REGIOES,
             "cenas": cenas}, ini
