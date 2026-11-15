@@ -24,13 +24,13 @@ Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa
 
 <br clear="left">
 
-| Números reais (13 de novembro de 2026, pelas APIs oficiais) | YouTube | Instagram |
+| Números reais (15 de novembro de 2026, pelas APIs oficiais) | YouTube | Instagram |
 |---|---|---|
 | Vídeos publicados | 21 | 21 |
-| Visualizações | 17.443 | 7.126 |
-| Curtidas | 578 | 135 |
+| Visualizações | 17.625 | 7.128 |
+| Curtidas | 579 | 135 |
 | Inscritos e seguidores | 47 | 7 |
-| Vídeo mais visto | 1.366 visualizações | 1.274 visualizações |
+| Vídeo mais visto | 1.369 visualizações | 1.274 visualizações |
 
 O canal nasceu em 20 de outubro de 2026, então tinha três semanas nessa contagem. São números de um canal novo, sem anúncio pago e sem compra de seguidores, e mostram o app funcionando do jeito que ele foi feito para funcionar. Quanto custou cada vídeo está em [Perguntas frequentes](#perguntas-frequentes).
 
