@@ -111,6 +111,31 @@ class Estudio(unittest.TestCase):
         self.assertNotIn("javascript:alert", html)
         self.assertIn(f'href="/p/{perfis[0].id}"', html)
 
+    def test_tarefa_geral_fora_do_canal(self):
+        """Integridade, atualizações e WhatsApp valem para o app inteiro: a tela não tem cabeçalho nem abas de canal."""
+        from darkops import estudio
+        r = self.c.get("/tarefa/naoexiste", query_string={"voltar": "javascript:alert(1)"}, headers=LOCAL)
+        self.assertEqual(r.status_code, 200)
+        html = r.get_data(as_text=True)
+        self.assertNotIn("javascript:alert", html)
+        self.assertNotIn('<nav class="abas', html)
+        self.assertNotIn('<header class="topo', html)
+        self.assertIn('id="voltar" href="/saude"', html)
+        self.assertEqual(self.c.get("/tarefa/naoexiste.json", headers=LOCAL).get_json()["estado"], "desconhecido")
+        from darkops.perfis import listar
+        perfis = listar()
+        if not perfis:
+            return
+        estudio.JOBS["teste-geral"] = {"geral": True, "titulo": "Integridade e segurança"}
+        try:
+            r = self.c.get(f"/p/{perfis[0].id}/tarefa/teste-geral", query_string={"voltar": "/saude#integridade"},
+                           headers=LOCAL)
+            self.assertEqual(r.status_code, 302)
+            self.assertTrue(r.headers["Location"].startswith("/tarefa/teste-geral?voltar=/saude%23integridade"),
+                            r.headers["Location"])
+        finally:
+            estudio.JOBS.pop("teste-geral", None)
+
     def test_todo_href_de_dado_passa_pelo_filtro(self):
         """Um href com valor que não sai de url_for precisa do |link (ou ser constante do app)."""
         import re

@@ -279,14 +279,15 @@ def _rodar_agora(perfil: str, *args: str, timeout: int = 60) -> tuple[bool, str]
     return proc.returncode == 0, (proc.stdout + proc.stderr).strip()
 
 
-def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
-    """Roda comandos da CLI em sequência num processo de fundo; o log fica em controle/jobs/."""
+def _iniciar_job(p, titulo: str, comandos: list[list[str]], geral: bool = False) -> str:
+    """Roda comandos da CLI em sequência num processo de fundo; o log fica em controle/jobs/.
+    geral=True: tarefa do app inteiro (Saúde, Configurações, WhatsApp), acompanhada fora da tela do canal."""
     job_id = uuid.uuid4().hex[:10]
     pasta = p.controle / "jobs"
     pasta.mkdir(parents=True, exist_ok=True)
     log = pasta / f"{job_id}.log"
     from .tarefas import descrever
-    JOBS[job_id] = {"id": job_id, "perfil": p.id, "titulo": titulo, "estado": "rodando",
+    JOBS[job_id] = {"id": job_id, "perfil": p.id, "titulo": titulo, "estado": "rodando", "geral": geral,
                     "inicio": time.time(), "log": str(log), **descrever(p.dados, comandos)}
 
     def trabalhar():
@@ -313,6 +314,15 @@ def _iniciar_job(p, titulo: str, comandos: list[list[str]]) -> str:
 
     threading.Thread(target=trabalhar, daemon=True).start()
     return job_id
+
+
+def _tarefa_geral(titulo: str, comandos: list[list[str]], voltar: str):
+    """Tarefa do app inteiro: a CLI roda pelo primeiro canal (o log fica nele), mas a tela de acompanhar é a
+    geral, sem o cabeçalho e as abas de um canal (a integridade abria dentro do Enigma Oculto)."""
+    perfis_ = listar()
+    p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
+    job = _iniciar_job(p, titulo, comandos, geral=True)
+    return redirect(url_for("tarefa_geral", job=job, voltar=voltar))
 
 
 @app.context_processor
@@ -986,14 +996,11 @@ def configuracoes():
             flash("Modo guiado " + ("ligado: Fila, Novo vídeo e Histórico esperam a configuração terminar."
                                     if ligado else "desligado: todas as telas liberadas."), "ok")
         elif acao in ("verificar", "atualizar", "dependencias", "dependencias-aplicar"):
-            perfis_ = listar()
-            p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
             comandos = {"verificar": ["atualizar", "--verificar"], "atualizar": ["atualizar"],
                         "dependencias": ["atualizar-dependencias"], "dependencias-aplicar": ["atualizar-dependencias", "--aplicar"]}
             titulos = {"verificar": "Procurar atualização", "atualizar": "Atualizar o Projeto Canais",
                        "dependencias": "Verificar dependências", "dependencias-aplicar": "Atualizar dependências"}
-            job = _iniciar_job(p, titulos[acao], [comandos[acao]])
-            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("configuracoes")))
+            return _tarefa_geral(titulos[acao], [comandos[acao]], url_for("configuracoes"))
         return redirect(url_for("configuracoes"))
     from .. import __version__
     guiado = str(_env().get("DARKOPS_MODO_GUIADO") or os.getenv("DARKOPS_MODO_GUIADO", "1")).strip() != "0"
@@ -1010,21 +1017,19 @@ def saude():
     if request.method == "POST":
         f = request.form
         acao = f.get("acao", "")
-        perfis_ = listar()
-        p = perfis_[0] if perfis_ else carregar(PADRAO).preparar()
         if acao == "rodar" and f.get("rotina") in rotinas.ROTINAS:
             nome = f["rotina"]
-            job = _iniciar_job(p, rotinas.ROTINAS[nome]["titulo"], [["rotinas", "--rodar", nome]])
-            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + f"#{nome}"))
+            return _tarefa_geral(rotinas.ROTINAS[nome]["titulo"], [["rotinas", "--rodar", nome]],
+                                 url_for("saude") + f"#{nome}")
         if acao == "aplicar":
             itens = [i for i in f.getlist("itens") if re.fullmatch(r"[\w:./@-]{1,80}", i)]
             if itens:
-                job = _iniciar_job(p, "Atualizar dependências", [["atualizar-dependencias", "--aplicar", "--itens", *itens],
-                                                                 ["rotinas", "--rodar", "atualizacoes"]])
-                return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + "#atualizacoes"))
+                return _tarefa_geral("Atualizar dependências", [["atualizar-dependencias", "--aplicar", "--itens", *itens],
+                                                                ["rotinas", "--rodar", "atualizacoes"]],
+                                     url_for("saude") + "#atualizacoes")
         elif acao == "proteger":
-            job = _iniciar_job(p, "Proteger os segredos", [["cofre-proteger"], ["rotinas", "--rodar", "integridade"]])
-            return redirect(url_for("acompanhar", pid=p.id, job=job, voltar=url_for("saude") + "#integridade"))
+            return _tarefa_geral("Proteger os segredos", [["cofre-proteger"], ["rotinas", "--rodar", "integridade"]],
+                                 url_for("saude") + "#integridade")
         elif acao in ("interessa", "descartar"):
             ferramentas.marcar(f.get("id", ""), "interessa" if acao == "interessa" else "descartada")
             return redirect(url_for("saude") + "#ferramentas")
@@ -1160,11 +1165,10 @@ def whatsapp_salvar():
         passos.append(["whatsapp", "n8n"])
     if canal_nuvem.configurada():
         passos.append(["nuvem-segredos"])
-    perfis = listar()
-    if passos and perfis:  # a tela de acompanhar é de um canal; o trabalho vale para todos
-        job = _iniciar_job(perfis[0], "Ligar os comandos do WhatsApp", passos)
+    if passos and listar():  # o trabalho vale para todos os canais: tela de tarefa geral
+        resposta = _tarefa_geral("Ligar os comandos do WhatsApp", passos, voltar)
         threading.Thread(target=_religar_whatsapp, daemon=True).start()
-        return redirect(url_for("acompanhar", pid=perfis[0].id, job=job, voltar=voltar))
+        return resposta
     if passos:
         threading.Thread(target=_religar_whatsapp, daemon=True).start()
     return redirect(voltar)
@@ -2123,8 +2127,18 @@ def midia(nome):
 @app.get("/p/<pid>/tarefa/<job>")
 def acompanhar(pid, job):
     p = _perfil(pid)
-    return render_template("tarefa.html", p=p, d=p.dados, job=JOBS.get(job), job_id=job,
+    info = JOBS.get(job)
+    if info and info.get("geral"):  # tarefa do app inteiro aberta por um link antigo: vai para a tela geral
+        return redirect(url_for("tarefa_geral", job=job, voltar=request.args.get("voltar") or None))
+    return render_template("tarefa.html", p=p, d=p.dados, job=info, job_id=job,
                            voltar=volta_segura(request.args.get("voltar"), url_for("painel", pid=pid)))
+
+
+@app.get("/tarefa/<job>")
+def tarefa_geral(job):
+    """Tarefa do app inteiro (Saúde do app, Configurações, WhatsApp): sem o cabeçalho e as abas de um canal."""
+    return render_template("tarefa.html", p=None, d={}, job=JOBS.get(job), job_id=job,
+                           voltar=volta_segura(request.args.get("voltar"), url_for("saude")))
 
 
 @app.get("/tarefa/<job>.json")
