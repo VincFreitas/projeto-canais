@@ -125,5 +125,28 @@ class Basico(unittest.TestCase):
             self.assertIn("\ndescription: ", texto.split("---")[1], skill)
 
 
+class SemJanela(unittest.TestCase):
+    """No pythonw (Estúdio, rotinas), node, ffmpeg e powershell abriam uma janela de terminal cada (2026-11-17)."""
+
+    def test_filho_sai_sem_janela(self):
+        from darkops.sistema import _com_janela_escondida
+        sem_janela = 0x08000000
+        self.assertEqual(_com_janela_escondida((["node"],), {}), {"creationflags": sem_janela})
+        self.assertEqual(_com_janela_escondida((["x"],), {"creationflags": 0x200})["creationflags"], 0x200 | sem_janela)
+        for proprio in (0x10, 0x08, sem_janela):  # novo console, processo solto ou já sem janela: a chamada decidiu
+            self.assertEqual(_com_janela_escondida((["x"],), {"creationflags": proprio}), {"creationflags": proprio})
+        self.assertEqual(_com_janela_escondida(tuple(range(14)), {}), {})  # creationflags pela posição
+
+    def test_com_terminal_nada_muda(self):
+        """No terminal (dark.ps1, testes) os filhos usam o mesmo console: a saída não pode sumir num console escondido."""
+        if os.name == "nt":
+            import ctypes
+            if not ctypes.windll.kernel32.GetConsoleCP():
+                self.skipTest("estes testes rodam sem console")
+        r = subprocess.run([sys.executable, "-c", "import darkops, subprocess; print(hasattr(subprocess.Popen, '_sem_janela'))"],
+                           cwd=RAIZ, capture_output=True, text=True, timeout=120)
+        self.assertEqual(r.stdout.strip(), "False", r.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

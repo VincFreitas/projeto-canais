@@ -41,6 +41,41 @@ def sem_janela() -> dict:
     return {"creationflags": subprocess.CREATE_NO_WINDOW} if WINDOWS else {}
 
 
+_NOVO_CONSOLE, _SOLTO, _SEM_JANELA = 0x10, 0x08, 0x08000000  # CREATE_NEW_CONSOLE, DETACHED_PROCESS, CREATE_NO_WINDOW
+
+
+def _com_janela_escondida(args: tuple, kw: dict) -> dict:
+    """Os argumentos de um Popen com CREATE_NO_WINDOW, a menos que a chamada já escolha o próprio console."""
+    if len(args) > 13:  # creationflags veio pela posição: a chamada já decidiu
+        return kw
+    flags = kw.get("creationflags") or 0
+    if flags & (_NOVO_CONSOLE | _SOLTO | _SEM_JANELA):
+        return kw
+    return {**kw, "creationflags": flags | _SEM_JANELA}
+
+
+def esconder_janelas() -> None:
+    """Sem terminal (o Estúdio e as rotinas rodam no pythonw), cada programa de terminal que o app chama (node,
+    ffmpeg, powershell, python) ganhava uma janela nova do Windows, e uma rotina piscava várias na tela. Num processo
+    sem console, todo processo filho sai com CREATE_NO_WINDOW. Com terminal (dark.ps1) ou console escondido nada muda:
+    os filhos usam o mesmo console e a saída continua nele."""
+    if not WINDOWS or getattr(subprocess.Popen, "_sem_janela", False):
+        return
+    import ctypes
+    try:
+        if ctypes.windll.kernel32.GetConsoleCP():  # tem console (visível ou escondido): os filhos usam o mesmo
+            return
+    except (AttributeError, OSError):
+        return
+    original = subprocess.Popen.__init__
+
+    def __init__(self, *args, **kw):
+        original(self, *args, **_com_janela_escondida(args, kw))
+
+    setattr(subprocess.Popen, "__init__", __init__)
+    setattr(subprocess.Popen, "_sem_janela", True)
+
+
 def em_segundo_plano() -> dict:
     """Argumentos para um processo que continua depois que este fecha, sem janela."""
     if WINDOWS:
