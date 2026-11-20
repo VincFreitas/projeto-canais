@@ -24,11 +24,11 @@ Fábrica de canais de vídeo sem rosto que **roda no seu próprio PC**. Pesquisa
 
 <br clear="left">
 
-| Números reais (18 de novembro de 2026, pelas APIs oficiais) | YouTube | Instagram |
+| Números reais (19 de novembro de 2026, pelas APIs oficiais) | YouTube | Instagram |
 |---|---|---|
-| Vídeos publicados | 27 | 27 |
-| Visualizações | 18.757 | 7.706 |
-| Curtidas | 612 | 141 |
+| Vídeos publicados | 28 | 28 |
+| Visualizações | 18.957 | 8.033 |
+| Curtidas | 617 | 145 |
 | Inscritos e seguidores | 48 | 7 |
 | Vídeo mais visto | 1.371 visualizações | 1.274 visualizações |
 
